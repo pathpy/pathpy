@@ -47,7 +47,8 @@ Dependencies
 
 Pathpy supports Python 3.7+.
 
-Installation requires [numpy](http://www.numpy.org/) and [scipy](https://www.scipy.org/). Some functions will optionally use [statsmodels](https://www.statsmodels.org/) if it is installed.
+Installation requires [numpy](http://www.numpy.org/) and [scipy](https://www.scipy.org/).
+<!-- Some functions will optionally use [statsmodels](https://www.statsmodels.org/) if it is installed.  -->
 
 
 Installation
