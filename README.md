@@ -1,3 +1,5 @@
+![pathpy under construction](doc/_static/construction.png)
+
 pathpy: path data analysis
 ==========================
 
