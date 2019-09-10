@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2019-09-09 14:29 juergen>
+# Time-stamp: <Tue 2019-09-10 11:51 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -25,7 +25,8 @@ WeightType = TypeVar('WeightType', str, None, float, int)
 class Edge(object):
     """Base class for an edge."""
 
-    def __init__(self, id: str, v: NodeType, w: NodeType, **kwargs: Any) -> None:
+    def __init__(self, id: str, v: NodeType, w: NodeType,
+                 directed: bool = True, **kwargs: Any) -> None:
         """Initialize the edge object."""
 
         # Class of the Node object
@@ -41,6 +42,9 @@ class Edge(object):
 
         # node id for node w
         self._w = w
+
+        # inidcator whether the edge is directed or undirected
+        self._directed = directed
 
         # dictionary for edge attributes
         self.attributes: dict = {}
@@ -208,6 +212,11 @@ class Edge(object):
 
         """Return the target node w of the edge"""
         return self._w
+
+    @property
+    def directed(self) -> bool:
+        """Return if the edge is directed (True) or undirected (False)."""
+        return self._directed
 
     def update(self, **kwargs: Any) -> None:
         """Update the attributes of the edge.

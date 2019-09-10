@@ -3,12 +3,12 @@
 # =============================================================================
 # File      : node.py -- Base class for a node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2019-09-09 16:35 juergen>
+# Time-stamp: <Tue 2019-09-10 16:27 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any
+from typing import Any, Set
 from copy import deepcopy
 
 from .. import logger
@@ -40,8 +40,8 @@ class Node(object):
         self.attributes.update(kwargs)
 
         # set of incomming and outgoing edges
-        self.incoming: set = set()
         self.outgoing: set = set()
+        self.incoming: set = set()
 
     def __repr__(self) -> str:
         """Return the description of the node.
@@ -54,7 +54,8 @@ class Node(object):
 
         Example
         -------
-        Genarate new node
+        Genarate new node.
+
         >>> from pathpy import Node
         >>> u = Node('u')
         >>> print(u)
@@ -63,7 +64,7 @@ class Node(object):
         return '{} {}'.format(self._desc(), self.id)
 
     def _desc(self) -> str:
-        """Return a string *Node *."""
+        """Return a string *Node*."""
         return '{}'.format(self.__class__.__name__)
 
     def __setitem__(self, key: Any, value: Any) -> None:
@@ -150,6 +151,18 @@ class Node(object):
 
         """
         return self._id
+
+    @property
+    def adjacent_edges(self) -> Set[str]:
+        """Returns the set of adjacent edges.
+
+        Returns
+        -------
+        Set[str]
+            Returns a set of adjacent edge ids as string values.
+            I.e. all edges that share this node.
+        """
+        return self.incoming.union(self.outgoing)
 
     def update(self, **kwargs: Any) -> None:
         """Update the attributes of the node.

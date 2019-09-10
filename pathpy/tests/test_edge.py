@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_edge.py -- Test environment for the Edge class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2019-09-09 14:28 juergen>
+# Time-stamp: <Tue 2019-09-10 09:47 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -14,7 +14,7 @@ from pathpy import Edge, Node
 
 
 def test_id():
-    """Test the id assigment"""
+    """Test the id assignment."""
 
     vw = Edge('vw', 'v', 'w')
 
@@ -36,7 +36,7 @@ def test_id():
 
 
 def test_setitem():
-    """Test the assigment of attributes."""
+    """Test the assignment of attributes."""
 
     vw = Edge('vw', 'v', 'w')
     vw['capacity'] = 5.5
