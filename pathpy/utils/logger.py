@@ -3,24 +3,28 @@
 # =============================================================================
 # File      : logger.py -- Module to log output information
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2019-09-09 10:34 juergen>
+# Time-stamp: <Tue 2019-09-10 11:14 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 
 import logging
+from .. import config
 
-logging_level = 'INFO'
+# check if logging is enabled in the config file
+if config.logging.enabled:
 
-if True:
     # generate base config for logging
     logging.basicConfig()
+
+# check if logger should write to the terminal
+if config.logging.verbose:
 
     # create stream handler
     console = logging.StreamHandler()
 
     # set level according to the config file
-    console.setLevel(logging._nameToLevel[logging_level])
+    console.setLevel(logging._nameToLevel[config.logging.level])
 
     # set a format which is simpler for console use
     formatter = logging.Formatter('[%(asctime)s: %(levelname)-5s] %(message)s',
@@ -47,7 +51,7 @@ def logger(name, level=None):
 
     # if no level is defined the config level will be used
     if level is None:
-        logger.setLevel(logging._nameToLevel[logging_level])
+        logger.setLevel(logging._nameToLevel[config.logging.level])
     else:
         logger.setLevel(logging._nameToLevel[level])
     return logger
