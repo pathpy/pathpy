@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2019-09-10 16:56 juergen>
+# Time-stamp: <Tue 2019-09-17 14:14 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -84,6 +84,24 @@ def test_directed():
 def test_shape():
     """Test the shape of the network."""
     pass
+
+
+def test_node_to_edges_map(net):
+    """Test to map node to edges."""
+
+    n2e = net.node_to_edges_map
+
+    assert len(n2e[('a', 'b')]) == 2
+    assert 'ab' in n2e[('a', 'b')] and 'ab2' in n2e[('a', 'b')]
+
+
+def test_edge_to_nodes_map(net):
+    """Test to map edge to nodes."""
+
+    e2n = net.edge_to_nodes_map
+
+    assert e2n['ab'] == ('a', 'b')
+
 
 # Test methods
 # ------------
@@ -187,7 +205,13 @@ def test_add_edge():
 
 def test_add_edges_from():
     """Test assigning edges form a list."""
-    pass
+    net = Network()
+    ab = Edge('ab', 'a', 'b')
+
+    net.add_edges_from([ab, ('bc', 'b', 'c')])
+
+    assert net.number_of_edges() == 2
+    assert net.edges['ab'].id == 'ab'
 
 
 def test_remove_node(net):
@@ -199,12 +223,7 @@ def test_remove_node(net):
     # number of edges sharing the node b
     n2e = len(net.nodes['b'].adjacent_edges)
 
-    print(net.nodes)
-    print(net.edges)
     net.remove_node('b')
-
-    print(net.nodes)
-    print(net.edges)
 
     assert net.number_of_nodes() == non - 1
     assert net.number_of_edges() == noe - n2e
@@ -223,20 +242,47 @@ def test_remove_nodes_from(net):
     b2e = net.nodes['b'].adjacent_edges
     n2e = len(a2e.union(b2e))
 
-    # net.remove_nodes_from(['a', 'b'])
+    net.remove_nodes_from(['a', 'b'])
 
-    # assert net.number_of_nodes() == non - 2
-    # assert net.number_of_edges() == noe - n2e
+    assert net.number_of_nodes() == non - 2
+    assert net.number_of_edges() == noe - n2e
 
 
-def test_add_edges_from():
-    net = Network()
-    ab = Edge('ab', 'a', 'b')
+def test_remove_edge(net):
+    """Test to remve a single edge."""
 
-    net.add_edges_from([ab, ('bc', 'b', 'c')])
+    noe = net.number_of_edges()
 
-    assert net.number_of_edges() == 2
-    assert net.edges['ab'].id == 'ab'
+    net.remove_edge('cd')
+
+    assert net.number_of_edges() == noe - 1
+
+    with pytest.raises(ValueError):
+        net.remove_edge('a', 'b')
+
+    n2e = net.node_to_edges_map
+
+    assert len(n2e[('a', 'b')]) == 2
+    assert 'ab' in n2e[('a', 'b')] and 'ab2' in n2e[('a', 'b')]
+
+    net.remove_edge('ab')
+    n2e = net.node_to_edges_map
+
+    assert len(n2e[('a', 'b')]) == 1
+    assert 'ab' not in n2e[('a', 'b')] and 'ab2' in n2e[('a', 'b')]
+    assert net.number_of_edges() == noe - 2
+
+    net.remove_edge('a', 'b')
+    assert net.number_of_edges() == noe - 3
+
+
+def test_remove_edges_from(net):
+    """Test to remove edges from a list."""
+    noe = net.number_of_edges()
+
+    net.remove_edges_from(['ab', 'ab2', ('b', 'c')])
+
+    assert net.number_of_edges() == noe - 3
 
 # =============================================================================
 # eof

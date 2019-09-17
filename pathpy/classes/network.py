@@ -3,16 +3,16 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2019-09-10 16:55 juergen>
+# Time-stamp: <Tue 2019-09-17 14:19 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, TypeVar, List
+from typing import Any, TypeVar, List, Dict, Tuple
 # from copy import deepcopy
 from collections import defaultdict
 
-from .. import logger  # , config
+from .. import logger, config
 from . import Node
 from . import Edge
 
@@ -45,6 +45,12 @@ class Network(object):
 
         # a dictionary containing edge objects
         self.edges = defaultdict(dict)
+
+        # a dictionary containing tuple of node ids and edges
+        self._node_to_edges_map = defaultdict(list)
+
+        # a dictionary containing edge ids and node ids
+        self._edge_to_nodes_map = defaultdict(tuple)
 
         # Classes of the Node and Edge objects
         # TODO: Probably there is a better solution to have different Node and
@@ -215,6 +221,53 @@ class Network(object):
         """Return if the network is directed (True) or undirected (False)."""
         return self._directed
 
+    @property
+    def node_to_edges_map(self) -> Dict(List(str)):
+        """Returns a a dictionary which maps the nodes to associated edges.
+
+        Returns
+        -------
+        Dict(List(str))
+            Returns a dict where the key is a tuple of node ids and the values
+            are lists of edges which are associated with these nodes.
+
+        Example
+        -------
+        Generate simple network.
+
+        >>> from pathpy import Network
+        >>> net = Network()
+        >>> net.add_edges_from([('ab1','a','b'),
+        >>>                     ('ab2','a','b'),
+        >>>                     ('bc','b','c')])
+        >>> net.node_to_edges_map
+
+
+        """
+        return self._node_to_edges_map
+
+    @property
+    def edge_to_nodes_map(self) -> Dict(Tuple(str, str)):
+        """Returns a a dictionary which maps the edges to associated nodes.
+
+        Returns
+        -------
+        Dict(Tuple(str,str))
+           Returns a dict where the key is the edge id and the values
+           are tuples of associated node ids.
+
+        Example
+        -------
+        Generate simple network
+
+        >>> from pathpy import Network
+        >>> net = Network()
+        >>> net.add_edges_from([('ab','a','b'),('bc','b','c')])
+        >>> net.edge_to_nodes_map
+
+        """
+        return self._edge_to_nodes_map
+
     def update(self, **kwargs: Any) -> None:
         """Update the attributes of the network.
 
@@ -373,15 +426,16 @@ class Network(object):
         Remove node form the network
 
         >>> net.remove_node('b')
+
         """
         if n in self.nodes:
             # get list of adjacent edges
             _edges = self.nodes[n].adjacent_edges
+
             # remove edges
-            # BUG when multiple nodes are removed
-            # TODO exchange del self.edges[e] with self.remove_edge(e)
             for e in _edges:
-                del self.edges[e]
+                self.remove_edge(e)
+
             # remove node
             del self.nodes[n]
 
@@ -413,9 +467,110 @@ class Network(object):
         """
         return n in self.nodes
 
-    def add_edge(self, *args: Any,
-                 separator: str = '-',
-                 **kwargs: Any) -> None:
+    def _check_edge(self, *args: Any, **kwargs: Any) -> None:
+        """Helper function to check if edge is in the right format."""
+
+        # initializing variables
+        e: EdgeType = None
+        v: NodeType = None
+        w: NodeType = None
+
+        _e = {'id': None, 'object': None, 'given': False}
+        _v = {'id': None, 'object': None, 'given': False}
+        _w = {'id': None, 'object': None, 'given': False}
+
+        # get the right variables
+        if len(args) == 3:
+            e, v, w = args
+
+        # check if only nodes are given
+        elif (len(args) == 2
+              and not isinstance(args[0], self.EdgeClass)
+              and not isinstance(args[1], self.EdgeClass)):
+            v, w = args
+
+        # if only on variable is given
+        elif len(args) == 1:
+            e = args[0]
+
+        # if otherwise an error will be raised
+        else:
+            log.error('Edge parameters are not correct defined!')
+            raise AttributeError
+
+        # check if edge e is given
+        if e is not None:
+
+            # check the type of the edge
+            if isinstance(e, self.EdgeClass):
+
+                # if edge is an Edge object use the id value
+                _e['id'] = e.id
+
+                # assigne the Edge object
+                _e['object'] = e
+
+            else:
+                # otherwise use the given id
+                _e['id'] = str(e)
+
+        # check if node v is given
+        if v is not None:
+
+            # check the type of the node
+            if isinstance(v, self.NodeClass):
+
+                # if node is a Node object use the id value
+                _v['id'] = v.id
+
+                # assigne the Node object
+                _v['object'] = v
+
+            else:
+                # otherwise use the given id
+                _v['id'] = str(v)
+
+        # check if node w is given
+        if w is not None:
+
+            # check the type of the node
+            if isinstance(w, self.NodeClass):
+
+                # if node is a Node object use the id value
+                _w['id'] = w.id
+
+                # assigne the Node object
+                _w['object'] = w
+
+            else:
+                # otherwise use the given id
+                _w['id'] = str(w)
+
+        # check if the Edge object is already in the network
+        if _e['id'] in self.edges:
+            _e['given'] = True
+
+        # check if the Node object is already in the network
+        if _v['id'] in self.nodes:
+            _v['given'] = True
+
+        # check if the Node object is already in the network
+        if _w['id'] in self.nodes:
+            _w['given'] = True
+
+        # if edge is give does it have the same nodes?
+        if _e['given'] and _v['id'] is None and _w['id'] is None:
+            _v['id'] = self.edges[_e['id']].v.id
+            _w['id'] = self.edges[_e['id']].w.id
+            _v['given'] = True
+            _w['given'] = True
+
+        # TODO: Make some additional sanity checks
+        # - if edge is give does it have the same nodes?
+        # - if objects are given is there any diffencse between them?
+        return _e, _v, _w
+
+    def add_edge(self, *args: Any, **kwargs: Any) -> None:
         """Add an edge e between node v and node w.
 
         With the :py:meth:`add_edge` an :py:class:`Edge` object is added to the
@@ -468,7 +623,7 @@ class Network(object):
             a :py:class:`Node` object, it will be added to the network. If the
             node is not defined an :py:class:`Edge` object has to be given.
 
-        separator : str, optional (default = '-')
+        separator : str, optional, config (default = '-')
             If no edge id is provide, an edge id is generated based on the node
             ids, Thereby the edge id is the combination of the node ids
             separated via the `separator`. e.g. an edge between nodes 'v' and
@@ -520,83 +675,74 @@ class Network(object):
         be added to the network, instead a warning will be printed.
 
         """
-        # initializing variables
-        e: EdgeType = None
-        v: NodeType = None
-        w: NodeType = None
+        # use separator if given otherwise use config default value
+        separator: str = kwargs.get('separator', config.network.separator)
 
-        # get the right variables
-        if len(args) == 3:
-            e, v, w = args
+        # check the inputs
+        # returns a dict with
+        # variable = {'id':str, 'object':class, 'given':bool}
+        e, v, w = self._check_edge(*args, **kwargs)
 
-        # check if only nodes are given
-        elif (len(args) == 2
-              and not isinstance(args[0], self.EdgeClass)
-              and not isinstance(args[1], self.EdgeClass)):
-            v, w = args
+        # if edge is an object
+        if e['object'] is not None:
 
-        # if only on variable is given
-        elif len(args) == 1:
-            e = args[0]
-
-        # if otherwise an error will be raised
-        else:
-            log.error('Parameters are not correct defined!')
-            raise AttributeError
-
-        # check if e is not an Edge object
-        if not isinstance(e, self.EdgeClass):
-
-            # check if nodes are given
-            if v is not None and w is not None:
-
-                # create temporal list of nodes
-                _n: List[List[str, NodeType]] = []
-
-                # iterate trough the nodes
-                for n in [v, w]:
-
-                    # check the type of the node
-                    if isinstance(n, self.NodeClass):
-
-                        # if node is a Node object use the id value
-                        _id = n.id
-                    else:
-                        # otherwise use the given id
-                        _id = n
-
-                    # if node is already defined use this node
-                    if _id in self.nodes:
-                        _n.append([_id, self.nodes[_id]])
-                    else:
-                        _n.append([_id, n])
-
-                # generate edge id based on nodes if no id is given
-                if e is None:
-                    e = '{}{}{}'.format(_n[0][0], separator, _n[1][0])
-                # create temporal edge
-                _edge = self.EdgeClass(e, _n[0][1], _n[1][1],
-                                       directed=self.directed,
-                                       **kwargs)
-            else:
-                log.error('No nodes are defined '
-                          'for the new edge "{}!"'.format(e))
-                raise AttributeError
-
-        # if edge is an Edge object
-        else:
             # check if direction of edge and network is not given
-            if e.directed != self.directed:
+            if e['object'].directed != self.directed:
                 _msg = {True: 'directed', False: 'undirected'}
                 log.error('The {} edge "{}" cannot be added to the '
-                          '{} network!'.format(_msg[e.directed], e.id,
+                          '{} network!'.format(_msg[e['object'].directed],
+                                               e['id'],
                                                _msg[self.directed]))
                 raise ValueError
+
             # create temporal edge
-            _edge = e
+            _edge = e['object']
 
             # update attributes with new given attributes
             _edge.update(**kwargs)
+
+        # if edge is not an object but nodes are given:
+        elif (e['object'] is None and v['id'] is not None
+                and v['id'] is not None):
+
+            # generate edge id based on nodes if no id is given
+            if e['id'] is None:
+                e['id'] = '{}{}{}'.format(v['id'], separator, w['id'])
+
+            # if node is already defined use this node
+            if v['given']:
+                _v = self.nodes[v['id']]
+
+            # otherwise if an object is given use this
+            elif v['object'] is not None:
+                _v = v['object']
+
+            # otherwise use the id and create a new node
+            else:
+                _v = v['id']
+
+            # if node is already defined use this node
+            if w['given']:
+                _w = self.nodes[w['id']]
+
+            # otherwise if an object is given use this
+            elif w['object'] is not None:
+                _w = w['object']
+
+            # otherwise use the id and create a new node
+            else:
+                _w = w['id']
+
+            # create temporal edge
+            _edge = self.EdgeClass(e['id'], _v, _w,
+                                   directed=self.directed,
+                                   **kwargs)
+
+        # Raise error if no proper edge definition is given
+        else:
+            # TODO: make error more spesific.
+            log.error('Edge parameters are not correct defined!')
+            raise AttributeError
 
         # check if node v is already in the network
         if _edge.v.id not in self.nodes:
@@ -621,12 +767,16 @@ class Network(object):
                 self.nodes[_edge.v.id].incoming.add(_edge.id)
                 self.nodes[_edge.w.id].outgoing.add(_edge.id)
 
+            # update maps
+            self._edge_to_nodes_map[_edge.id] = (_edge.v.id, _edge.w.id)
+            self._node_to_edges_map[(_edge.v.id, _edge.w.id)].append(_edge.id)
+
         else:
             log.warn('The edge with id: {} is already part of the'
                      'network. Please, check network consistency. The edge id'
                      ' must be unique.'.format(_edge.id))
 
-    def add_edges_from(self, edges: list, separator: str = '-', **kwargs):
+    def add_edges_from(self, edges: list, **kwargs):
         """Add multiple edges from a list.
 
         Parameters
@@ -636,6 +786,12 @@ class Network(object):
             objects. Every edge within the list should have a unique id.
             The id is converted to a string value and is used as a key value for
             all dict which saving node objects.
+
+        separator : str, optional, config (default = '-')
+            If no edge id is provide, an edge id is generated based on the node
+            ids, Thereby the edge id is the combination of the node ids
+            separated via the `separator`. e.g. an edge between nodes 'v' and
+            'w' is generated, with edge id 'v-w'.
 
         attr : keyword arguments, optional (default= no attributes)
             Attributes to add to all edges in the list as key=value pairs.
@@ -657,11 +813,131 @@ class Network(object):
         be added to the network, instead a warning will be printed.
 
         """
+        # use separator if given otherwise use config default value
+        separator: str = kwargs.get('separator', config.network.separator)
+
         for _edge in edges:
             if not isinstance(_edge, self.EdgeClass):
                 self.add_edge(*_edge, separator=separator, **kwargs)
             else:
                 self.add_edge(_edge, separator=separator, **kwargs)
+
+    def remove_edge(self, *args: Any) -> None:
+        """Remove the edge e between v and w.
+
+        Parameters
+        ----------
+        e : edge id or tuple of node ids
+            The parameter e is the identifier (id) for the edge. It can be the
+            edge id, or a tuple of node ids of the associated nodes.
+
+        Note
+        ----
+        If the tuple of node ids is used to remove edges, it is possible that
+        multiple edges might be effected. In this situation an error will be
+        raised and instead of the tuple the actual edge id should be used.
+
+        """
+        # initializing variables
+        _edge: EdgeType = None
+
+        # check the inputs
+        # returns a dict with
+        # variable = {'id':str, 'object':class, 'given':bool}
+        e, v, w = self._check_edge(*args)
+
+        # check if the edge is in the network
+        if not e['given'] and not v['given'] and not w['given']:
+            if e['id'] is not None:
+                _edge = e['id']
+            else:
+                _edge = '({},{})'.format(v['id'], w['id'])
+            log.warning('The edge "{}" could not be removed, because '
+                        'this does not exist in the network.'.format(_edge))
+            return
+
+        # check if e exists in the network
+        elif e['given']:
+            _edge = self.edges[e['id']]
+
+        # check if edge is given in terms of (v,w):
+        elif v['given'] and w['given']:
+            _edges = self.node_to_edges_map[(v['id'], w['id'])]
+
+            # raise error if multiple edges are defined between v and w
+            if len(_edges) > 1:
+                log.error('From node "{}" to node "{}", {} edges exist with'
+                          ' ids: {}! Please, us the correct edge id instead of'
+                          ' the node ids!'.format(v['id'], w['id'],
+                                                  len(_edges),
+                                                  ', '.join(_edges)))
+                raise ValueError
+
+            # otherwise take the edge id
+            else:
+                _edge = self.edges[_edges[0]]
+
+        # raise error if edge is not properly defined
+        else:
+            log.error('Parameters are not correct defined!')
+            raise AttributeError
+
+        # if edge is in the network, start removing it
+        if _edge.id in self.edges:
+
+            # remove edge from heads and tails counter of the nodes
+            self.nodes[_edge.v.id].outgoing.remove(_edge.id)
+            self.nodes[_edge.w.id].incoming.remove(_edge.id)
+
+            # TODO: This is probabily not needed.
+            if not self.directed:
+                self.nodes[_edge.v.id].incoming.remove(_edge.id)
+                self.nodes[_edge.w.id].outgoing.remove(_edge.id)
+
+            # update maps
+            del self._edge_to_nodes_map[_edge.id]
+            self._node_to_edges_map[(_edge.v.id, _edge.w.id)].remove(_edge.id)
+
+            # delete the edge
+            del self.edges[_edge.id]
+
+    def remove_edges_from(self, edges: List[str]) -> None:
+        """Remove multiple edges given in a list of nodes.
+
+        Parameters
+        ----------
+        nodes : list of edge ids as str
+            The parameter nodes must be a list with node ids as strings.
+
+        """
+        for e in edges:
+            if isinstance(e, tuple):
+                self.remove_edge(*e)
+            else:
+                self.remove_edge(e)
+
+    def has_edge(self, *args: Any) -> None:
+        """Return True if the edge e or (u,v) is in the network.
+
+        Parameters
+        ----------
+        e : edge id or tuple of node ids
+            The parameter e is the identifier (id) for the edge, or a tuple
+            (u,v) describing the associated node ids.
+
+        Returns
+        -------
+        has_edge : Boole
+            Returns True if the network has an edge e otherwise False.
+
+        Note
+        ----
+        If the tuple of node ids is used to find the edge, it is possible that
+        multiple edges might be effected. In this situation a warning will be
+        raised additionally to the has_edge.
+
+        """
+        pass
 # =============================================================================
 # eof
 #
