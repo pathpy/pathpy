@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : conf.py -- Configuration file for the documentation
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2019-09-25 11:33 juergen>
+# Time-stamp: <Wed 2019-09-25 14:33 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -59,6 +59,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
+    'sphinx.ext.todo',
     'matplotlib.sphinxext.plot_directive',
     'gallery_generator',
     'numpydoc',
@@ -67,6 +68,10 @@ extensions = [
 # Generate the API documentation when building
 autosummary_generate = True
 numpydoc_show_class_members = False
+
+# Enable todo output
+todo_include_todos = True
+
 
 # Include the example source for plots in API docs
 plot_include_source = True
