@@ -16,3 +16,13 @@ Base classes
      Node
      Edge
      Network
+
+.. _algorithms_api:
+
+Algorithms
+----------
+
+.. autosummary::
+    :toctree: generated
+
+     adjacency_matrix

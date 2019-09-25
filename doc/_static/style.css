@@ -47,7 +47,7 @@ dt:target, span.highlighted {
 }
 
 ul {
-    padding-left: 20px !important;  
+    padding-left: 20px !important;
 }
 
 ul.dropdown-menu {
@@ -61,32 +61,32 @@ ul.dropdown-menu {
 }
 
 /* From https://github.com/twbs/bootstrap/issues/1768 */
-*[id]:before { 
-  display: block; 
-  content: " "; 
-  margin-top: -60px; 
-  height: 60px; 
-  visibility: hidden; 
+*[id]:before {
+  display: block;
+  content: " ";
+  margin-top: -60px;
+  height: 60px;
+  visibility: hidden;
 }
 
-table {
-    /*Uncomment to center tables horizontally*/
-    /* margin-left: auto; */
-    /* margin-right: auto; */
-    border: none;
-    border-collapse: collapse;
-    border-spacing: 0;
-    font-size: 12px;
-    table-layout: fixed;
-}
+/* table { */
+/*     /\*Uncomment to center tables horizontally*\/ */
+/*     /\* margin-left: auto; *\/ */
+/*     /\* margin-right: auto; *\/ */
+/*     border: none; */
+/*     border-collapse: collapse; */
+/*     border-spacing: 0; */
+/*     font-size: 12px; */
+/*     table-layout: fixed; */
+/* } */
 
-thead {
-    border-bottom: 1px solid;
-    vertical-align: bottom;
-}
+/* thead { */
+/*     border-bottom: 1px solid; */
+/*     vertical-align: bottom; */
+/* } */
 
 tr, th, td {
-    text-align: right;
+    text-align: left;
     vertical-align: middle;
     padding: 0.5em 0.5em;
     line-height: normal;
@@ -95,17 +95,17 @@ tr, th, td {
     border: none;
 }
 
-th {
-    font-weight: bold;
-}
+/* th { */
+/*     font-weight: bold; */
+/* } */
 
-tbody tr:nth-child(odd) {
-    background: #f5f5f5;
-}
+/* tbody tr:nth-child(odd) { */
+/*     background: #f5f5f5; */
+/* } */
 
-tbody tr:hover {
-    background: rgba(66, 165, 245, 0.2);
-}
+/* tbody tr:hover { */
+/*     background: rgba(66, 165, 245, 0.2); */
+/* } */
 
 .navbar-brand {
   padding: 10px; /* firefox bug fix */

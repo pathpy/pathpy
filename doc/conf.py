@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : conf.py -- Configuration file for the documentation
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2019-08-19 11:10 juergen>
+# Time-stamp: <Wed 2019-09-25 11:33 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -179,8 +179,8 @@ htmlhelp_basename = 'pathpydoc'
 
 
 def setup(app):
-    app.add_javascript('copybutton.js')
     app.add_stylesheet('style.css')
+    app.add_javascript('copybutton.js')
 
 
 # -- Intersphinx ------------------------------------------------
