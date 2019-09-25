@@ -3,11 +3,12 @@
 # =============================================================================
 # File      : __init__.py -- Initialize network and path algorithms
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2019-09-03 10:21 juergen>
+# Time-stamp: <Mon 2019-09-23 14:58 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 
+from .adjacency_matrix import adjacency_matrix
 
 # =============================================================================
 # eof

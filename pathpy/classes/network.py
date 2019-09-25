@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2019-09-17 14:19 juergen>
+# Time-stamp: <Wed 2019-09-25 14:10 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -15,6 +15,7 @@ from collections import defaultdict
 from .. import logger, config
 from . import Node
 from . import Edge
+from .base import DefaultNetwork
 
 # create logger for the Edge class
 log = logger(__name__)
@@ -22,10 +23,9 @@ log = logger(__name__)
 # create multi type for Nodes
 NodeType = TypeVar('NodeType', Node, str)
 EdgeType = TypeVar('EdgeType', Edge, str)
-WeightType = TypeVar('WeightType', str, None, float, int)
 
 
-class Network(object):
+class Network(DefaultNetwork):
     """Base class for a network."""
 
     def __init__(self, directed: bool = True, **kwargs: Any) -> None:
@@ -60,6 +60,9 @@ class Network(object):
 
         pass
 
+    # import external functions
+    from ..algorithms.adjacency_matrix import adjacency_matrix
+
     def _node_class(self) -> None:
         """Internal function to assign different Node classes."""
         self.NodeClass = Node
@@ -77,8 +80,8 @@ class Network(object):
             Returns the description of the network with the class, the name (if
             deffined) and the assigned system id.
 
-        Example
-        -------
+        Examples
+        --------
         Genarate new network
 
         >>> from pathpy import Network
@@ -107,8 +110,8 @@ class Network(object):
         value: Any
             A value i.e. attribute which is associated with the node.
 
-        Example
-        -------
+        Examples
+        --------
         Generate new network.
 
         >>> from pathpy import Network
@@ -140,8 +143,8 @@ class Network(object):
         KeyError
             If no attribute with the assiciated key is defined.
 
-        Example
-        -------
+        Examples
+        --------
         Generate new network.
 
         >>> from pathpy import Network
@@ -170,14 +173,14 @@ class Network(object):
         the network do not have to be unique like an id. Therefore, the name of
         the network can be changed.
 
-        Retuns
-        ------
+        Returns
+        -------
         str
             Returns the name of the network (if defined), otherwise an empty
             string is returnd.
 
-        Example
-        -------
+        Examples
+        --------
         Create an empty network structure with no nodes and no edges.
 
         >>> from pathpy import Network
@@ -231,8 +234,8 @@ class Network(object):
             Returns a dict where the key is a tuple of node ids and the values
             are lists of edges which are associated with these nodes.
 
-        Example
-        -------
+        Examples
+        --------
         Generate simple network.
 
         >>> from pathpy import Network
@@ -256,8 +259,8 @@ class Network(object):
            Returns a dict where the key is the edge id and the values
            are tuples of associated node ids.
 
-        Example
-        -------
+        Examples
+        --------
         Generate simple network
 
         >>> from pathpy import Network
@@ -295,8 +298,8 @@ class Network(object):
         int
             Returns the number of nodes in the network.
 
-        Example
-        -------
+        Examples
+        --------
 
         TODO: Make example
 
@@ -311,8 +314,8 @@ class Network(object):
         int
             Returns the number of edges in the network.
 
-        Example
-        -------
+        Examples
+        --------
 
         TODO: Make example
 
@@ -335,8 +338,8 @@ class Network(object):
         kwargs : Any, optional (default = {})
             Attributes assigned to the node as key=value pairs.
 
-        Example
-        -------
+        Examples
+        --------
         Adding a singe new node to the network.
 
         >>> from pathpy import Node, Network
@@ -348,8 +351,8 @@ class Network(object):
         >>> w = Node('w',color='green')
         >>> net.add_node(w)
 
-        Note
-        ----
+        Notes
+        -----
         If the node is already defined in the network. The new node will not
         be added to the network, instead a warning will be printed.
 
@@ -385,8 +388,8 @@ class Network(object):
         kwargs : Any, optional (default = {})
             Attributes assigned to all nodes in the list as key=value pairs.
 
-        Example
-        -------
+        Examples
+        --------
         Adding a multiple nodes to the network.
 
         >>> from pathpy import Node, Network
@@ -394,8 +397,8 @@ class Network(object):
         >>> u = Node('u')
         >>> net.add_nodes_from([u,'v','w'],shape='circle')
 
-        Note
-        ----
+        Notes
+        -----
         If the node is already defined in the network. The new node will not
         be added to the network, instead a warning will be printed.
 
@@ -412,8 +415,8 @@ class Network(object):
             The parameter `n` is the node identifier (id) as string for the
              node.
 
-        Example
-        -------
+        Examples
+        --------
 
         Generate a simple network.
 
@@ -447,6 +450,21 @@ class Network(object):
         nodes : list of node ids as str
             The parameter nodes must be a list with node ids as strings.
 
+        Examples
+        --------
+
+        Generate a simple network.
+
+        >>> from pathpy import Network
+        >>> net = Network()
+        >>> net.add_edge('ab','a','b')
+        >>> net.add_edge('bc','b','c')
+        >>> net.add_edge('ac','a','c')
+
+        Remove nodes form the network
+
+        >>> net.remove_nodes_from(['a', 'b'])
+
         """
         for n in nodes:
             self.remove_node(n)
@@ -464,11 +482,36 @@ class Network(object):
         bool
             Returns True if the network has a node `n` otherwise False.
 
+        Examples
+        --------
+
+        Generate a simple network.
+
+        >>> from pathpy import Network
+        >>> net = Network()
+        >>> net.add_nodes_from(['a','b','c'])
+
+        Check if network has specific nodes
+
+        >>> net.has_node('a')
+
+        >>> net.has_node('u')
+
         """
         return n in self.nodes
 
-    def _check_edge(self, *args: Any, **kwargs: Any) -> None:
-        """Helper function to check if edge is in the right format."""
+    def _check_edge(self, *args: Any, **kwargs: Any) -> Tuple(Dict):
+        """Helper function to check if edge is in the right format.
+
+        Returns
+        -------
+        Tuple(Dict)
+            Returns a tuple of dictionaries. A dictionary correspond to either
+            a edge or a node, and contain the node id (key: `id`) the
+            :py:class:`Edge` or :py:class:`Node` object (key: `object`) and if
+            the object is already in the network (key: `given`).
+
+        """
 
         # initializing variables
         e: EdgeType = None
@@ -564,6 +607,18 @@ class Network(object):
             _w['id'] = self.edges[_e['id']].w.id
             _v['given'] = True
             _w['given'] = True
+        # if no edge is given but two nodes
+        elif _e['id'] is None and _v['given'] and _w['given']:
+
+            # check if edge is associated with the nodes
+            _edges = self.node_to_edges_map[(_v['id'], _w['id'])]
+
+            # TODO: find solution for multiedges
+            if len(_edges) > 1:
+                _e['given'] = True
+            elif len(_edges) == 1:
+                _e['given'] = True
+                _e['id'] = _edges[0]
 
         # TODO: Make some additional sanity checks
         # - if edge is give does it have the same nodes?
@@ -576,21 +631,24 @@ class Network(object):
         With the :py:meth:`add_edge` an :py:class:`Edge` object is added to the
         network. Thereby, mutliple input options are available.
 
-        1. `add_edge(e, v, w)`: The first way to add an edge is via the triplet
-            edge `e`, source node `v` and target node `w`. Thereby, the `e` is
-            the string value of the edge id and `v` and `w` are either the
-            string values of the node ids or :py:class:`Node` objects.
+        1. `add_edge(e, v, w)`:
+            The first way to add an edge is via the triplet edge `e`, source
+            node `v` and target node `w`. Thereby, the `e` is the string value
+            of the edge id and `v` and `w` are either the string values of the
+            node ids or :py:class:`Node` objects.
 
-        2. `add_edge(v, w)`: The second way to add an edge is via a tuple of
-            source node `v` and target node `w`. Thereby, `v` and `w` are
-            either the string values of the node ids or :py:class:`Node`
-            objects. Thereby the edge id is the combination of the node ids
-            separated via the `separator`. e.g. an edge between nodes 'v' and
-            'w' is generated, with edge id 'v-w'.
+        2. `add_edge(v, w)`:
+            The second way to add an edge is via a tuple of source node `v` and
+            target node `w`. Thereby, `v` and `w` are either the string values
+            of the node ids or :py:class:`Node` objects. Thereby the edge id is
+            the combination of the node ids separated via the
+            `separator`. e.g. an edge between nodes 'v' and 'w' is generated,
+            with edge id 'v-w'.
 
-        3. `add_edge(e)`: The thrid way to add an edge is directly add an
-           :py:class:`Edge` object. Thereby, all properties of the edge object
-           (e.g. corresponding nodes) are taken from the object.
+        3. `add_edge(e)`:
+            The thrid way to add an edge is directly add an :py:class:`Edge`
+            object. Thereby, all properties of the edge object
+            (e.g. corresponding nodes) are taken from the object.
 
         Parameters
         ----------
@@ -644,8 +702,8 @@ class Network(object):
             If and directed edge is added to an undirected network or vice
             versa.
 
-        Example
-        -------
+        Examples
+        --------
         Adding a singe new edge to the network.
 
         >>> from pathpy import Node, Edge, Network
@@ -665,8 +723,8 @@ class Network(object):
 
         >>> net.add_edge('a', 'd', separator='=')
 
-        Note
-        ----
+        Notes
+        -----
 
         Altough an edge can be defined only by its nodes, it is highly
         recommended to use unique identifier for the edge id!
@@ -783,8 +841,8 @@ class Network(object):
         ----------
         edges : list of edge ids or Edges
             The parameter edges must be a list with edge ids or edge
-            objects. Every edge within the list should have a unique id.
-            The id is converted to a string value and is used as a key value for
+            objects. Every edge within the list should have a unique id. The
+            id is converted to a string value and is used as a key value for
             all dict which saving node objects.
 
         separator : str, optional, config (default = '-')
@@ -796,21 +854,26 @@ class Network(object):
         attr : keyword arguments, optional (default= no attributes)
             Attributes to add to all edges in the list as key=value pairs.
 
-        Example
-        -------
+        Examples
+        --------
         Adding a multiple edges to the network.
 
-        >>> net = cn.Network()
-        >>> ab = cn.Edge'ab','a','b')
+        >>> from pathpy import Edge, Network
+        >>> net = Network()
+        >>> ab = Edge('ab','a','b')
         >>> net.add_edges_from([ab,('bc',b','c')],length=10)
 
-        Note
-        ----
+        Notes
+        -----
         If an edge id is added without nodes, an error will be raised and stop
         the code.
 
         If the edge is already defined in the network. The new edge will not
         be added to the network, instead a warning will be printed.
+
+        See Also
+        --------
+        add_edge
 
         """
         # use separator if given otherwise use config default value
@@ -825,14 +888,47 @@ class Network(object):
     def remove_edge(self, *args: Any) -> None:
         """Remove the edge e between v and w.
 
+        With the :py:meth:`remove_edge` an :py:class:`Edge` object is removed
+        from the network. Thereby, mutliple input options are available.
+
+        1. `remove_edge(e, v, w)`:
+            The first way to remove an edge is via the triplet edge `e`, source
+            node `v` and target node `w`. Thereby, the `e` is the string value
+            of the edge id and `v` and `w` are either the string values of the
+            node ids or :py:class:`Node` objects.
+
+        2. `remove_edge(v, w)`:
+            The second way to remove an edge is via a tuple of source node `v`
+            and target node `w`. Thereby, `v` and `w` are either the string
+            values of the node ids or :py:class:`Node` objects.
+
+        3. `remove_edge(e)`:
+            The thrid way to remove an edge is directly add an :py:class:`Edge`
+            object or edge id.
+
         Parameters
         ----------
-        e : edge id or tuple of node ids
-            The parameter e is the identifier (id) for the edge. It can be the
-            edge id, or a tuple of node ids of the associated nodes.
+        e : str or py:class:`Edge`
+            The parameter `e` describes the edge which schould be removed from
+            the network. The parameter `e` can either be a string value, a
+            :py:class:`Edge` object, or not defined. If the edge is not defined
+            but two node parameter are given, an edge based on the nodes is
+            removed.
 
-        Note
-        ----
+        v : str or :py:class:`Node`
+            The parameter `v` is the source node of the edge, which should be
+            removed from the network. The parameter `v` can either be string
+            value, a :py:class:`Node` object or not defined. If the node is not
+            defined an :py:class:`Edge` object has to be given.
+
+        w : str or :py:class:`Node`
+            The parameter `w` is the target node of the edge, which should be
+            removed from the network. The parameter `w` can either be string
+            value, a :py:class:`Node` object or not defined. If the node is not
+            defined an :py:class:`Edge` object has to be given.
+
+        Notes
+        -----
         If the tuple of node ids is used to remove edges, it is possible that
         multiple edges might be effected. In this situation an error will be
         raised and instead of the tuple the actual edge id should be used.
@@ -857,7 +953,7 @@ class Network(object):
             return
 
         # check if e exists in the network
-        elif e['given']:
+        elif e['given'] and e['id'] is not None:
             _edge = self.edges[e['id']]
 
         # check if edge is given in terms of (v,w):
@@ -902,12 +998,28 @@ class Network(object):
             del self.edges[_edge.id]
 
     def remove_edges_from(self, edges: List[str]) -> None:
-        """Remove multiple edges given in a list of nodes.
+        """Remove multiple edges given in a list of edges/nodes.
 
         Parameters
         ----------
-        nodes : list of edge ids as str
-            The parameter nodes must be a list with node ids as strings.
+        edges : list of edge ids or node tuples as str
+            The parameter edges must be a list with edge ids or tuples of node
+            ids as strings.
+
+        Examples
+        --------
+
+        Generate a simple network.
+
+        >>> from pathpy import Network
+        >>> net = Network()
+        >>> net.add_edge('ab','a','b')
+        >>> net.add_edge('bc','b','c')
+        >>> net.add_edge('ac','a','c')
+
+        Remove mutliple edges form the network
+
+        >>> net.remove_edges_from('ab', ('b', 'c'))
 
         """
         for e in edges:
@@ -916,28 +1028,72 @@ class Network(object):
             else:
                 self.remove_edge(e)
 
-    def has_edge(self, *args: Any) -> None:
-        """Return True if the edge e or (u,v) is in the network.
+    def has_edge(self, *args: Any) -> bool:
+        """Return True if an edge e between node v and node w exists.
+
+        Mutliple input options are available.
+
+        1. `has_edge(v, w)`: The first way to check if an edge exists, is via a
+            tuple of source node `v` and target node `w`. Thereby, `v` and `w`
+            are either the string values of the node ids or :py:class:`Node`
+            objects.
+
+        2. `has_edge(e)`: The thrid way to chekc if and edge exist, is directly
+           via using an :py:class:`Edge` object or edge id.
 
         Parameters
         ----------
-        e : edge id or tuple of node ids
-            The parameter e is the identifier (id) for the edge, or a tuple
-            (u,v) describing the associated node ids.
+        e : str or py:class:`Edge`
+            The parameter `e` describes the edge which schould be checked to be
+            in the network. The parameter `e` can either be a string value, a
+            :py:class:`Edge` object, or not defined. If the edge is not defined
+            but two node parameter are given, an edge based on the nodes is
+            checked.
+
+        v : str or :py:class:`Node`
+
+            The parameter `v` is the source node of the edge, which should be
+            checked. The parameter `v` can either be string value, a
+            :py:class:`Node` object or not defined. If the node is not defined
+            an :py:class:`Edge` object or edge id has to be given.
+
+        w : str or :py:class:`Node`
+            The parameter `w` is the target node of the edge, which should be
+            checked. The parameter `w` can either be string value, a
+            :py:class:`Node` object or not defined. If the node is not defined
+            an :py:class:`Edge` object or edge id has to be given.
+
 
         Returns
         -------
-        has_edge : Boole
+        bool
             Returns True if the network has an edge e otherwise False.
 
-        Note
-        ----
-        If the tuple of node ids is used to find the edge, it is possible that
-        multiple edges might be effected. In this situation a warning will be
-        raised additionally to the has_edge.
+        Examples
+        --------
+
+        Generate a simple network.
+
+        >>> from pathpy import Network
+        >>> net = Network()
+        >>> net.add_edge('ab','a','b')
+        >>> net.add_edge('bc','b','c')
+
+        Check if edge exists
+
+        >>> net.has_edge('ab')
+        True
+
+        >>> net.has_edge('b','c')
+        True
 
         """
-        pass
+        # check the inputs
+        # returns a dict with
+        # variable = {'id':str, 'object':class, 'given':bool}
+        e, v, w = self._check_edge(*args)
+        return e['given']
+
 # =============================================================================
 # eof
 #

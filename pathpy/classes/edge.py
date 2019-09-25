@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2019-09-10 11:51 juergen>
+# Time-stamp: <Mon 2019-09-23 14:28 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -71,8 +71,8 @@ class Edge(object):
             Returns the description of the edge with the class and assigned
             edge id.
 
-        Example
-        -------
+        Examples
+        --------
         Genarate new edge
         >>> from pathpy import Edge
         >>> vw = Edge('vw','v','w')
@@ -99,8 +99,8 @@ class Edge(object):
         value: Any
             A value i.e. attribute which is associated with the edge.
 
-        Example
-        -------
+        Examples
+        --------
         Generate new node.
 
         >>> from pathpy import Edge
@@ -132,8 +132,8 @@ class Edge(object):
         KeyError
             If no attribute with the assiciated key is defined.
 
-        Example
-        -------
+        Examples
+        --------
         Generate new edge with length 10
 
         >>> from pathpy import Edge
@@ -160,8 +160,8 @@ class Edge(object):
         str
             Return the edge identifier as a string.
 
-        Example
-        -------
+        Examples
+        --------
         Generate a single edge and print the id.
 
         >>> from pathpy import Edge
@@ -180,8 +180,8 @@ class Edge(object):
         :py:class:`Node`
             Retun the source :py:class:`Node` of the edge.
 
-        Example
-        -------
+        Examples
+        --------
         Generate a single edge and return the source node.
 
         >>> from pathpy import Edge
@@ -200,8 +200,8 @@ class Edge(object):
         :py:class:`Node`
             Retun the target :py:class:`Node` of the edge.
 
-        Example
-        -------
+        Examples
+        --------
         Generate a single edge and return the target node.
 
         >>> from pathpy import Edge
@@ -280,8 +280,8 @@ class Edge(object):
         float
             Returns the attribute value associated with the keyword.
 
-        Example
-        -------
+        Examples
+        --------
         Create new edge and get the weight.
 
         >>> form pathpy import Edge

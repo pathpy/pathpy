@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : node.py -- Base class for a node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2019-09-10 16:27 juergen>
+# Time-stamp: <Mon 2019-09-23 14:27 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -52,8 +52,8 @@ class Node(object):
             Returns the description of the node with the class and assigned
             node id.
 
-        Example
-        -------
+        Examples
+        --------
         Genarate new node.
 
         >>> from pathpy import Node
@@ -81,8 +81,8 @@ class Node(object):
         value: Any
             A value i.e. attribute which is associated with the node.
 
-        Example
-        -------
+        Examples
+        --------
         Generate new node.
 
         >>> from pathpy import Node
@@ -114,8 +114,8 @@ class Node(object):
         KeyError
             If no attribute with the assiciated key is defined.
 
-        Example
-        -------
+        Examples
+        --------
         Generate new node with blue color
 
         >>> from pathpy import Node
@@ -141,8 +141,8 @@ class Node(object):
         str
             Return the node identifier as a string.
 
-        Example
-        -------
+        Examples
+        --------
         Generate a single node and print the id.
 
         >>> from pathpy import Node

@@ -1,16 +1,17 @@
 #!/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
-# File      : __init__.py -- Initialize the basic classes of pathpy
+# File      : base.py -- Base classes for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2019-09-25 12:42 juergen>
+# Time-stamp: <Mon 2019-09-23 12:30 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 
-from .node import Node
-from .edge import Edge
-from .network import Network
+
+class DefaultNetwork:
+    pass
+
 
 # =============================================================================
 # eof

@@ -3,13 +3,13 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2019-09-17 14:14 juergen>
+# Time-stamp: <Wed 2019-09-25 14:25 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 
 import pytest
-
+import numpy as np
 from pathpy import Node, Edge, Network
 
 # Test network
@@ -283,6 +283,31 @@ def test_remove_edges_from(net):
     net.remove_edges_from(['ab', 'ab2', ('b', 'c')])
 
     assert net.number_of_edges() == noe - 3
+
+
+def test_has_edge(net):
+    """Test if an edge is in the network."""
+
+    assert net.has_edge('ab') is True
+    assert net.has_edge('not an edge') is False
+    assert net.has_edge('a', 'b') is True
+
+# Test external methods
+# ---------------------
+
+
+def test_adjacency_matrix():
+    """Test the adjacency matrix."""
+    net = Network()
+    net.add_edges_from([('a', 'b'), ('b', 'c')])
+
+    A = net.adjacency_matrix()
+
+    assert A[0, 1] == 1.
+    # print('')
+    # print(type(A.todense()))
+    # print(A[0, 1])
+    #assert A == _A
 
 # =============================================================================
 # eof
