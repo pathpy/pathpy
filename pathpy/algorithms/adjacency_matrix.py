@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : am.py -- Test am
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2019-09-25 14:29 juergen>
+# Time-stamp: <Thu 2019-09-26 10:32 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -12,6 +12,7 @@ from typing import List, Any
 from functools import singledispatch
 from scipy import sparse
 from ..classes.base import DefaultNetwork
+from .. import tqdm
 
 
 @singledispatch
@@ -84,7 +85,7 @@ def _(self, weight: Any = None, transposed: bool = False) -> sparse.coo_matrix:
     n = list(self.nodes.keys())
 
     # iterate over the edges of the network
-    for e_id, e in self.edges.items():
+    for e_id, e in tqdm(self.edges.items()):
 
         # add notes if network is directed
         row.append(n.index(e.v.id))
