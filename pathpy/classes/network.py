@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2019-09-30 10:49 juergen>
+# Time-stamp: <Mon 2019-09-30 16:33 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -85,7 +85,7 @@ class Network(DefaultNetwork):
         Genarate new network
 
         >>> from pathpy import Network
-        >>> net Network()
+        >>> net = Network()
         >>> print(net)
 
         """
@@ -183,7 +183,7 @@ class Network(DefaultNetwork):
             raise
 
     def __add__(self):
-        pass
+        raise NotImplementedError
 
     @property
     def name(self) -> str:
@@ -292,6 +292,36 @@ class Network(DefaultNetwork):
         """
         return self._edge_to_nodes_map
 
+    def summary(self) -> str:
+        """Returns a summary of the network.
+
+        The summary contains the name, the used network class, if it is
+        directed or not, the number of nodes and edges.
+
+        If logging is enabled (see config), the summary is written to the log
+        file and showed as information on in the terminal. If logging is not
+        enabled, the function will return a string with the information, which
+        can be printed to the console.
+
+        Returns
+        -------
+        str
+            Retruns a summary of important network properties.
+
+        """
+        summary = [
+            'Name:\t\t\t{}\n'.format(self.name),
+            'Type:\t\t\t{}\n'.format(self.__class__.__name__),
+            'Directed:\t\t{}\n'.format(str(self.directed)),
+            'Number of nodes:\t{}\n'.format(self.number_of_nodes()),
+            'Number of edges:\t{}'.format(self.number_of_edges())
+        ]
+        if config.logging.enabled:
+            for line in summary:
+                log.info(line.rstrip())
+        else:
+            return ''.join(summary)
+
     def update(self, **kwargs: Any) -> None:
         """Update the attributes of the network.
 
@@ -348,7 +378,7 @@ class Network(DefaultNetwork):
 
         Parameters
         ----------
-        u : str or :py:class:`Node`
+        n : str or :py:class:`Node`
             The parameter `n` is the node which should be added to the
             network. The parameter `n` can either be string value or a
             :py:class:`Node` object. If the parameter is a string value, a new
@@ -646,6 +676,92 @@ class Network(DefaultNetwork):
         # - if objects are given is there any diffencse between them?
         return _e, _v, _w
 
+    def _get_temporal_edge(self, e, v, w, **kwargs):
+        """Helper function to generate a temporal edge."""
+        # use separator if given otherwise use config default value
+        separator: str = kwargs.get('separator', config.network.separator)
+
+        # if edge is an object
+        if e['object'] is not None:
+
+            # check if direction of edge and network is not given
+            if e['object'].directed != self.directed:
+                _msg = {True: 'directed', False: 'undirected'}
+                log.error('The {} edge "{}" cannot be added to the '
+                          '{} network!'.format(_msg[e['object'].directed],
+                                               e['id'],
+                                               _msg[self.directed]))
+                raise ValueError
+
+            # create temporal edge
+            _edge = e['object']
+
+            # update attributes with new given attributes
+            _edge.update(**kwargs)
+
+        # if edge is not an object but nodes are given:
+        elif (e['object'] is None and v['id'] is not None
+                and v['id'] is not None):
+
+            # generate edge id based on nodes if no id is given
+            if e['id'] is None:
+                e['id'] = '{}{}{}'.format(v['id'], separator, w['id'])
+
+            # if node is already defined use this node
+            if v['given']:
+                _v = self.nodes[v['id']]
+
+            # otherwise if an object is given use this
+            elif v['object'] is not None:
+                _v = v['object']
+
+            # otherwise use the id and create a new node
+            else:
+                _v = v['id']
+
+            # if node is already defined use this node
+            if w['given']:
+                _w = self.nodes[w['id']]
+
+            # otherwise if an object is given use this
+            elif w['object'] is not None:
+                _w = w['object']
+
+            # otherwise use the id and create a new node
+            else:
+                _w = w['id']
+
+            # create temporal edge
+            _edge = self.EdgeClass(e['id'], _v, _w,
+                                   directed=self.directed,
+                                   **kwargs)
+
+        # Raise error if no proper edge definition is given
+        else:
+            # TODO: make error more spesific.
+            log.error('Edge parameters are not correct defined!')
+            raise AttributeError
+        return _edge
+
+    def _add_edge(self, _edge):
+        """Help function to add an edge."""
+
+        # add edge to edge dictionary
+        self.edges[_edge.id] = _edge
+
+        # update in- and out-degree of the nodes
+        self.nodes[_edge.v.id].outgoing.add(_edge.id)
+        self.nodes[_edge.w.id].incoming.add(_edge.id)
+
+        # TODO: This is probabily not needed.
+        if not self.directed:
+            self.nodes[_edge.v.id].incoming.add(_edge.id)
+            self.nodes[_edge.w.id].outgoing.add(_edge.id)
+
+        # update maps
+        self._edge_to_nodes_map[_edge.id] = (_edge.v.id, _edge.w.id)
+        self._node_to_edges_map[(_edge.v.id, _edge.w.id)].append(_edge.id)
+
     def add_edge(self, *args: Any, **kwargs: Any) -> None:
         """Add an edge e between node v and node w.
 
@@ -754,74 +870,13 @@ class Network(DefaultNetwork):
         be added to the network, instead a warning will be printed.
 
         """
-        # use separator if given otherwise use config default value
-        separator: str = kwargs.get('separator', config.network.separator)
-
         # check the inputs
         # returns a dict with
         # variable = {'id':str, 'object':class, 'given':bool}
         e, v, w = self._check_edge(*args, **kwargs)
 
-        # if edge is an object
-        if e['object'] is not None:
-
-            # check if direction of edge and network is not given
-            if e['object'].directed != self.directed:
-                _msg = {True: 'directed', False: 'undirected'}
-                log.error('The {} edge "{}" cannot be added to the '
-                          '{} network!'.format(_msg[e['object'].directed],
-                                               e['id'],
-                                               _msg[self.directed]))
-                raise ValueError
-
-            # create temporal edge
-            _edge = e['object']
-
-            # update attributes with new given attributes
-            _edge.update(**kwargs)
-
-        # if edge is not an object but nodes are given:
-        elif (e['object'] is None and v['id'] is not None
-                and v['id'] is not None):
-
-            # generate edge id based on nodes if no id is given
-            if e['id'] is None:
-                e['id'] = '{}{}{}'.format(v['id'], separator, w['id'])
-
-            # if node is already defined use this node
-            if v['given']:
-                _v = self.nodes[v['id']]
-
-            # otherwise if an object is given use this
-            elif v['object'] is not None:
-                _v = v['object']
-
-            # otherwise use the id and create a new node
-            else:
-                _v = v['id']
-
-            # if node is already defined use this node
-            if w['given']:
-                _w = self.nodes[w['id']]
-
-            # otherwise if an object is given use this
-            elif w['object'] is not None:
-                _w = w['object']
-
-            # otherwise use the id and create a new node
-            else:
-                _w = w['id']
-
-            # create temporal edge
-            _edge = self.EdgeClass(e['id'], _v, _w,
-                                   directed=self.directed,
-                                   **kwargs)
-
-        # Raise error if no proper edge definition is given
-        else:
-            # TODO: make error more spesific.
-            log.error('Edge parameters are not correct defined!')
-            raise AttributeError
+        # generate a temporal edge object
+        _edge = self._get_temporal_edge(e, v, w, **kwargs)
 
         # check if node v is already in the network
         if _edge.v.id not in self.nodes:
@@ -835,20 +890,7 @@ class Network(DefaultNetwork):
         if _edge.id not in self.edges:
 
             # add edge to the network
-            self.edges[_edge.id] = _edge
-
-            # update in- and out-degree of the nodes
-            self.nodes[_edge.v.id].outgoing.add(_edge.id)
-            self.nodes[_edge.w.id].incoming.add(_edge.id)
-
-            # TODO: This is probabily not needed.
-            if not self.directed:
-                self.nodes[_edge.v.id].incoming.add(_edge.id)
-                self.nodes[_edge.w.id].outgoing.add(_edge.id)
-
-            # update maps
-            self._edge_to_nodes_map[_edge.id] = (_edge.v.id, _edge.w.id)
-            self._node_to_edges_map[(_edge.v.id, _edge.w.id)].append(_edge.id)
+            self._add_edge(_edge)
 
         else:
             log.warn('The edge with id: {} is already part of the'

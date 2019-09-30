@@ -16,6 +16,7 @@ Base classes
      Node
      Edge
      Network
+     Path
 
 .. _algorithms_api:
 

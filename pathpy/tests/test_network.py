@@ -3,13 +3,13 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2019-09-25 14:25 juergen>
+# Time-stamp: <Mon 2019-09-30 16:31 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 
 import pytest
-import numpy as np
+# import numpy as np
 from pathpy import Node, Edge, Network
 
 # Test network
@@ -307,7 +307,7 @@ def test_adjacency_matrix():
     # print('')
     # print(type(A.todense()))
     # print(A[0, 1])
-    #assert A == _A
+    # assert A == _A
 
 # =============================================================================
 # eof
