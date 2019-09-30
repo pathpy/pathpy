@@ -3,11 +3,13 @@
 # =============================================================================
 # File      : __init__.py -- Initialize visualisation tools
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2019-09-03 10:22 juergen>
+# Time-stamp: <Mon 2019-09-30 09:21 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 
+from .plot import Plot
+plot = Plot()
 
 # =============================================================================
 # eof

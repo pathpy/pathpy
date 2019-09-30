@@ -1,0 +1,212 @@
+<style>
+    text.label_${div_id} {
+        text-anchor: middle;
+        font-size: $label_size;
+        font-family: Arial, Helvetica, sans-serif;
+        fill: $label_color;
+        stroke: #ffffff;
+        stroke-width: 0.1px;
+        opacity: $label_opacity;
+    }
+    .links_${div_id} line {
+    stroke-opacity: $edge_opacity;
+    }
+    .arrows svg:path {
+        stroke: #666;
+    }
+    .nodes_${div_id} circle {
+    stroke: #fff;
+    stroke-width: 0.5px;
+    }
+</style>
+
+<svg width="$width" height="$height" id="$div_id">        
+    <text x="20" y="20" font-family="sans-serif" font-size="14px" fill="#666" style="cursor: pointer"
+        id='${div_id}_svg_txt'>[save svg]</text>
+</svg>
+
+<script charset="utf-8" src="$d3js_path"></script>
+<script charset="utf-8">
+
+// Load via requireJS if available (jupyter notebook environment)
+try {
+    // Problem: require.config will raise an exception when called for the second time 
+    require.config({
+        paths: {
+            //d3: "https://d3js.org/d3.v4.min"
+            d3: "$d3js_path".replace(".js", "")
+        }
+    });
+    console.log("Detected requireJS");
+}
+catch(err){
+    // a reference error indicates that requireJS does not exist. 
+    // other errors may occur due to multiple calls to config
+    if (err instanceof ReferenceError){
+        console.log("Detected no requireJS");
+
+        // Helper function that waits for d3js to be loaded
+        require = function require(symbols, callback) {
+            var ms = 5;
+            window.setTimeout(function(t) {
+                if (window[symbols[0]])
+                    callback(window[symbols[0]]);
+                else 
+                    window.setTimeout(arguments.callee, ms);
+            }, ms);
+        }
+    }
+}
+
+// wait until d3js has been loaded
+require(["d3"], function(d3) {
+    var svg = d3.select("#"+"$div_id"), radius = 6, width = +svg.attr("width"), height = +svg.attr("height");
+
+    var color = d3.scaleOrdinal(d3.schemeCategory20);
+
+    var graph = $network_data;
+    var directed = $edge_arrows;
+
+    var simulation = d3.forceSimulation()        
+       .force("link", d3.forceLink().id(function(d) { return d.id; }).strength(function(d){return d.weight;}))
+        .force("charge", d3.forceManyBody().strength($force_charge).distanceMax($width))
+       .force("repelForce", d3.forceManyBody().strength($force_repel).distanceMax(100))
+       .force("center", d3.forceCenter($width / 2, $height / 2))
+       .alphaTarget($force_alpha);
+
+    svg.append("defs").selectAll("marker")
+        .data(["end"])
+    .enter().append("marker")
+        .attr("id", String)
+        .attr("viewBox", "0 -5 20 20")
+        .attr("refX", 34)
+        .attr("refY", 0)
+        .attr("markerWidth", 15)
+        .attr("markerHeight", 15)
+        .attr("orient", "auto")
+    .append("path")
+        // draws a filled path (triangle) between three points
+        .attr("d", "M0,-5 L20,0 L0,5 z")
+        .attr("fill", '#999')
+        .attr("stroke", 'none');
+
+    var g = svg.append("g")
+        .attr("class", "everything");
+
+    var link = g.append("g")
+        .attr("class", "links_${div_id}")
+        .selectAll("line")
+        .data(graph.links)
+        .enter().append("line")
+        .attr("stroke-width", function(d) { return d.width; })
+        .attr("stroke", function(d) { return d.color; } );
+
+    if (directed)
+        link.attr("marker-end", "url(#end)");
+
+    var node_g = g.append("g")
+        .attr("class", "nodes_${div_id}")
+        .selectAll("circle")
+        .data(graph.nodes)
+        .enter()
+        .append("g"); 
+
+    var node = node_g.append("circle")
+        .attr('id', function(d) { return d.id; })
+        .attr("r", function(d) { return d.size; })
+        .attr("fill", function(d) { return d.color; })
+        .call(d3.drag()
+            .on("start", dragstarted)
+            .on("drag", dragged)
+            .on("end", dragended));
+
+    var text = node_g.append("text")
+    .attr("x", $label_offset[0])
+    .attr("y", $label_offset[1]+3)
+    .attr("id", function(d) {return d.id; })
+    .attr("class", "label_${div_id}")
+    .text(function(d) { return d.id; });
+
+    node.append("title")
+        .text(function(d) { return d.text; });
+
+    var zoom_handler = d3.zoom()
+        .on("zoom", zoom_actions);
+    zoom_handler(svg);
+
+    // attach event handler for svg export
+    d3.select('#${div_id}_svg_txt').on("click", save_svg);
+
+    simulation
+        .nodes(graph.nodes)
+        .on("tick", ticked);
+
+    simulation.force("link")
+        .links(graph.links);
+
+    function ticked() {
+        link.attr("x1", function(d) { return d.source.x; })
+            .attr("y1", function(d) { return d.source.y; })
+            .attr("x2", function(d) { return d.target.x; })
+            .attr("y2", function(d) { return d.target.y; });
+
+         text.attr("transform", transform);
+
+
+        text.attr("cx", function(d) { return d.x; })
+            .attr("cy", function(d) { return d.y; });
+
+        node.attr("cx", function(d) { return d.x; })
+            .attr("cy", function(d) { return d.y; });
+    }
+
+    function transform(d) {
+        return "translate(" + d.x + "," + d.y + ")";
+    }
+
+    function dragstarted(d) {
+    if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+    d.fx = d.x;
+    d.fy = d.y;
+    }
+
+    function zoom_actions(){
+        g.attr("transform", d3.event.transform)
+    }    
+
+    function dragged(d) {
+    d.fx = d3.event.x;
+    d.fy = d3.event.y;
+    }
+
+    function dragended(d) {
+    if (!d3.event.active) simulation.alphaTarget(0);
+    d.fx = null;
+    d.fy = null;
+    }
+
+    function to_svg() {
+        // Returns a SVG representation of the current state of the visualisation
+	    var svg  = document.getElementById('$div_id');
+	    var xml = (new XMLSerializer).serializeToString(svg);
+        return xml;
+    }
+
+    function save_svg() {
+        var svg  = document.getElementById('$div_id');
+        var xml = (new XMLSerializer).serializeToString(svg);        
+        var blob = new Blob([xml], {type: 'text/xml'});
+        if(window.navigator.msSaveOrOpenBlob) {
+            window.navigator.msSaveBlob(blob, 'network.svg');
+        }
+        else{
+            var elem = window.document.createElement('a');
+            elem.href = window.URL.createObjectURL(blob);
+            elem.download = 'network.svg';
+            document.body.appendChild(elem);
+            elem.click();
+            document.body.removeChild(elem);
+        }
+    }
+});
+</script>

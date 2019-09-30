@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2019-09-25 14:10 juergen>
+# Time-stamp: <Mon 2019-09-30 10:28 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -85,12 +85,33 @@ class Network(DefaultNetwork):
         Genarate new network
 
         >>> from pathpy import Network
-        >>> n = Node()
-        >>> print(n)
+        >>> net Network()
+        >>> print(net)
 
         """
         return '<{} object {} at 0x{}x>'.format(self._desc(),
                                                 self.name, id(self))
+
+    def _repr_html_(self) -> str:
+        """Display an interactive d3js visualisation of the network in jupyter.
+
+        Returns
+        -------
+        html
+            Returns the html code for the d3js visualisation.
+
+        Examples
+        --------
+        Genarate simple network
+
+        >>> from pathpy import Network
+        >>> net = Network()
+        >>> net.add_edges_from([('a','b'),('b','c')]
+        >>> net
+
+        """
+        from pathpy import plot
+        return plot(self)
 
     def _desc(self) -> str:
         """Return a string *Network*."""
