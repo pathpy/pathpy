@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_edge.py -- Test environment for the Edge class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2019-09-10 09:47 juergen>
+# Time-stamp: <Tue 2019-10-01 11:41 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -60,6 +60,26 @@ def test_repr():
     vw = Edge('vw', 'v', 'w')
 
     assert vw.__repr__() == 'Edge vw'
+
+
+def test_count():
+    """Test the edge counter."""
+
+    vw = Edge('vw', 'v', 'w')
+
+    assert vw.count == 1
+
+    vw.count += 1
+
+    assert vw.count == 2
+
+    vw.count -= 1
+
+    assert vw.count == 1
+
+    vw.count = 33
+
+    assert vw.count == 33
 
 
 def test_update():

@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : node.py -- Base class for a node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2019-09-23 14:27 juergen>
+# Time-stamp: <Tue 2019-10-01 11:46 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -32,6 +32,9 @@ class Node(object):
 
         # assign node identifier
         self._id = str(id)
+
+        # node counter
+        self._count = 1
 
         # dictionary for node attributes
         self.attributes: dict = {}
@@ -163,6 +166,61 @@ class Node(object):
             I.e. all edges that share this node.
         """
         return self.incoming.union(self.outgoing)
+
+    @property
+    def count(self) -> int:
+        """Return a count how often the node is observed.
+
+        Returns
+        -------
+        int
+            Returns an intiger value of the count property.
+
+        Examples
+        --------
+        Generate a single node and return the count value.
+
+        >>> from pathpy import Node
+        >>> u = Node('u')
+        >>> print(u.count)
+        1
+
+        """
+        return self._count
+
+    @count.setter
+    def count(self, value: int) -> None:
+        """Set,increase or decrease counter.
+
+        Parameters
+        ----------
+        value : int
+            Value of the counter.
+
+        Examples
+        --------
+        Generate a single node and increase the count at 1.
+
+        >>> from pathpy import Node
+        >>> u = Node('u')
+        >>> u.count += 1
+        >>> print(u.count)
+        2
+
+        Reduce the counter at 1.
+
+        >>> u.count -= 1
+        >>> print(u.count)
+        1
+
+        Set the counter to an arbitrary value.
+
+        >>> u.count = 33
+        >>> print(u.count)
+        33
+
+        """
+        self._count = value
 
     def update(self, **kwargs: Any) -> None:
         """Update the attributes of the node.

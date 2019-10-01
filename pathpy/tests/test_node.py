@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_node.py -- Test environment for the Node class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2019-09-10 09:46 juergen>
+# Time-stamp: <Tue 2019-10-01 11:45 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -51,6 +51,26 @@ def test_repr():
     u = Node('u')
 
     assert u.__repr__() == 'Node u'
+
+
+def test_count():
+    """Test the node counter."""
+
+    u = Node('u')
+
+    assert u.count == 1
+
+    u.count += 1
+
+    assert u.count == 2
+
+    u.count -= 1
+
+    assert u.count == 1
+
+    u.count = 33
+
+    assert u.count == 33
 
 
 def test_update():

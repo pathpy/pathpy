@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2019-09-23 14:28 juergen>
+# Time-stamp: <Tue 2019-10-01 11:38 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -42,6 +42,9 @@ class Edge(object):
 
         # node id for node w
         self._w = w
+
+        # edge counter
+        self._count = 1
 
         # inidcator whether the edge is directed or undirected
         self._directed = directed
@@ -217,6 +220,61 @@ class Edge(object):
     def directed(self) -> bool:
         """Return if the edge is directed (True) or undirected (False)."""
         return self._directed
+
+    @property
+    def count(self) -> int:
+        """Return a count how often the edge is observed.
+
+        Returns
+        -------
+        int
+            Returns an intiger value of the count property.
+
+        Examples
+        --------
+        Generate a single edge and return the count value.
+
+        >>> from pathpy import Edge
+        >>> vw = Edge('vw','v','w')
+        >>> print(vw.count)
+        1
+
+        """
+        return self._count
+
+    @count.setter
+    def count(self, value: int) -> None:
+        """Set,increase or decrease counter.
+
+        Parameters
+        ----------
+        value : int
+            Value of the counter.
+
+        Examples
+        --------
+        Generate a single edge and increase the count at 1.
+
+        >>> from pathpy import Edge
+        >>> vw = Edge('vw','v','w')
+        >>> vw.count += 1
+        >>> print(vw.count)
+        2
+
+        Reduce the counter at 1.
+
+        >>> vw.count -= 1
+        >>> print(vw.count)
+        1
+
+        Set the counter to an arbitrary value.
+
+        >>> vw.count = 33
+        >>> print(vw.count)
+        33
+
+        """
+        self._count = value
 
     def update(self, **kwargs: Any) -> None:
         """Update the attributes of the edge.
