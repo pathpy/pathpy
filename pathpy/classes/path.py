@@ -219,7 +219,7 @@ class Path(Network):
         --------
         Adding a singe new node to the network.
 
-        >>> form pathpy import Node, Path
+        >>> from pathpy import Node, Path
         >>> p = Path()
         >>> p.add_node('a',color='red')
 
@@ -617,11 +617,11 @@ class Path(Network):
 
         Examples
         --------
-        >>> form pathpy import Path
+        >>> from pathpy import Path
         >>> p = Path(['a','b','c','d','e'])
         >>> P = p.subpaths()
         >>> for q in P:
-        >>>     print(q.name)
+        ...     print(q.name)
         a-b
         b-c
         c-d

@@ -171,6 +171,14 @@ def test_subpaths():
         assert p.subpaths(min_length=100, max_length=0)
 
 
+def test_subpath_names():
+    from pathpy import Path
+    p = Path(['a','b','c','d','e'])
+    P = p.subpaths()
+    for q in P:
+        breakpoint()
+        print(q.name)
+
 # =============================================================================
 # eof
 #

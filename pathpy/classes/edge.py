@@ -342,7 +342,7 @@ class Edge(object):
         --------
         Create new edge and get the weight.
 
-        >>> form pathpy import Edge
+        >>> from pathpy import Edge
         >>> vw = Edge('vw','v','w')
         >>> print(vw.weight())
 
