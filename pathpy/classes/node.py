@@ -3,12 +3,12 @@
 # =============================================================================
 # File      : node.py -- Base class for a node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2019-10-01 11:46 juergen>
+# Time-stamp: <Wed 2019-10-09 11:56 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, Set
+from typing import Any, Dict, Set
 from copy import deepcopy
 
 from .. import logger
@@ -17,8 +17,12 @@ from .. import logger
 log = logger(__name__)
 
 
-class Node(object):
+class Node:
     """Base class for a node.
+
+    .. todo::
+
+        Add detailed documentation for the object.
 
     Parameters
     ----------
@@ -27,24 +31,21 @@ class Node(object):
     ----------
     """
 
-    def __init__(self, id: str, **kwargs: Any) -> None:
+    def __init__(self, uid: str, **kwargs: Any) -> None:
         """Initialize the node object."""
 
         # assign node identifier
-        self._id = str(id)
-
-        # node counter
-        self._count = 1
+        self._uid: str = str(uid)
 
         # dictionary for node attributes
-        self.attributes: dict = {}
+        self._attributes: dict = {}
 
         # add attributes to the node
-        self.attributes.update(kwargs)
+        self._attributes.update(kwargs)
 
-        # set of incomming and outgoing edges
-        self.outgoing: set = set()
-        self.incoming: set = set()
+        # set of incoming and outgoing edges
+        self._outgoing: set = set()
+        self._incoming: set = set()
 
     def __repr__(self) -> str:
         """Return the description of the node.
@@ -62,9 +63,10 @@ class Node(object):
         >>> from pathpy import Node
         >>> u = Node('u')
         >>> print(u)
+        Node u
 
         """
-        return '{} {}'.format(self._desc(), self.id)
+        return '{} {}'.format(self._desc(), self.uid)
 
     def _desc(self) -> str:
         """Return a string *Node*."""
@@ -126,7 +128,9 @@ class Node(object):
 
         Get the node attribute.
 
-        >>> print(u['color'])
+        >>> u['color']
+        'blue'
+
         """
         try:
             return self.attributes[key]
@@ -136,8 +140,8 @@ class Node(object):
             raise
 
     @property
-    def id(self) -> str:
-        """Return the id of the node.
+    def uid(self) -> str:
+        """Return the unique id of the node.
 
         Returns
         -------
@@ -146,81 +150,67 @@ class Node(object):
 
         Examples
         --------
-        Generate a single node and print the id.
+        Generate a single node and print the uid.
 
         >>> from pathpy import Node
-        >>> u = Node('u)
-        >>> print(u.id)
+        >>> u = Node('u')
+        >>> print(u.uid)
+        u
 
         """
-        return self._id
+        return self._uid
 
     @property
-    def adjacent_edges(self) -> Set[str]:
-        """Returns the set of adjacent edges.
+    def attributes(self) -> Dict:
+        """Return the attributes associated with the node.
+
+        Returns
+        -------
+        Dict
+            Return a dictionary with the node attributes.
+
+        Examples
+        --------
+        Generate a single node with a color attribute.
+
+        >>> from pathpy import Node
+        >>> u = Node('u', color='red')
+
+        Get the attributes of the node.
+
+        >>> u.attributes
+        {'color'='red}
+
+        """
+        return self._attributes
+
+    @property
+    def outgoing(self) -> Set[str]:
+        """Returns the outgoing edge uids of the node."""
+        return self._outgoing
+
+    @property
+    def incoming(self) -> Set[str]:
+        """Returns the incoming edge uids of the node."""
+        return self._incoming
+
+    @property
+    def edges(self) -> Set[str]:
+        """Returns the set of edge uids adjacent to the node.
 
         Returns
         -------
         Set[str]
-            Returns a set of adjacent edge ids as string values.
+            Returns a set of adjacent edge uids as string values.
             I.e. all edges that share this node.
+
+        .. todo::
+
+            Add an example for this function.
+
+
         """
         return self.incoming.union(self.outgoing)
-
-    @property
-    def count(self) -> int:
-        """Return a count how often the node is observed.
-
-        Returns
-        -------
-        int
-            Returns an intiger value of the count property.
-
-        Examples
-        --------
-        Generate a single node and return the count value.
-
-        >>> from pathpy import Node
-        >>> u = Node('u')
-        >>> print(u.count)
-        1
-
-        """
-        return self._count
-
-    @count.setter
-    def count(self, value: int) -> None:
-        """Set,increase or decrease counter.
-
-        Parameters
-        ----------
-        value : int
-            Value of the counter.
-
-        Examples
-        --------
-        Generate a single node and increase the count at 1.
-
-        >>> from pathpy import Node
-        >>> u = Node('u')
-        >>> u.count += 1
-        >>> print(u.count)
-        2
-
-        Reduce the counter at 1.
-
-        >>> u.count -= 1
-        >>> print(u.count)
-        1
-
-        Set the counter to an arbitrary value.
-
-        >>> u.count = 33
-        >>> print(u.count)
-        33
-
-        """
-        self._count = value
 
     def update(self, **kwargs: Any) -> None:
         """Update the attributes of the node.
@@ -232,11 +222,18 @@ class Node(object):
 
         Examples
         --------
-        Update attributes.
+        Generate simple node with attribute.
 
         >>> from pathpy import Node
         >>> u = Node('u',color='red')
+        >>> u.attributes
+        {'color': 'red'}
+
+        Update attributes.
+
         >>> u.update(color='green',shape='rectangle')
+        >>> u.attributes
+        {'color': 'green', 'shape': 'rectangle'}
 
         """
         self.attributes.update(kwargs)
@@ -254,7 +251,8 @@ class Node(object):
         >>> from pathpy import Node
         >>> u = Node('u')
         >>> v = u.copy()
-
+        >>> v.uid
+        u
         """
         return deepcopy(self)
 

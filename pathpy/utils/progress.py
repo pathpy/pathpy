@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : progress.py -- A progress bar for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-09-26 10:26 juergen>
+# Time-stamp: <Wed 2019-10-09 11:24 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -24,7 +24,7 @@ class tqdm(_tqdm):
         """Intitialize the progress bar."""
 
         # if progress is enabled show bar
-        if config.progress.enabled:
+        if config.getboolean('progress', 'enabled'):
             _disable = False
 
             # otherwise disable progress.

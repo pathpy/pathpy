@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_node.py -- Test environment for the Node class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2019-10-01 11:45 juergen>
+# Time-stamp: <Wed 2019-10-09 11:32 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -13,17 +13,17 @@ import pytest
 from pathpy import Node
 
 
-def test_id():
-    """Test the id assignment."""
+def test_uid():
+    """Test the uid assignment."""
 
     u = Node('u')
 
     assert isinstance(u, Node)
-    assert isinstance(u.id, str)
-    assert u.id == 'u'
+    assert isinstance(u.uid, str)
+    assert u.uid == 'u'
 
     v = Node(1)
-    assert v.id == '1'
+    assert v.uid == '1'
 
 
 def test_setitem():
@@ -53,26 +53,6 @@ def test_repr():
     assert u.__repr__() == 'Node u'
 
 
-def test_count():
-    """Test the node counter."""
-
-    u = Node('u')
-
-    assert u.count == 1
-
-    u.count += 1
-
-    assert u.count == 2
-
-    u.count -= 1
-
-    assert u.count == 1
-
-    u.count = 33
-
-    assert u.count == 33
-
-
 def test_update():
     """Test update node attributes."""
 
@@ -92,7 +72,7 @@ def test_copy():
     u = Node('u')
     v = u.copy()
 
-    assert v.id == u.id == 'u'
+    assert v.uid == u.uid == 'u'
 
 
 # =============================================================================
