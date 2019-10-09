@@ -3,12 +3,13 @@
 # =============================================================================
 # File      : __init__.py -- Initialize the basic classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2019-10-09 11:29 juergen>
+# Time-stamp: <Wed 2019-10-09 12:04 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 
 from .node import Node
+from .edge import Edge
 # =============================================================================
 # eof
 #
