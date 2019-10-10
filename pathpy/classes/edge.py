@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2019-10-09 14:29 juergen>
+# Time-stamp: <Thu 2019-10-10 11:59 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -47,7 +47,6 @@ class Edge:
         self._attributes.update(kwargs)
 
         # use separator if given otherwise use config default value
-        # kwargs.get('separator', config.edge.separator)
         self.separator: str = config.get('edge', 'separator')
 
         # check code
@@ -69,7 +68,7 @@ class Edge:
         # update associated nodes
         self.v.outgoing.add(self.uid)
         self.w.incoming.add(self.uid)
-        if self.directed:
+        if not self.directed:
             self.w.outgoing.add(self.uid)
             self.v.incoming.add(self.uid)
 
@@ -88,7 +87,7 @@ class Edge:
 
         Examples
         --------
-        Genarate new edge without dedicated uid
+        Generate new edge without dedicated uid
 
         >>> from pathpy import Node, Edge
         >>> vw = Edge(Node('v'),Node('w'))
@@ -184,10 +183,11 @@ class Edge:
     def __del__(self) -> None:
         """Delete the edge."""
         # update associated nodes
-        self.v.incoming.remove(self.uid)
         self.v.outgoing.remove(self.uid)
         self.w.incoming.remove(self.uid)
-        self.w.outgoing.remove(self.uid)
+        if not self.directed:
+            self.v.incoming.remove(self.uid)
+            self.w.outgoing.remove(self.uid)
 
     @property
     def uid(self) -> str:
@@ -254,7 +254,7 @@ class Edge:
         Get the nodes of the edge
 
         >>> vw.nodes
-        {'v': Node v, 'w', Node w}
+        {'v': Node v, 'w': Node w}
 
         """
         return self._nodes
@@ -325,7 +325,7 @@ class Edge:
         """
         # check if the right object is provided.
         if not isinstance(node, self.NodeClass) and self.check:
-            node = self._check_node(node)
+            node = self._check_node(node, **kwargs)
 
         # add node to the edge
         self.nodes[node.uid] = node

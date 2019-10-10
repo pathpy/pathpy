@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_edge.py -- Test environment for the Edge class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2019-10-09 14:27 juergen>
+# Time-stamp: <Thu 2019-10-10 12:01 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -120,6 +120,15 @@ def test_weight(nodes):
 
     vw['length'] = 5
     assert vw.weight('length') == 5.0
+
+
+def test_self_loop():
+    v = Node('v')
+
+    vv = Edge(v, v, directed=True)
+    assert len(vv.nodes) == 1
+    assert list(v.outgoing)[0] == 'v-v'
+    assert list(v.incoming)[0] == 'v-v'
 
 # =============================================================================
 # eof
