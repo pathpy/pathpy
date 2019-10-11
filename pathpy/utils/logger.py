@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : logger.py -- Module to log output information
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-10-11 10:51 juergen>
+# Time-stamp: <Fri 2019-10-11 12:48 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -29,7 +29,7 @@ if config['logging']['verbose']:
     # set a format which is simpler for console use
 
     formatter = logging.Formatter('[%(asctime)s: %(levelname)-5s] %(message)s',
-                                  'datefmt= %m-%d%H:%M:%S')
+                                  datefmt='%m-%d %H:%M:%S')
 
     # tell the handler to use this format
     console.setFormatter(formatter)
