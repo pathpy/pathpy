@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-10-11 08:56 juergen>
+# Time-stamp: <Fri 2019-10-11 09:18 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -429,6 +429,32 @@ class Path:
 
         """
         return Counter(self.path)
+
+    def update(self, **kwargs: Any) -> None:
+        """Update the attributes of the path.
+
+        Parameters
+        ----------
+        kwargs : Any
+            Attributes to add or update for the path as key=value pairs.
+
+        Examples
+        --------
+        Update attributes.
+
+        >>> from pathpy import Path
+        >>> p = Path(street='High Street')
+        >>> p.attributes
+        {'street': 'High Street'}
+
+        Update attributes
+
+        >>> p.update(street='Market Street', toll=False)
+        >>> p.attributes
+        {'street': 'Market Street', 'toll': False}
+
+        """
+        self.attributes.update(kwargs)
 
     def summary(self) -> Optional[str]:
         """Returns a summary of the path.

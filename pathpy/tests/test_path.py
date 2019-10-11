@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_path.py -- Test environment for the Path class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-10-11 08:54 juergen>
+# Time-stamp: <Fri 2019-10-11 09:17 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -161,6 +161,22 @@ def test_edge_counter():
 
 # Test methods
 # ------------
+
+
+def test_update():
+    """Test update of the attributes"""
+    p = Path(street='High Street')
+
+    assert p.attributes['street'] == 'High Street'
+
+    print(p.attributes)
+
+    p.update(street='Market Street', toll=False)
+
+    assert p.attributes['street'] == 'Market Street'
+    assert p.attributes['toll'] is False
+
+    print(p.attributes)
 
 
 def test_number_of_nodes():
