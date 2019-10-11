@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-10 11:59 juergen>
+# Time-stamp: <Fri 2019-10-11 08:57 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -47,10 +47,13 @@ class Edge:
         self._attributes.update(kwargs)
 
         # use separator if given otherwise use config default value
-        self.separator: str = config.get('edge', 'separator')
+        self.separator: str = kwargs.get('separator',
+                                         config.get('edge', 'separator'))
 
         # check code
-        self.check: bool = config.getboolean('computation', 'check_code')
+        self.check: bool = kwargs.get('check_code',
+                                      config.getboolean('computation',
+                                                        'check_code'))
 
         # add nodes
         self.add_nodes_from([v, w])
@@ -117,7 +120,7 @@ class Edge:
 
         Examples
         --------
-        Generate new node.
+        Generate new edge.
 
         >>> from pathpy import Edge
         >>> vw = Edge('v', 'w')
@@ -229,7 +232,7 @@ class Edge:
         Get the attributes of the edge.
 
         >>> vw.attributes
-        {'color'='red}
+        {'color'='red'}
 
         """
         return self._attributes
