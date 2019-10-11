@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-10-11 09:18 juergen>
+# Time-stamp: <Fri 2019-10-11 12:32 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -44,22 +44,19 @@ class Path:
 
         # use separator if given otherwise use config default value
         self.separator: str = kwargs.get('separator',
-                                         config.get('path', 'separator'))
+                                         config['path']['separator'])
 
         # use separator if given otherwise use config default value
         self.edge_separator: str = kwargs.get('edge_separator',
-                                              config.get('edge', 'separator'))
+                                              config['edge']['separator'])
 
         # get the max display name length
-        self.max_name_length: int = kwargs.get('max_name_length',
-                                               config.getint(
-                                                   'path',
-                                                   'max_name_length'))
+        self.max_name_length: int = kwargs.get(
+            'max_name_length', config['path']['max_name_length'])
 
         # check code
-        self.check: bool = kwargs.get('check_code',
-                                      config.getboolean('computation',
-                                                        'check_code'))
+        self.check: bool = kwargs.get(
+            'check_code', config['computation']['check_code'])
 
         # a dictionary containing node objects
         self._nodes: dict = defaultdict(dict)
@@ -67,8 +64,11 @@ class Path:
         # a dictionary containing edge objects
         self._edges: dict = defaultdict(dict)
 
-        # a list containing the path
-        self._path: List[str] = []
+        # a list containing the edge uids of the path
+        self._as_edges: List[str] = []
+
+        # a list containing the node uids of the path
+        self._as_nodes: List[str] = []
 
         # a counter fo the nodes
         self._node_counter: Counter = Counter()
@@ -188,7 +188,7 @@ class Path:
 
     def __len__(self) -> int:
         """Returns the number of edges in the path"""
-        return len(self.path)
+        return len(self.as_edges)
 
     def __eq__(self, other: object) -> bool:
         """Returns True if two paths are equal, otherwise False."""
@@ -204,7 +204,7 @@ class Path:
 
     @property
     def uid(self) -> str:
-        """Returns the id of the path.
+        """Returns the unique id of the path.
 
         Id of the path. If no id is assigned the path is called after the
         assigned edges. e.g. if the path has edges 'a-b' and 'c-d', the id is
@@ -217,8 +217,8 @@ class Path:
 
         Examples
         --------
-
         Generate a simple path
+
         >>> from pathpy import Path
         >>> p = Path('a','b','c')
         >>> p.uid
@@ -228,7 +228,7 @@ class Path:
         if self._uid != '':
             return self._uid
         else:
-            return self.separator.join(self.path)
+            return self.separator.join(self.as_edges)
 
     @property
     def attributes(self) -> Dict:
@@ -296,11 +296,11 @@ class Path:
 
         if len(self) > self.max_name_length:
             _name = self.separator.join(
-                self.path[0:-2][0:self.max_name_length]) \
+                self.as_edges[0:-2][0:self.max_name_length]) \
                 + self.separator + '...' + self.separator \
-                + self.path[-1]
+                + self.as_edges[-1]
         else:
-            _name = self.separator.join(self.path)
+            _name = self.separator.join(self.as_edges)
 
         return self.attributes.get('name', _name)
 
@@ -353,7 +353,31 @@ class Path:
         return self._edges
 
     @property
-    def path(self) -> List[str]:
+    def as_nodes(self) -> List[str]:
+        """Return the adjacend node uids in the path.
+
+        Returns
+        -------
+        List[str]
+            Return a list the :py:class:`Node` uids.
+
+        Examples
+        --------
+        Generate a simple path.
+
+        >>> from pathpy import Path
+        >>> p = Path('a','b','c','a','b',)
+
+        Get the path as a list of nodes
+
+        >>> p.as_nodes
+        ['a', 'b', 'c', 'a', 'b']
+
+        """
+        return self._as_nodes
+
+    @property
+    def as_edges(self) -> List[str]:
         """Return the adjacend edge uids in the path.
 
         Returns
@@ -370,11 +394,11 @@ class Path:
 
         Get the edges of the path
 
-        >>> p.path
-        ['a-b','b-c','c-a','a-b']
+        >>> p.as_edges
+        ['a-b', 'b-c', 'c-a', 'a-b']
 
         """
-        return self._path
+        return self._as_edges
 
     @property
     def node_counter(self) -> Counter:
@@ -400,9 +424,7 @@ class Path:
         [('a', 2), ('b', 2)]
 
         """
-        nodes = [self.edges[e].v.uid for e in self.path]
-        nodes.append(self.edges[self.path[-1]].w.uid)
-        return Counter(nodes)
+        return Counter(self.as_nodes)
 
     @property
     def edge_counter(self) -> Counter:
@@ -428,7 +450,7 @@ class Path:
         [('a-b', 2), ('b-c', 1)]
 
         """
-        return Counter(self.path)
+        return Counter(self.as_edges)
 
     def update(self, **kwargs: Any) -> None:
         """Update the attributes of the path.
@@ -481,7 +503,7 @@ class Path:
             'Number of unique edges:\t{}'.format(self.number_of_edges()),
             'Path length (# edges):\t{}'.format(len(self))
         ]
-        if config.getboolean('logging', 'enabled'):
+        if config['logging']['enabled']:
             for line in summary:
                 log.info(line.rstrip())
             return None
@@ -523,7 +545,7 @@ class Path:
         if unique:
             return len(self.nodes)
         else:
-            return len(self.path)+1
+            return len(self.as_nodes)
 
     def number_of_edges(self, unique: bool = True) -> int:
         """Return the number of edges in the path.
@@ -544,7 +566,7 @@ class Path:
         Generate a simple path.
 
         >>> from pathy import Path
-        >>> p = Path('a', 'b', 'c', 'a', 'b',)
+        >>> p = Path('a', 'b', 'c', 'a', 'b')
 
         Get the number of unique edges:
 
@@ -560,7 +582,7 @@ class Path:
         if unique:
             return len(self.edges)
         else:
-            return len(self.path)
+            return len(self.as_edges)
 
     def add_edges_from(self, edges: List[Edge], **kwargs: Any) -> None:
         """Add multiple edges from a list.
@@ -612,7 +634,12 @@ class Path:
             self.edges[edge.uid] = edge
 
         # append edge to the path
-        self.path.append(edge.uid)
+        self.as_edges.append(edge.uid)
+        # append nodes to path
+        # if it is the first edge add the inital node
+        if len(self.as_nodes) == 0:
+            self.as_nodes.append(edge.v.uid)
+        self.as_nodes.append(edge.w.uid)
 
     def _check_edge(self, node: Any, **kwargs: Any) -> Edge:
         """Helperfunction to check if the edge is in the right format."""
@@ -634,30 +661,28 @@ class Path:
         if not isinstance(node, self.NodeClass) and self.check:
             node = self._check_node(node, **kwargs)
 
+        v_uid: str = ''
         # get predecessor node
-        v: List[Node] = []
-        # if no edge is defined us the first assigned node
-        if self.number_of_nodes() == 1:
-            v.append(list(self.nodes.values())[0])
-        # use the last node in the path
-        elif self.number_of_nodes() > 1:
-            v.append(self.edges[self.path[-1]].w)
+        if len(self.as_nodes) > 0:
+            v_uid = self.as_nodes[-1]
 
         # add node to the path
         if node.uid not in self.nodes:
             self.nodes[node.uid] = node
 
+        # append node to path
+        if len(self.as_nodes) == 0:
+            self.as_nodes.append(node.uid)
+
         # assigne edge from the last added node to the new node
         # TODO: Make also work for muli-edges
-        # TODO: Make the code nicer
-        if ((self.number_of_nodes() >= 2) or
-                (self.number_of_nodes() == 1 and len(v) > 0)):
+        if len(self.as_nodes) > 0 and v_uid != '':
             # add edge
-            if v[0].uid+self.edge_separator+node.uid not in self.edges:
-                self.add_edge(self.EdgeClass(v[0], node))
-            # update path
+            edge_uid = v_uid+self.edge_separator+node.uid
+            if edge_uid not in self.edges:
+                self.add_edge(self.EdgeClass(self.nodes[v_uid], node))
             else:
-                self.path.append(v[0].uid+self.edge_separator+node.uid)
+                self.add_edge(self.edges[edge_uid])
 
     def add_nodes_from(self, nodes: List[Node], **kwargs: Any) -> None:
         """Add multiple nodes from a list.

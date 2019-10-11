@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : logger.py -- Module to log output information
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2019-10-09 11:23 juergen>
+# Time-stamp: <Fri 2019-10-11 10:51 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -12,19 +12,19 @@ import logging
 from .. import config
 
 # check if logging is enabled in the config file
-if config.getboolean('logging', 'enabled'):
+if config['logging']['enabled']:
 
     # generate base config for logging
     logging.basicConfig()
 
 # check if logger should write to the terminal
-if config.getboolean('logging', 'verbose'):
+if config['logging']['verbose']:
 
     # create stream handler
     console = logging.StreamHandler()
 
     # set level according to the config file
-    console.setLevel(logging._nameToLevel[config.get('logging', 'level')])
+    console.setLevel(logging._nameToLevel[config['logging']['level']])
 
     # set a format which is simpler for console use
 
@@ -52,7 +52,7 @@ def logger(name, level=None):
 
     # if no level is defined the config level will be used
     if level is None:
-        logger.setLevel(logging._nameToLevel[config.get('logging', 'level')])
+        logger.setLevel(logging._nameToLevel[config['logging']['level']])
     else:
         logger.setLevel(logging._nameToLevel[level])
     return logger

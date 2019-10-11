@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_edge.py -- Test environment for the Edge class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-10 12:01 juergen>
+# Time-stamp: <Fri 2019-10-11 10:52 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -21,7 +21,7 @@ def nodes(request):
         v = Node('v')
         w = Node('w')
     else:
-        config.set('computation', 'check_code', 'true')
+        config['computation']['check_code'] = True
         v = 'v'
         w = 'w'
     return v, w

@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_path.py -- Test environment for the Path class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-10-11 09:17 juergen>
+# Time-stamp: <Fri 2019-10-11 12:10 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -132,12 +132,20 @@ def test_edges():
     assert len(p.edges) == 2
 
 
-def test_path():
-    """Test the path list."""
+def test_as_edges():
+    """Test the path list as edges."""
 
     p = Path('a', 'b', 'c', 'a', 'b',)
 
-    assert p.path == ['a-b', 'b-c', 'c-a', 'a-b']
+    assert p.as_edges == ['a-b', 'b-c', 'c-a', 'a-b']
+
+
+def test_as_nodes():
+    """Test the path list as nodes."""
+
+    p = Path('a', 'b', 'c', 'a', 'b',)
+
+    assert p.as_nodes == ['a', 'b', 'c', 'a', 'b']
 
 
 def test_node_counter():
@@ -232,12 +240,12 @@ def test_add_node():
 
     assert p.name == 'a-b'
     assert p.edges['a-b'].uid == 'a-b'
-    assert p.path[0] == 'a-b'
+    assert p.as_edges[0] == 'a-b'
 
     p.add_node(b)
 
     assert len(p) == 2
-    assert p.path[-1] == 'b-b'
+    assert p.as_edges[-1] == 'b-b'
 
 
 def test_add_edge():
@@ -251,13 +259,13 @@ def test_add_edge():
     assert p.edges['a-b'].uid == 'a-b'
     assert p.nodes['a'].uid == 'a'
     assert p.nodes['b'].uid == 'b'
-    assert p.path[0] == 'a-b'
+    assert p.as_edges[0] == 'a-b'
 
     bc = Edge('b', 'c', length=5)
     p.add_edge(bc)
 
     assert len(p) == 2
-    assert p.path[-1] == p.edges['b-c'].uid
+    assert p.as_edges[-1] == p.edges['b-c'].uid
     assert list(p.nodes.keys()) == ['a', 'b', 'c']
 
 
