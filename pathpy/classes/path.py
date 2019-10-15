@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-10-11 12:32 juergen>
+# Time-stamp: <Fri 2019-10-11 12:47 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -626,6 +626,10 @@ class Path:
             if edge.v.uid not in self._nodes:
                 self.nodes[edge.v.uid] = edge.v
 
+                # check if node is part of the path
+                if len(self.as_nodes) == 0:
+                    self.as_nodes.append(edge.v.uid)
+
             # check if node w is already defined, otherwise add node
             if edge.w.uid not in self._nodes:
                 self.nodes[edge.w.uid] = edge.w
@@ -635,10 +639,8 @@ class Path:
 
         # append edge to the path
         self.as_edges.append(edge.uid)
+
         # append nodes to path
-        # if it is the first edge add the inital node
-        if len(self.as_nodes) == 0:
-            self.as_nodes.append(edge.v.uid)
         self.as_nodes.append(edge.w.uid)
 
     def _check_edge(self, node: Any, **kwargs: Any) -> Edge:

@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : node.py -- Base class for a node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2019-10-09 11:56 juergen>
+# Time-stamp: <Tue 2019-10-15 10:04 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -138,6 +138,14 @@ class Node:
             log.error(
                 'No attribute with key {} is defined!'.format(error))
             raise
+
+    def __hash__(self) -> Any:
+        """Returns the unique hash of the node.
+
+        Here the hash value is defined by the unique node id!
+
+        """
+        return hash(self.uid)
 
     @property
     def uid(self) -> str:

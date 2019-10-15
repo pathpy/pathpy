@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : config.py -- Module to read and parse configuration files
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-10-11 10:48 juergen>
+# Time-stamp: <Fri 2019-10-11 12:55 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -23,8 +23,10 @@ parser = ConfigParser()
 parser.read([_base_config, 'config.cfg'])
 
 # setup parser
-config = defaultdict(dict)
+config: dict = defaultdict(dict)
 
+
+# TODO: Find a better way to load the config file.
 config['logging']['enabled'] = parser.getboolean('logging', 'enabled')
 config['logging']['verbose'] = parser.getboolean('logging', 'verbose')
 config['logging']['level'] = parser.get('logging', 'level')
