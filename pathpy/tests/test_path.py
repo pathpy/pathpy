@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_path.py -- Test environment for the Path class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-10-11 12:10 juergen>
+# Time-stamp: <Wed 2019-10-16 14:38 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -269,6 +269,24 @@ def test_add_edge():
     assert list(p.nodes.keys()) == ['a', 'b', 'c']
 
 
+def test_subpaths():
+    """Test to get all subpaths."""
+
+    p = Path('a', 'b', 'c', 'd', 'e')
+    sp = p.subpaths()
+
+    assert len(sp) == 14
+    assert isinstance(sp['a-b'], Path)
+
+    sp = p.subpaths(min_length=2, max_length=2)
+
+    assert len(sp) == 3
+
+    sp = p.subpaths(include_path=True)
+
+    assert p.uid in sp
+
+
 def test_has_subpath():
     """Test to find a suppath."""
     pass
@@ -279,9 +297,19 @@ def test_subpath():
     pass
 
 
-def test_subpaths():
-    """Test to get all subpaths."""
-    pass
+def test_from_nodes():
+    """Test path generation form nodes."""
+    a = Node('a', color='blue')
+    b = Node('b', color='red')
+    p = Path.from_nodes([a, b], type='road')
+
+    assert isinstance(p, Path)
+    assert p.uid == 'a-b'
+    assert 'a' and 'b' in p.nodes
+    assert p.nodes['a']['color'] == 'blue'
+    assert p.nodes['b']['color'] == 'red'
+    assert p['type'] == 'road'
+
 
 # =============================================================================
 # eof
