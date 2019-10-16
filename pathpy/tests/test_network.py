@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-10-11 10:11 juergen>
+# Time-stamp: <Wed 2019-10-16 15:11 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -135,6 +135,7 @@ def test_update():
 
 def test_add_path():
     """Test the path assignment."""
+
     p1 = Path('a', 'b', 'c', 'a', 'b')
     p2 = Path('d', 'b', 'e')
 
@@ -142,13 +143,13 @@ def test_add_path():
 
     net.add_path(p1)
 
-    print(net.nodes)
-    print(net.edges)
-    print(net.paths)
+    assert net.number_of_nodes() == 3
+    assert net.number_of_nodes() == 3
+    assert net.number_of_paths() == 1
 
-    print(net.node_counter)
-    print(net.edge_counter)
-    print(net.path_counter)
+    net.add_path(p2)
+
+    assert net.number_of_paths() == 2
 
 
 def test_number_of_nodes():

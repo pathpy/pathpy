@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2019-10-16 14:53 juergen>
+# Time-stamp: <Wed 2019-10-16 15:07 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -613,8 +613,8 @@ class Path:
 
         Parameters
         ----------
-        node:: py: class: `Edge`
-            The: py: class: `Edge` object, which will be added to the path.
+        edge: :py:class:`Edge`
+            The :py:class:`Edge` object, which will be added to the path.
 
         kwargs: Any, optional(default={})
             Attributes assigned to the node as key = value pairs.
