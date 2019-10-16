@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : node.py -- Base class for a node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2019-10-15 10:04 juergen>
+# Time-stamp: <Wed 2019-10-16 12:22 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -203,7 +203,7 @@ class Node:
         return self._incoming
 
     @property
-    def edges(self) -> Set[str]:
+    def adjacent_edges(self) -> Set[str]:
         """Returns the set of edge uids adjacent to the node.
 
         Returns
