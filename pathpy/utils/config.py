@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : config.py -- Module to read and parse configuration files
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-10-11 12:55 juergen>
+# Time-stamp: <Wed 2019-10-16 12:34 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -40,7 +40,7 @@ config['edge']['separator'] = parser.get('edge', 'separator')
 
 config['path']['separator'] = parser.get('path', 'separator')
 config['path']['max_name_length'] = parser.getint('path', 'max_name_length')
-
+config['hon']['separator'] = parser.get('hon', 'separator')
 
 # =============================================================================
 # eof
