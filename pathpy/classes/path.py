@@ -3,13 +3,14 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2019-10-16 15:07 juergen>
+# Time-stamp: <Thu 2019-10-17 13:38 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, List, Dict, Optional
+from typing import Any, List, Dict, Optional, Sequence
 from collections import defaultdict, Counter
+from copy import deepcopy
 import sys
 
 from .. import logger, config
@@ -87,7 +88,7 @@ class Path:
 
     def _node_class(self) -> None:
         """Internal function to assign different Node classes."""
-        self.NodeClass = Node
+        self.NodeClass: Any = Node
 
     def _edge_class(self) -> None:
         """Internal function to assign different Edge classes."""
@@ -676,6 +677,8 @@ class Path:
         # add node to the path
         if node.uid not in self.nodes:
             self.nodes[node.uid] = node
+        else:
+            node = self.nodes[node.uid]
 
         # append node to path
         if len(self.as_nodes) == 0:
@@ -693,7 +696,7 @@ class Path:
             else:
                 self.add_edge(self.edges[edge_uid])
 
-    def add_nodes_from(self, nodes: List[Node], **kwargs: Any) -> None:
+    def add_nodes_from(self, nodes: Sequence[Node], **kwargs: Any) -> None:
         """Add multiple nodes from a list.
 
         Parameters
@@ -849,7 +852,8 @@ class Path:
         if _min_length <= 0:
             for node in self.as_nodes:
                 # generate empty path with one node
-                subpaths[node] = Path.from_nodes([self.nodes[node]])
+                subpaths[node] = Path.from_nodes([self.nodes[node]],
+                                                 **self.attributes)
 
         # find the right path lengths
         min_length = max(_min_length, 1)
@@ -862,10 +866,10 @@ class Path:
                 edges = [self.edges[edge] for edge in self.as_edges[j:j+i+1]]
                 # assign a new path based  on the given edges
                 subpaths[self.separator.join(
-                    self.as_edges[j:j+i+1])] = Path(*edges)
+                    self.as_edges[j:j+i+1])] = Path(*edges, **self.attributes)
 
         # include the path
-        if include_path:
+        if include_path and _max_length >= len(self):
             subpaths[self.uid] = self
 
         # return the dict of subpaths
@@ -879,8 +883,27 @@ class Path:
         """Returns a sup-path of the path."""
         raise NotImplementedError
 
+    def copy(self) -> Path:
+        """Return a copy of the path.
+
+        Returns
+        -------
+        Path
+            A copy of the path.
+
+        Examples
+        --------
+        >>> from pathpy import Path
+        >>> p_1 = Path(uid='a')
+        >>> p_2 = p_1.copy()
+        >>> p_2.uid
+        a
+
+        """
+        return deepcopy(self)
+
     @classmethod
-    def from_nodes(cls, nodes: List[Node], **kwargs: Any):
+    def from_nodes(cls, nodes: Sequence[Node], **kwargs: Any):
         """Generate a Path object from a list of nodes.
 
         Parameters

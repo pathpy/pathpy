@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_path.py -- Test environment for the Path class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2019-10-16 14:38 juergen>
+# Time-stamp: <Wed 2019-10-16 16:00 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -279,7 +279,9 @@ def test_subpaths():
     assert isinstance(sp['a-b'], Path)
 
     sp = p.subpaths(min_length=2, max_length=2)
+    assert len(sp) == 3
 
+    sp = p.subpaths(min_length=2, max_length=2, include_path=True)
     assert len(sp) == 3
 
     sp = p.subpaths(include_path=True)
