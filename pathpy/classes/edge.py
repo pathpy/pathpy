@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-10-11 12:35 juergen>
+# Time-stamp: <Wed 2019-10-23 08:12 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -308,6 +308,14 @@ class Edge:
         """Return if the edge is directed (True) or undirected (False)."""
         return self._directed
 
+    @property
+    def frequency(self) -> int:
+        return self.attributes.get('frequency', 0)
+
+    @frequency.setter
+    def frequency(self, value: int) -> None:
+        self.attributes['frequency'] = value
+
     def add_node(self, node: Node, **kwargs: Any) -> None:
         """Add a single node to the edge.
 
@@ -341,7 +349,7 @@ class Edge:
 
             Nodes from a list of :py:class:`Node` objects are added to the
             edge.
-
+q
         kwargs : Any, optional (default = {})
             Attributes assigned to all nodes in the list as key=value pairs.
 
@@ -466,7 +474,7 @@ class Edge:
         if not weight:
             return 1.0
         elif isinstance(weight, str) and weight != 'weight':
-            return float(self.attributes.get(weight, 1.0))
+            return float(self.attributes.get(weight, 0.0))
         else:
             return float(self.attributes.get('weight', 1.0))
 
