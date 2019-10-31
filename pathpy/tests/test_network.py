@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 14:18 juergen>
+# Time-stamp: <Thu 2019-10-31 14:21 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -250,15 +250,16 @@ def test_add_edge():
     assert sum(net.edges.counter().values()) == 3
     assert net.nodes.counter()['b'] == 3
 
-# def test_add_edges_from():
-#     """Test assigning edges form a list."""
-#     net = Network()
-#     ab = Edge('ab', 'a', 'b')
 
-#     net.add_edges_from([ab, ('bc', 'b', 'c')])
+def test_add_edges_from():
+    """Test assigning edges form a list."""
+    net = Network()
+    ab = Edge('a', 'b')
 
-#     assert net.number_of_edges() == 2
-#     assert net.edges['ab'].id == 'ab'
+    net.add_edges_from([ab, 'b-c'])
+
+    assert net.number_of_edges() == 2
+    assert net.edges['a-b'].uid == 'a-b'
 
 
 # def test_remove_node(net):
