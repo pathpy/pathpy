@@ -3,12 +3,12 @@
 # =============================================================================
 # File      : _check_edge.py -- Helper function to check the edge format
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 14:15 juergen>
+# Time-stamp: <Thu 2019-10-31 14:38 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, Optional
+from typing import Any
 
 from ... import logger
 from .. import Edge

@@ -3,12 +3,12 @@
 # =============================================================================
 # File      : edge.py -- Base class for an edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 12:50 juergen>
+# Time-stamp: <Thu 2019-10-31 14:38 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, List, Dict
+from typing import Any, List
 
 from .. import logger
 from .base import BaseClass

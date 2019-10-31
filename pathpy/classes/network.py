@@ -3,12 +3,12 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 14:23 juergen>
+# Time-stamp: <Thu 2019-10-31 14:39 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, List, Dict, Tuple, Optional, Sequence
+from typing import Any, List, Tuple, Optional, Sequence
 
 from .. import logger, config
 from .base import BaseNetwork

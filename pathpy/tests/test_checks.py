@@ -3,15 +3,14 @@
 # =============================================================================
 # File      : test_checks.py -- Test environment for the class checks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 14:32 juergen>
+# Time-stamp: <Thu 2019-10-31 14:39 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 
-import pytest
+# import pytest
 
 from pathpy import Node, Edge, Path
-import pathpy as pp
 
 
 def test_check_node_correct():
