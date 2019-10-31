@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 14:39 juergen>
+# Time-stamp: <Thu 2019-10-31 17:04 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -71,9 +71,14 @@ class Network(BaseNetwork):
         log.debug('pathpy.io faild to be imported')
 
     try:
-        from ..algorithms.subpaths import subpath_info, subpath_counter
+        from ..algorithms.subpaths import SubPaths as _SubPathsConstructor
+
+        @property
+        def subpaths(self):
+            """Returns a SubPath object."""
+            return self._SubPathsConstructor(self)
     except ImportError:
-        log.debug('pathpy.sub faild to be imported')
+        log.debug('pathpy.subpaths faild to be imported')
 
     try:
         from ..algorithms.matrices import adjacency_matrix, transition_matrix
@@ -579,7 +584,7 @@ class Network(BaseNetwork):
         self.edges.increase_counter(edge.uid, edge.attributes.frequency)
         self.nodes.increase_counter(edge.nodes, edge.attributes.frequency)
 
-    def add_path(self, path: Path, frequency: int = 1, **kwargs: Any) -> None:
+    def add_path(self, path: Path, **kwargs: Any) -> None:
         """Add a single path to the network.
 
         Parameters
