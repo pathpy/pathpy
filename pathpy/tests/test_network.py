@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 13:10 juergen>
+# Time-stamp: <Thu 2019-10-31 14:18 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -202,48 +202,53 @@ def test_add_nodes_from():
     assert net.nodes['v']['color'] == 'green'
     assert net.nodes['w']['color'] == 'green'
 
-# def test_add_edge():
-#     """Test the edge assignment."""
 
-#     net = Network()
-#     net.add_edge('ab', 'a', 'b', length=10)
+def test_add_edge():
+    """Test the edge assignment."""
 
-#     assert net.number_of_nodes() == 2
-#     assert net.number_of_edges() == 1
-#     assert isinstance(net.edges['ab'], Edge)
-#     assert net.edges['ab'].id == 'ab'
-#     assert net.edges['ab'].directed is True
-#     assert net.edges['ab']['length'] == 10
-#     assert net.nodes['a'].id == 'a'
-#     assert net.nodes['b'].id == 'b'
+    net = Network()
+    net.add_edge('a', 'b', length=10)
 
-#     c = Node('c')
-#     net.add_edge('bc', 'b', c, length=5)
+    assert net.number_of_nodes() == 2
+    assert net.number_of_edges() == 1
+    assert isinstance(net.edges['a-b'], Edge)
+    assert net.edges['a-b'].uid == 'a-b'
+    assert net.edges['a-b'].directed is True
+    assert net.edges['a-b']['length'] == 10
+    assert net.nodes['a'].uid == 'a'
+    assert net.nodes['b'].uid == 'b'
 
-#     assert net.number_of_edges() == 2
+    b = Node('b')
+    c = Node('c')
+    net.add_edge(b, c, length=5)
 
-#     with pytest.raises(ValueError):
-#         cd = Edge('cd', c, 'd', directed=False)
-#         net.add_edge(cd)
+    assert net.number_of_edges() == 2
 
-#     cd = Edge('cd', c, 'd')
-#     net.add_edge(cd)
+    net.add_edge('c-d')
 
-#     assert net.number_of_edges() == 3
-#     assert net.edges['cd'].v.id == 'c'
+    assert net.number_of_edges() == 3
+    assert net.edges['c-d'].v.uid == 'c'
 
-#     with pytest.raises(Exception):
-#         net.add_edge('de')
+    net.add_edge('a', 'd')
+    assert net.edges['a-d'].uid == 'a-d'
 
-#     with pytest.raises(Exception):
-#         net.add_edge(cd, 'd')
+    net.add_edge('b', 'd', separator='=')
+    assert net.edges['b=d'].uid == 'b=d'
 
-#     net.add_edge('a', 'd')
-#     assert net.edges['a-d'].id == 'a-d'
+    ab = Edge('a', 'b')
+    net = Network()
+    net.add_edge(ab, color='blue')
 
-#     net.add_edge('b', 'd', separator='=')
-#     assert net.edges['b=d'].id == 'b=d'
+    assert net.edges['a-b']['color'] == 'blue'
 
+    net.add_edge(ab, color='blue')
+    assert sum(net.edges.counter().values()) == 2
+
+    bc = Edge('b', 'c')
+    net.add_edge(bc, color='red')
+
+    assert sum(net.edges.counter().values()) == 3
+    assert net.nodes.counter()['b'] == 3
 
 # def test_add_edges_from():
 #     """Test assigning edges form a list."""

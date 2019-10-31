@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 13:07 juergen>
+# Time-stamp: <Thu 2019-10-31 14:07 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -15,6 +15,7 @@ from .base import BaseNetwork
 from .base import NodeDict, EdgeDict, PathDict
 from .utils.separator import separator
 from .utils._check_node import _check_node
+from .utils._check_edge import _check_edge
 from . import Node, Edge, Path
 
 # create logger for the Network class
@@ -475,8 +476,24 @@ class Network(BaseNetwork):
             self.add_node(node, **kwargs)
 
     def add_edges_from(self, edges: Sequence[Edge], **kwargs: Any) -> None:
-        """Add multiple edges from a list."""
-        raise NotImplementedError
+        """Add multiple edges from a list.
+
+        Parameters
+        ----------
+        nodes: List[Edge]
+
+            Edges from a list of: py: class:`Edge` objects are added to the
+            network.
+
+        kwargs: Any, optional(default={})
+            Attributes assigned to all nodes in the list as key = value pairs.
+
+        """
+
+        # iterate over a list of nodes
+        # TODO: parallelize this function
+        for edge in edges:
+            self.add_edge(edge, **kwargs)
 
     def add_paths_from(self, paths: Sequence[Path], **kwargs: Any) -> None:
         """Add multiple paths from a list.
@@ -544,31 +561,24 @@ class Network(BaseNetwork):
             self.nodes[node.uid] = node
 
         # update node counter
-        self.nodes.increase_counter(node.uid, self.attributes.frequency)
+        self.nodes.increase_counter(node.uid, node.attributes.frequency)
 
-    def add_edge(self, edge: Edge, frequency: int = 1, **kwargs: Any) -> None:
+    def add_edge(self, edge: Edge, *args, **kwargs: Any) -> None:
         """Add a single edge to the network."""
 
         # check if the right object is provided
-        if not isinstance(edge, self.EdgeClass) and self.check:
-            edge = self._check_edge(edge, **kwargs)
+        if self.check:
+            edge = _check_edge(self, edge, *args, **kwargs)
 
-        # check if edge is already defined
-        if edge.uid not in self.edges:
-
-            # check if node v is already defined, otherwise add node
-            if edge.v.uid not in self._nodes:
-                self.nodes[edge.v.uid] = edge.v
-
-            # check if node w is already defined, otherwise add node
-            if edge.w.uid not in self._nodes:
-                self.nodes[edge.w.uid] = edge.w
-
-            # add new edge to the path
+        # add new edge to the path or update modified edge
+        if (edge.uid not in self.edges or
+                (edge.uid in self.edges and edge != self.edges[edge.uid])):
+            self.nodes.update(edge.nodes)
             self.edges[edge.uid] = edge
 
-        # increase edge (and node counter)
-        self.edges[edge.uid].update_frequency(frequency, subordinate=True)
+        # update counters
+        self.edges.increase_counter(edge.uid, edge.attributes.frequency)
+        self.nodes.increase_counter(edge.nodes, edge.attributes.frequency)
 
     def add_path(self, path: Path, frequency: int = 1, **kwargs: Any) -> None:
         """Add a single path to the network.
