@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : containers.py -- Base containers for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 12:05 juergen>
+# Time-stamp: <Thu 2019-10-31 14:47 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -79,8 +79,8 @@ class EdgeDict(BaseDict):
 
     def data_frame(self) -> pd.DataFrame:
         """Return a pandas data frame of all edges."""
-        data = [dict(obj.attributes.df, **{'v': obj.v.uid,
-                                           'w': obj.w.uid})
+        data = [dict(obj.attributes.data, **{'v': obj.v.uid,
+                                             'w': obj.w.uid})
                 for obj in self.values()]
         return pd.DataFrame(data)
 
@@ -95,7 +95,7 @@ class PathDict(BaseDict):
 
     def data_frame(self) -> pd.DataFrame:
         """Return a pandas data frame of all paths."""
-        data = [dict(obj.attributes.df, **{'len': len(obj)})
+        data = [dict(obj.attributes.data, **{'len': len(obj)})
                 for obj in self.values()]
         return pd.DataFrame(data)
 
