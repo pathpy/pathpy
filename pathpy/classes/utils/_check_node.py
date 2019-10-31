@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : _check_node.py -- Helper function to check the node format
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2019-10-28 11:38 juergen>
+# Time-stamp: <Thu 2019-10-31 13:11 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -52,11 +52,15 @@ def _check_node(self, node: Any, **kwargs: Any) -> Node:
 
         else:
             # otherwise stor change of the attribute
-            self.nodes[_node.uid].attributes.update(
-                **_node.attributes.to_dict(
-                    exclude=['frequency'],
-                    history=False))
+            self.nodes[_node.uid].update(
+                **_node.attributes.to_dict(history=False))
             _node = self.nodes[_node.uid]
+
+    # otherwise check if attributes have to be overwritten
+    else:
+        if kwargs and kwargs != _node.attributes.to_dict(history=False):
+            _node.update(**kwargs)
+
     return _node
 
 
