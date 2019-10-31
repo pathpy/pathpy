@@ -3,17 +3,18 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 12:18 juergen>
+# Time-stamp: <Thu 2019-10-31 13:07 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, Dict, Tuple, Optional, Sequence
+from typing import Any, List, Dict, Tuple, Optional, Sequence
 
 from .. import logger, config
 from .base import BaseNetwork
 from .base import NodeDict, EdgeDict, PathDict
 from .utils.separator import separator
+from .utils._check_node import _check_node
 from . import Node, Edge, Path
 
 # create logger for the Network class
@@ -454,9 +455,24 @@ class Network(BaseNetwork):
         else:
             return sum(self.paths.counter().values())
 
-    def add_nodes_from(self, nodes: Sequence[Node], **kwargs: Any) -> None:
-        """Add multiple nodes from a list."""
-        raise NotImplementedError
+    def add_nodes_from(self, nodes: List[Node], **kwargs: Any) -> None:
+        """Add multiple nodes from a list.
+
+        Parameters
+        ----------
+        nodes : List[Node]
+
+            Nodes from a list of :py:class:`Node` objects are added to the
+            network.
+
+        kwargs : Any, optional (default = {})
+            Attributes assigned to all nodes in the list as key=value pairs.
+
+        """
+        # iterate over a list of nodes
+        # TODO: parallelize this function
+        for node in nodes:
+            self.add_node(node, **kwargs)
 
     def add_edges_from(self, edges: Sequence[Edge], **kwargs: Any) -> None:
         """Add multiple edges from a list."""
@@ -487,18 +503,48 @@ class Network(BaseNetwork):
         for path in paths:
             self.add_path(path, **kwargs)
 
-    def add_node(self, node: Node, frequency: int = 1, **kwargs: Any) -> None:
-        """Add a single node to the network."""
+    def add_node(self, node: Node, **kwargs: Any) -> None:
+        """Add a single node to the network.
+
+        Parameters
+        ----------
+        node : :py:class:`Node`
+            The :py:class:`Node` object, which will be added to the network.
+
+        kwargs : Any, optional (default = {})
+            Attributes assigned to the node as key=value pairs.
+
+        Examples
+        --------
+        Generate an empty network and add single nodes.
+
+        >>> from pathpy import Node, Network
+        >>> a = Node('a')
+        >>> net = Network()
+        >>> net.add_node(a, color='azur')
+        >>> net.nodes
+        {'a': Node a}
+
+        Generate new node from string.
+
+        >>> net.add_node('b', color='blue')
+        >>> net.nodes
+        {'a': Node a, 'b': Node b}
+
+        """
 
         # check if the right object is provided.
-        if not isinstance(node, self.NodeClass) and self.check:
-            node = self._check_node(node, **kwargs)
+        if self.check:
+            node = _check_node(self, node, **kwargs)
 
-        if node.uid not in self.nodes:
+        # add new node to the network or update modified node
+        # TODO: Test the speed of the if statement
+        if (node.uid not in self.nodes or
+                (node.uid in self.nodes and node != self.nodes[node.uid])):
             self.nodes[node.uid] = node
 
-        # increase node counter
-        self.nodes[node.uid].update_frequency(frequency)
+        # update node counter
+        self.nodes.increase_counter(node.uid, self.attributes.frequency)
 
     def add_edge(self, edge: Edge, frequency: int = 1, **kwargs: Any) -> None:
         """Add a single edge to the network."""

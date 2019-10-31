@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 11:19 juergen>
+# Time-stamp: <Thu 2019-10-31 13:10 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -164,35 +164,43 @@ def test_number_of_paths():
     assert net.number_of_paths(unique=False) == 3
 
 
-# def test_add_node():
-#     """Test the node assignment."""
+def test_add_node():
+    """Test the node assignment."""
 
-#     net = Network()
-#     net.add_node('v', color='red')
+    net = Network()
+    net.add_node('v', color='red')
 
-#     assert net.number_of_nodes() == 1
-#     assert isinstance(net.nodes['v'], Node)
-#     assert net.nodes['v'].id == 'v'
-#     assert net.nodes['v']['color'] == 'red'
+    assert net.number_of_nodes() == 1
+    assert isinstance(net.nodes['v'], Node)
+    assert net.nodes['v'].uid == 'v'
+    assert net.nodes['v']['color'] == 'red'
 
-#     w = Node('w', color='green')
-#     net.add_node(w)
+    w = Node('w', color='green')
+    net.add_node(w)
 
-#     assert net.number_of_nodes() == 2
-#     assert isinstance(net.nodes['w'], Node)
-#     assert net.nodes['w'].id == 'w'
-#     assert net.nodes['w']['color'] == 'green'
+    assert net.number_of_nodes() == 2
+    assert isinstance(net.nodes['w'], Node)
+    assert net.nodes['w'].uid == 'w'
+    assert net.nodes['w']['color'] == 'green'
+
+    v = Node('v', color='blue')
+    net.add_node(v)
+
+    assert net.number_of_nodes() == 2
+    assert net.number_of_nodes(unique=False) == 3
+    assert net.nodes['v']['color'] == 'blue'
 
 
-# def test_add_nodes_from():
-#     """Test assigning notes form a list."""
-#     net = Network()
-#     u = Node('u')
-#     net.add_nodes_from([u, 'v', 'w'], color='green')
+def test_add_nodes_from():
+    """Test assigning notes form a list."""
+    net = Network()
+    u = Node('u')
+    net.add_nodes_from([u, 'v', 'w'], color='green')
 
-#     assert net.number_of_nodes() == 3
-#     assert net.nodes['u']['color'] == 'green'
-
+    assert net.number_of_nodes() == 3
+    assert net.nodes['u']['color'] == 'green'
+    assert net.nodes['v']['color'] == 'green'
+    assert net.nodes['w']['color'] == 'green'
 
 # def test_add_edge():
 #     """Test the edge assignment."""
