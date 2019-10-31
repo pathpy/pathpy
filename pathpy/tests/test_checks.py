@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_checks.py -- Test environment for the class checks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2019-10-29 08:17 juergen>
+# Time-stamp: <Thu 2019-10-31 14:32 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -301,16 +301,16 @@ def test_check_edge_in_path():
 
     p = Path()
 
-    p.add_edge(e1, foo='edge object')
+    p.add_edge(e1)
     p.nodes['a']['number'] = 2
-    p.add_edge(e2, foo='edge object')
+    p.add_edge(e2)
     p.nodes['a']['number'] = 3
-    p.add_edge(e3, foo='edge object')
+    p.add_edge(e3)
     p.nodes['a']['number'] = 4
 
     e4 = Edge(a, b, foo='D')
 
-    p.add_edge(e4, foo='edge object')
+    p.add_edge(e4)
 
     d = p.edges['a-b'].attributes.data
 
