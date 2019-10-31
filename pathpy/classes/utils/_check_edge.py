@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : _check_edge.py -- Helper function to check the edge format
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 11:52 juergen>
+# Time-stamp: <Thu 2019-10-31 14:15 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -113,6 +113,11 @@ def _check_edge(self, edge: Any, *args: Any, **kwargs: Any) -> Edge:
             _copy = self.edges[_edge.uid].copy()
             _copy.inherit(_edge)
             _edge = _copy
+
+    # otherwise check if attributes have to be overwritten
+    else:
+        if kwargs and kwargs != _edge.attributes.to_dict(history=False):
+            _edge.update(**kwargs)
 
     return _edge
 
