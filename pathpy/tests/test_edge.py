@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_edge.py -- Test environment for the Edge class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-10-11 10:52 juergen>
+# Time-stamp: <Thu 2019-10-31 10:29 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -66,8 +66,7 @@ def test_getitem(nodes):
     vw = Edge(v, w, length=10)
 
     assert vw['length'] == 10
-    with pytest.raises(KeyError):
-        vw['attribute not in dict']
+    assert vw['attribute not in dict'] == None
 
 
 def test_repr(nodes):
@@ -123,12 +122,29 @@ def test_weight(nodes):
 
 
 def test_self_loop():
+    """Test self loop as an edge."""
     v = Node('v')
 
     vv = Edge(v, v, directed=True)
     assert len(vv.nodes) == 1
     assert list(v.outgoing)[0] == 'v-v'
     assert list(v.incoming)[0] == 'v-v'
+
+
+def test_add_node():
+    """Test to add a node to the edge."""
+    pass
+
+
+def test_add_nodes_from():
+    """Test to add nodes from a list."""
+    pass
+
+
+def test_inherit():
+    """Test to inherit attributes form an other edge."""
+    pass
+
 
 # =============================================================================
 # eof

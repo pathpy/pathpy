@@ -1,21 +1,20 @@
 #!/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
-# File      : __init__.py -- pathpy init file
+# File      : test_containers.py -- Test environment for the containers
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 12:24 juergen>
+# Time-stamp: <Thu 2019-10-31 11:31 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
-__version__ = '3.0.0'
 
-from .utils.config import config
-from .utils.logger import logger
-from .utils.progress import tqdm
+import pytest
 
-from .classes import *
-from .algorithms import *
-from .visualizations import *
+
+def test_basic():
+    """Test basic functions."""
+    pass
+
 
 # =============================================================================
 # eof

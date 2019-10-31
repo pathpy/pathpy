@@ -3,28 +3,33 @@
 # =============================================================================
 # File      : edge.py -- Base class for an edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2019-10-23 08:12 juergen>
+# Time-stamp: <Thu 2019-10-31 12:09 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
 from typing import Any, List, Dict
-from copy import deepcopy
-from collections import defaultdict
 
-from .. import logger, config
+from .. import logger
+from .base import BaseClass
+from .base import NodeDict
+from .utils.separator import separator
+from .utils._check_node import _check_node
 from . import Node
 
 # create logger for the Edge class
 log = logger(__name__)
 
 
-class Edge:
+class Edge(BaseClass):
     """Base class for an edge."""
 
     def __init__(self, v: Node, w: Node, uid: str = None,
                  directed: bool = True, **kwargs: Any) -> None:
         """Initialize the edge object."""
+
+        # initialize the base class
+        super().__init__(**kwargs)
 
         # Class of the Node object
         # TODO: Probably there is a better solution to have different Node
@@ -38,32 +43,24 @@ class Edge:
         self._directed: bool = directed
 
         # a dictionary containing node objects
-        self._nodes: dict = defaultdict(dict)
-
-        # dictionary for edge attributes
-        self._attributes: dict = {}
-
-        # add attributes to the edge
-        self._attributes.update(kwargs)
+        self._nodes: NodeDict = NodeDict(dict)
 
         # use separator if given otherwise use config default value
-        self.separator: str = kwargs.get('separator',
-                                         config['edge']['separator'])
+        self.separator: dict = separator(mode='edge', **kwargs)
 
-        # check code
-        self.check: bool = kwargs.get(
-            'check_code', config['computation']['check_code'])
+        # add attributes to the edge
+        self.attributes.update(**kwargs)
 
         # add nodes
         self.add_nodes_from([v, w])
 
         # set source and target nodes
-        self._v: Node = list(self.nodes.values())[0]
-        self._w: Node = list(self.nodes.values())[-1]
+        self._v: str = list(self.nodes.values())[0].uid
+        self._w: str = list(self.nodes.values())[-1].uid
 
         # set uid of the edge
         if uid is None:
-            self._uid = self.v.uid + self.separator + self.w.uid
+            self._uid = self.v.uid + self.separator['edge'] + self.w.uid
         else:
             self._uid = uid
 
@@ -103,77 +100,6 @@ class Edge:
         """Return a string *Edge()*."""
         return '{}'.format(self.__class__.__name__)
 
-    def __setitem__(self, key: Any, value: Any) -> None:
-        """Add a specific attribute to the edge.
-
-        An attribute has a key and the corresponding value expressed as a pair,
-        key: value.
-
-        Parameters
-        ----------
-        key: Any
-            Unique identifier for a corrisponding value.
-
-        value: Any
-            A value i.e. attribute which is associated with the edge.
-
-        Examples
-        --------
-        Generate new edge.
-
-        >>> from pathpy import Edge
-        >>> vw = Edge('v', 'w')
-
-        Add atribute to the edge.
-
-        >>> vw['capacity'] = 5.5
-
-        """
-        self.attributes[key] = value
-
-    def __getitem__(self, key: Any) -> Any:
-        """Returns a specific attribute of the edge.
-
-        Parameters
-        ----------
-        key: any
-            Key value for the attribute of the edge.
-
-        Returns
-        -------
-        any
-            Returns the attribute of the edge associated with the given key
-            value.
-
-        Raises
-        ------
-        KeyError
-            If no attribute with the assiciated key is defined.
-
-        Examples
-        --------
-        Generate new edge with length 10
-
-        >>> from pathpy import Edge
-        >>> vw = Edge('v', 'w', length=10)
-
-        Get the edge attribute.
-
-        >>> vw[length]
-        10
-
-        """
-        try:
-            return self.attributes[key]
-        except KeyError as error:
-            log.error(
-                'No attribute with key {} is defined!'.format(error))
-            raise
-
-    def __eq__(self, other: object) -> bool:
-        """Returns True if two edges are equal, otherwise False."""
-        return self.__dict__ == other.__dict__
-
     def __hash__(self) -> Any:
         """Returns the unique hash of the edge.
 
@@ -185,11 +111,24 @@ class Edge:
     def __del__(self) -> None:
         """Delete the edge."""
         # update associated nodes
-        self.v.outgoing.remove(self.uid)
-        self.w.incoming.remove(self.uid)
+        try:
+            self.v.outgoing.remove(self.uid)
+        except Exception:
+            pass
+        try:
+            self.w.incoming.remove(self.uid)
+        except Exception:
+            pass
+
         if not self.directed:
-            self.v.incoming.remove(self.uid)
-            self.w.outgoing.remove(self.uid)
+            try:
+                self.v.incoming.remove(self.uid)
+            except Exception:
+                pass
+            try:
+                self.w.outgoing.remove(self.uid)
+            except Exception:
+                pass
 
     @property
     def uid(self) -> str:
@@ -213,36 +152,12 @@ class Edge:
         return self._uid
 
     @property
-    def attributes(self) -> Dict:
-        """Return the attributes associated with the edge.
-
-        Returns
-        -------
-        Dict
-            Return a dictionary with the edge attributes.
-
-        Examples
-        --------
-        Generate a single edge with a color attribute.
-
-        >>> from pathpy import Edge
-        >>> vw = Edge('v','w', color='red')
-
-        Get the attributes of the edge.
-
-        >>> vw.attributes
-        {'color'='red'}
-
-        """
-        return self._attributes
-
-    @property
-    def nodes(self) -> Dict[str, Node]:
+    def nodes(self) -> NodeDict:
         """Return the associated nodes of the edge.
 
         Returns
         -------
-        Dict[str,Node]
+        NodeDict
             Return a dictionary with the :py:class:`Node` uids as key and the
             :py:class:`Node` objects as values, associated with the edge.
 
@@ -280,7 +195,7 @@ class Edge:
         Node v
 
         """
-        return self._v
+        return self.nodes[self._v]
 
     @property
     def w(self) -> Node:
@@ -301,20 +216,12 @@ class Edge:
         Node w
 
         """
-        return self._w
+        return self.nodes[self._w]
 
     @property
     def directed(self) -> bool:
         """Return if the edge is directed (True) or undirected (False)."""
         return self._directed
-
-    @property
-    def frequency(self) -> int:
-        return self.attributes.get('frequency', 0)
-
-    @frequency.setter
-    def frequency(self, value: int) -> None:
-        self.attributes['frequency'] = value
 
     def add_node(self, node: Node, **kwargs: Any) -> None:
         """Add a single node to the edge.
@@ -334,11 +241,14 @@ class Edge:
 
         """
         # check if the right object is provided.
-        if not isinstance(node, self.NodeClass) and self.check:
-            node = self._check_node(node, **kwargs)
+        if self.check:
+            node = _check_node(self, node, **kwargs)
 
         # add node to the edge
         self.nodes[node.uid] = node
+
+        # update node counter
+        self.nodes.increase_counter(node.uid, self.attributes.frequency)
 
     def add_nodes_from(self, nodes: List[Node], **kwargs: Any) -> None:
         """Add multiple nodes from a list.
@@ -349,7 +259,7 @@ class Edge:
 
             Nodes from a list of :py:class:`Node` objects are added to the
             edge.
-q
+
         kwargs : Any, optional (default = {})
             Attributes assigned to all nodes in the list as key=value pairs.
 
@@ -360,123 +270,21 @@ q
 
         """
         # iterate over a list of nodes
-        # TODO: parallize this function
+        # TODO: parallelize this function
         for node in nodes:
             self.add_node(node, **kwargs)
 
-    def _check_node(self, node: Any, **kwargs: Any) -> Node:
-        """Helperfunction to check if the node is in the right format."""
-        if isinstance(node, str):
-            return self.NodeClass(node, **kwargs)
-        else:
-            log.error('The definition of the node "{}"'
-                      ' is incorrect!'.format(node))
-            raise AttributeError
+    def inherit(self, other: Edge) -> None:
+        """Inherit attributes and associated nodes from an other edge."""
 
-    def update(self, **kwargs: Any) -> None:
-        """Update the attributes of the edge.
+        # get relations with the associated nodes
+        self.v.incoming.union(other.v.incoming)
+        self.v.outgoing.union(other.v.outgoing)
+        self.w.incoming.union(other.w.incoming)
+        self.w.outgoing.union(other.w.outgoing)
 
-        Parameters
-        ----------
-        kwargs : Any
-            Attributes to add or update for the edge as key=value pairs.
-
-        Examples
-        --------
-        Update attributes.
-
-        >>> from pathpy import Edge
-        >>> vw = Edge('v','w',length = 5)
-        >>> vw.attributes
-        {'length':5}
-
-        Update attributes.
-
-        >>> vw.update(length = 10, capacity = 5)
-        >>> vw.attributes
-        {'length':10, 'capacity':5}
-
-        """
-        self.attributes.update(kwargs)
-
-    def copy(self) -> Edge:
-        """Return a copy of the edge.
-
-        Returns
-        -------
-        :py:class:`Edge`
-            A copy of the edge.
-
-        Examples
-        --------
-        >>> from pathpy import Edge
-        >>> vw = Edge('v','w')
-        >>> ab = vw.copy()
-        >>> ab.uid
-        'v-w'
-
-        """
-        return deepcopy(self)
-
-    def weight(self, weight: str = 'weight') -> float:
-        """Returns the weight of the edge.
-
-        Per default the attribute with the key 'weight' is used as
-        weight. Should there be no such attribute, a new one will be crated
-        with weight = 1.0.
-
-        If an other attribute should be used as weight, the option weight has
-        to be changed.
-
-        If a weight is assigned but for calculation a weight of 1.0 is needed,
-        the weight can be disabled with False or None.
-
-        Parameters
-        ----------
-        weight : str, optional (default = 'weight')
-            The weight parameter defines which attribute is used as weight. Per
-            default the attribute 'weight' is used. If `None` or `False` is
-            chosen, the weight will be 1.0. Also any other attribute of the
-            edge can be used as a weight
-
-        Returns
-        -------
-        float
-            Returns the attribute value associated with the keyword.
-
-        Examples
-        --------
-        Create new edge and get the weight.
-
-        >>> form pathpy import Edge
-        >>> vw = Edge('v','w')
-        >>> vw.weight()
-        1.0
-
-        Change the weight.
-
-        >>> vw['weight'] = 4
-        >>> vw.weight()
-        4.0
-
-        >>> vw.weight(False)
-        1.0
-
-        Add an attribute and use this as weight.
-
-        >>> vw['length'] = 5
-        >>> vw.weight('length')
-        5.0
-
-        """
-        if weight is None:
-            weight = False
-        if not weight:
-            return 1.0
-        elif isinstance(weight, str) and weight != 'weight':
-            return float(self.attributes.get(weight, 0.0))
-        else:
-            return float(self.attributes.get('weight', 1.0))
+        # get the attributes
+        self.attributes.update(**other.attributes.to_dict(history=False))
 
 
 # =============================================================================

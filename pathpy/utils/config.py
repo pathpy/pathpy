@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : config.py -- Module to read and parse configuration files
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2019-10-16 12:34 juergen>
+# Time-stamp: <Thu 2019-10-31 08:08 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -33,10 +33,16 @@ config['logging']['level'] = parser.get('logging', 'level')
 
 config['progress']['enabled'] = parser.getboolean('progress', 'enabled')
 
+config['attributes']['history'] = parser.getboolean('attributes', 'history')
+config['attributes']['multiple'] = parser.getboolean('attributes', 'multiple')
+config['attributes']['frequency'] = parser.get('attributes', 'frequency')
+
+
 config['computation']['check_code'] = parser.getboolean(
     'computation', 'check_code')
 
 config['edge']['separator'] = parser.get('edge', 'separator')
+
 
 config['path']['separator'] = parser.get('path', 'separator')
 config['path']['max_name_length'] = parser.getint('path', 'max_name_length')

@@ -3,13 +3,12 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2019-10-16 15:11 juergen>
+# Time-stamp: <Thu 2019-10-31 11:19 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 
 import pytest
-# import numpy as np
 from pathpy import Node, Edge, Path, Network
 
 # Test network
@@ -44,8 +43,7 @@ def test_getitem():
     net = Network(city='London')
 
     assert net['city'] == 'London'
-    with pytest.raises(KeyError):
-        net['attribute not in dict']
+    assert net['attribute not in dict'] == None
 
 # Test properties
 # ---------------
@@ -98,22 +96,6 @@ def test_directed():
 def test_shape():
     """Test the shape of the network."""
     pass
-
-# def test_node_to_edges_map(net):
-#     """Test to map node to edges."""
-
-#     n2e = net.node_to_edges_map
-
-#     assert len(n2e[('a', 'b')]) == 2
-#     assert 'ab' in n2e[('a', 'b')] and 'ab2' in n2e[('a', 'b')]
-
-
-# def test_edge_to_nodes_map(net):
-#     """Test to map edge to nodes."""
-
-#     e2n = net.edge_to_nodes_map
-
-#     assert e2n['ab'] == ('a', 'b')
 
 
 # # Test methods

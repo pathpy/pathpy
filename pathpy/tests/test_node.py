@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_node.py -- Test environment for the Node class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2019-10-09 11:32 juergen>
+# Time-stamp: <Thu 2019-10-31 10:26 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -41,8 +41,7 @@ def test_getitem():
     u = Node('u', color='blue')
 
     assert u['color'] == 'blue'
-    with pytest.raises(KeyError):
-        a = u['attribute not in dict']
+    assert u['attribute not in dict'] == None
 
 
 def test_repr():
@@ -73,6 +72,21 @@ def test_copy():
     v = u.copy()
 
     assert v.uid == u.uid == 'u'
+
+
+def test_outgoing():
+    """Test the outgoing edges."""
+    pass
+
+
+def test_incoming():
+    """Test the incominb edges."""
+    pass
+
+
+def test_adjacent_edges():
+    """Test the adjacent edges."""
+    pass
 
 
 # =============================================================================

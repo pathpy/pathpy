@@ -3,21 +3,21 @@
 # =============================================================================
 # File      : node.py -- Base class for a node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2019-10-16 12:22 juergen>
+# Time-stamp: <Thu 2019-10-31 10:25 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, Dict, Set
-from copy import deepcopy
+from typing import Any, Set
 
 from .. import logger
+from .base import BaseClass
 
 # create logger for the Node class
 log = logger(__name__)
 
 
-class Node:
+class Node(BaseClass):
     """Base class for a node.
 
     .. todo::
@@ -34,18 +34,18 @@ class Node:
     def __init__(self, uid: str, **kwargs: Any) -> None:
         """Initialize the node object."""
 
+        # initialize the base class
+        super().__init__(**kwargs)
+
         # assign node identifier
         self._uid: str = str(uid)
-
-        # dictionary for node attributes
-        self._attributes: dict = {}
-
-        # add attributes to the node
-        self._attributes.update(kwargs)
 
         # set of incoming and outgoing edges
         self._outgoing: set = set()
         self._incoming: set = set()
+
+        # add attributes to the node
+        self.attributes.update(uid=self.uid, **kwargs)
 
     def __repr__(self) -> str:
         """Return the description of the node.
@@ -71,73 +71,6 @@ class Node:
     def _desc(self) -> str:
         """Return a string *Node*."""
         return '{}'.format(self.__class__.__name__)
-
-    def __setitem__(self, key: Any, value: Any) -> None:
-        """Add a specific attribute to the node.
-
-        An attribute has a key and the corresponding value expressed as a pair,
-        key: value.
-
-        Parameters
-        ----------
-        key: Any
-            Unique identifier for a corrisponding value.
-
-        value: Any
-            A value i.e. attribute which is associated with the node.
-
-        Examples
-        --------
-        Generate new node.
-
-        >>> from pathpy import Node
-        >>> u = Node('u')
-
-        Add atribute to the node.
-
-        >>> u['color'] = 'blue'
-
-        """
-        self.attributes[key] = value
-
-    def __getitem__(self, key: Any) -> Any:
-        """Returns a specific attribute of the node.
-
-        Parameters
-        ----------
-        key: any
-            Key value for the attribute of the node.
-
-        Returns
-        -------
-        any
-            Returns the attribute of the node associated with the given key
-            value.
-
-        Raises
-        ------
-        KeyError
-            If no attribute with the assiciated key is defined.
-
-        Examples
-        --------
-        Generate new node with blue color
-
-        >>> from pathpy import Node
-        >>> u = Node('u', color='blue')
-
-        Get the node attribute.
-
-        >>> u['color']
-        'blue'
-
-        """
-        try:
-            return self.attributes[key]
-        except KeyError as error:
-            log.error(
-                'No attribute with key {} is defined!'.format(error))
-            raise
 
     def __hash__(self) -> Any:
         """Returns the unique hash of the node.
@@ -169,30 +102,6 @@ class Node:
         return self._uid
 
     @property
-    def attributes(self) -> Dict:
-        """Return the attributes associated with the node.
-
-        Returns
-        -------
-        Dict
-            Return a dictionary with the node attributes.
-
-        Examples
-        --------
-        Generate a single node with a color attribute.
-
-        >>> from pathpy import Node
-        >>> u = Node('u', color='red')
-
-        Get the attributes of the node.
-
-        >>> u.attributes
-        {'color'='red}
-
-        """
-        return self._attributes
-
-    @property
     def outgoing(self) -> Set[str]:
         """Returns the outgoing edge uids of the node."""
         return self._outgoing
@@ -202,6 +111,7 @@ class Node:
         """Returns the incoming edge uids of the node."""
         return self._incoming
 
+    # TODO: Maybe rename to adjacent?
     @property
     def adjacent_edges(self) -> Set[str]:
         """Returns the set of edge uids adjacent to the node.
@@ -220,49 +130,6 @@ class Node:
         """
         return self.incoming.union(self.outgoing)
 
-    def update(self, **kwargs: Any) -> None:
-        """Update the attributes of the node.
-
-        Parameters
-        ----------
-        kwargs : Any
-            Attributes to add or update for the node as key=value pairs.
-
-        Examples
-        --------
-        Generate simple node with attribute.
-
-        >>> from pathpy import Node
-        >>> u = Node('u',color='red')
-        >>> u.attributes
-        {'color': 'red'}
-
-        Update attributes.
-
-        >>> u.update(color='green',shape='rectangle')
-        >>> u.attributes
-        {'color': 'green', 'shape': 'rectangle'}
-
-        """
-        self.attributes.update(kwargs)
-
-    def copy(self) -> Node:
-        """Return a copy of the node.
-
-        Returns
-        -------
-        :py:class:`Node`
-            A copy of the node.
-
-        Examples
-        --------
-        >>> from pathpy import Node
-        >>> u = Node('u')
-        >>> v = u.copy()
-        >>> v.uid
-        u
-        """
-        return deepcopy(self)
 
 # =============================================================================
 # eof

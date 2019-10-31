@@ -1,21 +1,14 @@
 #!/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
-# File      : __init__.py -- pathpy init file
+# File      : __init__.py -- Initialize utilities for the pathpy classes
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 12:24 juergen>
+# Time-stamp: <Mon 2019-10-28 09:48 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
-__version__ = '3.0.0'
 
-from .utils.config import config
-from .utils.logger import logger
-from .utils.progress import tqdm
-
-from .classes import *
-from .algorithms import *
-from .visualizations import *
+from .separator import separator
 
 # =============================================================================
 # eof

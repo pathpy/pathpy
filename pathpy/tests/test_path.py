@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_path.py -- Test environment for the Path class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2019-10-16 16:00 juergen>
+# Time-stamp: <Thu 2019-10-31 10:07 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -78,7 +78,7 @@ def test_attributes(edges):
 
     p = Path('v', 'w', color='red')
 
-    assert isinstance(p.attributes, dict)
+    # assert isinstance(p.attributes, dict)
 
     assert p.attributes['color'] == 'red'
 
@@ -98,8 +98,7 @@ def test_getitem():
     p = Path('a', 'b', 'c', length=10)
 
     assert p['length'] == 10
-    with pytest.raises(KeyError):
-        p['attribute not in dict']
+    assert p['attribute not in dict'] is None
 
 
 def test_name():
@@ -121,6 +120,28 @@ def test_nodes():
 
     assert isinstance(p.nodes['a'], Node)
     assert len(p.nodes) == 3
+
+    a = Node('a', color='azur')
+    b = Node('b', color='blue')
+    c = Node('c', color='cyan')
+
+    p = Path(a, b, c)
+
+    assert p.nodes['a']['color'] == 'azur'
+
+    a = Node('a', color='amber')
+
+    p.add_node(a)
+
+    assert p.nodes['a']['color'] == 'amber'
+
+    assert p.number_of_nodes() == 3
+    assert p.number_of_nodes(unique=False) == 4
+
+    p = Path(a, b, c, frequency=10)
+
+    assert sum(p.nodes.counter().values()) == 30
+    assert sum(p.edges.counter().values()) == 20
 
 
 def test_edges():
@@ -153,9 +174,9 @@ def test_node_counter():
 
     p = Path('a', 'b', 'c', 'a', 'b',)
 
-    assert p.node_counter['a'] == 2
-    assert p.node_counter['b'] == 2
-    assert p.node_counter['c'] == 1
+    assert p.nodes.counter()['a'] == 2
+    assert p.nodes.counter()['b'] == 2
+    assert p.nodes.counter()['c'] == 1
 
 
 def test_edge_counter():
@@ -163,9 +184,9 @@ def test_edge_counter():
 
     p = Path('a', 'b', 'c', 'a', 'b',)
 
-    assert p.edge_counter['a-b'] == 2
-    assert p.edge_counter['b-c'] == 1
-    assert p.edge_counter['c-a'] == 1
+    assert p.edges.counter()['a-b'] == 2
+    assert p.edges.counter()['b-c'] == 1
+    assert p.edges.counter()['c-a'] == 1
 
 # Test methods
 # ------------
@@ -177,14 +198,11 @@ def test_update():
 
     assert p.attributes['street'] == 'High Street'
 
-    print(p.attributes)
-
     p.update(street='Market Street', toll=False)
 
     assert p.attributes['street'] == 'Market Street'
-    assert p.attributes['toll'] is False
 
-    print(p.attributes)
+    assert p.attributes['toll'] == False
 
 
 def test_number_of_nodes():
@@ -272,7 +290,7 @@ def test_add_edge():
 def test_subpaths():
     """Test to get all subpaths."""
 
-    p = Path('a', 'b', 'c', 'd', 'e')
+    p = Path('a', 'b', 'c', 'd', 'e', frequency=5)
     sp = p.subpaths()
 
     assert len(sp) == 14
@@ -312,6 +330,28 @@ def test_from_nodes():
     assert p.nodes['b']['color'] == 'red'
     assert p['type'] == 'road'
 
+
+def test_from_edges():
+    """Test path generation form nodes."""
+    a = Node('a', color='blue')
+    b = Node('b', color='red')
+    c = Node('c', color='cyan')
+
+    ab = Edge(a, b)
+    bc = Edge(b, c)
+    p = Path.from_edges([ab, bc], type='road')
+
+    assert isinstance(p, Path)
+    assert p.uid == 'a-b|b-c'
+    assert 'a' and 'b' and 'c' in p.nodes
+    assert p.nodes['a']['color'] == 'blue'
+    assert p.nodes['b']['color'] == 'red'
+    assert p.nodes['c']['color'] == 'cyan'
+    assert p['type'] == 'road'
+
+    p = Path.from_edges(['a-b', 'b-c'])
+    assert p.uid == 'a-b|b-c'
+    assert 'a' and 'b' and 'c' in p.nodes
 
 # =============================================================================
 # eof

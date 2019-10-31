@@ -3,34 +3,32 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2019-10-16 15:08 juergen>
+# Time-stamp: <Thu 2019-10-31 12:18 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, List, Dict, Tuple, Optional
-from collections import defaultdict, Counter
-# import datetime
-# import sys
-# from copy import deepcopy
+from typing import Any, Dict, Tuple, Optional, Sequence
 
 from .. import logger, config
+from .base import BaseNetwork
+from .base import NodeDict, EdgeDict, PathDict
+from .utils.separator import separator
 from . import Node, Edge, Path
 
 # create logger for the Network class
 log = logger(__name__)
 
 
-class Network:
+class Network(BaseNetwork):
     """Base class for a network."""
 
     def __init__(self, *args: Path, uid: str = '',
                  directed: bool = True, **kwargs: Any) -> None:
         """Initialize the network object."""
 
-        # check code
-        self.check: bool = kwargs.get(
-            'check_code', config['computation']['check_code'])
+        # initialize the base class
+        super().__init__(**kwargs)
 
         # Classes of the Node, Edge and Path objects
         # TODO: Probably there is a better solution to have different Node and
@@ -45,40 +43,24 @@ class Network:
         # inidcator whether the network is directed or undirected
         self._directed: bool = directed
 
-        # dictionary for network attributes
-        self.attributes: dict = {}
-
-        # add attributes to the network
-        self.attributes.update(kwargs)
-
         # a dictionary containing node objects
-        self._nodes: dict = defaultdict(dict)
+        self._nodes: NodeDict = NodeDict(dict)
 
         # a dictionary containing edge objects
-        self._edges: dict = defaultdict(dict)
+        self._edges: EdgeDict = EdgeDict(dict)
 
         # a dictionary containing path objects
-        self._paths: dict = defaultdict(dict)
+        self._paths: PathDict = PathDict(dict)
 
-        # a counter fo the nodes
-        self._node_counter: Counter = Counter()
+        # use separator if given otherwise use config default value
+        # TODO: Add a network mode
+        self.separator: dict = separator()
 
-        # a counter fo the edges
-        self._edge_counter: Counter = Counter()
-
-        # a counter fo the edges
-        self._path_counter: Counter = Counter()
+        # add attributes to the network
+        self.attributes.update(**kwargs)
 
         # add paths
         self.add_paths_from(list(args))
-
-        # # a dictionary containing tuple of node ids and edges
-        # self._node_to_edges_map = defaultdict(list)
-
-        # # a dictionary containing edge ids and node ids
-        # self._edge_to_nodes_map = defaultdict(tuple)
-
-        # pass
 
     # import external functions
     try:
@@ -87,14 +69,14 @@ class Network:
         log.debug('pathpy.io faild to be imported')
 
     try:
-        from ..subpaths.subpaths import subpath_counter, subpath_statistics
+        from ..algorithms.subpaths import subpath_info, subpath_counter
     except ImportError:
-        log.debug('pathpy.subpaths faild to be imported')
+        log.debug('pathpy.sub faild to be imported')
 
     try:
-        from ..algorithms.adjacency_matrix import adjacency_matrix
+        from ..algorithms.matrices import adjacency_matrix, transition_matrix
     except ImportError:
-        log.debug('pathpy.algorithms faild to be import')
+        log.debug('pathpy.adjacency_matrix faild to be import')
 
     def _node_class(self) -> None:
         """Internal function to assign different Node classes."""
@@ -130,7 +112,8 @@ class Network:
                                                 self.name, id(self))
 
     # def _repr_html_(self) -> str:
-    #     """Display an interactive d3js visualisation of the network in jupyter.
+    #     """Display an interactive d3js visualisation
+    # of the network in jupyter.
 
     #     Returns
     #     -------
@@ -154,72 +137,8 @@ class Network:
         """Return a string *Network*."""
         return '{}'.format(self.__class__.__name__)
 
-    def __setitem__(self, key: Any, value: Any) -> None:
-        """Add a specific attribute to the network.
-
-        An attribute has a key and the corresponding value expressed as a pair,
-        key: value.
-
-        Parameters
-        ----------
-        key: Any
-            Unique identifier for a corresponding value.
-
-        value: Any
-            A value i.e. attribute which is associated with the node.
-
-        Examples
-        --------
-        Generate new network.
-
-        >>> from pathpy import Network
-        >>> net = Network()
-
-        Add atribute to the network.
-
-        >>> net[city] = 'Zurich'
-
-        """
-        self.attributes[key] = value
-
-    def __getitem__(self, key: Any) -> Any:
-        """Returns a specific attribute of the network.
-
-        Parameters
-        ----------
-        key: any
-            Key value for the attribute of the node.
-
-        Returns
-        -------
-        any
-            Returns the attribute of the node associated with the given key
-            value.
-
-        Raises
-        ------
-        KeyError
-            If no attribute with the assiciated key is defined.
-
-        Examples
-        --------
-        Generate new network.
-
-        >>> from pathpy import Network
-        >>> net = Node(city='London')
-
-        Get the node attribute.
-
-        >>> print(net['London'])
-        """
-        try:
-            return self.attributes[key]
-        except KeyError as error:
-            log.error(
-                'No attribute with key {} is defined!'.format(error))
-            raise
-
     def __add__(self):
+        """Add two networks together."""
         raise NotImplementedError
 
     @property
@@ -301,6 +220,7 @@ class Network:
         """
         self.attributes['name'] = name
 
+    # TODO: Add also the paths as a shape inidcator
     @property
     def shape(self) -> Tuple[int, int]:
         """Return the size of the Network as tuple of number of nodes and number
@@ -312,75 +232,80 @@ class Network:
         """Return if the network is directed (True) or undirected (False)."""
         return self._directed
 
-    # @property
-    # def node_to_edges_map(self) -> Dict(List(str)):
-    #     """Returns a a dictionary which maps the nodes to associated edges.
-
-    #     Returns
-    #     -------
-    #     Dict(List(str))
-    #         Returns a dict where the key is a tuple of node ids and the values
-    #         are lists of edges which are associated with these nodes.
-
-    #     Examples
-    #     --------
-    #     Generate simple network.
-
-    #     >>> from pathpy import Network
-    #     >>> net = Network()
-    #     >>> net.add_edges_from([('ab1','a','b'),
-    #     >>>                     ('ab2','a','b'),
-    #     >>>                     ('bc','b','c')])
-    #     >>> net.node_to_edges_map
-
-    #     """
-    #     return self._node_to_edges_map
-
-    # @property
-    # def edge_to_nodes_map(self) -> Dict(Tuple(str, str)):
-    #     """Returns a a dictionary which maps the edges to associated nodes.
-
-    #     Returns
-    #     -------
-    #     Dict(Tuple(str,str))
-    #        Returns a dict where the key is the edge id and the values
-    #        are tuples of associated node ids.
-
-    #     Examples
-    #     --------
-    #     Generate simple network
-
-    #     >>> from pathpy import Network
-    #     >>> net = Network()
-    #     >>> net.add_edges_from([('ab','a','b'),('bc','b','c')])
-    #     >>> net.edge_to_nodes_map
-
-    #     """
-    #     return self._edge_to_nodes_map
-
     @property
-    def nodes(self) -> Dict[str, Node]:
+    def nodes(self) -> NodeDict:
+        """Return the associated nodes of the network.
+
+        Returns
+        -------
+        NodeDict
+            Return a dictionary with the :py:class:`Node` uids as key and the
+            :py:class:`Node` objects as values, associated with the network.
+
+        Examples
+        --------
+        Generate a simple network.
+
+        >>> from pathpy import Path, Network
+        >>> p = Path('a','b','c')
+        >>> net = Network(p)
+
+        Get the nodes of the network
+
+        >>> net.nodes
+        {'a': Node a, 'b': Node b, 'c': Node c}
+        """
         return self._nodes
 
     @property
-    def edges(self) -> Dict[str, Edge]:
+    def edges(self) -> EdgeDict:
+        """Return the associated edges of the network.
+
+        Returns
+        -------
+        EdgeDict
+            Return a dictionary with the :py:class:`Edge` uids as key and the
+            :py:class:`Edge` objects as values, associated with the network.
+
+        Examples
+        --------
+        Generate a simple network.
+
+        >>> from pathpy import Path, Network
+        >>> p = Path('a','b','c')
+        >>> net = Network(p)
+
+        Get the edges of the network
+
+        >>> net.edges
+        {'a-b': Edge a-b, 'b-c': Edge b-c}
+        """
         return self._edges
 
     @property
-    def paths(self) -> Dict[str, Path]:
+    def paths(self) -> PathDict:
+        """Return the associated pathss of the network.
+
+        Returns
+        -------
+        PathDict
+            Return a dictionary with the :py:class:`Path` uids as key and the
+            :py:class:`Path` objects as values, associated with the network.
+
+        Examples
+        --------
+        Generate a simple network.
+
+        >>> from pathpy import Path, Network
+        >>> p = Path('a','b','c')
+        >>> net = Network(p)
+
+        Get the paths of the network
+
+        >>> net.paths
+        {'a-b|b-c': Path a-b|b-c}
+        """
         return self._paths
-
-    @property
-    def node_counter(self) -> Counter:
-        return self._node_counter
-
-    @property
-    def edge_counter(self) -> Counter:
-        return self._edge_counter
-
-    @property
-    def path_counter(self) -> Counter:
-        return self._path_counter
 
     def summary(self) -> Optional[str]:
         """Returns a summary of the network.
@@ -415,32 +340,6 @@ class Network:
             return None
         else:
             return ''.join(summary)
-
-    def update(self, **kwargs: Any) -> None:
-        """Update the attributes of the network.
-
-        Parameters
-        ----------
-        kwargs : Any
-            Attributes to add or update for the network as key=value pairs.
-
-        Examples
-        --------
-        Update attributes.
-
-        >>> from pathpy import network
-        >>> net = Network(city='London')
-        >>> net.attributes
-        {'city': 'London'}
-
-        Update the attributes.
-
-        >>> net.update(city='Vienna', year=1850)
-        >>> net.attributes
-        {'city': 'Vienna', 'year': 1850)
-
-        """
-        self.attributes.update(kwargs)
 
     def number_of_nodes(self, unique: bool = True) -> int:
         """Return the number of nodes in the network.
@@ -477,7 +376,7 @@ class Network:
         if unique:
             return len(self.nodes)
         else:
-            return sum(self.node_counter.values())
+            return sum(self.nodes.counter().values())
 
     def number_of_edges(self, unique: bool = True) -> int:
         """Return the number of edges in the network.
@@ -514,7 +413,7 @@ class Network:
         if unique:
             return len(self.edges)
         else:
-            return sum(self.edge_counter.values())
+            return sum(self.edges.counter().values())
 
     def number_of_paths(self, unique: bool = True) -> int:
         """Return the number of paths in the network.
@@ -553,9 +452,17 @@ class Network:
         if unique:
             return len(self.paths)
         else:
-            return sum(self.path_counter.values())
+            return sum(self.paths.counter().values())
 
-    def add_paths_from(self, paths: List[Path]) -> None:
+    def add_nodes_from(self, nodes: Sequence[Node], **kwargs: Any) -> None:
+        """Add multiple nodes from a list."""
+        raise NotImplementedError
+
+    def add_edges_from(self, edges: Sequence[Edge], **kwargs: Any) -> None:
+        """Add multiple edges from a list."""
+        raise NotImplementedError
+
+    def add_paths_from(self, paths: Sequence[Path], **kwargs: Any) -> None:
         """Add multiple paths from a list.
 
         Parameters
@@ -578,9 +485,46 @@ class Network:
 
         """
         for path in paths:
-            self.add_path(path)
+            self.add_path(path, **kwargs)
 
-    def add_path(self, path: Path) -> None:
+    def add_node(self, node: Node, frequency: int = 1, **kwargs: Any) -> None:
+        """Add a single node to the network."""
+
+        # check if the right object is provided.
+        if not isinstance(node, self.NodeClass) and self.check:
+            node = self._check_node(node, **kwargs)
+
+        if node.uid not in self.nodes:
+            self.nodes[node.uid] = node
+
+        # increase node counter
+        self.nodes[node.uid].update_frequency(frequency)
+
+    def add_edge(self, edge: Edge, frequency: int = 1, **kwargs: Any) -> None:
+        """Add a single edge to the network."""
+
+        # check if the right object is provided
+        if not isinstance(edge, self.EdgeClass) and self.check:
+            edge = self._check_edge(edge, **kwargs)
+
+        # check if edge is already defined
+        if edge.uid not in self.edges:
+
+            # check if node v is already defined, otherwise add node
+            if edge.v.uid not in self._nodes:
+                self.nodes[edge.v.uid] = edge.v
+
+            # check if node w is already defined, otherwise add node
+            if edge.w.uid not in self._nodes:
+                self.nodes[edge.w.uid] = edge.w
+
+            # add new edge to the path
+            self.edges[edge.uid] = edge
+
+        # increase edge (and node counter)
+        self.edges[edge.uid].update_frequency(frequency, subordinate=True)
+
+    def add_path(self, path: Path, frequency: int = 1, **kwargs: Any) -> None:
         """Add a single path to the network.
 
         Parameters
@@ -590,35 +534,33 @@ class Network:
 
         """
 
+        # check if the right object is provided
         if not isinstance(path, self.PathClass) and self.check:
-            path = self._check_path(path)
+            path = self._check_path(path, **kwargs)
 
+        # update nodes, edges and the path
         if path.uid not in self.paths:
             self.nodes.update(path.nodes)
             self.edges.update(path.edges)
             self.paths[path.uid] = path
 
-            # update the edge and node count
-            # NOTE: using a for loop is much faster
-            # than using the default function Counter.update()!
-            for edge in path.as_edges:
-                self.edge_counter[edge] += 1
-            for node in path.as_nodes:
-                self.node_counter[node] += 1
+        # increas the counters
+        self.nodes.increase_counter(path.as_nodes, path.attributes.frequency)
+        self.edges.increase_counter(path.as_edges, path.attributes.frequency)
+        self.paths.increase_counter(path.uid, path.attributes.frequency)
 
-            self.path_counter[path.uid] = 1
-        else:
-            # update the edge and node count
-            # NOTE: using a for loop is much faster
-            # than using the default function Counter.update()!
-            for edge in path.as_edges:
-                self.edge_counter[edge] += 1
-            for node in path.as_nodes:
-                self.node_counter[node] += 1
+    def remove_node(self, node: str) -> None:
+        """Remove a single node from the network."""
+        raise NotImplementedError
 
-            self.path_counter[path.uid] += 1
+    def remove_edge(self, path: str) -> None:
+        """Remove a single edge from the network."""
+        raise NotImplementedError
 
-        pass
+    def remove_path(self, path: str) -> None:
+        """Remove a single path from the network."""
+        raise NotImplementedError
+
 
 # =============================================================================
 # eof

@@ -1,21 +1,19 @@
 #!/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
-# File      : __init__.py -- pathpy init file
+# File      : test_higher_order_network.py -- Test env. for the HON class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 12:24 juergen>
+# Time-stamp: <Thu 2019-10-31 11:21 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
-__version__ = '3.0.0'
+import pytest
+from pathpy import Node, Edge, Path, Network, HigherOrderNetwork
 
-from .utils.config import config
-from .utils.logger import logger
-from .utils.progress import tqdm
 
-from .classes import *
-from .algorithms import *
-from .visualizations import *
+def test_basic():
+    """Test basic functions of the HON."""
+    pass
 
 # =============================================================================
 # eof
