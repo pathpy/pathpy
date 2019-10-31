@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 14:07 juergen>
+# Time-stamp: <Thu 2019-10-31 14:23 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -481,8 +481,7 @@ class Network(BaseNetwork):
         Parameters
         ----------
         nodes: List[Edge]
-
-            Edges from a list of: py: class:`Edge` objects are added to the
+            Edges from a list of :py:class:`Edge` objects are added to the
             network.
 
         kwargs: Any, optional(default={})
@@ -501,7 +500,7 @@ class Network(BaseNetwork):
         Parameters
         ----------
         paths: List[Path]
-            Paths from a list of: py: class:`path` objects are added to the
+            Paths from a list of :py:class:`path` objects are added to the
             network.
 
         Examples

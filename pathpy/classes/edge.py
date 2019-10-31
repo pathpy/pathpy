@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 12:09 juergen>
+# Time-stamp: <Thu 2019-10-31 12:50 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -229,7 +229,7 @@ class Edge(BaseClass):
         Parameters
         ----------
         node : :py:class:`Node`
-            The :py:class:`Node` object, which will be added to the network.
+            The :py:class:`Node` object, which will be added to the edge.
 
         kwargs : Any, optional (default = {})
             Attributes assigned to the node as key=value pairs.
