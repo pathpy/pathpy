@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_subpaths.py -- Test environment for the Subpaths class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 17:22 juergen>
+# Time-stamp: <Thu 2019-11-07 14:09 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -16,14 +16,16 @@ def test_basic():
 
     p1 = Path('a', 'b', 'c', 'd', frequency=10)
     p2 = Path('a', 'b', 'e', frequency=10)
-    net = Network(p1, p2)
+    p3 = Path('b', 'c', 'd', frequency=10)
+    net = Network(p1, p2, p3)
 
-    print(net.subpaths.counter())
     net.subpaths.statistics()
+    net.subpaths.summary()
 
-    sp = net.subpaths()
+    # print(net.subpaths.possible[2])
+    #sp = net.subpaths()
 
-    print(sp)
+    # print(sp)
 # =============================================================================
 # eof
 #

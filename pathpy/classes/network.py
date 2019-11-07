@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 17:04 juergen>
+# Time-stamp: <Thu 2019-11-07 15:12 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -71,14 +71,30 @@ class Network(BaseNetwork):
         log.debug('pathpy.io faild to be imported')
 
     try:
-        from ..algorithms.subpaths import SubPaths as _SubPathsConstructor
+        # import sub paths object
+        from ..algorithms.statistics import SubPaths as _SubPathsConstructor
 
+        # initialize a local variable to store sub paths
+        # NOTE: this will be only created if the module is loaded
+        _subpaths = None
+
+        # add property to the network
         @property
         def subpaths(self):
             """Returns a SubPath object."""
-            return self._SubPathsConstructor(self)
+
+            # check if alread a sub path object is initialzed
+            if self._subpaths is None:
+
+                # if not generate initialize new object
+                self._subpaths = self._SubPathsConstructor(self)
+
+            # return sub path object
+            return self._subpaths
+
     except ImportError:
-        log.debug('pathpy.subpaths faild to be imported')
+        # if library could not be loaded raise a warning
+        log.warn('pathpy.subpaths faild to be imported')
 
     try:
         from ..algorithms.matrices import adjacency_matrix, transition_matrix
