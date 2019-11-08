@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : containers.py -- Base containers for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 14:47 juergen>
+# Time-stamp: <Fri 2019-11-08 09:14 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -48,9 +48,9 @@ class BaseDict(defaultdict):
             for k in key:
                 self._counter[k] -= count
 
-    def data_frame(self) -> pd.DataFrame:
+    def to_df(self) -> pd.DataFrame:
         """Return a pandas data frame of all objects."""
-        data = [obj.attributes.data for obj in self.values()]
+        data = [obj.attributes.to_dict() for obj in self.values()]
         return pd.DataFrame(data)
 
     def counter(self) -> Counter:
@@ -77,10 +77,10 @@ class EdgeDict(BaseDict):
         # initialize the base class
         super().__init__(*args)
 
-    def data_frame(self) -> pd.DataFrame:
+    def to_df(self) -> pd.DataFrame:
         """Return a pandas data frame of all edges."""
-        data = [dict(obj.attributes.data, **{'v': obj.v.uid,
-                                             'w': obj.w.uid})
+        data = [dict(obj.attributes.to_dict(), **{'v': obj.v.uid,
+                                                  'w': obj.w.uid})
                 for obj in self.values()]
         return pd.DataFrame(data)
 
@@ -93,9 +93,9 @@ class PathDict(BaseDict):
         # initialize the base class
         super().__init__(*args)
 
-    def data_frame(self) -> pd.DataFrame:
+    def to_df(self) -> pd.DataFrame:
         """Return a pandas data frame of all paths."""
-        data = [dict(obj.attributes.data, **{'len': len(obj)})
+        data = [dict(obj.attributes.to_dict(), **{'len': len(obj)})
                 for obj in self.values()]
         return pd.DataFrame(data)
 
