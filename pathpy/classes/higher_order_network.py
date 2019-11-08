@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 12:21 juergen>
+# Time-stamp: <Fri 2019-11-08 15:15 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -79,6 +79,7 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
             # TODO : Generate a mapping function net->hon and hon->net
             if _nodes[0].number_of_edges() == 0:
                 nodes = [n.as_nodes[0] for n in _nodes]
+                # TODO: fix edge separator
                 edges = [v+'-'+w for v, w in list(zip(nodes[:-1], nodes[1:]))]
                 net_uid = path.separator['path'].join(edges)
                 hon_uid = self.separator['hon'].join(list(zip(*nodes))[0])
@@ -92,6 +93,7 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
                 **path.attributes.to_dict())
 
             # assign the frequency to the hon edges
+            #_path['frequency'] = path.attributes.frequency
             # for edge in _path.edges.values():
             #     edge.update_frequency(path.frequency)
 
@@ -101,31 +103,32 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
                     self.network.paths.counter()[net_uid]
 
             # Add path to the hon
-            self.add_path(_path)
+            self.add_path(_path)  # , frequency=path['frequency'])
         pass
 
 
 class HigherOrderNode(Node, Path):
     """Base class of a higher order node which is also a path."""
 
-    def __init__(self, path: Path,
+    def __init__(self, *args: Path, uid: str = '',
                  directed: bool = True, **kwargs: Any) -> None:
 
-        self.check = True
-        # check if a path object is given
-        if not isinstance(path, Path) and self.check:
-            path = self._check_path(path, **kwargs)
-
-        # generate unique id for the higher order node
-        uid = '{}'.format(path.uid)
+        # set unique identifier of the higher oder node
+        self._uid: str = uid
 
         # initializing the parent classes
         # TODO: Make it work with super()
         Node.__init__(self, uid, **kwargs)
         Path.__init__(self, uid=uid, directed=directed)
 
+        #self.check = True
+        # check if a path object is given
+        # if not isinstance(path, Path) and self.check:
+        #     path = self._check_path(path, **kwargs)
+
         # inherit properties for the path
-        self._inherit_from_path(path)
+        if args:
+            self._inherit_from_path(args[0])
 
     def _check_path(self, path: Any, **kwargs: Any) -> Path:
         """Helperfunction to check if the edge is in the right format."""
@@ -152,6 +155,39 @@ class HigherOrderNode(Node, Path):
             for k, v in path.__dict__.items():
                 if k not in ['_uid']:
                     self.__dict__[k] = v
+
+    # TODO: inherit this property form parent class
+    @property
+    def uid(self) -> str:
+        """Returns the unique id of the path.
+
+        Id of the path. If no id is assigned the path is called after the
+        assigned edges. e.g. if the path has edges 'a-b' and 'c-d', the id is
+        'a-b|b-c'.
+
+        Returns
+        -------
+        str
+            Returns the uid of the path as a string.
+
+        Examples
+        --------
+        Generate a simple path
+
+        >>> from pathpy import Path
+        >>> p = Path('a','b','c')
+        >>> p.uid
+        'a-b|b-c'
+
+        """
+        if self._uid != '':
+            return self._uid
+        elif self.number_of_edges() > 0:
+            return self.separator['path'].join(self.as_edges)
+        elif self.number_of_nodes() > 0:
+            return self.as_nodes[0]
+        else:
+            return str(id(self))
 
     @property
     def order(self) -> int:

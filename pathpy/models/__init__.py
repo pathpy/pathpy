@@ -1,22 +1,14 @@
 #!/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
-# File      : __init__.py -- pathpy init file
+# File      : __init__.py -- Initialize various generators for networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-11-08 10:41 juergen>
+# Time-stamp: <Fri 2019-11-08 10:43 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
-__version__ = '3.0.0'
 
-from .utils.config import config
-from .utils.logger import logger
-from .utils.progress import tqdm
-
-from .classes import *
-from .algorithms import *
-from .models import *
-from .visualizations import *
+from .null_models import NullModel
 
 # =============================================================================
 # eof
