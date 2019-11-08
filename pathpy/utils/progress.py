@@ -3,10 +3,11 @@
 # =============================================================================
 # File      : progress.py -- A progress bar for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-11-08 09:58 juergen>
+# Time-stamp: <Fri 2019-11-08 15:25 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
+from typing import Any
 from tqdm.auto import tqdm as _tqdm
 from .. import config
 
@@ -45,7 +46,7 @@ class tqdm_enabled(_tqdm):
 
 # if progress is enabled show bar
 if config['progress']['enabled']:
-    tqdm = tqdm_enabled
+    tqdm: Any = tqdm_enabled
 
 # otherwise use the disable progress bar.
 else:
