@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-11-08 15:15 juergen>
+# Time-stamp: <Fri 2019-11-08 16:24 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -53,6 +53,31 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
         """Return the order of the network."""
         return self._order
 
+    def degrees_of_freedom(self, mode: str = 'path') -> int:
+        """Returns the degrees of freedom of the higher order network.
+
+        Since probabilities must sum to one, the effective degree of freedom is
+        one less than the number of nodes
+
+        .. math::
+
+           \\text{dof} = \\sum_{n \\in N} \\max(0,\\text{outdeg}(n)-1)
+
+        """
+        # initialize degree of freedom
+        degrees_of_freedom: int = 0
+
+        if self.order == 0:
+            return max(0, self.number_of_nodes()-1)
+
+        else:
+            # iterate over all nodes and count outdegree
+            for node in self.nodes.values():
+                degrees_of_freedom += max(0, len(node.outgoing)-1)
+
+        # return degree of freedom
+        return degrees_of_freedom
+
     def add_subpaths_from(self, path: Path) -> None:
         """Add sub-paths from a given path."""
 
@@ -92,11 +117,6 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
                 _nodes, edge_separator=self.separator['hon'],
                 **path.attributes.to_dict())
 
-            # assign the frequency to the hon edges
-            #_path['frequency'] = path.attributes.frequency
-            # for edge in _path.edges.values():
-            #     edge.update_frequency(path.frequency)
-
             # Check if the HON path is observed in the network
             if (net_uid in self.network.paths and hon_uid in _path.edges):
                 _path.edges[hon_uid]['observed'] = \
@@ -121,7 +141,7 @@ class HigherOrderNode(Node, Path):
         Node.__init__(self, uid, **kwargs)
         Path.__init__(self, uid=uid, directed=directed)
 
-        #self.check = True
+        # self.check = True
         # check if a path object is given
         # if not isinstance(path, Path) and self.check:
         #     path = self._check_path(path, **kwargs)
