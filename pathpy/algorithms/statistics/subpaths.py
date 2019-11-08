@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : subpaths.py -- Modules for subpath analysis
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-11-07 15:14 juergen>
+# Time-stamp: <Fri 2019-11-08 09:53 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -87,8 +87,7 @@ class SubPaths:
         _max_length = max_length
 
         # iterrate over all paths in the network
-        for uid, path in tqdm(self.paths.items(),
-                              desc='subpath counter', leave=leave):
+        for uid, path in tqdm(self.paths.items(), desc='subpath counter'):
 
             # number of counted paths
             frequency = path['frequency']

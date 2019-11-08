@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : progress.py -- A progress bar for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2019-10-22 08:10 juergen>
+# Time-stamp: <Fri 2019-11-08 09:58 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -26,9 +26,26 @@ class tqdm_disabled(_tqdm):
         super().__init__(*args, disable=True, **kwargs)
 
 
+class tqdm_enabled(_tqdm):
+    """Progress bar based on tqdm.
+
+    See Also
+    --------
+    https://github.com/tqdm/tqdm
+
+    """
+
+    def __init__(self, *args, **kwargs):
+        """Intitialize the disabled progress bar."""
+        # setup parent class
+        leave = kwargs.get('leave', config['progress']['leave'])
+        kwargs['leave'] = leave
+        super().__init__(*args, **kwargs)
+
+
 # if progress is enabled show bar
 if config['progress']['enabled']:
-    tqdm = _tqdm
+    tqdm = tqdm_enabled
 
 # otherwise use the disable progress bar.
 else:
