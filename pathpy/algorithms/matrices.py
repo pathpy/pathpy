@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : matrices.py -- Module to calculate various matrices
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 12:25 juergen>
+# Time-stamp: <Fri 2019-11-08 09:59 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -16,7 +16,7 @@ import sys
 from scipy import sparse
 import numpy as np
 
-from .. import logger, tqdm
+from .. import config, logger, tqdm
 from ..classes.base import BaseNetwork, BaseHigherOrderNetwork
 
 
@@ -86,6 +86,14 @@ def _network(self, weight: Any = None, transposed: bool = False,
     # some information for debugging
     log.debug('I\'m a Network')
 
+    # update weight if frequency is chosen
+    if weight == config['attributes']['frequency']:
+
+        # update edge properties with the current frequencies
+        # TODO: find better solution to update frequencies
+        for uid, frequency in self.edges.counter().items():
+            self.edges[uid][weight] = frequency
+
     # return an adjacency matrix
     return _adjacency_matrix(self, weight, transposed)
 
@@ -103,9 +111,16 @@ def _hon(self, weight: Any = None, transposed: bool = False,
 
     # get the appropriate weights
     if weight is None and subpaths:
-        weight = 'frequency'
+        weight = config['attributes']['frequency']
+
+        # update edge properties with the current frequencies
+        # TODO: find better solution to update frequencies
+        for uid, frequency in self.edges.counter().items():
+            self.edges[uid][weight] = frequency
+
     elif weight is None and not subpaths:
         weight = 'observed'
+        print('observed')
 
     # return an adjacency matrix
     return _adjacency_matrix(self, weight, transposed)
@@ -124,7 +139,7 @@ def _adjacency_matrix(self, weight: Any = None,
     n = list(self.nodes.keys())
 
     # iterate over the edges of the network
-    for e_id, e in tqdm(self.edges.items()):
+    for e_id, e in tqdm(self.edges.items(), desc='adj matrix'):
 
         # add notes if network is directed
         row.append(n.index(e.v.uid))
