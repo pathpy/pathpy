@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : subpaths.py -- Modules for subpath analysis
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-11-08 09:53 juergen>
+# Time-stamp: <Fri 2019-11-08 15:09 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -123,8 +123,8 @@ class SubPaths:
         a = datetime.datetime.now()
 
         # initialize variables
-        observed = defaultdict(Counter)
-        possible = defaultdict(Counter)
+        observed: defaultdict = defaultdict(Counter)
+        possible: defaultdict = defaultdict(Counter)
 
         # counter of the path frequencies
         counter = self.paths.counter()
@@ -185,13 +185,13 @@ class SubPaths:
             self.statistics()
 
         # initialize a data storage
-        data = Counter()
+        counter: Counter = Counter()
 
         # get data of observed paths
         for order in range(max(self.observed.keys())+1):
-            data[order] = sum(self.observed[order].values())
+            counter[order] = sum(self.observed[order].values())
 
-        data = list(data.elements())
+        data: list = list(counter.elements())
 
         # TODO: Find better solution for printing
         # TODO: Move to util
@@ -205,13 +205,13 @@ class SubPaths:
         row['s| s | s'] = '{:^6s} | {:^29s} | {:^13s}'
 
         # initialize summary text
-        summary = [
+        summary: list = [
             row['==='],
             'Sub path statistics',
         ]
 
         # add general statistics
-        lines = [
+        lines: list = [
             ['- General '],
             ['Number of unique nodes:', len(self.nodes)],
             ['Number of unique edges:', len(self.edges)],
