@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : attributes.py -- Class for pathpy attributes
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 12:15 juergen>
+# Time-stamp: <Fri 2019-11-08 09:10 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -126,7 +126,7 @@ class Attributes:
         """Get item from object for given key."""
         return self.data[self.index].get(key, default)
 
-    def data_frame(self, history: bool = False):
+    def to_df(self, history: bool = False):
         """Convert the attributes to a pandas DataFrame"""
         if (self.multi_attributes or history) and self.history:
             return pd.DataFrame.from_dict(self.data, orient='index')
