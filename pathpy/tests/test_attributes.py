@@ -3,14 +3,14 @@
 # =============================================================================
 # File      : test_attributes.py -- Test environment for the attributes
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 11:27 juergen>
+# Time-stamp: <Thu 2019-11-14 15:52 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 
 import pytest
 
-from pathpy.classes.base import Attributes
+from pathpy.core.base import Attributes
 import pathpy as pp
 
 

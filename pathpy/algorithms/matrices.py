@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : matrices.py -- Module to calculate various matrices
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-11-08 09:59 juergen>
+# Time-stamp: <Thu 2019-11-14 15:52 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -17,7 +17,7 @@ from scipy import sparse
 import numpy as np
 
 from .. import config, logger, tqdm
-from ..classes.base import BaseNetwork, BaseHigherOrderNetwork
+from ..core.base import BaseNetwork, BaseHigherOrderNetwork
 
 
 # create logger

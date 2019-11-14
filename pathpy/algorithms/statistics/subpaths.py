@@ -3,23 +3,35 @@
 # =============================================================================
 # File      : subpaths.py -- Modules for subpath analysis
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-11-08 15:09 juergen>
+# Time-stamp: <Thu 2019-11-14 15:52 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 
 from __future__ import annotations
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Dict, List
 from collections import Counter, defaultdict
 import datetime
 import sys
 import numpy as np
 
 from ... import logger, config, tqdm
-from ...classes.base.containers import PathDict
+from ...core import Path
+from ...core.base.containers import PathDict
 
 # create logger for the class
 log = logger(__name__)
+
+
+def window(iterable, size=2):
+    i = iter(iterable)
+    win = []
+    for e in range(0, size):
+        win.append(next(i))
+    yield win
+    for e in i:
+        win = win[1:] + [e]
+        yield win
 
 
 class SubPaths:
@@ -35,7 +47,7 @@ class SubPaths:
         self.separator = network.separator
 
         # initialize variables
-        self.subpaths: Counter = Counter()
+        self._subpaths: Counter = Counter()
         self._observed = defaultdict(Counter)
         self._possible = defaultdict(Counter)
 
@@ -76,6 +88,127 @@ class SubPaths:
             self.statistics()
         return self._possible
 
+    def expand(self, order=0, include_path: bool = False) -> List[Path]:
+        """Converts the path in subpaths of length oder."""
+
+        paths = []
+        for path in self.paths.values():
+            expanded = []
+            if order == 0:
+                for uid in path.as_nodes:
+                    expanded.append(Path.from_nodes(
+                        [path.nodes[uid]], **path.attributes.to_dict()))
+
+            elif 0 < order < len(path):
+                for subpath in window(path.as_edges, size=order):
+                    edges = [path.edges[uid] for uid in subpath]
+                    expanded.append(Path.from_edges(
+                        edges, **path.attributes.to_dict()))
+
+            elif order == len(path) and include_path:
+                expanded.append(path)
+            else:
+                pass
+
+            # add sub path if exist
+            if expanded:
+                paths.append(expanded)
+
+        return paths
+
+    def xsubpaths(self, min_length: int = 0,
+                  max_length: int = sys.maxsize,
+                  include_path: bool = False) -> Dict[str, Path]:
+        """Returns a list of subpaths.
+
+        Parameters
+        ----------
+
+        min_length : int, optional (default = 0)
+            Parameter which defines the minimum length of the sub-paths. This
+            parameter has to be smaller then the maximum length parameter.
+
+        max_length : int, optional (default = sys.maxsize)
+            Parameter which defines the maximum length of the sub-paths. This
+            parameter has to be greater then the minimum length parameter. If
+            the parameter is also greater then the maximum length of the path,
+            the maximum path length is used instead.
+
+        include_path : bool, optional (default = Flase)
+            If this option is enabled also the current path is added as a
+            sub-path of it self.
+
+        Returns
+        -------
+        Dict[str, Paths]
+            Return a dictionary with the :py:class:`Paht` uids as key and the
+            :py:class:`Path` objects as values.
+
+        Examples
+        --------
+        >>> from pathpy import Path
+        >>> p = Path('a','b','c','d','e')
+        >>> for k in p.subpaths():
+        ...     print(k)
+        a
+        b
+        c
+        d
+        e
+        a-b
+        b-c
+        c-d
+        d-e
+        a-b|b-c
+        b-c|c-d
+        c-d|d-e
+        a-b|b-c|c-d
+        b-c|c-d|d-e
+
+        >>> for k in p.subpaths(min_length = 2, max_length = 2)
+        ...     print(k)
+        a-b|b-c
+        b-c|c-d
+        c-d|d-e
+
+        """
+
+        # initializing the subpaths dictionary
+        subpaths: dict = PathDict(dict)
+
+        # get the default max and min path lengths
+        _min_length: int = min_length
+        _max_length: int = max_length
+
+        # TODO: FIX DICT -> LIST
+        # if min_length is zero, account also for nodes
+        if _min_length <= 0:
+            for node in self.as_nodes:
+                # generate empty path with one node
+                subpaths[node] = Path.from_nodes(
+                    [self.nodes[node]], **self.attributes.to_dict())
+
+        # find the right path lengths
+        min_length = max(_min_length, 1)
+        max_length = min(len(self)-1, _max_length)
+
+        # get subpaths
+        for i in range(min_length-1, max_length):
+            for j in range(len(self)-i):
+                # get the edge uids
+                edges = [self.edges[edge] for edge in self.as_edges[j:j+i+1]]
+                # assign a new path based  on the given edges
+                subpaths[self.separator['path'].join(
+                    self.as_edges[j:j+i+1])] = Path(
+                        *edges, **self.attributes.to_dict())
+
+        # include the path
+        if include_path and _min_length <= len(self) <= _max_length:
+            subpaths[self.uid] = self
+
+        # return the dict of subpaths
+        return subpaths
+
     def counter(self, min_length: int = 0,
                 max_length: int = sys.maxsize,
                 include_path: bool = False, leave: bool = False) -> Counter:
@@ -111,7 +244,7 @@ class SubPaths:
                 subpaths[uid] += frequency
 
         # store result as a class variable
-        self.subpaths = subpaths
+        self._subpaths = subpaths
 
         # return the subpath counter
         return subpaths

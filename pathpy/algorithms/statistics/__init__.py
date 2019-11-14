@@ -3,12 +3,11 @@
 # =============================================================================
 # File      : __init__.py -- Initialize statistics methods for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-11-07 15:10 juergen>
+# Time-stamp: <Fri 2019-11-08 16:51 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 
-from .subpaths import SubPaths
 
 # =============================================================================
 # eof
