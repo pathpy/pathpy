@@ -3,19 +3,20 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-11-08 16:24 juergen>
+# Time-stamp: <Thu 2019-11-14 15:07 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 
 from __future__ import annotations
+from typing import Any
 from copy import deepcopy
 from typing import Any, List, Optional
 
 from .. import logger, config
 from .base import BaseHigherOrderNetwork
 from .utils.separator import separator
-from . import Node, Path, Network
+from . import Node, Path, Network, Edge
 
 # create logger for the Higher Order Network class
 log = logger(__name__)
@@ -41,8 +42,13 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
 
         # add paths form the provide network
         if self.network is not None:
-            for path in self.network.paths.values():
-                self.add_subpaths_from(path)
+            self.add_subpaths_from(self.network)
+
+    # import external functions
+    try:
+        from ..algorithms.statistics.likelihoods import likelihood
+    except ImportError:
+        log.debug('pathpy.likelihood faild to be import')
 
     def _node_class(self) -> None:
         """Internal function to assign different Node classes."""
@@ -78,53 +84,77 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
         # return degree of freedom
         return degrees_of_freedom
 
-    def add_subpaths_from(self, path: Path) -> None:
-        """Add sub-paths from a given path."""
+    def add_subpaths_from(self, network: Network) -> None:
+        """Add sub-paths from a given network."""
 
-        # check if the right object is provided.
-        if not isinstance(path, self.PathClass) and self.check:
-            path = self._check_path(path)
+        # get all paths of length = order-1
+        paths = network.subpaths.expand(order=self.order-1,
+                                        include_path=True)
 
-        _nodes: List[HigherOrderNode] = []
-        for uid, subpath in path.subpaths(
-                min_length=self.order-1,
-                max_length=self.order-1,
-                include_path=False).items():
+        # iterate over all paths
+        for path in paths:
 
-            if subpath.uid not in self.nodes:
-                node = HigherOrderNode(subpath)
-            else:
-                # TODO : Fix typing (self.nodes)
-                node = self._nodes[subpath.uid]
+            # initialize temporary path
+            _path = []
 
-            _nodes.append(node)
+            # get frequency of the observed path
+            frequency = path[0].attributes.frequency
 
-        if len(_nodes) > 0:
-            # Get the uid for the first and hon path
-            # TODO : Generate a mapping function net->hon and hon->net
-            if _nodes[0].number_of_edges() == 0:
-                nodes = [n.as_nodes[0] for n in _nodes]
-                # TODO: fix edge separator
-                edges = [v+'-'+w for v, w in list(zip(nodes[:-1], nodes[1:]))]
-                net_uid = path.separator['path'].join(edges)
-                hon_uid = self.separator['hon'].join(list(zip(*nodes))[0])
-            else:
-                edges = [n.as_edges for n in _nodes]
-                net_uid = path.separator['path'].join(list(zip(*edges))[0])
-                hon_uid = self.separator['hon'].join(list(zip(*edges))[0])
+            for v_path, w_path in zip(path[:-1], path[1:]):
 
-            _path = Path.from_nodes(
-                _nodes, edge_separator=self.separator['hon'],
-                **path.attributes.to_dict())
+                # generate higher order objects
+                v = HigherOrderNode(v_path)
+                w = HigherOrderNode(w_path)
+                e = HigherOrderEdge(v, w)
 
-            # Check if the HON path is observed in the network
-            if (net_uid in self.network.paths and hon_uid in _path.edges):
-                _path.edges[hon_uid]['observed'] = \
-                    self.network.paths.counter()[net_uid]
+                # check if hon edge is observed as path in the network
+                if e.to_path_uid() in network.paths:
+                    e['observed'] = network.paths.counter()[e.to_path_uid()]
+
+                # add edge to temporary path
+                _path.append(e)
+
+            if len(_path) > 0:
+                # generate path of higher order edges
+                _hon_path = Path.from_edges(_path, frequency=frequency)
+
+            elif len(_path) == 0 and len(path) == 1:
+                # generate path of higher order nodes
+                _hon_path = Path.from_nodes([HigherOrderNode(path[0])],
+                                            frequency=frequency)
 
             # Add path to the hon
-            self.add_path(_path)  # , frequency=path['frequency'])
-        pass
+            self.add_path(_hon_path)
+
+
+class HigherOrderEdge(Edge):
+    """Base class of a higher order edge."""
+
+    def __init__(self, v: HigherOrderNode, w: HigherOrderNode, uid: str = None,
+                 directed: bool = True, **kwargs: Any) -> None:
+        # initializing the parent classes
+        # _separator = kwargs.get(
+        #     'separator', separator(mode='hon', **kwargs)['hon'])
+        self.separator = separator(mode='hon', **kwargs)
+
+        super().__init__(v=v, w=w, uid=uid, directed=directed,
+                         separator=self.separator['hon'], **kwargs)
+
+        self.separator = separator(mode='hon', **kwargs)
+        self.order = v.order
+
+    def to_path_uid(self):
+        """Returns the path uid of the higher order edge."""
+
+        if self.order > 1:
+            edges = self.v.as_edges + [self.w.as_edges[-1]]
+            return self.separator['path'].join(edges)
+        elif self.order == 1:
+            nodes = self.v.as_nodes + self.w.as_nodes
+            return self.separator['edge'].join(nodes)
+        else:
+            log.warning('Hihger order edge has no path!')
+            return None
 
 
 class HigherOrderNode(Node, Path):
