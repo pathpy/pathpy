@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_path.py -- Test environment for the Path class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 10:07 juergen>
+# Time-stamp: <Fri 2019-11-08 17:33 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -305,6 +305,12 @@ def test_subpaths():
     sp = p.subpaths(include_path=True)
 
     assert p.uid in sp
+
+    p = Path('a', 'b', 'c', 'd', 'e', 'a', 'b', 'c', 'd', 'e', frequency=5)
+
+    sp = p.subpaths()
+    for x in sp:
+        print(x)
 
 
 def test_has_subpath():

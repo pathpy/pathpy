@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 12:09 juergen>
+# Time-stamp: <Thu 2019-11-14 14:56 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -604,6 +604,7 @@ class Path(BaseClass):
         _min_length: int = min_length
         _max_length: int = max_length
 
+        # TODO: FIX DICT -> LIST
         # if min_length is zero, account also for nodes
         if _min_length <= 0:
             for node in self.as_nodes:

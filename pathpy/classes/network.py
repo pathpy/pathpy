@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-11-07 15:12 juergen>
+# Time-stamp: <Thu 2019-11-14 13:39 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -72,7 +72,7 @@ class Network(BaseNetwork):
 
     try:
         # import sub paths object
-        from ..algorithms.statistics import SubPaths as _SubPathsConstructor
+        from ..algorithms.statistics.subpaths import SubPaths as _SubPathsConstructor
 
         # initialize a local variable to store sub paths
         # NOTE: this will be only created if the module is loaded
@@ -609,10 +609,22 @@ class Network(BaseNetwork):
             The: py: class: `Edge` object, which will be added to the path.
 
         """
+        # print(path)
+        # for n, v in path.nodes.items():
+        #     print(n, v.incoming, v.outgoing)
 
         # check if the right object is provided
         if not isinstance(path, self.PathClass) and self.check:
             path = self._check_path(path, **kwargs)
+
+        # TODO : Move this to check paths
+        # update nodes
+        for uid, node in path.nodes.items():
+            if uid in self.nodes:
+                #         print(uid)
+                #         print('>>> in ', node.incoming, self.nodes[uid].incoming)
+                #         print('>>> ou', node.outgoing, self.nodes[uid].outgoing)
+                node.update(self.nodes[uid], attributes=False)
 
         # update nodes, edges and the path
         if path.uid not in self.paths:

@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : _check_edge.py -- Helper function to check the edge format
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 14:38 juergen>
+# Time-stamp: <Thu 2019-11-14 14:57 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -77,9 +77,12 @@ def _check_edge(self, edge: Any, *args: Any, **kwargs: Any) -> Edge:
 
     # check nodes and generate virtual edge
     if _e['object']:
+
+        # check given nodes
         v = _check_node(self, _e['object'].v)
         w = _check_node(self, _e['object'].w)
         _edge = _e['object']
+
         _edge.nodes.update({v.uid: v, w.uid: w})
 
     elif _v['object'] and _w['object']:
@@ -109,10 +112,11 @@ def _check_edge(self, edge: Any, *args: Any, **kwargs: Any) -> Edge:
 
         else:
 
-            # otherwise get previous edge properties and add the new ones
-            _copy = self.edges[_edge.uid].copy()
-            _copy.inherit(_edge)
-            _edge = _copy
+            # update existing edge
+            self.edges[_edge.uid].update(_edge)
+
+            # make a shallow copy of the updated edge
+            _edge = self.edges[_edge.uid]
 
     # otherwise check if attributes have to be overwritten
     else:

@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 14:38 juergen>
+# Time-stamp: <Thu 2019-11-14 14:59 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -274,17 +274,20 @@ class Edge(BaseClass):
         for node in nodes:
             self.add_node(node, **kwargs)
 
-    def inherit(self, other: Edge) -> None:
-        """Inherit attributes and associated nodes from an other edge."""
+    def update(self, other: Edge = None, attributes: bool = True,
+               **kwargs: Any) -> None:
+        """Update of the edge object."""
+        if other:
+            # get relations with the associated nodes
+            self.v.update(other.v, attributes=False)
+            self.w.update(other.w, attributes=False)
 
-        # get relations with the associated nodes
-        self.v.incoming.union(other.v.incoming)
-        self.v.outgoing.union(other.v.outgoing)
-        self.w.incoming.union(other.w.incoming)
-        self.w.outgoing.union(other.w.outgoing)
+            # get the attributes
+            if attributes:
+                self.attributes.update(
+                    **other.attributes.to_dict(history=False))
 
-        # get the attributes
-        self.attributes.update(**other.attributes.to_dict(history=False))
+        self.attributes.update(**kwargs)
 
 
 # =============================================================================

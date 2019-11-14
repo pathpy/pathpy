@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_checks.py -- Test environment for the class checks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 14:39 juergen>
+# Time-stamp: <Thu 2019-11-14 14:55 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================

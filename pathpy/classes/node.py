@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : node.py -- Base class for a node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 10:25 juergen>
+# Time-stamp: <Thu 2019-11-14 14:58 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -130,6 +130,21 @@ class Node(BaseClass):
         """
         return self.incoming.union(self.outgoing)
 
+    def update(self, other: Node = None, attributes: bool = True,
+               **kwargs: Any) -> None:
+        """Update of the node object."""
+        if other is not None:
+
+            # get relations with the associated nodes
+            self._incoming = self.incoming.union(other.incoming)
+            self._outgoing = self.outgoing.union(other.outgoing)
+
+            # get the attributes
+            if attributes:
+                self.attributes.update(
+                    **other.attributes.to_dict(history=False))
+
+        self.attributes.update(**kwargs)
 
 # =============================================================================
 # eof
