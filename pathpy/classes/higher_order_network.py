@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-11-14 15:07 juergen>
+# Time-stamp: <Thu 2019-11-14 15:36 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -41,8 +41,10 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
         self.network = network
 
         # add paths form the provide network
-        if self.network is not None:
+        if self.network is not None and self.order > 0:
             self.add_subpaths_from(self.network)
+        elif self.network is not None and self.order == 0:
+            self.add_zero_order_from(self.network)
 
     # import external functions
     try:
@@ -125,6 +127,35 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
 
             # Add path to the hon
             self.add_path(_hon_path)
+
+    def add_zero_order_from(self, network: Network) -> None:
+        """Add sub-paths from a given network."""
+
+        # get all paths of length = order-1
+        paths = network.subpaths.expand(order=self.order,
+                                        include_path=True)
+
+        # generate a "dummy" start node
+        start = HigherOrderNode(uid='start')
+
+        for path in paths:
+
+            # get frequency of the observed path
+            frequency = path[0].attributes.frequency
+
+            for w_path in path:
+
+                # generate higher order node
+                w = HigherOrderNode(w_path)
+
+                # check if hon node is observed as path in the network
+                if w.uid in network.paths:
+                    w['observed'] = network.paths.counter()[w.uid]
+
+                _hon_path = Path.from_nodes([start, w], frequency=frequency)
+
+                # Add path to the hon
+                self.add_path(_hon_path)
 
 
 class HigherOrderEdge(Edge):
