@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : subpaths.py -- Modules for subpath analysis
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-11-14 15:52 juergen>
+# Time-stamp: <Fri 2019-11-15 06:53 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -223,7 +223,7 @@ class SubPaths:
         for uid, path in tqdm(self.paths.items(), desc='subpath counter'):
 
             # number of counted paths
-            frequency = path['frequency']
+            frequency = path.attributes.frequency
 
             # if min_length is zero, account also for nodes
             if _min_length <= 0:
