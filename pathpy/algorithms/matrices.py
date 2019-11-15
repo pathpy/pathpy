@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : matrices.py -- Module to calculate various matrices
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-11-14 15:52 juergen>
+# Time-stamp: <Fri 2019-11-15 08:37 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -104,7 +104,7 @@ def _hon(self, weight: Any = None, transposed: bool = False,
     """Returns a sparse adjacency matrix of the higher order network."""
 
     # some information for debugging
-    log.debug('I\'m a HigherOrderNetwork')
+    log.debug('I\'m an adjacency matrix of a HigherOrderNetwork')
 
     # get additional information for HONs
     subpaths: bool = kwargs.get('subpaths', True)
@@ -164,13 +164,16 @@ def _adjacency_matrix(self, weight: Any = None,
     shape = (self.number_of_nodes(), self.number_of_nodes())
     A = sparse.coo_matrix((data, (row, col)), shape=shape).tocsr()
 
+    # transpose matrix if needed
     if transposed:
-        return A.transpose()
+        A = A.transpose()
+
+    # return the matrix
     return A
 
 
 # @singledispatch
-def transition_matrix(self, weight: str = 'weight', transposed: bool = False,
+def transition_matrix(self, weight: Any = None, transposed: bool = False,
                       **kwargs: Any) -> sparse.coo_matrix:
     """Returns a transition matrix of the network.
 
@@ -195,11 +198,21 @@ def transition_matrix(self, weight: str = 'weight', transposed: bool = False,
         Returns the transition matrix, corresponding to the network.
 
     """
-    A = self.adjacency_matrix(weight=weight, transposed=transposed, **kwargs)
+    A = self.adjacency_matrix(weight=weight, transposed=False, **kwargs)
+
     # Ignore division by zero warning
     with np.errstate(divide='ignore'):
         D = sparse.diags(1/A.sum(axis=1).A1)
-    return D*A
+
+    # calculate transition matrix
+    T = D*A
+
+    # transpose matrix if needed
+    if transposed:
+        T = T.transpose()
+
+    # return matrix if needed
+    return T
 
 # =============================================================================
 # eof
