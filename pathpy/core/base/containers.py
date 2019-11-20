@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : containers.py -- Base containers for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-11-08 09:14 juergen>
+# Time-stamp: <Wed 2019-11-20 13:32 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -98,6 +98,13 @@ class PathDict(BaseDict):
         data = [dict(obj.attributes.to_dict(), **{'len': len(obj)})
                 for obj in self.values()]
         return pd.DataFrame(data)
+
+    def lengths(self) -> Counter:
+        """Return a dictionary of path uids where key is the length."""
+        data = defaultdict(list)
+        for obj in self.values():
+            data[len(obj)].append(obj.uid)
+        return data
 
 
 # =============================================================================

@@ -3,12 +3,13 @@
 # =============================================================================
 # File      : __init__.py -- Initialize various generators for networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-11-08 10:43 juergen>
+# Time-stamp: <Wed 2019-11-20 16:11 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 
-from .null_models import NullModel
+from .null_model import NullModel
+from .multi_order_model import MultiOrderModel
 
 # =============================================================================
 # eof

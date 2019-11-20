@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-11-14 15:36 juergen>
+# Time-stamp: <Wed 2019-11-20 15:42 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -12,6 +12,8 @@ from __future__ import annotations
 from typing import Any
 from copy import deepcopy
 from typing import Any, List, Optional
+
+import numpy as np
 
 from .. import logger, config
 from .base import BaseHigherOrderNetwork
@@ -76,10 +78,25 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
         degrees_of_freedom: int = 0
 
         if self.order == 0:
-            return max(0, self.number_of_nodes()-1)
+            degrees_of_freedom = max(0, self.number_of_nodes()-2)
 
-        else:
+        elif mode == 'old':
+            # TODO : Remove this part after proper testing
+            A = self.network.adjacency_matrix()
+
+            degrees_of_freedom = int(
+                (A ** self.order).sum()
+                - np.count_nonzero((A ** self.order).sum(axis=0)))
+
+        elif mode == 'ngram':
+            number_of_nodes = self.network.number_of_nodes()
+            degrees_of_freedom = (number_of_nodes ** self.order) * \
+                (number_of_nodes - 1)
+
+        elif mode == 'path':
             # iterate over all nodes and count outdegree
+            # TODO : This should be only done with a null model
+            log.debug('DoF only valide if it comes from a null model')
             for node in self.nodes.values():
                 degrees_of_freedom += max(0, len(node.outgoing)-1)
 
@@ -152,10 +169,17 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
                 if w.uid in network.paths:
                     w['observed'] = network.paths.counter()[w.uid]
 
-                _hon_path = Path.from_nodes([start, w], frequency=frequency)
+                _hon_path = Path.from_nodes(
+                    [start, w], frequency=frequency,
+                    edge_separator=self.separator['hon'])
 
                 # Add path to the hon
                 self.add_path(_hon_path)
+
+    @classmethod
+    def from_network(cls, network: Network,
+                     order: int = 1) -> HigherOrderNetwork:
+        return cls(network, order=order)
 
 
 class HigherOrderEdge(Edge):

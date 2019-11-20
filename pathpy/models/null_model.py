@@ -3,15 +3,15 @@
 # =============================================================================
 # File      : null_models.py -- Null models for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-11-14 15:51 juergen>
+# Time-stamp: <Wed 2019-11-20 15:17 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
 from typing import List
 import datetime
-from ..core import HigherOrderNetwork, HigherOrderNode, Edge
-from .. import logger, tqdm
+from ..core import HigherOrderNetwork, HigherOrderNode, Edge, Path
+from .. import logger, tqdm, config
 
 # create logger
 log = logger(__name__)
@@ -42,6 +42,14 @@ class NullModel:
     def generate(self, order: int = 1) -> HigherOrderNetwork:
         """Generate a null model."""
 
+        # TODO: Add null model for order 1
+
+        if order == 0:
+            return HigherOrderNetwork(self.network, order=0)
+
+        if order == 1:
+            return HigherOrderNetwork(self.network, order=1)
+
         # some information for debugging
         log.debug('start generate null model')
         a = datetime.datetime.now()
@@ -54,13 +62,14 @@ class NullModel:
                                                  max_length=order-1)
 
         # get transition matrix of the underlying network
-        transition_matrix = self.network.transition_matrix()
+        transition_matrix = self.network.transition_matrix(
+            weight=config['attributes']['frequency'])
 
         # get the ordered node uids of the underlying network as a list
         nodes = list(self.network.nodes)
 
         # generate hon with possible paths
-        hon = HigherOrderNetwork()
+        hon = HigherOrderNetwork(order=order)
 
         for path in possible_paths:
 
@@ -82,8 +91,10 @@ class NullModel:
 
             # add higher order nodes to the hon
             # TODO: use automatically hon separator
-            hon.add_edge(Edge(v, w, separator=hon.separator['hon']),
-                         frequency=frequency)
+            e = Edge(v, w, separator=hon.separator['hon'])
+            hon.add_path(Path.from_edges([e], frequency=frequency))
+            # hon.add_edge(Edge(v, w, separator=hon.separator['hon']),
+            #              frequency=frequency)
 
         # some information for debugging
         b = datetime.datetime.now()
@@ -91,6 +102,7 @@ class NullModel:
                   ' {} seconds'.format((b-a).total_seconds()))
 
         # safe hon in class and order
+        hon.network = self.network
         self.hon = hon
         self.order = order
 

@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : subpaths.py -- Modules for subpath analysis
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-11-15 06:53 juergen>
+# Time-stamp: <Wed 2019-11-20 11:29 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -322,7 +322,7 @@ class SubPaths:
 
         # get data of observed paths
         for order in range(max(self.observed.keys())+1):
-            counter[order] = sum(self.observed[order].values())
+            counter[order] = int(sum(self.observed[order].values()))
 
         data: list = list(counter.elements())
 
@@ -335,6 +335,7 @@ class SubPaths:
         row['s|sss|ss'] = '{:^6s} | {:^9s} {:^9s} {:^9s} | {:^6s} {:^6s}'
         row['-|---|--'] = '{:->6s} | {:->9s} {:->9s} {:->9s} | {:->6s} {:->6s}'
         row['d|ddd|dd'] = '{:>6d} | {:>9d} {:>9d} {:>9d} | {:>6d} {:>6d}'
+        row['f|fff|ff'] = '{:>6.0f} | {:>9.0f} {:>9.0f} {:>9.0f} | {:>6.0f} {:>6.0f}'
         row['s| s | s'] = '{:^6s} | {:^29s} | {:^13s}'
 
         # initialize summary text
@@ -385,14 +386,14 @@ class SubPaths:
             data[3].append(len(self.observed[order]))
             data[4].append(len(self.possible[order]))
 
-            summary.append(row['d|ddd|dd'].format(
+            summary.append(row['f|fff|ff'].format(
                 order, *[v[-1] for v in data]))
 
         # add line
         summary.append(row['-|---|--'].format('', '', '', '', '', ''))
 
         # add column sums
-        summary.append(row['d|ddd|dd'].format(order, *[sum(v) for v in data]))
+        summary.append(row['f|fff|ff'].format(order, *[sum(v) for v in data]))
 
         # add legend
         summary.append('obs ... observed paths (in the network)')
