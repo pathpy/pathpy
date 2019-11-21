@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : multi_order_models.py -- Multi order models for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2019-11-20 16:09 juergen>
+# Time-stamp: <Thu 2019-11-21 10:02 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -120,17 +120,17 @@ class MultiOrderModel:
         else:
             return '\n'.join(summary)
 
-    def estimate(self):
+    def estimate(self, observations=None, stop=None, threshold=0.01):
         """Estimate the optimal order for a multi-order network."""
 
         Log.debug('start estimate optimal order')
         a = datetime.datetime.now()
 
         # initialize variables
-        observations = None
+        if stop is None:
+            max_considerd_order = self._current_max_order()
+
         max_accepted_order = 1
-        max_considerd_order = 6
-        threshold = 0.01
 
         for order in range(2, max_considerd_order+1):
             Log.debug('---')
