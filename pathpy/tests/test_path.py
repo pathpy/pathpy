@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_path.py -- Test environment for the Path class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-11-08 17:33 juergen>
+# Time-stamp: <Fri 2019-11-22 08:18 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -308,9 +308,9 @@ def test_subpaths():
 
     p = Path('a', 'b', 'c', 'd', 'e', 'a', 'b', 'c', 'd', 'e', frequency=5)
 
-    sp = p.subpaths()
-    for x in sp:
-        print(x)
+    # sp = p.subpaths()
+    # for x in sp:
+    #     print(x)
 
 
 def test_has_subpath():
@@ -358,6 +358,82 @@ def test_from_edges():
     p = Path.from_edges(['a-b', 'b-c'])
     assert p.uid == 'a-b|b-c'
     assert 'a' and 'b' and 'c' in p.nodes
+
+
+def test_args():
+    """Test various input args for path generation."""
+
+    a = Node('a', color='blue')
+    b = Node('b', color='red')
+    c = Node('c', color='cyan')
+
+    ab = Edge(a, b, capacity=5)
+    bc = Edge(b, c, capacity=10)
+
+    # edge object
+    p = Path(ab)
+    assert p.as_nodes == ['a', 'b']
+    assert p.as_edges == ['a-b']
+
+    # edge objects
+    p = Path(ab, bc)
+    assert p.as_nodes == ['a', 'b', 'c']
+    assert p.as_edges == ['a-b', 'b-c']
+
+    # wrong orderd edges
+    with pytest.raises(Exception):
+        p = Path(bc, ab)
+
+    # node object
+    p = Path(a)
+    assert p.as_nodes == ['a']
+    assert p.as_edges == []
+
+    # node objects
+    p = Path(a, b, c)
+    assert p.as_nodes == ['a', 'b', 'c']
+    assert p.as_edges == ['a-b', 'b-c']
+
+    # singel node as string
+    p = Path('a')
+    assert p.as_nodes == ['a']
+    assert p.as_edges == []
+
+    # node as seperate strings
+    p = Path('a', 'b', 'c')
+    assert p.as_nodes == ['a', 'b', 'c']
+    assert p.as_edges == ['a-b', 'b-c']
+
+    # singe edge as string
+    p = Path('a-b')
+    assert p.as_nodes == ['a', 'b']
+    assert p.as_edges == ['a-b']
+
+    # edge as seperate strings
+    p = Path('a-b', 'b-c')
+    assert p.as_nodes == ['a', 'b', 'c']
+    assert p.as_edges == ['a-b', 'b-c']
+
+    # nodes as single string
+    p = Path('a,b,c')
+    assert p.as_nodes == ['a', 'b', 'c']
+    assert p.as_edges == ['a-b', 'b-c']
+
+    # edges as single string
+    p = Path('a-b,b-c')
+    assert p.as_nodes == ['a', 'b', 'c']
+    assert p.as_edges == ['a-b', 'b-c']
+
+    # nodes as simple path
+    p = Path('a-b-c')
+    assert p.as_nodes == ['a', 'b', 'c']
+    assert p.as_edges == ['a-b', 'b-c']
+
+    # path uid as string
+    p = Path('a-b|b-c')
+    assert p.as_nodes == ['a', 'b', 'c']
+    assert p.as_edges == ['a-b', 'b-c']
+
 
 # =============================================================================
 # eof

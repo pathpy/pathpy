@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-11-14 14:56 juergen>
+# Time-stamp: <Fri 2019-11-22 08:28 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -19,6 +19,7 @@ from .base import PathDict
 from .utils.separator import separator
 from .utils._check_node import _check_node
 from .utils._check_edge import _check_edge
+from .utils._check_str import _check_str
 from . import Node, Edge
 
 # create logger for the Path class
@@ -74,14 +75,29 @@ class Path(BaseClass):
         # add edges
         # TODO: Make this part nicer
         if args:
-            if isinstance(args[0], self.EdgeClass):
+            if all(isinstance(x, self.EdgeClass) for x in args):
                 self.add_edges_from(list(args))
 
-            elif isinstance(args[0], str):
+            elif all(isinstance(x, self.NodeClass) for x in args):
                 self.add_nodes_from(list(args))
 
-            elif isinstance(args[0], self.NodeClass):
-                self.add_nodes_from(list(args))
+            elif all(isinstance(x, str) for x in args):
+                if self.check:
+                    # check the given string
+                    objects = _check_str(self, *args, expected='edge')
+
+                    # iterate over the cleand string and append objects
+                    # accordingly
+                    for string, mode in objects:
+                        if mode == 'edge':
+                            self.add_edges_from(string)
+                        elif mode == 'node':
+                            self.add_nodes_from(string)
+                else:
+                    self.add_nodes_from(list(args))
+            else:
+                log.error('All arguments must have the same type!')
+                raise AttributeError
 
     def _node_class(self) -> None:
         """Internal function to assign different Node classes."""
