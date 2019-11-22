@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-11-14 13:39 juergen>
+# Time-stamp: <Fri 2019-11-22 09:20 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -16,6 +16,7 @@ from .base import NodeDict, EdgeDict, PathDict
 from .utils.separator import separator
 from .utils._check_node import _check_node
 from .utils._check_edge import _check_edge
+from .utils._check_str import _check_str
 from . import Node, Edge, Path
 
 # create logger for the Network class
@@ -61,8 +62,10 @@ class Network(BaseNetwork):
         # add attributes to the network
         self.attributes.update(**kwargs)
 
-        # add paths
-        self.add_paths_from(list(args))
+        # add objects from args if given
+        if args:
+            self.add_args(*args)
+        # self.add_paths_from(list(args))
 
     # import external functions
     try:
@@ -615,7 +618,9 @@ class Network(BaseNetwork):
 
         # check if the right object is provided
         if not isinstance(path, self.PathClass) and self.check:
-            path = self._check_path(path, **kwargs)
+            # TODO: Add this _check function
+            #path = self._check_path(path, **kwargs)
+            path = self.PathClass(path, **kwargs)
 
         # TODO : Move this to check paths
         # update nodes
@@ -636,6 +641,42 @@ class Network(BaseNetwork):
         self.nodes.increase_counter(path.as_nodes, path.attributes.frequency)
         self.edges.increase_counter(path.as_edges, path.attributes.frequency)
         self.paths.increase_counter(path.uid, path.attributes.frequency)
+
+    def add_args(self, *args: Any) -> None:
+        """Add args to the path."""
+
+        # iterate over all given arguments
+        for arg in args:
+
+            # if arg is a Path add the path
+            if isinstance(arg, self.PathClass):
+                self.add_path(arg)
+
+            # if arg is an Edge add the edge
+            elif isinstance(arg, self.EdgeClass):
+                self.add_edge(arg)
+
+            # if arg is a Node add the node
+            elif isinstance(arg, self.NodeClass):
+                self.add_node(arg)
+
+            # if arg is a string, check the string and add accordingly
+            elif isinstance(arg, str) and self.check:
+
+                # check the given string
+                objects = _check_str(self, arg, expected='path')
+
+                # iterate over the cleand string and append objects
+                for string, mode in objects:
+                    if mode == 'path':
+                        self.add_paths_from(string)
+                    elif mode == 'edge':
+                        self.add_edges_from(string)
+                    elif mode == 'node':
+                        self.add_nodes_from(string)
+            else:
+                log.error('Invalide argument "{}"!'.format(arg))
+                raise AttributeError
 
     def remove_node(self, node: str) -> None:
         """Remove a single node from the network."""

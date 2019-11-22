@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-11-22 08:52 juergen>
+# Time-stamp: <Fri 2019-11-22 09:12 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -551,8 +551,6 @@ class Path(BaseClass):
             elif isinstance(arg, str) and self.check:
 
                 # check the given string
-                # returns a list of objectes uids and estimated type
-                # 'a-b-c' -> [(['a'],'node'),(['b'],'node'),(['c'],'node')]
                 objects = _check_str(self, arg, expected='edge')
 
                 # iterate over the cleand string and append objects

@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_path.py -- Test environment for the Path class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-11-22 08:18 juergen>
+# Time-stamp: <Fri 2019-11-22 08:56 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -360,7 +360,7 @@ def test_from_edges():
     assert 'a' and 'b' and 'c' in p.nodes
 
 
-def test_args():
+def test_add_args():
     """Test various input args for path generation."""
 
     a = Node('a', color='blue')

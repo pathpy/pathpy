@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-10-31 14:21 juergen>
+# Time-stamp: <Fri 2019-11-22 09:23 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -260,6 +260,97 @@ def test_add_edges_from():
 
     assert net.number_of_edges() == 2
     assert net.edges['a-b'].uid == 'a-b'
+
+
+def test_add_args():
+    """Test various input args for path generation."""
+
+    a = Node('a', color='blue')
+    b = Node('b', color='red')
+    c = Node('c', color='cyan')
+
+    ab = Edge(a, b, capacity=5)
+    bc = Edge(b, c, capacity=10)
+
+    # edge object
+    p1 = Path(ab)
+    p2 = Path(bc)
+    p3 = Path(ab, bc)
+
+    # node objects
+    net = Network(a, b, c)
+    assert list(net.nodes) == ['a', 'b', 'c']
+
+    # edge object
+    net = Network(ab, bc)
+    assert list(net.nodes) == ['a', 'b', 'c']
+    assert list(net.edges) == ['a-b', 'b-c']
+
+    # path object
+    net = Network(p1, p2, p3)
+    assert list(net.nodes) == ['a', 'b', 'c']
+    assert list(net.edges) == ['a-b', 'b-c']
+    assert list(net.paths) == ['a-b', 'b-c', 'a-b|b-c']
+
+    # mixed objectes
+    net = Network(a, bc, p3)
+    assert list(net.nodes) == ['a', 'b', 'c']
+    assert list(net.edges) == ['b-c', 'a-b']
+    assert list(net.paths) == ['a-b|b-c']
+
+    # singel node as string
+    net = Network('a')
+    assert list(net.nodes) == ['a']
+    assert list(net.edges) == []
+    assert list(net.paths) == []
+
+    # node as seperate strings
+    net = Network('a', 'b', 'c')
+    assert list(net.nodes) == ['a', 'b', 'c']
+    assert list(net.edges) == []
+    assert list(net.paths) == []
+
+    # nodes as single string
+    net = Network('a,b,c')
+    assert list(net.nodes) == ['a', 'b', 'c']
+    assert list(net.edges) == []
+    assert list(net.paths) == []
+
+    # singe edge as string
+    net = Network('a-b')
+    assert list(net.nodes) == ['a', 'b']
+    assert list(net.edges) == ['a-b']
+    assert list(net.paths) == []
+
+    # edge as seperate strings
+    net = Network('a-b', 'b-c')
+    assert list(net.nodes) == ['a', 'b', 'c']
+    assert list(net.edges) == ['a-b', 'b-c']
+    assert list(net.paths) == []
+
+    # edges as single string
+    net = Network('a-b,b-c')
+    assert list(net.nodes) == ['a', 'b', 'c']
+    assert list(net.edges) == ['a-b', 'b-c']
+    assert list(net.paths) == []
+
+    # nodes as simple path
+    net = Network('a-b-c')
+    assert list(net.nodes) == ['a', 'b', 'c']
+    assert list(net.edges) == ['a-b', 'b-c']
+    assert list(net.paths) == ['a-b|b-c']
+
+    # simple path uid
+    net = Network('a-b|b-c')
+    assert list(net.nodes) == ['a', 'b', 'c']
+    assert list(net.edges) == ['a-b', 'b-c']
+    assert list(net.paths) == ['a-b|b-c']
+
+    # mixed strings
+    net = Network('a', 'b-c', 'a-b-c')
+    assert list(net.nodes) == ['a', 'b', 'c']
+    assert list(net.edges) == ['b-c', 'a-b']
+    assert list(net.paths) == ['a-b|b-c']
 
 
 # def test_remove_node(net):
