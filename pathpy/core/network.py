@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-11-22 09:20 juergen>
+# Time-stamp: <Fri 2019-11-22 11:37 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -16,6 +16,7 @@ from .base import NodeDict, EdgeDict, PathDict
 from .utils.separator import separator
 from .utils._check_node import _check_node
 from .utils._check_edge import _check_edge
+from .utils._check_path import _check_path
 from .utils._check_str import _check_str
 from . import Node, Edge, Path
 
@@ -593,7 +594,7 @@ class Network(BaseNetwork):
         if self.check:
             edge = _check_edge(self, edge, *args, **kwargs)
 
-        # add new edge to the path or update modified edge
+        # add new edge to the network or update modified edge
         if (edge.uid not in self.edges or
                 (edge.uid in self.edges and edge != self.edges[edge.uid])):
             self.nodes.update(edge.nodes)
@@ -603,7 +604,7 @@ class Network(BaseNetwork):
         self.edges.increase_counter(edge.uid, edge.attributes.frequency)
         self.nodes.increase_counter(edge.nodes, edge.attributes.frequency)
 
-    def add_path(self, path: Path, **kwargs: Any) -> None:
+    def add_path(self, path: Path, *args: Any, **kwargs: Any) -> None:
         """Add a single path to the network.
 
         Parameters
@@ -615,24 +616,33 @@ class Network(BaseNetwork):
         # print(path)
         # for n, v in path.nodes.items():
         #     print(n, v.incoming, v.outgoing)
+        if self.check:
+            path = _check_path(self, path, *args, **kwargs)
 
-        # check if the right object is provided
-        if not isinstance(path, self.PathClass) and self.check:
-            # TODO: Add this _check function
-            #path = self._check_path(path, **kwargs)
-            path = self.PathClass(path, **kwargs)
+        # # check if the right object is provided
+        # if not isinstance(path, self.PathClass) and self.check:
+        #     # TODO: Add this _check function
+        #     #misc = _check_path(self, path, *args, **kwargs)
+        #     path = self.PathClass(path, **kwargs)
 
         # TODO : Move this to check paths
         # update nodes
-        for uid, node in path.nodes.items():
-            if uid in self.nodes:
-                #         print(uid)
-                #         print('>>> in ', node.incoming, self.nodes[uid].incoming)
-                #         print('>>> ou', node.outgoing, self.nodes[uid].outgoing)
-                node.update(self.nodes[uid], attributes=False)
+        # for uid, node in path.nodes.items():
+        #     if uid in self.nodes:
+        #         #         print(uid)
+        #         #         print('>>> in ', node.incoming, self.nodes[uid].incoming)
+        #         #         print('>>> ou', node.outgoing, self.nodes[uid].outgoing)
+        #         node.update(self.nodes[uid], attributes=False)
 
-        # update nodes, edges and the path
-        if path.uid not in self.paths:
+        # # update nodes, edges and the path
+        # if path.uid not in self.paths:
+        #     self.nodes.update(path.nodes)
+        #     self.edges.update(path.edges)
+        #     self.paths[path.uid] = path
+
+        # add new path to the network or update modified path
+        if (path.uid not in self.paths or
+                (path.uid in self.paths and path != self.paths[path.uid])):
             self.nodes.update(path.nodes)
             self.edges.update(path.edges)
             self.paths[path.uid] = path

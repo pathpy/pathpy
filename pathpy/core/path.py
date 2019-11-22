@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-11-22 09:12 juergen>
+# Time-stamp: <Fri 2019-11-22 11:27 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -731,6 +731,21 @@ class Path(BaseClass):
         path: Path = cls(**kwargs)
         path.add_edges_from(edges)
         return path
+
+    def update(self, other: Path = None, attributes: bool = True,
+               **kwargs: Any) -> None:
+        """Update of the epath object."""
+        if other:
+            # get relations with the associated nodes
+            for v in self.nodes.values():
+                v.update(other.nodes[v.uid], attributes=False)
+
+            # get the attributes
+            if attributes:
+                self.attributes.update(
+                    **other.attributes.to_dict(history=False))
+
+        self.attributes.update(**kwargs)
 
 
 # =============================================================================

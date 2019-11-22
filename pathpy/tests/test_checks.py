@@ -3,14 +3,15 @@
 # =============================================================================
 # File      : test_checks.py -- Test environment for the class checks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-11-14 14:55 juergen>
+# Time-stamp: <Fri 2019-11-22 12:05 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 
-# import pytest
+import pytest
 
-from pathpy import Node, Edge, Path
+from pathpy import Node, Edge, Path, Network
+from pathpy.core.utils._check_str import _check_str
 
 
 def test_check_node_correct():
@@ -320,6 +321,183 @@ def test_check_edge_in_path():
     assert 'a-b' in p.nodes['a'].outgoing
 
     assert p.nodes['a'].attributes.data[3]['number'] == 4
+
+
+def test_check_path_attributes():
+    """Test path with different attributes."""
+    a = Node('a', color='azur', shape='circle', number=1)
+    b = Node('b', color='blue', shape='rectangle')
+    c = Node('c', color='cyan', shape='star')
+    d = Node('d', color='dark', shape='moon')
+
+    e1 = Edge(a, b, foo='A')
+    e2 = Edge(b, c, foo='B')
+    e3 = Edge(b, d, foo='C')
+
+    p1 = Path(e1, e2, bar='1')
+
+    net = Network()
+
+    net.add_path(p1)
+
+    assert list(net.paths.values())[0] == p1
+    assert net.nodes['b']['color'] == 'blue'
+    assert net.edges['a-b']['foo'] == 'A'
+    assert net.paths[p1.uid]['bar'] == '1'
+
+    b['color'] = 'black'
+    e1['foo'] = 'D'
+    p1['bar'] = '3'
+
+    assert net.nodes['b']['color'] == 'black'
+    assert net.edges['a-b']['foo'] == 'D'
+    assert net.paths[p1.uid]['bar'] == '3'
+
+    e1['foo'] = 'F'
+    p2 = Path(e1, e3, bar='2')
+
+    net.add_path(p2)
+
+    assert net.edges['a-b']['foo'] == 'F'
+    assert 'b-c' and 'b-d' in net.nodes['b'].outgoing
+    assert 'a-b' in net.nodes['b'].incoming
+    assert net.edges.counter()['a-b'] == 2
+
+
+def test_check_path():
+    """Test the path"""
+
+    a = Node('a', color='azur')
+    b = Node('b', color='blue')
+    c = Node('c', color='cyan')
+
+    e1 = Edge(a, b, foo='A')
+    e2 = Edge(b, c, foo='B')
+    e3 = Edge(c, a, foo='C')
+
+    p1 = Path(e1, e2, bar='1')
+
+    net = Network()
+    net.add_path(p1)
+
+    assert list(net.paths['a-b|b-c'].nodes) == ['a', 'b', 'c']
+    assert list(net.paths['a-b|b-c'].edges) == ['a-b', 'b-c']
+
+    net = Network()
+    net.add_path(e1)
+
+    assert list(net.paths['a-b'].nodes) == ['a', 'b']
+    assert list(net.paths['a-b'].edges) == ['a-b']
+
+    net = Network()
+    net.add_path(e1, e2)
+
+    assert list(net.paths['a-b|b-c'].nodes) == ['a', 'b', 'c']
+    assert list(net.paths['a-b|b-c'].edges) == ['a-b', 'b-c']
+
+    net = Network()
+    net.add_path(a, b, c)
+
+    assert list(net.paths['a-b|b-c'].nodes) == ['a', 'b', 'c']
+    assert list(net.paths['a-b|b-c'].edges) == ['a-b', 'b-c']
+
+    net = Network()
+    net.add_path('a', 'b', 'c')
+
+    assert list(net.paths['a-b|b-c'].nodes) == ['a', 'b', 'c']
+    assert list(net.paths['a-b|b-c'].edges) == ['a-b', 'b-c']
+
+    net = Network()
+    net.add_path('a-b-c')
+
+    assert list(net.paths['a-b|b-c'].nodes) == ['a', 'b', 'c']
+    assert list(net.paths['a-b|b-c'].edges) == ['a-b', 'b-c']
+
+    net = Network()
+    net.add_path('a-b', 'b-c')
+
+    assert list(net.paths['a-b|b-c'].nodes) == ['a', 'b', 'c']
+    assert list(net.paths['a-b|b-c'].edges) == ['a-b', 'b-c']
+
+    net = Network()
+    net.add_path('a-b|b-c')
+
+    assert list(net.paths['a-b|b-c'].nodes) == ['a', 'b', 'c']
+    assert list(net.paths['a-b|b-c'].edges) == ['a-b', 'b-c']
+
+    net = Network()
+    with pytest.raises(Exception):
+        net.add_path('a', 'b-c')
+
+
+def test_check_str():
+    """Test input strings"""
+
+    obj = Path()
+    # singel node as string
+    s = _check_str(obj, 'a')
+    assert s == [(['a'], 'node')]
+
+    # node as seperate strings
+    s = _check_str(obj, 'a', 'b')
+    assert s == [(['a'], 'node'), (['b'], 'node')]
+
+    # node as seperate strings
+    s = _check_str(obj, 'a', 'b', 'c')
+    assert s == [(['a'], 'node'), (['b'], 'node'), (['c'], 'node')]
+
+    # singe edge as string
+    s = _check_str(obj, 'a-b')
+    assert s == [(['a-b'], 'edge')]
+
+    # edge as seperate strings
+    s = _check_str(obj, 'a-b', 'b-c')
+    assert s == [(['a-b'], 'edge'), (['b-c'], 'edge')]
+
+    # nodes as single string
+    s = _check_str(obj, 'a,b,c')
+    assert s == [(['a'], 'node'), (['b'], 'node'), (['c'], 'node')]
+
+    # edges as single string
+    s = _check_str(obj, 'a-b,b-c')
+    assert s == [(['a-b'], 'edge'), (['b-c'], 'edge')]
+
+    # nodes as simple path
+    s = _check_str(obj, 'a-b-c', expected='edge')
+    assert s == [(['a', 'b', 'c'], 'node')]
+
+    # path uid as string
+    s = _check_str(obj, 'a-b|b-c')
+    assert s == [(['a-b|b-c'], 'path')]
+
+    # # path uids as single string using edge uids
+    s = _check_str(obj, 'a-b|b-c,a-b|b-c')
+    assert s == [(['a-b|b-c'], 'path'), (['a-b|b-c'], 'path')]
+
+    # path uids as single string using node uids
+    s = _check_str(obj, 'a-b-c,b-e,f')
+    assert s == [(['a-b-c'], 'path'), (['b-e'], 'edge'), (['f'], 'node')]
+
+    # path uids as single string using edge uids
+    s = _check_str(obj, 'ab|bc,ab|bc')
+    assert s == [(['ab|bc'], 'path'), (['ab|bc'], 'path')]
+
+    # path uids as single string using edge uids
+    s = _check_str(obj, 'ab|bc', expected='edge')
+    assert s == [(['ab', 'bc'], 'edge')]
+
+    # path uids as single string using edge uids
+    s = _check_str(obj, 'a-b|b-c=c-b|b-c')
+    assert s == [(['a-b|b-c=c-b|b-c'], 'hon')]
+
+    # path uids as single string using edge uids
+    s = _check_str(obj, 'a=b,c=d')
+    assert s == [(['a=b'], 'hon'), (['c=d'], 'hon')]
+
+    # path uids as single string using edge uids
+    s = _check_str(obj, 'a-b=b-c', 'u-v=v-w')
+    assert s == [(['a-b=b-c'], 'hon'), (['u-v=v-w'], 'hon')]
+
 
 # =============================================================================
 # eof

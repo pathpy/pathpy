@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : _check_edge.py -- Helper function to check the edge format
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-11-14 14:57 juergen>
+# Time-stamp: <Fri 2019-11-22 10:12 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -45,7 +45,7 @@ def _check_edge(self, edge: Any, *args: Any, **kwargs: Any) -> Edge:
 
     # check if node objects are given
     elif (isinstance(edge, self.NodeClass) and
-          isinstance(args[0], self.NodeClass)):
+          all([isinstance(x, self.NodeClass) for x in args])):
 
         try:
             _e['uid'] = args[1]
@@ -57,9 +57,9 @@ def _check_edge(self, edge: Any, *args: Any, **kwargs: Any) -> Edge:
         _w['uid'] = args[0].uid
         _w['object'] = args[0]
 
-    # check if edge is definde buy strings
+    # check if edge is definde by strings
     elif (isinstance(edge, str) and
-          isinstance(args[0], str)):
+          all([isinstance(x, str) for x in args])):
 
         try:
             _e['uid'] = args[1]
