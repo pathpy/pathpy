@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-11-22 08:28 juergen>
+# Time-stamp: <Fri 2019-11-22 08:52 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -72,32 +72,9 @@ class Path(BaseClass):
         # add attributes to the edge
         self.attributes.update(**kwargs)
 
-        # add edges
-        # TODO: Make this part nicer
+        # add objects from args if given
         if args:
-            if all(isinstance(x, self.EdgeClass) for x in args):
-                self.add_edges_from(list(args))
-
-            elif all(isinstance(x, self.NodeClass) for x in args):
-                self.add_nodes_from(list(args))
-
-            elif all(isinstance(x, str) for x in args):
-                if self.check:
-                    # check the given string
-                    objects = _check_str(self, *args, expected='edge')
-
-                    # iterate over the cleand string and append objects
-                    # accordingly
-                    for string, mode in objects:
-                        if mode == 'edge':
-                            self.add_edges_from(string)
-                        elif mode == 'node':
-                            self.add_nodes_from(string)
-                else:
-                    self.add_nodes_from(list(args))
-            else:
-                log.error('All arguments must have the same type!')
-                raise AttributeError
+            self.add_args(*args)
 
     def _node_class(self) -> None:
         """Internal function to assign different Node classes."""
@@ -555,6 +532,38 @@ class Path(BaseClass):
         # TODO: parallelize this function
         for node in nodes:
             self.add_node(node, **kwargs)
+
+    def add_args(self, *args: Any) -> None:
+        """Add args to the path."""
+
+        # iterate over all given arguments
+        for arg in args:
+
+            # if arg is an Edge add the edge
+            if isinstance(arg, self.EdgeClass):
+                self.add_edge(arg)
+
+            # if arg is a Node add the node
+            elif isinstance(arg, self.NodeClass):
+                self.add_node(arg)
+
+            # if arg is a string, check the string and add accordingly
+            elif isinstance(arg, str) and self.check:
+
+                # check the given string
+                # returns a list of objectes uids and estimated type
+                # 'a-b-c' -> [(['a'],'node'),(['b'],'node'),(['c'],'node')]
+                objects = _check_str(self, arg, expected='edge')
+
+                # iterate over the cleand string and append objects
+                for string, mode in objects:
+                    if mode == 'edge':
+                        self.add_edges_from(string)
+                    elif mode == 'node':
+                        self.add_nodes_from(string)
+            else:
+                log.error('Invalide argument "{}"!'.format(arg))
+                raise AttributeError
 
     def subpaths(self, min_length: int = 0,
                  max_length: int = sys.maxsize,
