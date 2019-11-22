@@ -3,14 +3,13 @@
 # =============================================================================
 # File      : _check_str.py -- Helper function to check the str format
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-11-22 08:06 juergen>
+# Time-stamp: <Fri 2019-11-22 12:20 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
 from typing import Any
-from collections import defaultdict
-from ... import logger
+from ... import logger, config
 
 
 # create a logger
@@ -30,7 +29,7 @@ def _check_str(self, *args: Any, expected=None, **kwargs: Any) -> str:
     else:
         expected_level = _level[expected]
 
-    def _split(string, separator=','):
+    def _split(string, separator=config['object']['separator']):
         if separator in string:
             values = string.split(separator)
             observed = True
