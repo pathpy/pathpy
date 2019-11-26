@@ -1,27 +1,21 @@
 #!/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
-# File      : __init__.py • base -- Initialize base constructurs for pathpy
+# File      : test_temporal_network.py -- Test environment for the TempNetwork
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2019-11-26 09:27 juergen>
+# Time-stamp: <Tue 2019-11-26 09:29 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
-from .attributes import Attributes
 
-from .containers import (
-    NodeDict,
-    EdgeDict,
-    PathDict
-)
+import pytest
+from pathpy import Node, Edge, Path, Network, TemporalNetwork
 
-from .classes import (
-    BaseNetwork,
-    BaseHigherOrderNetwork,
-    BaseTemporalNetwork,
-    BaseClass
-)
 
+def test_basics():
+    """Test basic functions"""
+    tem = TemporalNetwork()
+    tem.summary()
 # =============================================================================
 # eof
 #
