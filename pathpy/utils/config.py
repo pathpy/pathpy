@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : config.py -- Module to read and parse configuration files
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2019-11-26 13:18 juergen>
+# Time-stamp: <Sun 2020-01-12 11:56 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -11,6 +11,8 @@
 import os
 from configparser import ConfigParser
 from collections import defaultdict
+
+__all__ = ['config']
 
 # get pathpy base config
 _base_config = os.path.join(os.path.dirname(

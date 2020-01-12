@@ -3,20 +3,33 @@
 # =============================================================================
 # File      : __init__.py -- pathpy init file
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sat 2020-01-11 21:12 juergen>
+# Time-stamp: <Sun 2020-01-12 12:35 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 __version__ = '3.0.0a1'
 
-from .utils.config import config
-from .utils.logger import logger
-from .utils.progress import tqdm
+from .__about__ import (  # noqa: F401
+    __title__,
+    __version__,
+    __author__,
+    __email__,
+    __copyright__,
+    __license__,
+    __maintainer__,
+    __status__
+)
 
-from .core import *
+from pathpy.utils.config import config  # noqa: F401
+from pathpy.utils.logger import logger  # noqa: F401
+from pathpy.utils.progress import tqdm  # noqa: F401
+
+from pathpy.core import *
 from .algorithms import *
 from .models import *
-from .visualizations import plot
+
+from .visualizations import plot  # noqa: F401
+
 
 # =============================================================================
 # eof
