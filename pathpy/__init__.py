@@ -3,11 +3,11 @@
 # =============================================================================
 # File      : __init__.py -- pathpy init file
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-11-14 15:49 juergen>
+# Time-stamp: <Sat 2020-01-11 21:12 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
-__version__ = '3.0.0'
+__version__ = '3.0.0a1'
 
 from .utils.config import config
 from .utils.logger import logger
@@ -16,7 +16,7 @@ from .utils.progress import tqdm
 from .core import *
 from .algorithms import *
 from .models import *
-from .visualizations import *
+from .visualizations import plot
 
 # =============================================================================
 # eof

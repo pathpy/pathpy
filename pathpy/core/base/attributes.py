@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : attributes.py -- Class for pathpy attributes
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-11-08 09:10 juergen>
+# Time-stamp: <Thu 2019-12-12 20:54 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -126,12 +126,14 @@ class Attributes:
         """Get item from object for given key."""
         return self.data[self.index].get(key, default)
 
-    def to_df(self, history: bool = False):
+    def to_frame(self, history: bool = False):
         """Convert the attributes to a pandas DataFrame"""
         if (self.multi_attributes or history) and self.history:
             return pd.DataFrame.from_dict(self.data, orient='index')
         else:
-            return pd.Series(self._get_last_dict(), name=self.uid)
+            # return pd.Series(self._get_last_dict(), name=self.uid)
+            data = {k: [v] for k, v in self._get_last_dict().items()}
+            return pd.DataFrame.from_dict(data)
 
     def to_dict(self, *args: Any, exclude: list = [],
                 history: bool = False, transpose: bool = True) -> dict:
@@ -192,6 +194,202 @@ class Attributes:
         return d
 
 
+class TemporalAttributes(Attributes):
+    """Wrapper for the object temporal attributes."""
+
+    def __init__(self, uid: str = None, multi_attributes: bool = None,
+                 frequency: str = None, time: str = None, unit: str = None,
+                 active: str = None, is_active: bool = None,
+                 ** kwargs: Any) -> None:
+        """Initialize the attributes class."""
+
+        # check if how the time variable is called
+        if time is None:
+            self.time = config['temporal']['time']
+        else:
+            self.time = time
+
+        # check if how the active variable is called
+        if active is None:
+            self.active = config['temporal']['active']
+        else:
+            self.active = active
+
+        # check if how the active variable is called
+        if active is None:
+            self.is_active = config['temporal']['is_active']
+        else:
+            self.is_active = is_active
+
+        # check in which unit the time shoudl be stored
+        if unit is None:
+            self.unit = config['temporal']['unit']
+        else:
+            self.unit = unit
+
+        self.temporal = False
+
+        self.keys = {'start': 'start',
+                     'end': 'end',
+                     'duration': 'duration',
+                     'time': 'time',
+                     'active': 'active',
+                     'status': 'status'}
+
+        super().__init__(uid=uid, history=True,
+                         multi_attributes=multi_attributes,
+                         frequency=frequency, **kwargs)
+
+    def update(self, uid: str = None, unit: str = None,
+               **kwargs: Any) -> None:
+        """Update the attributes."""
+
+        # update uid if defined
+        if uid:
+            self.uid = uid
+
+        # update uid if defined
+        if unit:
+            self.unit = unit
+
+        # update kwargs if given
+        if kwargs:
+            # if noting is defiend overwrite empty dict
+            if ((len(self.data) == 1 and not self.data[self.index]) or
+                    (not self.history)):
+
+                for i, d in enumerate(
+                        self._check_temporal_attributes(**kwargs)):
+                    if d.get('time', None) is not None:
+                        self.temporal = True
+
+                    self.index = i
+                    self.data[self.index].update(**d)
+
+            # otherwise add new row with updated values
+            else:
+
+                # # increase index
+                # self.index += 1
+
+                x = self._check_temporal_attributes(**kwargs)
+
+                for d in x:  # self._check_temporal_attributes(**kwargs):
+
+                    if d.get('time', None) is not None:
+                        self.temporal = True
+
+                    self.index += 1
+                    self.data[self.index] = {**self.data[self.index-1], **d}
+
+                # # get time
+                # time = kwargs.get(self.time, None)
+                # if time is not None:
+                #     kwargs.update({self.time: self._check_time(time)})
+
+                # # update attributes
+                # self.data[self.index] = {**self.data[self.index-1], **kwargs}
+
+    def _check_temporal_attributes(self, **kwargs):
+        """Check the attributes for temporal values."""
+
+        # initialize variables
+        start = None
+        end = None
+        status = 'start'
+        active = True
+        attributes = []
+
+        # check attributes of start variable
+        _v = {k: kwargs.get(v, None) for k, v in self.keys.items()}
+
+        if _v['start'] is not None:
+            start = self._check_time(_v['start'])
+
+        elif _v['time'] is not None:
+            start = self._check_time(_v['time'])
+            status = 'time'
+            active = kwargs.get(self.keys['active'], self.is_active)
+
+        if _v['end'] is not None and start is not None:
+            end = self._check_time(_v['end'])
+        elif _v['duration'] is not None and start is not None:
+            delta = pd.to_timedelta(_v['duration'], unit=self.unit)
+            end = start + delta
+        elif _v['duration'] is not None and _v['end'] is not None:
+            end = self._check_time(_v['end'])
+            delta = pd.to_timedelta(_v['duration'], unit=self.unit)
+            start = end - delta
+        elif _v['end'] is not None:
+            end = self._check_time(_v['end'])
+            active = False
+
+        if end is not None:
+            status = 'start'
+
+        for key, value in self.keys.items():
+            kwargs.pop(value, None)
+
+        if start is not None:
+            attributes.append({**{self.keys['time']: start,
+                                  self.keys['status']: status,
+                                  self.keys['active']: active}, **kwargs})
+
+        if end is not None:
+            attributes.append({**{self.keys['time']: end,
+                                  self.keys['status']: 'end',
+                                  self.keys['active']: False}, **kwargs})
+
+        if start is None and end is None:
+            attributes.append(kwargs)
+
+        return attributes
+
+    def _check_time(self, time):
+        """Check the time format and return pd datetime."""
+
+        # check if time is given in a numeric format
+        if isinstance(time, (int, float)):
+            _time = pd.to_datetime(time, unit=self.unit)
+
+        # check if time is given as a string
+        elif isinstance(time, str):
+            _time = pd.to_datetime(time)
+
+        # check if time is given as a pandas datetime
+        elif isinstance(time, pd.Timestamp):
+            _time = time
+
+        # otherwise raise error
+        else:
+            log.error('Time "{}" is not in a correct format'.format(time))
+            raise ValueError
+
+        return _time
+
+    def to_frame(self, history: bool = False):
+        """Convert the attributes to a pandas DataFrame"""
+
+        if not self.temporal:
+            df = super().to_frame(history=history)
+        else:
+            df = super().to_frame(history=True)
+
+            if not history and not df.empty:
+                g = df.groupby(self.time)
+                df = (pd.concat([g.tail(1)])
+                      .drop_duplicates()
+                      .sort_values(self.time)
+                      .reset_index(drop=True)
+                      .fillna(method='ffill')
+                      .drop_duplicates())
+        return df
+
+    # def _get_dict(self, key=None):
+    #     """Returns the last dictionary."""
+    #     for index, values in self.data.items():
+    #         print(index, values)
+    #     pass
 # =============================================================================
 # eof
 #

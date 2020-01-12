@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2019-11-20 15:42 juergen>
+# Time-stamp: <Mon 2019-12-16 16:17 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -180,6 +180,10 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
     def from_network(cls, network: Network,
                      order: int = 1) -> HigherOrderNetwork:
         return cls(network, order=order)
+
+    def _check_class(self):
+        """Check which is the appropriated network class."""
+        pass
 
 
 class HigherOrderEdge(Edge):

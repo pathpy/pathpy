@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-11-22 11:37 juergen>
+# Time-stamp: <Tue 2019-12-17 09:36 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -12,6 +12,8 @@ from typing import Any, List, Tuple, Optional, Sequence
 
 from .. import logger, config
 from .base import BaseNetwork
+from .base import BaseDirectedNetwork, BaseUndirectedNetwork
+from .base import BaseDirectedTemporalNetwork, BaseUndirectedTemporalNetwork
 from .base import NodeDict, EdgeDict, PathDict
 from .utils.separator import separator
 from .utils._check_node import _check_node
@@ -28,7 +30,8 @@ class Network(BaseNetwork):
     """Base class for a network."""
 
     def __init__(self, *args: Path, uid: str = '',
-                 directed: bool = True, **kwargs: Any) -> None:
+                 directed: bool = True, temporal: bool = False,
+                 **kwargs: Any) -> None:
         """Initialize the network object."""
 
         # initialize the base class
@@ -46,6 +49,9 @@ class Network(BaseNetwork):
 
         # inidcator whether the network is directed or undirected
         self._directed: bool = directed
+
+        # indicator whether the network is temporal or static
+        self._temporal: bool = temporal
 
         # a dictionary containing node objects
         self._nodes: NodeDict = NodeDict(dict)
@@ -67,6 +73,9 @@ class Network(BaseNetwork):
         if args:
             self.add_args(*args)
         # self.add_paths_from(list(args))
+
+        # check the network class
+        self._check_class()
 
     # import external functions
     try:
@@ -98,12 +107,17 @@ class Network(BaseNetwork):
 
     except ImportError:
         # if library could not be loaded raise a warning
-        log.warn('pathpy.subpaths faild to be imported')
+        log.warn('pathpy.subpaths failed to be imported')
 
     try:
         from ..algorithms.matrices import adjacency_matrix, transition_matrix
     except ImportError:
-        log.debug('pathpy.adjacency_matrix faild to be import')
+        log.debug('pathpy.matrices failed to be imported')
+
+    try:
+        from ..visualizations.plot import plot
+    except ImportError:
+        log.debug('pathpy.plot failed to be imported')
 
     def _node_class(self) -> None:
         """Internal function to assign different Node classes."""
@@ -587,12 +601,16 @@ class Network(BaseNetwork):
         # update node counter
         self.nodes.increase_counter(node.uid, node.attributes.frequency)
 
+        # check the network class
+        self._check_class()
+
     def add_edge(self, edge: Edge, *args, **kwargs: Any) -> None:
         """Add a single edge to the network."""
 
         # check if the right object is provided
         if self.check:
-            edge = _check_edge(self, edge, *args, **kwargs)
+            edge = _check_edge(self, edge, *args,
+                               directed=self.directed, **kwargs)
 
         # add new edge to the network or update modified edge
         if (edge.uid not in self.edges or
@@ -603,6 +621,9 @@ class Network(BaseNetwork):
         # update counters
         self.edges.increase_counter(edge.uid, edge.attributes.frequency)
         self.nodes.increase_counter(edge.nodes, edge.attributes.frequency)
+
+        # check the network class
+        self._check_class()
 
     def add_path(self, path: Path, *args: Any, **kwargs: Any) -> None:
         """Add a single path to the network.
@@ -652,6 +673,9 @@ class Network(BaseNetwork):
         self.edges.increase_counter(path.as_edges, path.attributes.frequency)
         self.paths.increase_counter(path.uid, path.attributes.frequency)
 
+        # check the network class
+        self._check_class()
+
     def add_args(self, *args: Any) -> None:
         """Add args to the path."""
 
@@ -700,6 +724,69 @@ class Network(BaseNetwork):
         """Remove a single path from the network."""
         raise NotImplementedError
 
+    def _check_class(self):
+        """Check which is the appropriated network class."""
+
+        if not self.edges:
+            _directed = self.directed
+        else:
+            _directed = self.edges.directed
+
+        if _directed is None:
+            log.error('Edges must either be directed or undirected!')
+            raise AttributeError
+
+        # TODO: Consider also temporal paths
+        _temporal = self.nodes.temporal or self.edges.temporal
+
+        if _directed and not _temporal:
+            self.__class__ = DirectedNetwork
+        elif not _directed and not _temporal:
+            self.__class__ = UndirectedNetwork
+        elif _directed and _temporal:
+            self.__class__ = DirectedTemporalNetwork
+        elif not _directed and _temporal:
+            self.__class__ = UndirectedTemporalNetwork
+
+
+class DirectedNetwork(BaseDirectedNetwork, Network):
+    def __init__(self, *args: Path, uid: str = '',
+                 directed: bool = True, temporal: bool = None,
+                 **kwargs: Any) -> None:
+        """Initialize the network object."""
+        # initialize the base class
+        super().__init__(*args, directed=directed, temporal=temporal ** kwargs)
+
+
+class UndirectedNetwork(BaseUndirectedNetwork, Network):
+    def __init__(self, *args: Path, uid: str = '',
+                 directed: bool = False, temporal: bool = None,
+                 **kwargs: Any) -> None:
+        """Initialize the network object."""
+        # initialize the base class
+        super().__init__(*args, directed=directed, temporal=temporal ** kwargs)
+
+
+class DirectedTemporalNetwork(BaseDirectedTemporalNetwork, Network):
+    def __init__(self, *args: Path, uid: str = '',
+                 directed: bool = True, temporal: bool = True,
+                 **kwargs: Any) -> None:
+        """Initialize the network object."""
+        # initialize the base class
+        super().__init__(*args, directed=directed, temporal=temporal ** kwargs)
+
+
+class UndirectedTemporalNetwork(BaseUndirectedTemporalNetwork, Network):
+    def __init__(self, *args: Path, uid: str = '',
+                 directed: bool = False, temporal: bool = True,
+                 **kwargs: Any) -> None:
+        """Initialize the network object."""
+        # initialize the base class
+        super().__init__(*args, directed=directed, temporal=temporal ** kwargs)
+
+
+class DirectedAcyclicGraph(Network):
+    pass
 
 # =============================================================================
 # eof

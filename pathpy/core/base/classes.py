@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : classes.py -- Base classes for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2019-11-26 09:26 juergen>
+# Time-stamp: <Tue 2019-12-17 09:30 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -13,6 +13,7 @@ from copy import deepcopy
 
 from ... import config
 from . import Attributes
+from . import TemporalAttributes
 
 
 class AbstractNetwork(ABC):
@@ -49,7 +50,8 @@ class BaseClass:
         """Initialize the base class."""
 
         # initialize attributes object
-        self.attributes: Attributes = Attributes()
+        # self.attributes: Attributes = Attributes()
+        self.attributes: TemporalAttributes = TemporalAttributes()
 
         # check code
         self.check: bool = kwargs.get(
@@ -259,14 +261,40 @@ class BaseNetwork(AbstractNetwork, BaseClass):
     pass
 
 
+class BaseTemporalNetwork(BaseNetwork):
+    """Base class for temporal networks."""
+    pass
+
+
+class BaseStaticNetwork(BaseNetwork):
+    """Base class for temporal networks."""
+    pass
+
+
+class BaseDirectedNetwork(BaseStaticNetwork):
+    """Base class for networks."""
+    pass
+
+
+class BaseUndirectedNetwork(BaseStaticNetwork):
+    """Base class for networks."""
+    pass
+
+
+class BaseDirectedTemporalNetwork(BaseTemporalNetwork):
+    """Base class for networks."""
+    pass
+
+
+class BaseUndirectedTemporalNetwork(BaseTemporalNetwork):
+    """Base class for networks."""
+    pass
+
+
 class BaseHigherOrderNetwork(AbstractHigherOrderNetwork, BaseClass):
     """Base class for higher order networks."""
     pass
 
-
-class BaseTemporalNetwork(AbstractTemporalNetwork, BaseClass):
-    """Base class for temporal networks."""
-    pass
 
 # =============================================================================
 # eof

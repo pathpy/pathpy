@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-11-22 09:23 juergen>
+# Time-stamp: <Mon 2019-12-16 16:15 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -352,6 +352,17 @@ def test_add_args():
     assert list(net.edges) == ['b-c', 'a-b']
     assert list(net.paths) == ['a-b|b-c']
 
+
+def test_check_class():
+    """Test the class assignment"""
+    # cb = Edge('c', 'b', directed=True, start=10)
+    # a = Node('a', start=5)
+    # net = Network(a, cb)
+    # #net = Network('a')
+    # net._check_class()
+
+    # net.summary()
+    pass
 
 # def test_remove_node(net):
 #     """Test to remove node from a network."""
