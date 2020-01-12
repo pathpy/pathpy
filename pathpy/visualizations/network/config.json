@@ -1,0 +1,64 @@
+{
+  "width" : 400,
+  "height" : 400,
+  "layout" : "force",
+  "velocityDecay": 0.2,
+  "alphaMin": 0.1,
+  "radiusMinSize" : 4,
+  "radiusMaxSize" : 16,
+  "temporal":false,
+  "coordinates":false,
+  "euclidean":false,
+  "animation":{
+    "enabled":false,
+    "start" : "1970-01-01T00:00:00+00:00",
+    "end" : "1970-01-01T00:00:10+00:00",
+    "steps":10,
+    "speed" : 100,
+    "unit":"seconds"
+  },
+  "widgets" : {
+    "tooltip" : {
+      "size":"100px"
+    },
+    "save" : {
+      "title" : "Save",
+      "enabled" : true,
+      "tooltip" : "Save the network as [svg] or [png]."
+    },
+    "zoom" : {
+      "title" : "Zoom",
+      "enabled" : true,
+      "tooltip" : "Zoom-in with [+] <br> zoom-out with [-] <br> or reset zoom with [Reset]. <br> Furthermore, with [Shift+mouse wheel] you can also zoom."
+    },
+    "filter" : {
+      "title" : "Filter",
+      "enabled" : false,
+      "groups" : ["all"],
+      "tooltip" : "Filter the nodes base on given groups."
+    },
+    "search" : {
+      "title" : "Search",
+      "enabled" : true,
+      "tooltip" : "Search for a node in the network."
+    },
+    "layout" : {
+      "title" : "Layout",
+      "enabled" : false,
+      "tooltip" : "Change the layout of the Network. Per default a [Force] directed layout is used. If x and y coordinates are given, an [Euclidean] layout can be used.."
+    },
+    "animation" : {
+      "title" : "Animation",
+      "enabled" : true,
+      "tooltip" : "Play and pause animation of the temproal network."
+    },
+    "aggregation" : {
+      "title" : "Aggregation",
+      "past":2,
+      "future":2,
+      "aggregation":1,
+      "enabled" : true,
+      "tooltip" : "Aggregate time steps."
+    }
+  }
+}

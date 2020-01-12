@@ -1,0 +1,196 @@
+<style>
+#pp_container {
+  padding: 5px 0 10px 0;
+  margin: auto;
+}
+
+#controls {
+  width: 100%;
+  float: right;
+  margin-bottom: 5px;
+}
+
+
+.control {
+    display:inline-block;
+  padding: 5px 6px 5px 6px;
+}
+
+/* Button  */
+.control button {
+    background-color: #6cc6d9; /* Green */
+    border: none;
+    color: white;
+    padding: 5px 10px;
+    margin: 0px 2px 0px 2px;
+    border-radius: 4px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    -webkit-transition-duration: 0.4s; /* Safari */
+    transition-duration: 0.4s;
+}
+
+.control button:hover {
+    background-color: #555; /* Gray */
+  color: white;
+}
+
+.control button.active {
+  color: white;
+  background: #555;
+}
+
+.pp_vl {
+  border-left: 3px solid #808080;
+  height: 30px;
+}
+
+
+p.search_title {
+  display: inline;
+  text-align: left;
+  font-weight: normal;
+  color: #777;
+}
+
+#pp_search {
+      padding: 5px 10px;
+}
+
+#pp_search_form #search {
+    margin-left: 0px;
+}
+
+.edge {
+    fill: none;
+    stroke: #555;
+    stroke-width: 1.5px;
+    stroke-opacity: .3;
+}
+
+.node {
+    fill: #99ccff;
+    stroke: #fff;
+    stroke-width: 1.0px;
+    stroke-opacity: 1;
+}
+
+.node_highlight {
+    stroke: #555;
+    stroke-width: 4.0px;
+}
+
+.node_search {
+    /* fill: #F38630; Not working yet*/
+    stroke: #555;
+    stroke-width: 4.0px;
+}
+
+
+.edge_active {
+  fill:none;
+  stroke: #555;
+  stroke-width: 2px;
+  stroke-opacity: 1;
+}
+
+
+.edge_highlight {
+  stroke: #555;
+  stroke-width: 4px;
+  stroke-opacity: 1;
+}
+
+
+.tooltip {
+  position: absolute;
+  top: 100px;
+  left: 100px;
+  -moz-border-radius:5px;
+  border-radius: 5px;
+  border: 2px solid #000;
+  background: #fff;
+  opacity: .9;
+  color: black;
+  padding: 10px;
+  width: 300px;
+  font-size: 12px;
+  z-index: 10;
+}
+
+.tooltip p.main {
+  font-size: 15px;
+  text-align: center;
+  padding:0;
+  margin:0;
+}
+
+hr.tooltip-hr {
+  padding:1px 0 0 0;
+  margin:3px 0 3px 0;
+}
+
+#pp_slider_label {
+    font-size: 12px;
+}
+
+.ticks {
+    font-size: 10px;
+}
+
+.track,
+.track-inset,
+.track-overlay {
+    stroke-linecap: round;
+}
+
+.track {
+    stroke: #000;
+    stroke-opacity: 0.3;
+    stroke-width: 10px;
+}
+
+.track-past {
+    stroke: #ffa500;
+    stroke-width: 8px;
+    stroke-opacity: 0.2;
+    stroke-linecap: round;
+}
+
+.track-future {
+    stroke: #008000;
+    stroke-width: 8px;
+    stroke-opacity: 0.2;
+    stroke-linecap: round;
+
+}
+
+.track-aggregation {
+    stroke: #ff0000;
+    stroke-width: 8px;
+    stroke-opacity: 0.3;
+    stroke-linecap: round;
+
+}
+
+.track-inset {
+    stroke: #dcdcdc;
+    stroke-width: 8px;
+}
+
+.track-overlay {
+    pointer-events: stroke;
+    stroke-width: 50px;
+    stroke: transparent;
+    cursor: crosshair;
+}
+
+.handle {
+    fill: #fff;
+    stroke: #000;
+    stroke-opacity: 0.5;
+    stroke-width: 1.25px;
+}
+</style>

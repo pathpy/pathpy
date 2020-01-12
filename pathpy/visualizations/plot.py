@@ -1,103 +1,106 @@
 #!/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
-# File      : plot.py -- Module to plot pathpy objects
+# File      : plot.py -- Module to plot networks as a tikz-network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2019-09-30 10:07 juergen>
+# Time-stamp: <Fri 2019-12-20 15:30 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
-import os
-import json
-import random
-from string import ascii_letters, Template
-from .. import logger, config
-# create logger for the Edge class
+from .. import logger
+from .easel import D3JS, PDF, CSV, TEX
+from .utils import _check_filename
+
 log = logger(__name__)
 
 
+def plot(self, filename=None, fileformat=None, **kwargs):
+    """Plot a network."""
+
+    # initialize plot class
+    plt = Plot()
+
+    # plot the network
+    plt.plot(self, filename=filename, fileformat=fileformat, **kwargs)
+    return plt
+
+
 class Plot:
-    """Class to visulize pathpy objects."""
+    """Plots the network as a tikz-network.
 
-    def __init_(self):
+    """
+
+    def __init__(self):
         """Initialize the Plot class."""
-        pass
 
-    def __call__(self, network, **kwargs):
-        """Call the plot function and plot or show the results."""
-        # TODO: Make a dedicated class to generate html files
-        html = self._generate_html(network, **kwargs)
+        # set default filename
+        # TODO: Get this name form the config file
+        self.filename = 'default'
+        self.fileformat = 'html'
 
-        from IPython.core.display import display, HTML
-        display(HTML(html))
+        # supported file fileformats and corresponding easels
+        self.fileformats = {'html': D3JS, 'csv': CSV, 'tex': TEX, 'pdf': PDF}
 
-    def _generate_html(self, network, **kwargs):
-        # Initialize dictionaries
-        network_data = {}
-        params = {}
+        # initialize easel
+        self.easel = None
 
-        # Get network data
-        network_data['nodes'] = []
-        network_data['links'] = []
+        # initialize data and config
+        self.data = {}
+        self.config = {}
 
-        for id, node in network.nodes.items():
-            _data = {'id': id,
-                     'text': 'mytext',
-                     'color': '#99ccff',
-                     'size': 5.0}
-            network_data['nodes'].append(_data)
+    def __call__(self, network=None, filename=None, fileformat=None, **kwargs):
+        """Call the plot function and plot or show the results.
 
-        for id, edge in network.edges.items():
-            _data = {'source': edge.v.id,
-                     'target': edge.w.id,
-                     'color': '#999999',
-                     'width': 0.5,
-                     'weight': 1.0}
-            network_data['links'].append(_data)
+        """
+        # call the plot function
+        self.plot(network=network, filename=filename,
+                  fileformat=fileformat, **kwargs)
 
-        # get parameters
-        # DIV params
-        params['height'] = 400
-        params['width'] = 400
-        params['label_size'] = '8px'
-        params['label_offset'] = [0, -10]
-        params['label_color'] = '#999999'
-        params['label_opacity'] = 1.0
-        params['edge_opacity'] = 1.0
-        # layout params
-        params['force_repel'] = -200
-        params['force_charge'] = -20
-        params['force_alpha'] = 0.0
+    def _repr_html_(self):
+        self.show()
 
-        # arrows
-        params['edge_arrows'] = 'true'
-        if not network.directed:
-            params['edge_arrows'] = 'false'
+    def plot(self, network=None, filename=None, fileformat=None, **kwargs):
 
-        # Create a random DIV ID to avoid conflicts within the same notebook
-        div_id = "".join(random.choice(ascii_letters) for x in range(8))
+        # update data and config
+        self.data['network'] = network
+        self.config.update(**kwargs)
 
-        module_dir = os.path.dirname(os.path.realpath(__file__))
-        html_dir = os.path.join(module_dir, 'templates')
+        # check filename and file format
+        self.filename, self.fileformat = _check_filename(self, filename,
+                                                         fileformat)
 
-        params['d3js_path'] = 'https://d3js.org/d3.v4.min.js'
+        # setup plot environment
+        self.easel = self.fileformats[self.fileformat](self.filename)
 
-        d3js_params = {
-            'network_data': json.dumps(network_data),
-            'div_id': div_id,
-        }
+        # draw object
+        self.easel.draw(network, **kwargs)
 
-        template_file = os.path.abspath(
-            os.path.join(html_dir, 'network.html'))
+        # save object
+        if filename is not None:
+            self.easel.save()
 
-        # Read template file ...
-        with open(template_file) as f:
-            html_str = f.read()
+    def save(self, filename=None, fileformat=None):
 
-        # substitute variables in template file
-        html = Template(html_str).substitute({**d3js_params, **params})
+        # check filename and file format
+        _filename, _fileformat = _check_filename(self, filename, fileformat)
 
-        return html
+        # if no filename and fileformat is given save the default plot
+        if filename is None and fileformat is None:
+            self.easel.save()
+
+        # if the format is the same save the file with the new name
+        elif _fileformat == self.fileformat:
+            self.easel.save(_filename)
+
+        # create new plot
+        else:
+            self.plot(network=self.data['network'],
+                      filename=_filename,
+                      fileformat=_fileformat,
+                      **self.config)
+
+    def show(self, **kwargs):
+        self.easel.show(**kwargs)
 
 
 # =============================================================================

@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : __init__.py -- Initialize visualisation tools
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2019-09-30 09:21 juergen>
+# Time-stamp: <Mon 2019-12-16 10:33 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
