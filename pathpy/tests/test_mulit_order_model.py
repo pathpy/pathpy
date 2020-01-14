@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_mulit_order_model.py -- Test environment for MOMs
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2019-11-20 16:13 juergen>
+# Time-stamp: <Tue 2020-01-14 15:29 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================

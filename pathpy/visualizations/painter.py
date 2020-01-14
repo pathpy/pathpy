@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : painter.py --
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-12-20 17:23 juergen>
+# Time-stamp: <Tue 2020-01-14 16:02 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -14,7 +14,7 @@ import numpy as np
 from collections import defaultdict
 from functools import singledispatchmethod
 from .. import logger
-from ..core.base import BaseStaticNetwork, BaseTemporalNetwork
+from ..core.base import BaseStaticNetwork, BaseTemporalNetwork, BaseHigherOrderNetwork
 
 
 log = logger(__name__)
@@ -240,6 +240,7 @@ class Painter:
         raise NotImplementedError
 
     @parse.register(BaseStaticNetwork)
+    @parse.register(BaseHigherOrderNetwork)
     def _parse_static(self, network, **kwargs):
         log.debug('I\'m a static network')
 

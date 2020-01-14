@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : _d3js.py -- Module to draw a d3js-network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-12-20 16:56 juergen>
+# Time-stamp: <Tue 2020-01-14 16:01 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -11,7 +11,7 @@ import os
 import json
 from functools import singledispatchmethod
 from .. import logger
-from ..core.base import BaseStaticNetwork, BaseTemporalNetwork
+from ..core.base import BaseStaticNetwork, BaseTemporalNetwork, BaseHigherOrderNetwork
 from .painter import Painter, Painting
 from .utils import _clean_dict
 
@@ -38,6 +38,7 @@ class D3jsNetworkPainter(Painter):
         raise NotImplementedError
 
     @draw.register(BaseStaticNetwork)
+    @draw.register(BaseHigherOrderNetwork)
     def _draw_static(self, network, **kwargs):
         log.debug('I\'m a static d3js-network')
 
@@ -117,6 +118,8 @@ class D3jsNetworkPainter(Painter):
         changes = data['changes']
         edges = data['edges']
 
+        # print(changes)
+        # print(nodes)
         # update config
         for key in self.d3js_args:
             if key in config['general']:
@@ -133,6 +136,8 @@ class D3jsNetworkPainter(Painter):
         # check for coordinates
         if 'euclidean' in nodes.columns:
             painting.config['widgets']['layout']['enabled'] = True
+            painting.config['euclidean'] = True
+            painting.config['coordinates'] = True
 
         # add data to painting
         painting.data['nodes'] = [_clean_dict(n, keep=self.d3js_kwds)
@@ -144,6 +149,7 @@ class D3jsNetworkPainter(Painter):
         painting.data['links'] = [_clean_dict(e, keep=self.d3js_kwds)
                                   for e in edges.to_dict(orient='records')]
 
+        # print(painting.config)
         return painting
 
     def _check_groups(self, df):

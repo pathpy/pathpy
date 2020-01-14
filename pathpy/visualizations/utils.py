@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : utils.py -- Plotting utils
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-12-20 10:31 juergen>
+# Time-stamp: <Sun 2020-01-12 19:10 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
