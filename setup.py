@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : setup.py -- Setup script for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-01-16 07:47 juergen>
+# Time-stamp: <Thu 2020-01-16 07:58 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -96,9 +96,7 @@ CLASSIFIERS = [
     'Topic :: Scientific/Engineering :: Information Analysis',
     'Topic :: Scientific/Engineering :: Mathematics',
     'Topic :: Scientific/Engineering :: Physics',
-    'Operating System :: Windows',
-    'Operating System :: Unix',
-    'Operating System :: MacOS'
+    'Operating System :: OS Independent',
 ]
 
 
