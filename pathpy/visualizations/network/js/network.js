@@ -39,7 +39,7 @@ define('network',['d3','tooltip'], function(d3,tooltip){
     var myTooltip = tooltip('network-tooltip', tooltipSize);
 
     /*
-     * Charge function used to set the strength of
+3     * Charge function used to set the strength of
      * the many-body force.
      * Charge is negative because we want nodes to repel
      */
@@ -82,7 +82,7 @@ define('network',['d3','tooltip'], function(d3,tooltip){
     // Functions to enable draging of the nodes
     // see https://observablehq.com/@d3/force-directed-graph
     function dragstarted(d) {
-      if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+      if (!d3.event.active) simulation.alphaTarget(0.2).restart();
       d.fx = d.x;
       d.fy = d.y;
     }
@@ -93,7 +93,7 @@ define('network',['d3','tooltip'], function(d3,tooltip){
     }
 
     function dragended(d) {
-      if (!d3.event.active) simulation.alphaTarget(0.0);
+      if (!d3.event.active) simulation.alphaTarget(0.2);
       d.fx = null;
       d.fy = null;
     }
@@ -188,8 +188,8 @@ define('network',['d3','tooltip'], function(d3,tooltip){
     // It is just the 'simulation' and will have
     // forces added to it later
     var simulation = d3.forceSimulation()
-        //.velocityDecay(0.2)
-        //.alphaMin(0.1)
+        .velocityDecay(0.2)
+        .alphaMin(0.1)
         .on('tick', ticked)
         .on('end', ended);
 
@@ -301,7 +301,7 @@ define('network',['d3','tooltip'], function(d3,tooltip){
       // the layout of the network is all
       // handled in a link force
       var linkForce = d3.forceLink()
-          // .distance(50)
+          .distance(50)
           .strength(function(d){return getWeight(d);})
           .links(edgesData);
 
@@ -313,18 +313,19 @@ define('network',['d3','tooltip'], function(d3,tooltip){
 
       // setup many body force to have nodes repel one another
       // increasing the chargePower here to make nodes stand about
-      //chargePower = 1.0;
-      //simulation.force('charge', d3.forceManyBody().strength(charge));
-      // // kill x and y forces used in radial layout
-      //simulation.force('x', null);
-      //simulation.force('y', null);
+      chargePower = 1.0;
+      simulation.force('charge', d3.forceManyBody().strength(charge));
+      // kill x and y forces used in radial layout
+      simulation.force('x', null);
+      simulation.force('y', null);
 
       // setting taken from pathpy2
       // TODO fix theses setting
 
-      simulation.force("charge", d3.forceManyBody().strength(-20).distanceMax(400));
-      simulation.force("repelForce", d3.forceManyBody().strength(-200).distanceMax(100));
-      simulation.alphaTarget(0.0);
+      // ingos setting
+      // simulation.force("charge", d3.forceManyBody().strength(-20).distanceMax(400));
+      // simulation.force("repelForce", d3.forceManyBody().strength(-200).distanceMax(100));
+      // simulation.alphaTarget(0.0);
 
     }
 
