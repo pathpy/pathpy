@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2019-12-17 09:36 juergen>
+# Time-stamp: <Thu 2020-01-16 07:15 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -76,12 +76,6 @@ class Network(BaseNetwork):
 
         # check the network class
         self._check_class()
-
-    # import external functions
-    try:
-        from ..io.csv import read_csv
-    except ImportError:
-        log.debug('pathpy.io faild to be imported')
 
     try:
         # import sub paths object

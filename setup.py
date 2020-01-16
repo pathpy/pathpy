@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : setup.py -- Setup script for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-01-14 17:15 juergen>
+# Time-stamp: <Thu 2020-01-16 07:09 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -75,7 +75,7 @@ PROJECT_URLS = {
 INSTALL_REQUIRES = [
     'numpy>=1.17.0',
     'scipy>=1.3.1',
-    'tqdm>=4.36.1',
+    'tqdm>=4.36.1',  # TODO: Get rid of this dependency!
     'pandas>=0.25.2',
 ]
 
