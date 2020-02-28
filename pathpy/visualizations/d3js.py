@@ -3,13 +3,14 @@
 # =============================================================================
 # File      : _d3js.py -- Module to draw a d3js-network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-01-14 16:01 juergen>
+# Time-stamp: <Fri 2020-02-28 12:18 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 import os
 import json
-from functools import singledispatchmethod
+# from functools import singledispatchmethod
+from singledispatchmethod import singledispatchmethod
 from .. import logger
 from ..core.base import BaseStaticNetwork, BaseTemporalNetwork, BaseHigherOrderNetwork
 from .painter import Painter, Painting

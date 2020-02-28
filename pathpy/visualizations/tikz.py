@@ -3,12 +3,13 @@
 # =============================================================================
 # File      : tikz.py -- Module to draw a tikz-network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-12-19 14:31 juergen>
+# Time-stamp: <Fri 2020-02-28 12:17 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 import numpy as np
-from functools import singledispatchmethod
+#from functools import singledispatchmethod
+from singledispatchmethod import singledispatchmethod
 from collections import OrderedDict
 from .. import logger
 from ..core.base import BaseStaticNetwork, BaseTemporalNetwork

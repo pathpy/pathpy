@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : painter.py --
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-01-14 16:02 juergen>
+# Time-stamp: <Fri 2020-02-28 12:15 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -12,7 +12,8 @@ from typing import Any
 import pandas as pd
 import numpy as np
 from collections import defaultdict
-from functools import singledispatchmethod
+# from functools import singledispatchmethod
+from singledispatchmethod import singledispatchmethod
 from .. import logger
 from ..core.base import BaseStaticNetwork, BaseTemporalNetwork, BaseHigherOrderNetwork
 
