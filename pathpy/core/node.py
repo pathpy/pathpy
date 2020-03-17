@@ -1,11 +1,11 @@
 #!/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
-# File      : node.py -- Base class for a node
+# File      : node.py -- Base class for a single node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2019-11-26 16:24 juergen>
+# Time-stamp: <Tue 2020-03-17 15:34 juergen>
 #
-# Copyright (c) 2016-2019 Pathpy Developers
+# Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
 from typing import Any, Set
@@ -18,17 +18,87 @@ log = logger(__name__)
 
 
 class Node(BaseClass):
-    """Base class for a node.
+    """Base class for a single node.
 
-    .. todo::
+    A node (or vertex) is the fundamental unit of which networks are formed. In
+    general nodes are treated as featureless and indivisible objects, although
+    they may have additional structure depending on the application from which
+    the netwokr arises.
 
-        Add detailed documentation for the object.
+    The two nodes forming an :py:class:`Edge` are said to be the endpoints of
+    this edge, and the edge is said to be incident to the nodes.
+
+    In ``pathpy`` the node is referenced by its unique identifier (``uid``) and
+    can store any arbitrary python objects as attributes.
 
     Parameters
     ----------
+    uid : str
+        The parameter ``uid`` is the unique identifier for the node. Every node
+        should have an uid. The uid is converted to a string value and is used
+        as a key value for all dict which saving node objects.
 
-    Attributes
-    ----------
+    kwargs : Any
+        Keyword arguments to store node attributes. Attributes are added to the
+        node as ``key=value`` pairs.
+
+    Examples
+    --------
+    Load the ``pathpy`` module and create an empty :py:class:`Node` object.
+
+    >>> from pathpy import Node
+    >>> u = Node('u')
+
+    Get the id of the node.
+
+    >>> u.uid
+    u
+
+    Create a node with attached attribute.
+
+    >>> u = Node('u', color='red')
+    >>> u['color']
+    red
+
+    Add attribute to the node.
+
+    >>> u['shape'] = 'circle'
+    >>> u['shape]
+    circle
+
+    Change single attribute.
+
+    >>> u['color'] = 'blue'
+
+    Update multiple attributes.
+
+    >>> u.update(color='green', shape='rectangle')
+
+    Make a copy of the node.
+
+    >>> v = u.copy()
+    >>> v.uid
+    u
+
+    Make a plot element and plot the node as a png image.
+
+    .. todo::
+
+        Make a single plot command for plotting nodes.
+        The code below is not working yet!
+
+    >>> plt = u.plot()
+    >>> plt.show('png')
+
+    .. plot::
+
+       import pathpy as pp
+       u = pp.Node('u', color='green', shape='rectangle')
+       net = pp.Network()
+       net.add_node(u)
+       plt = net.plot()
+       plt.show('png')
+
     """
 
     def __init__(self, uid: str, **kwargs: Any) -> None:
@@ -54,7 +124,7 @@ class Node(BaseClass):
         -------
         str
             Returns the description of the node with the class and assigned
-            node id.
+            node uid.
 
         Examples
         --------
@@ -82,12 +152,12 @@ class Node(BaseClass):
 
     @property
     def uid(self) -> str:
-        """Return the unique id of the node.
+        """Return the unique identifier (uid) of the node.
 
         Returns
         -------
         str
-            Return the node identifier as a string.
+            Return the node identifier (uid) as a string.
 
         Examples
         --------
@@ -103,12 +173,54 @@ class Node(BaseClass):
 
     @property
     def outgoing(self) -> Set[str]:
-        """Returns the outgoing edge uids of the node."""
+        """Returns the outgoing edge uids of the node.
+
+        Returns
+        -------
+        Set[str]
+            Return the uids of the outgoing edges of the node.
+
+        Examples
+        --------
+        Generate two nodes and an (directed) edge.
+
+        >>> from pathpy import Node, Edge
+        >>> u = Node('u')
+        >>> v = Node('v')
+        >>> e = Edge('u','v')
+
+        Print the outgoing edges for the node u.
+
+        >>> u.outgoing
+        {'u-v'}
+
+        """
         return self._outgoing
 
     @property
     def incoming(self) -> Set[str]:
-        """Returns the incoming edge uids of the node."""
+        """Returns the incoming edge uids of the node.
+
+        Returns
+        -------
+        Set[str]
+            Return the uids of the incoming edges of the node.
+
+        Examples
+        --------
+        Generate two nodes and an (directed) edge.
+
+        >>> from pathpy import Node, Edge
+        >>> u = Node('u')
+        >>> v = Node('v')
+        >>> e = Edge('u','v')
+
+        Print the incoming edges for the node v.
+
+        >>> v.incoming
+        {'u-v'}
+
+        """
         return self._incoming
 
     # TODO: Maybe rename to adjacent?
@@ -120,30 +232,90 @@ class Node(BaseClass):
         -------
         Set[str]
             Returns a set of adjacent edge uids as string values.
-            I.e. all edges that share this node.
+            I.e. all edges associated with this node.
 
-        .. todo::
+        Examples
+        --------
+        Generate some nodes and (directed) edges.
 
-            Add an example for this function.
+        >>> from pathpy import Node, Edge
+        >>> u = Node('u')
+        >>> v = Node('v')
+        >>> w = Node('w')
+        >>> e1 = Edge('u','v')
+        >>> e2 = Edge('v','w')
 
+        Print the adjacent edges for the nodes.
+
+        >>> print(u.adjacent_edges)
+        {'u-v'}
+        >>> print(v.adjacent_edges)
+        {'v-w', 'u-v'}
+        >>> print(w.adjacent_edges)
+        {'v-w'}
 
         """
         return self.incoming.union(self.outgoing)
 
     def update(self, other: Node = None, attributes: bool = True,
                **kwargs: Any) -> None:
-        """Update of the node object."""
+        """Update of the node object.
+
+        Update the node with new kwargs or based on an other given
+        :py:class:`Node` object. If an other object is given, the other
+        attributes can be used or not.
+
+        Parameters
+        ----------
+        other : Node, optional (default = None)
+            An other :py:class:`Node` object, which is used to update the node
+            attributes and properties.
+
+        attributes : bool, optional (default = True)
+            If ``True`` the attributes from the other node are written to the
+            initial node. If ``False`` only the incoming and outgoing edges are
+            updated.
+
+        kwargs : Any
+            Keyword arguments stored as node attributes. Attributes are added to
+            the node as ``key=value`` pairs.
+
+        Examples
+        --------
+        Create an :py:class:`Node` object with an assigned attribute.
+
+        >>> from pathpy import Node
+        >>> u = Node('u', color='red')
+        >>> u['color']
+        red
+
+        Update color and shape of the node.
+
+        >>> u.update(color='green', shape='rectangle')
+        >>> u['shape']
+        rectangle
+
+        Create a new node.
+
+        >>> v = Node('v', shape='circle', size=30)
+        >>> u.update(v)
+        >>> u.attributes
+        {'color': 'green', 'shape': 'circle', 'size': 30}
+
+        """
+        # if an other node is given
         if other is not None:
 
             # get relations with the associated nodes
             self._incoming = self.incoming.union(other.incoming)
             self._outgoing = self.outgoing.union(other.outgoing)
 
-            # get the attributes
+            # get the attributes of the other node
             if attributes:
                 self.attributes.update(
                     **other.attributes.to_dict(history=False))
 
+        # update the attributes given new kwargs
         self.attributes.update(**kwargs)
 
 # =============================================================================
