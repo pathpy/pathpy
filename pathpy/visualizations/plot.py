@@ -3,12 +3,13 @@
 # =============================================================================
 # File      : plot.py -- Module to plot networks as a tikz-network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-12-20 15:30 juergen>
+# Time-stamp: <Tue 2020-03-17 12:15 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
+import os
 from .. import logger
-from .easel import D3JS, PDF, CSV, TEX
+from .easel import D3JS, PDF, CSV, TEX, PNG
 from .utils import _check_filename
 
 log = logger(__name__)
@@ -39,7 +40,8 @@ class Plot:
         self.fileformat = 'html'
 
         # supported file fileformats and corresponding easels
-        self.fileformats = {'html': D3JS, 'csv': CSV, 'tex': TEX, 'pdf': PDF}
+        self.fileformats = {'html': D3JS, 'csv': CSV,
+                            'tex': TEX, 'pdf': PDF, 'png': PNG}
 
         # initialize easel
         self.easel = None
@@ -88,9 +90,9 @@ class Plot:
         if filename is None and fileformat is None:
             self.easel.save()
 
-        # if the format is the same save the file with the new name
-        elif _fileformat == self.fileformat:
-            self.easel.save(_filename)
+        # # if the format is the same save the file with the new name
+        # elif _fileformat == self.fileformat:
+        #     self.easel.save(_filename)
 
         # create new plot
         else:
@@ -99,9 +101,27 @@ class Plot:
                       fileformat=_fileformat,
                       **self.config)
 
-    def show(self, **kwargs):
-        self.easel.show(**kwargs)
+    def show(self, fileformat=None, **kwargs):
+        if fileformat is None:
+            fileformat = self.fileformat
 
+        if fileformat == 'png':
+            self.plot(network=self.data['network'],
+                      filename='default.png',
+                      fileformat='png',
+                      **self.config)
+
+            import matplotlib.pyplot as plt
+            import matplotlib.image as mpimg
+
+            img = mpimg.imread('default.png')
+            imgplot = plt.imshow(img)
+
+            plt.axis('off')
+            plt.show()
+
+        else:
+            self.easel.show(**kwargs)
 
 # =============================================================================
 # eof

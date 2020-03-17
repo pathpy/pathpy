@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : easel.py -- Environment to draw the pathpy objects
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-12-20 15:31 juergen>
+# Time-stamp: <Tue 2020-03-17 12:08 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -44,6 +44,9 @@ class PDF(Easel):
         # type of the container
         self.type = 'pdf'
 
+        # easel of the pdf
+        self.easel = None
+
         # final painting
         self.painting = None
 
@@ -51,16 +54,16 @@ class PDF(Easel):
         filename = os.path.splitext(os.path.basename(self.filename))[0]
 
         # create a tex document
-        easel = TEX(filename+'.tex')
+        self.easel = TEX(filename+'.tex')
 
         # draw object
-        easel.draw(network, **kwargs)
+        self.easel.draw(network, **kwargs)
 
         # save object
-        easel.save()
+        # easel.save()
 
         # get the painting
-        self.painting = easel.painting
+        self.painting = self.easel.painting
 
     def save(self, filename=None, **kwargs):
 
@@ -91,6 +94,8 @@ class PDF(Easel):
         # change to output dir
         os.chdir(output_dir)
 
+        # save tex file
+        self.easel.save(basename+'.tex')
         if compiler is not None:
             compilers = ((compiler, []),)
         else:
@@ -139,14 +144,158 @@ class PDF(Easel):
             # so no further compilers have to be tried
             break
 
-        else:
-            # Notify user that none of the compilers worked.
-            log.error('No LaTex compiler was found! Either specify a LaTex '
-                      'compiler or make sure you have latexmk or pdfLaTex'
-                      ' installed.')
-            raise AttributeError
+        # else:
+        #     # Notify user that none of the compilers worked.
+        #     log.error('No LaTex compiler was found! Either specify a LaTex '
+        #               'compiler or make sure you have latexmk or pdfLaTex'
+        #               ' installed.')
+        #     raise AttributeError
 
         # change back to current dir
+        os.chdir(current_dir)
+
+        pass
+
+    def show(self, **kwargs):
+
+        # config = self.painting.config
+
+        width = kwargs.get('width', 600)
+        height = kwargs.get('height', 300)
+
+        try:
+            get_ipython
+            from IPython.display import IFrame, display
+            display(IFrame(self.filename, width=600, height=300))
+        except:
+            # get current directory
+            current_dir = os.getcwd()
+
+            # create temp file name
+            filename = os.path.join(current_dir, self.filename)
+
+            # open the file
+            webbrowser.open(r'file:///'+filename)
+
+
+class PNG(Easel):
+    def __init__(self, filename=None):
+
+        # initialize base class
+        super().__init__(filename=filename)
+
+        # type of the container
+        self.type = 'png'
+
+        # easel of the pdf
+        self.easel = None
+
+        # final painting
+        self.painting = None
+
+    def draw(self, network, **kwargs):
+        filename = os.path.splitext(os.path.basename(self.filename))[0]
+
+        # create a tex document
+        self.easel = TEX(filename+'.tex')
+
+        # draw object
+        self.easel.draw(network, **kwargs)
+
+        # save object
+        # easel.save()
+
+        # get the painting
+        self.painting = self.easel.painting
+
+    def save(self, filename=None, **kwargs):
+
+        config = self.painting.config
+
+        clean = kwargs.get('clean', config['clean'])
+        clean_tex = kwargs.get('clean_tex', config['clean_tex'])
+        compiler = kwargs.get('compiler', config['compiler'])
+        compiler_args = kwargs.get('compiler_args', config['compiler_args'])
+        silent = kwargs.get('silent', config['silent'])
+
+        if compiler_args is None:
+            compiler_args = []
+
+        # update the filename if given
+        if filename is not None:
+            self.filename = filename
+
+        # get directories and file name
+        current_dir = os.getcwd()
+        output_dir = os.path.dirname(self.filename)
+
+        # check if output dir exists if not use the base dir
+        if not os.path.exists(output_dir):
+            output_dir = current_dir
+        basename = os.path.splitext(os.path.basename(self.filename))[0]
+
+        # change to output dir
+        os.chdir(output_dir)
+
+        # save tex file
+        self.easel.save(basename+'.tex',
+                        header_options='[convert={density=300,outext=.png}]')
+        if compiler is not None:
+            compilers = ((compiler, []),)
+        else:
+            latexmk_args = ['-shell-escape']
+
+            compilers = (
+                ('latexmk', latexmk_args),
+                ('pdflatex', [])
+            )
+
+        main_arguments = ['--interaction=nonstopmode', basename + '.tex']
+
+        for compiler, arguments in compilers:
+            command = [compiler] + arguments + compiler_args + main_arguments
+
+            try:
+                output = subprocess.check_output(command,
+                                                 stderr=subprocess.STDOUT)
+            except Exception:
+                # If compiler does not exist, try next in the list
+                continue
+            else:
+                if not silent:
+                    print(output.decode())
+
+            if clean:
+                try:
+                    # Try latexmk cleaning first
+                    subprocess.check_output(['latexmk', '-c', basename],
+                                            stderr=subprocess.STDOUT)
+                except (OSError, IOError, subprocess.CalledProcessError) as e:
+                    # Otherwise just remove some file extensions.
+                    extensions = ['aux', 'log', 'out', 'fls',
+                                  'fdb_latexmk', 'ps', 'dvi']
+
+                    for ext in extensions:
+                        try:
+                            os.remove(basename + '.' + ext)
+                        except (OSError, IOError) as e:
+                            if e.errno != errno.ENOENT:
+                                raise
+            # remove the tex file
+            # if clean_tex:
+            # Compilation has finished,
+            # so no further compilers have to be tried
+            break
+
+        # else:
+        #     # Notify user that none of the compilers worked.
+        #     log.error('No LaTex compiler was found! Either specify a LaTex '
+        #               'compiler or make sure you have latexmk or pdfLaTex'
+        #               ' installed.')
+        #     raise AttributeError
+
+        # change back to current dir
+
         os.chdir(current_dir)
 
         pass
@@ -205,7 +354,8 @@ class TEX(Easel):
 
         standalone = config['standalone']
 
-        latex_header = '\\documentclass{standalone}\n' + \
+        header_options = kwargs.get('header_options', '')
+        latex_header = '\\documentclass'+header_options+'{standalone}\n' + \
             '\\usepackage{tikz-network}\n' + \
             '\\begin{document}\n'
         latex_begin_tikz = '\\begin{tikzpicture}\n'
