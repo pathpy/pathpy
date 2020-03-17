@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : conf.py -- Configuration file for the documentation
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2019-09-30 10:53 juergen>
+# Time-stamp: <Tue 2020-03-17 14:40 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -75,7 +75,7 @@ todo_include_todos = True
 
 
 # Include the example source for plots in API docs
-plot_include_source = True
+plot_include_source = False
 plot_formats = [("png", 90)]
 plot_html_show_formats = False
 plot_html_show_source_link = False

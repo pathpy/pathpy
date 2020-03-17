@@ -22,6 +22,7 @@ help:
 	@echo "Please use \`make <target>' where <target> is one of"
 	@echo "  clean      to remove genrated output"
 	@echo "  html       to make standalone HTML files"
+	@echo "  dev        to make HTML files for document dev"
 	@echo "  notebooks  to make the Jupyter notebook-based tutorials"
 	@echo "  dirhtml    to make HTML files named index.html in directories"
 	@echo "  singlehtml to make a single large HTML file"
@@ -62,6 +63,8 @@ html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
+
+dev: clean tutorials html
 
 dirhtml:
 	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(BUILDDIR)/dirhtml

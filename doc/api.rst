@@ -14,16 +14,8 @@ Base classes
     :toctree: generated
 
      Node
-     Edge
-     Network
-     Path
 
 .. _algorithms_api:
 
 Algorithms
 ----------
-
-.. autosummary::
-    :toctree: generated
-
-     adjacency_matrix
