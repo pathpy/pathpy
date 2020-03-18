@@ -1,11 +1,11 @@
 #!/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
-# File      : edge.py -- Base class for an edge
+# File      : edge.py -- Base class for an single edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-03-18 09:01 juergen>
+# Time-stamp: <Wed 2020-03-18 11:06 juergen>
 #
-# Copyright (c) 2016-2019 Pathpy Developers
+# Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
 from typing import Any, List
@@ -22,7 +22,183 @@ log = logger(__name__)
 
 
 class Edge(BaseClass):
-    """Base class for an single edge."""
+    """Base class for an single edge.
+
+    An edge is (together with nodes) one of the two basic units out of which
+    networks are constructed. Each edge has two nodes to which it is attached,
+    called its endpoints. Edges may be directed or undirected; undirected edges
+    are also called lines and directed edges are also called arcs or arrows. In
+    an undirected network, an edge may be represented as the set of its nodes,
+    and in a directed network it may be represented as an ordered pair of its
+    vertices.
+
+    The two nodes forming an :py:class:`Edge` are said to be the endpoints of
+    this edge, and the edge is said to be incident to the nodes.
+
+    In ``pathpy`` the edge is referenced by its unique identifier (``uid``),
+    connects two :py:class:`Node` objects and can store any arbitrary python
+    objects as attributes.
+
+    .. note::
+
+       To generate an edge, only two nodes have to be defined. ``pathpy`` will
+       automatically create a unique identifier (``uid``) for the edge based on
+       the node uids. In this case, the edge ``uid`` is defined as a
+       combination of the node uids separated by ``-``. The separation sign can
+       be changed in the :ref:`_config_file`.
+
+    Parameters
+    ----------
+
+    v : Node
+
+        This parameter defines the source of the edge (if directed),
+        i.e. v->w. Beside a py:class:`Node` object also a ``str`` node uid can
+        be entered, in this case, a new :py:class:`Node` will be created.
+
+    w : Node
+
+        This parameter defines the target of the edge (if directed)
+        i.e. u->v. Beside a py:class:`Node` object also a ``str`` node uid can
+        be entered, in this case, a new :py:class:`Node` will be created.
+
+    uid : str, optional (default = None)
+
+        The parameter ``uid`` is the unique identifier for the edge. Every edge
+        should have an uid. The uid is converted to a string value and is used
+        as a key value for all dict which saving edge objects. If no edge uid
+        is specified the edge ``uid`` will be defined as a combination of the
+        node uids separated by ``-``. The separation sign can be changed in the
+        :ref:`config_file`.
+
+    directed : bool, optional (default = True)
+
+        If ``True`` the edge is directed, i.e. quantities can only transmited
+        from the source node ``v`` to the traget node ``w``. If ``False`` the
+        edge is undirected, i.e. quantities can be transmited in both
+        directions. Per default edges in ``pathpy`` are directed.
+
+    kwargs : Any
+
+        Keyword arguments to store edge attributes. Attributes are added to the
+        edge as ``key=value`` pairs.
+
+    Examples
+    --------
+    From the ``pathpy`` import the :py:class:`Node` and :py:class:`Edge` classes.
+
+    >>> from pathpy import Node, Edge
+
+    Create an edge ``e`` with given nodes.
+
+    >>> v = Node('w')
+    >>> w = Node('v')
+    >>> e = Edge(v, w, uid='e')
+    >>> e.uid
+    e
+
+    Create an edge with given node uids and no edge uid.
+
+    >>> ab = Edge('a', 'b')
+    >>> ab.uid
+    a-b
+
+    Show the associated node objects
+
+    >>> ab.nodes
+    NodeDict(<class 'dict'>, {'a': Node a, 'b': Node b})
+
+    Create an edge with attached attribute.
+
+    >>> ab = Edge('a','b', length=10)
+
+    Add attribute to the edge.
+
+    >>> ab['capacity'] = 5.5
+
+    Show attached attributes
+
+    >>> ab.attributes
+    {'length': 10, 'capacity': 5}
+
+    Change attribute.
+
+    >>> ab['length'] = 5
+
+    Update attributes (and add new).
+
+    >>> ab.update(length = 2, capacity = 3, speed = 10)
+    >>> ab.attributes
+    {'length': 2, 'capacity': 3, 'speed': 10}
+
+    Get the weight of the edge. Per default the attribute with the key 'weight'
+    is used as weight. Should there be no such attribute, a new one will be
+    crated with weight = 1.0.
+
+    >>> ab.weight()
+    1.0
+
+    If an other attribute should be used as weight, the option weight has to be
+    changed.
+
+    >>> ab.weight('length')
+    2
+
+    If a weight is assigned but for calculation a weight of 1.0 is needed, the
+    weight can be disabled with ``False`` or None.
+
+    >>> ab['weight'] = 4
+    >>> ab.weight()
+    4.0
+    >>> ab.weight(False)
+    1.0
+
+    Make copy of the edge.
+
+    >>> ef = ab.copy()
+    >>> ef.uid
+    'a-b'
+
+    Make a plot element and plot the edge as a png image.
+
+    .. todo::
+
+        Make a single plot command for plotting edges.
+        The code below is not working yet!
+
+    >>> plt = ab.plot()
+    >>> plt.show('png')
+
+    .. plot::
+
+       import pathpy as pp
+       ab = pp.Edge('a','b')
+       net = pp.Network()
+       net.add_edge(ab)
+       plt = net.plot()
+       plt.show('png')
+
+    Create an undirected edge.
+
+    >>> cd = Edge('c', 'd', directed=False)
+    >>> plt = ab.plot()
+    >>> plt.show('png')
+
+    .. plot::
+
+       import pathpy as pp
+       cd = pp.Edge('c','d',directed=False)
+       net = pp.Network(directed=False)
+       net.add_edge(cd)
+       plt = net.plot()
+       plt.show('png')
+
+
+    See Also
+    --------
+    Node
+
+    """
 
     def __init__(self, v: Node, w: Node, uid: str = None,
                  directed: bool = True, **kwargs: Any) -> None:
@@ -72,6 +248,7 @@ class Edge(BaseClass):
         Returns
         -------
         str
+
             Returns the description of the edge with the class and assigned
             edge uid.
 
@@ -80,7 +257,7 @@ class Edge(BaseClass):
         Generate new edge without dedicated uid
 
         >>> from pathpy import Node, Edge
-        >>> vw = Edge(Node('v'),Node('w'))
+        >>> vw = Edge('v', 'w')
         >>> vw
         Edge v-w
 
@@ -123,11 +300,12 @@ class Edge(BaseClass):
 
     @property
     def uid(self) -> str:
-        """Return the unique id of the edge.
+        """Return the unique identifier (uid) of the edge.
 
         Returns
         -------
         str
+
             Return the edge identifier as a string.
 
         Examples
@@ -148,7 +326,8 @@ class Edge(BaseClass):
 
         Returns
         -------
-        NodeDict
+        :py:class:`NodeDict`
+
             Return a dictionary with the :py:class:`Node` uids as key and the
             :py:class:`Node` objects as values, associated with the edge.
 
@@ -174,11 +353,12 @@ class Edge(BaseClass):
         Returns
         -------
         :py:class:`Node`
+
             Retun the source :py:class:`Node` of the edge.
 
         Examples
         --------
-        Generate a single edge and return the source node.
+        Generate an single edge and return the source node.
 
         >>> from pathpy import Edge
         >>> vw = Edge('v','w')
@@ -195,11 +375,12 @@ class Edge(BaseClass):
         Returns
         -------
         :py:class:`Node`
+
             Retun the target :py:class:`Node` of the edge.
 
         Examples
         --------
-        Generate a single edge and return the target node.
+        Generate an single edge and return the target node.
 
         >>> from pathpy import Edge
         >>> vw = Edge('v','w')
@@ -211,7 +392,24 @@ class Edge(BaseClass):
 
     @property
     def directed(self) -> bool:
-        """Return if the edge is directed (True) or undirected (False)."""
+        """Return if the edge is directed (True) or undirected (False).
+
+        Returns
+        -------
+        bool
+
+            Retun ``True`` if the edge is directed or ``False`` if the edge is
+            undirected.
+
+        Examples
+        --------
+        Generate an undirected edge.
+        >>> from pathpy import Edge
+        >>> vw = Edge('v', 'w', directed=False)
+        >>> vw.directed
+        False
+
+        """
         return self._directed
 
     def add_node(self, node: Node, **kwargs: Any) -> None:
@@ -219,16 +417,18 @@ class Edge(BaseClass):
 
         Parameters
         ----------
-        node : :py:class:`Node`
+        node : Node
+
             The :py:class:`Node` object, which will be added to the edge.
 
         kwargs : Any, optional (default = {})
+
             Attributes assigned to the node as key=value pairs.
 
-        Notes
-        -----
-        This function is only used internally. It can be used to consider
-        hyperedges in a futher version of pathpy.
+        .. note::
+
+            This function is only used internally. It can be used to consider
+            hyperedges in a futher version of pathpy.
 
         """
         # check if the right object is provided.
@@ -252,12 +452,13 @@ class Edge(BaseClass):
             edge.
 
         kwargs : Any, optional (default = {})
+
             Attributes assigned to all nodes in the list as key=value pairs.
 
-        Notes
-        -----
-        This function is only used internally. It can be used to consider
-        hyperedges in a futher version of pathpy.
+       .. note::
+
+            This function is only used internally. It can be used to consider
+            hyperedges in a futher version of pathpy.
 
         """
         # iterate over a list of nodes
@@ -267,7 +468,53 @@ class Edge(BaseClass):
 
     def update(self, other: Edge = None, attributes: bool = True,
                **kwargs: Any) -> None:
-        """Update of the edge object."""
+        """Update of the edge object.
+
+        Update the edge with new kwargs or based on an other given
+        :py:class:`Edge` object. If an other object is given, the other
+        attributes can be used or not.
+
+        Parameters
+        ----------
+        other : Edge, optional (default = None)
+
+            An other :py:class:`Edge` object, which is used to update the edge
+            attributes and properties.
+
+        attributes : bool, optional (default = True)
+
+            If ``True`` the attributes from the other edge are written to the
+            initial edge. If ``False`` only the information about the
+            associated nodes is updated.
+
+        kwargs : Any
+
+            Keyword arguments stored as node attributes. Attributes are added
+            to the node as ``key=value`` pairs.
+
+        Examples
+        --------
+        Create an :py:class:`Edge` object with an assigned attribute.
+
+        >>> from pathpy import Edge
+        >>> ab = Edge('a','b', length=10)
+        >>> ab['length']
+        10
+
+        Update attributes (and add new).
+
+        >>> ab.update(length = 2, capacity = 3, speed = 10)
+        >>> ab.attributes
+        {'length': 2, 'capacity': 3, 'speed': 10}
+
+        Create a new edge.
+
+        >>> cd = Edge('c', 'd', length=4, speed=30)
+        >>> ab.update(cd)
+        >>> ab.attributes
+        {'length': 4, 'capacity': 3, 'speed': 30}
+
+        """
         if other:
             # get relations with the associated nodes
             self.v.update(other.v, attributes=False)

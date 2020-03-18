@@ -14,6 +14,7 @@ Base classes
     :toctree: generated
 
      Node
+     Edge
 
 .. _algorithms_api:
 
