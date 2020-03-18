@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-01-16 07:15 juergen>
+# Time-stamp: <Wed 2020-03-18 16:36 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -36,13 +36,6 @@ class Network(BaseNetwork):
 
         # initialize the base class
         super().__init__(**kwargs)
-
-        # Classes of the Node, Edge and Path objects
-        # TODO: Probably there is a better solution to have different Node and
-        # Edge classes for different Network sub classes
-        self._node_class()
-        self._edge_class()
-        self._path_class()
 
         # set unique identifier of the network
         self._uid: str = uid
@@ -112,18 +105,6 @@ class Network(BaseNetwork):
         from ..visualizations.plot import plot
     except ImportError:
         log.debug('pathpy.plot failed to be imported')
-
-    def _node_class(self) -> None:
-        """Internal function to assign different Node classes."""
-        self.NodeClass = Node
-
-    def _edge_class(self) -> None:
-        """Internal function to assign different Edge classes."""
-        self.EdgeClass = Edge
-
-    def _path_class(self) -> None:
-        """Internal function to assign different Path classes."""
-        self.PathClass = Path
 
     def __repr__(self) -> str:
         """Return the description of the network.
@@ -635,10 +616,10 @@ class Network(BaseNetwork):
             path = _check_path(self, path, *args, **kwargs)
 
         # # check if the right object is provided
-        # if not isinstance(path, self.PathClass) and self.check:
+        # if not isinstance(path, Path) and self.check:
         #     # TODO: Add this _check function
         #     #misc = _check_path(self, path, *args, **kwargs)
-        #     path = self.PathClass(path, **kwargs)
+        #     path = Path(path, **kwargs)
 
         # TODO : Move this to check paths
         # update nodes
@@ -677,15 +658,15 @@ class Network(BaseNetwork):
         for arg in args:
 
             # if arg is a Path add the path
-            if isinstance(arg, self.PathClass):
+            if isinstance(arg, Path):
                 self.add_path(arg)
 
             # if arg is an Edge add the edge
-            elif isinstance(arg, self.EdgeClass):
+            elif isinstance(arg, Edge):
                 self.add_edge(arg)
 
             # if arg is a Node add the node
-            elif isinstance(arg, self.NodeClass):
+            elif isinstance(arg, Node):
                 self.add_node(arg)
 
             # if arg is a string, check the string and add accordingly

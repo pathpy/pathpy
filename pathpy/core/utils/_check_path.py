@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : _check_path.py -- Helper function to check the path format
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-03-18 11:20 juergen>
+# Time-stamp: <Wed 2020-03-18 16:37 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -31,7 +31,7 @@ def _check_path(self, path: Any, *args: Any, **kwargs: Any) -> Path:
     _n: dict = {'uids': [], 'objects': []}
 
     # check if path is a Path object
-    if isinstance(path, self.PathClass):
+    if isinstance(path, Path):
         _p = path
 
     # check if edge objects are given
@@ -86,19 +86,19 @@ def _check_path(self, path: Any, *args: Any, **kwargs: Any) -> Path:
 
     elif _e['objects']:
         e = [_check_edge(self, v) for v in _e['objects']]
-        _path = self.PathClass(*e, **kwargs)
+        _path = Path(*e, **kwargs)
 
     elif _e['uids']:
         e = [_check_edge(self, v) for v in _e['uids']]
-        _path = self.PathClass(*e, **kwargs)
+        _path = Path(*e, **kwargs)
 
     elif _n['objects']:
         n = [_check_node(self, v) for v in _n['objects']]
-        _path = self.PathClass(*n, **kwargs)
+        _path = Path(*n, **kwargs)
 
     elif _n['uids']:
         n = [_check_node(self, v) for v in _n['uids']]
-        _path = self.PathClass(*n, **kwargs)
+        _path = Path(*n, **kwargs)
 
     else:
         log.error('The definition of the path "{}" is incorrect! '
