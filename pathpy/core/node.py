@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : node.py -- Base class for a single node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-03-17 15:34 juergen>
+# Time-stamp: <Wed 2020-03-18 11:01 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -34,11 +34,13 @@ class Node(BaseClass):
     Parameters
     ----------
     uid : str
+
         The parameter ``uid`` is the unique identifier for the node. Every node
         should have an uid. The uid is converted to a string value and is used
         as a key value for all dict which saving node objects.
 
     kwargs : Any
+
         Keyword arguments to store node attributes. Attributes are added to the
         node as ``key=value`` pairs.
 
@@ -52,19 +54,19 @@ class Node(BaseClass):
     Get the id of the node.
 
     >>> u.uid
-    u
+    'u'
 
     Create a node with attached attribute.
 
     >>> u = Node('u', color='red')
     >>> u['color']
-    red
+    'red'
 
     Add attribute to the node.
 
     >>> u['shape'] = 'circle'
     >>> u['shape]
-    circle
+    'circle'
 
     Change single attribute.
 
@@ -78,7 +80,7 @@ class Node(BaseClass):
 
     >>> v = u.copy()
     >>> v.uid
-    u
+    'u'
 
     Make a plot element and plot the node as a png image.
 
@@ -98,6 +100,10 @@ class Node(BaseClass):
        net.add_node(u)
        plt = net.plot()
        plt.show('png')
+
+    See Also
+    --------
+    Edge
 
     """
 
@@ -123,6 +129,7 @@ class Node(BaseClass):
         Returns
         -------
         str
+
             Returns the description of the node with the class and assigned
             node uid.
 
@@ -157,6 +164,7 @@ class Node(BaseClass):
         Returns
         -------
         str
+
             Return the node identifier (uid) as a string.
 
         Examples
@@ -165,7 +173,7 @@ class Node(BaseClass):
 
         >>> from pathpy import Node
         >>> u = Node('u')
-        >>> print(u.uid)
+        >>> u.uid
         u
 
         """
@@ -178,6 +186,7 @@ class Node(BaseClass):
         Returns
         -------
         Set[str]
+
             Return the uids of the outgoing edges of the node.
 
         Examples
@@ -204,6 +213,7 @@ class Node(BaseClass):
         Returns
         -------
         Set[str]
+
             Return the uids of the incoming edges of the node.
 
         Examples
@@ -231,8 +241,9 @@ class Node(BaseClass):
         Returns
         -------
         Set[str]
-            Returns a set of adjacent edge uids as string values.
-            I.e. all edges associated with this node.
+
+            Returns a set of adjacent edge uids as string values.  I.e. all
+            edges associated with this node.
 
         Examples
         --------
@@ -268,17 +279,20 @@ class Node(BaseClass):
         Parameters
         ----------
         other : Node, optional (default = None)
+
             An other :py:class:`Node` object, which is used to update the node
             attributes and properties.
 
         attributes : bool, optional (default = True)
+
             If ``True`` the attributes from the other node are written to the
             initial node. If ``False`` only the incoming and outgoing edges are
             updated.
 
         kwargs : Any
-            Keyword arguments stored as node attributes. Attributes are added to
-            the node as ``key=value`` pairs.
+
+            Keyword arguments stored as node attributes. Attributes are added
+            to the node as ``key=value`` pairs.
 
         Examples
         --------
@@ -287,13 +301,13 @@ class Node(BaseClass):
         >>> from pathpy import Node
         >>> u = Node('u', color='red')
         >>> u['color']
-        red
+        'red'
 
         Update color and shape of the node.
 
         >>> u.update(color='green', shape='rectangle')
         >>> u['shape']
-        rectangle
+        'rectangle'
 
         Create a new node.
 
