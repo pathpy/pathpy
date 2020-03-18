@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-11-22 11:27 juergen>
+# Time-stamp: <Wed 2020-03-18 11:21 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -35,12 +35,6 @@ class Path(BaseClass):
 
         # initialize the base class
         super().__init__(**kwargs)
-
-        # Classes of the Node, Edge and Path objects
-        # TODO: Probably there is a better solution to have different Node and
-        # Edge classes for different Network sub classes
-        self._node_class()
-        self._edge_class()
 
         # set unique identifier of the path
         self._uid: str = uid
@@ -75,14 +69,6 @@ class Path(BaseClass):
         # add objects from args if given
         if args:
             self.add_args(*args)
-
-    def _node_class(self) -> None:
-        """Internal function to assign different Node classes."""
-        self.NodeClass: Any = Node
-
-    def _edge_class(self) -> None:
-        """Internal function to assign different Edge classes."""
-        self.EdgeClass = Edge
 
     def __repr__(self) -> str:
         """Return the description of the path.
@@ -509,8 +495,8 @@ class Path(BaseClass):
             edge_uid = v_uid+self.separator['edge']+node.uid
             if edge_uid not in self.edges:
                 self.add_edge(
-                    self.EdgeClass(self.nodes[v_uid], node,
-                                   separator=self.separator['edge']))
+                    Edge(self.nodes[v_uid], node,
+                         separator=self.separator['edge']))
             else:
                 self.add_edge(self.edges[edge_uid])
 
@@ -540,11 +526,11 @@ class Path(BaseClass):
         for arg in args:
 
             # if arg is an Edge add the edge
-            if isinstance(arg, self.EdgeClass):
+            if isinstance(arg, Edge):
                 self.add_edge(arg)
 
             # if arg is a Node add the node
-            elif isinstance(arg, self.NodeClass):
+            elif isinstance(arg, Node):
                 self.add_node(arg)
 
             # if arg is a string, check the string and add accordingly

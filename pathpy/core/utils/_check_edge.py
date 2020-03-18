@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : _check_edge.py -- Helper function to check the edge format
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-11-22 10:12 juergen>
+# Time-stamp: <Wed 2020-03-18 11:23 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -11,6 +11,7 @@ from __future__ import annotations
 from typing import Any
 
 from ... import logger
+from .. import Node
 from .. import Edge
 from ._check_node import _check_node
 
@@ -26,7 +27,7 @@ def _check_edge(self, edge: Any, *args: Any, **kwargs: Any) -> Edge:
     _w: dict = {'uid': None, 'object': None}
 
     # check if edge is an Edge object
-    if isinstance(edge, self.EdgeClass):
+    if isinstance(edge, Edge):
 
         _e['uid'] = edge.uid
         _e['object'] = edge
@@ -44,8 +45,8 @@ def _check_edge(self, edge: Any, *args: Any, **kwargs: Any) -> Edge:
             raise AttributeError
 
     # check if node objects are given
-    elif (isinstance(edge, self.NodeClass) and
-          all([isinstance(x, self.NodeClass) for x in args])):
+    elif (isinstance(edge, Node) and
+          all([isinstance(x, Node) for x in args])):
 
         try:
             _e['uid'] = args[1]
@@ -89,12 +90,12 @@ def _check_edge(self, edge: Any, *args: Any, **kwargs: Any) -> Edge:
         v = _check_node(self, _v['object'])
         w = _check_node(self, _w['object'])
 
-        _edge = self.EdgeClass(v, w, uid=_e['uid'], **kwargs)
+        _edge = Edge(v, w, uid=_e['uid'], **kwargs)
 
     elif _v['uid'] and _w['uid']:
         v = _check_node(self, _v['uid'])
         w = _check_node(self, _w['uid'])
-        _edge = self.EdgeClass(v, w, uid=_e['uid'], **kwargs)
+        _edge = Edge(v, w, uid=_e['uid'], **kwargs)
 
     else:
         log.error('The definition of the edge "{}" is incorrect! '

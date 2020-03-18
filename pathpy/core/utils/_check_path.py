@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : _check_path.py -- Helper function to check the path format
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-03-18 08:45 juergen>
+# Time-stamp: <Wed 2020-03-18 11:20 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -11,7 +11,10 @@ from __future__ import annotations
 from typing import Any
 
 from ... import logger
+from .. import Node
+from .. import Edge
 from .. import Path
+
 from ._check_node import _check_node
 from ._check_edge import _check_edge
 from ._check_str import _check_str
@@ -32,14 +35,14 @@ def _check_path(self, path: Any, *args: Any, **kwargs: Any) -> Path:
         _p = path
 
     # check if edge objects are given
-    elif (isinstance(path, self.EdgeClass) and
-          all([isinstance(x, self.EdgeClass) for x in args])):
+    elif (isinstance(path, Edge) and
+          all([isinstance(x, Edge) for x in args])):
         _e['uids'] = [path.uid] + [e.uid for e in args]
         _e['objects'] = [path] + [e for e in args]
 
     # check if node objects are given
-    elif (isinstance(path, self.NodeClass) and
-          all([isinstance(x, self.NodeClass) for x in args])):
+    elif (isinstance(path, Node) and
+          all([isinstance(x, Node) for x in args])):
         _n['uids'] = [path.uid] + [n.uid for n in args]
         _n['objects'] = [path] + [n for n in args]
 
