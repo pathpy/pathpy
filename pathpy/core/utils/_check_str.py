@@ -3,12 +3,12 @@
 # =============================================================================
 # File      : _check_str.py -- Helper function to check the str format
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-11-22 12:20 juergen>
+# Time-stamp: <Wed 2020-03-18 08:43 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any
+from typing import Any, List
 from ... import logger, config
 
 
@@ -16,7 +16,7 @@ from ... import logger, config
 log = logger(__name__)
 
 
-def _check_str(self, *args: Any, expected=None, **kwargs: Any) -> str:
+def _check_str(self, *args: Any, expected=None, **kwargs: Any) -> List:
     """Helper function to check input strings."""
 
     # initialize list of objects

@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : containers.py -- Base containers for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-12-20 11:39 juergen>
+# Time-stamp: <Wed 2020-03-18 08:49 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -53,7 +53,7 @@ class BaseDict(defaultdict):
         """Return a pandas data frame of all objects."""
         # data = [obj.attributes.to_dict() for obj in self.values()]
         # return pd.DataFrame(data)
-        data = []
+        data: List = []
         # iterate throug all stored objects
         for obj in self.values():
 
@@ -80,7 +80,7 @@ class BaseDict(defaultdict):
 
     def counter(self) -> Counter:
         """Return a counter of the objects."""
-        data = {k: self._counter[k] for k in self.keys()}
+        data: Dict = {k: self._counter[k] for k in self.keys()}
         return Counter(data)
 
 
@@ -105,7 +105,7 @@ class TemporalDict(BaseDict):
             frequency = config['temporal']['unit']
 
         # initialize varialbes
-        data = []
+        data: List = []
 
         # get data frame of all objects
         df = self.to_frame()

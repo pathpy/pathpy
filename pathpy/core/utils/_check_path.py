@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : _check_path.py -- Helper function to check the path format
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-11-22 12:20 juergen>
+# Time-stamp: <Wed 2020-03-18 08:45 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -73,11 +73,13 @@ def _check_path(self, path: Any, *args: Any, **kwargs: Any) -> Path:
 
     # check given path
     if _p is not None:
-        e = {k: _check_edge(self, v) for k, v in _p.edges.items()}
-        n = {k: _check_node(self, v) for k, v in _p.nodes.items()}
+        # e = {k: _check_edge(self, v) for k, v in _p.edges.items()}
+        # n = {k: _check_node(self, v) for k, v in _p.nodes.items()}
         _path = _p
-        _path.edges.update(e)
-        _path.nodes.update(n)
+        _path.edges.update({k: _check_edge(self, v)
+                            for k, v in _p.edges.items()})
+        _path.nodes.update({k: _check_node(self, v)
+                            for k, v in _p.nodes.items()})
 
     elif _e['objects']:
         e = [_check_edge(self, v) for v in _e['objects']]
