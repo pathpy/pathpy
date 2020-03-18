@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-11-14 14:59 juergen>
+# Time-stamp: <Wed 2020-03-18 09:01 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -22,7 +22,7 @@ log = logger(__name__)
 
 
 class Edge(BaseClass):
-    """Base class for an edge."""
+    """Base class for an single edge."""
 
     def __init__(self, v: Node, w: Node, uid: str = None,
                  directed: bool = True, **kwargs: Any) -> None:
@@ -30,11 +30,6 @@ class Edge(BaseClass):
 
         # initialize the base class
         super().__init__(**kwargs)
-
-        # Class of the Node object
-        # TODO: Probably there is a better solution to have different Node
-        # classes for different Edges sub classes
-        self._node_class()
 
         # set unique identifier of the edge
         self._uid: str
@@ -70,10 +65,6 @@ class Edge(BaseClass):
         if not self.directed:
             self.w.outgoing.add(self.uid)
             self.v.incoming.add(self.uid)
-
-    def _node_class(self) -> None:
-        """Internal function to assign different Node classes to the edge"""
-        self.NodeClass = Node
 
     def __repr__(self) -> str:
         """Return the description of the edge.

@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : _check_node.py -- Helper function to check the node format
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-11-14 14:47 juergen>
+# Time-stamp: <Wed 2020-03-18 09:00 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -21,7 +21,7 @@ def _check_node(self, node: Any, **kwargs: Any) -> Node:
     """Helper function to check if the node is in the right format."""
 
     # check if node is a Node object
-    if isinstance(node, self.NodeClass):
+    if isinstance(node, Node):
         _node = node
 
     # check if node is defined as string
@@ -33,7 +33,7 @@ def _check_node(self, node: Any, **kwargs: Any) -> Node:
 
         # otherwise generate new node object
         else:
-            _node = self.NodeClass(node, **kwargs)
+            _node = Node(node, **kwargs)
 
     # raise error if not defined in the right format
     else:
