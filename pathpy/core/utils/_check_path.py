@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : _check_path.py -- Helper function to check the path format
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-03-18 16:37 juergen>
+# Time-stamp: <Thu 2020-03-19 09:49 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================

@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : conf.py -- Configuration file for the documentation
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-03-17 14:40 juergen>
+# Time-stamp: <Wed 2020-03-18 11:40 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================

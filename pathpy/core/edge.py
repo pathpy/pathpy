@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an single edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-03-18 11:06 juergen>
+# Time-stamp: <Thu 2020-03-19 11:20 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -45,7 +45,7 @@ class Edge(BaseClass):
        automatically create a unique identifier (``uid``) for the edge based on
        the node uids. In this case, the edge ``uid`` is defined as a
        combination of the node uids separated by ``-``. The separation sign can
-       be changed in the :ref:`_config_file`.
+       be changed in the config file.
 
     Parameters
     ----------
@@ -404,6 +404,7 @@ class Edge(BaseClass):
         Examples
         --------
         Generate an undirected edge.
+
         >>> from pathpy import Edge
         >>> vw = Edge('v', 'w', directed=False)
         >>> vw.directed
@@ -489,8 +490,8 @@ class Edge(BaseClass):
 
         kwargs : Any
 
-            Keyword arguments stored as node attributes. Attributes are added
-            to the node as ``key=value`` pairs.
+            Keyword arguments stored as edges attributes. Attributes are added
+            to the edge as ``key=value`` pairs.
 
         Examples
         --------

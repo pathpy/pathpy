@@ -3,9 +3,9 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-03-18 11:21 juergen>
+# Time-stamp: <Thu 2020-03-19 11:25 juergen>
 #
-# Copyright (c) 2016-2019 Pathpy Developers
+# Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
 from typing import Any, List, Dict, Optional, Sequence
@@ -27,7 +27,139 @@ log = logger(__name__)
 
 
 class Path(BaseClass):
-    """Base class for a path."""
+    """Base class for a path.
+
+    Paths are fundamental parts of networks. A path in a network is a finite or
+    infinite sequence of edges which joins a sequence of nodes. In a directed
+    path edges are all directed in the same direction.
+
+    In ``pathpy`` the path is constructed based on consecutive edges. Per
+    default the path is directed. A :py:class:`Path` object can store any
+    arbitrary python objects as attributes. A path is referenced by its unique
+    identifier (``uid``). A path can have various lengths, i.e. number of
+    associated edges. Paths with length 0 consists only of one node and no
+    edges.
+
+    .. note::
+
+       To generate a path, a sequence of edges is needed. ``pathpy`` will
+       automatically create a unique identifier (``uid``) for the path based on
+       the edge uids. In this case, the path ``uid`` is defined as a
+       combination of the edge uids separated by ``|``. The separation sign can
+       be changed in the config file.
+
+    Parameters
+    ----------
+
+    uid : str, optional (default = None)
+
+        The parameter ``uid`` is the unique identifier for the edge. Every edge
+        should have an uid. The uid is converted to a string value and is used
+        as a key value for all dict which saving edge objects. If no edge uid
+        is specified the edge ``uid`` will be defined as a combination of the
+        node uids separated by ``-``. The separation sign can be changed in the
+        :ref:`config_file`.
+
+    directed : bool, optional (default = True)
+
+        If ``True`` the edge is directed, i.e. quantities can only transmited
+        from the source node ``v`` to the traget node ``w``. If ``False`` the
+        edge is undirected, i.e. quantities can be transmited in both
+        directions. Per default edges in ``pathpy`` are directed.
+
+    args : Edge
+
+        :py:class:`Edge` objects can be used as arguments to build a
+        path. While the default options is using edges. `pathpy` also supports
+        nodes and str uid to generate a path.
+
+    kwargs : Any
+
+        Keyword arguments to store edge attributes. Attributes are added to the
+        edge as ``key=value`` pairs.
+
+    See Also
+    --------
+    Node
+    Edge
+
+    Examples
+    --------
+
+    From the ``pathpy`` import the :py:class:`Node`, :py:class:`Edge` and
+    :py:class:`Path` classes.
+
+    >>> from pathpy import Node, Edge, Path
+
+    Create an empty path
+
+    >>> p = Path()
+    >>> len(p)
+    0
+
+    Create some edges and add them to the path.
+
+    >>> e1 = Edge('a','b')
+    >>> e2 = Edge('b','c')
+    >>> p.add_edges_from([e1,e2])
+    >>> len(p)
+    2
+
+    Print the uid of the path.
+
+    >>> p.uid
+    'a-b|b-c'
+
+    Get the associated nodes and edges
+
+    >>> p.nodes
+    NodeDict(<class 'dict'>, {'a': Node a, 'b': Node b, 'c': Node c})
+    >>> p.edges
+    EdgeDict(<class 'dict'>, {'a-b': Edge a-b, 'b-c': Edge b-c})
+
+    Get the path as a sequence of node and edge uids
+
+    >>> p.as_nodes
+    ['a', 'b', 'c']
+    >>> p.as_edges
+    ['a-b', 'b-c']
+
+    Extend path with a new node.
+
+    >>> p.add_node('d')
+    >>> p.uid
+    'a-b|b-c|c-d'
+
+    Plot the path.
+
+    .. todo::
+
+        Make a single plot command for plotting paths.
+        The code below is not working yet!
+
+    >>> plt = p.plot()
+    >>> plt.show('png')
+
+    .. plot::
+
+       import pathpy as pp
+       p = pp.Path('a','b','c','d')
+       net = pp.Network()
+       net.add_path(p)
+       plt = net.plot()
+       plt.show('png')
+
+
+    Create paths from string uids.
+
+    >>> p1 = Path('a', 'b', 'c')
+    >>> p2 = Path('a-b', 'b-c')
+    >>> p3 = Path('a,b,c')
+    >>> p4 = Path('a-b,b-c')
+    >>> p5 = Path('a-b-c')
+    >>> p6 = Path('a-b|b-c')
+
+    """
 
     def __init__(self, *args: Edge, uid: str = '', directed: bool = True,
                  **kwargs: Any) -> None:
@@ -68,7 +200,7 @@ class Path(BaseClass):
 
         # add objects from args if given
         if args:
-            self.add_args(*args)
+            self._add_args(*args)
 
     def __repr__(self) -> str:
         """Return the description of the path.
@@ -76,8 +208,9 @@ class Path(BaseClass):
         Returns
         -------
         str
+
             Returns the description of the path with the class, the name (if
-            deffined) and the assigned system id.
+            deffined) and the assigned path uid.
 
         Examples
         --------
@@ -98,7 +231,7 @@ class Path(BaseClass):
         return '{}'.format(self.__class__.__name__)
 
     def __len__(self) -> int:
-        """Returns the number of edges in the path"""
+        """Returns the number of edges in the path."""
         return len(self.as_edges)
 
     def __hash__(self) -> Any:
@@ -111,15 +244,16 @@ class Path(BaseClass):
 
     @property
     def uid(self) -> str:
-        """Returns the unique id of the path.
+        """Returns the unique identifier (uid) of the path.
 
-        Id of the path. If no id is assigned the path is called after the
-        assigned edges. e.g. if the path has edges 'a-b' and 'c-d', the id is
+        If no uid is assigned the path is labled after the assigned
+        edges. e.g. if the path has edges 'a-b' and 'c-d', the uid is
         'a-b|b-c'.
 
         Returns
         -------
         str
+
             Returns the uid of the path as a string.
 
         Examples
@@ -132,8 +266,10 @@ class Path(BaseClass):
         'a-b|b-c'
 
         """
+        # if uid is defined us this uid
         if self._uid != '':
             return self._uid
+        # if edges are given use a combined edge uid
         elif self.number_of_edges() > 0:
             return self.separator['path'].join(self.as_edges)
         elif self.number_of_nodes() > 0:
@@ -142,8 +278,25 @@ class Path(BaseClass):
             return str(id(self))
 
     @property
-    def directed(self):
-        """Return if the path is directed (True) or undirected (False)."""
+    def directed(self) -> bool:
+        """Return if the path is directed (True) or undirected (False).
+
+        Returns
+        -------
+        bool
+
+            Retun ``True`` if the path is directed or ``False`` if the path is
+            undirected.
+
+        Examples
+        --------
+        Generate an undirected path.
+        >>> from pathpy import Path
+        >>> p = Path('a', 'b', 'c', directed=False)
+        >>> p.directed
+        False
+
+        """
         return self._directed
 
     @property
@@ -162,6 +315,7 @@ class Path(BaseClass):
         Returns
         -------
         str
+
             Returns the name of the path as a string.
 
         Examples
@@ -175,6 +329,7 @@ class Path(BaseClass):
         'a-b|b-c'
 
         Generate longer path:
+
         >>> p = Path('a', 'b', 'c', 'd', 'e', 'f', 'g')
         >>> p.name
         'a-b|b-c|c-d|d-e|...|f-g'
@@ -199,6 +354,7 @@ class Path(BaseClass):
         Returns
         -------
         NodeDict
+
             Return a dictionary with the :py:class:`Node` uids as key and the
             :py:class:`Node` objects as values, associated with the path.
 
@@ -213,6 +369,7 @@ class Path(BaseClass):
 
         >>> p.nodes
         {'a': Node a, 'b': Node b, 'c': Node c}
+
         """
         return self._nodes
 
@@ -223,6 +380,7 @@ class Path(BaseClass):
         Returns
         -------
         EdgeDict
+
             Return a dictionary with the :py:class:`Edge` uids as key and the
             :py:class:`Edge` objects as values, associated with the path.
 
@@ -237,6 +395,7 @@ class Path(BaseClass):
 
         >>> p.edges
         {'a-b': Edge a-b, 'b-c': Edge b-c}
+
         """
         return self._edges
 
@@ -247,6 +406,7 @@ class Path(BaseClass):
         Returns
         -------
         List[str]
+
             Return a list the :py:class:`Node` uids.
 
         Examples
@@ -271,6 +431,7 @@ class Path(BaseClass):
         Returns
         -------
         List[str]
+
             Return a list the :py:class:`Edge` uids.
 
         Examples
@@ -304,6 +465,12 @@ class Path(BaseClass):
         enabled, the function will return a string with the information, which
         can be printed to the console.
 
+        Returns
+        -------
+        str
+
+            Return a summary of the path.
+
         """
         summary = [
             'Name:\t\t\t{}\n'.format(self.name),
@@ -326,12 +493,14 @@ class Path(BaseClass):
         Parameters
         ----------
         unique : bool, optional (default = True)
-            If unique is True only the number of unique nodes in the path is
-            returnd.
+
+            If unique is ``True`` only the number of unique nodes in the path
+            is returnd.
 
         Returns
         -------
         int
+
             Returns the number of nodes in the path.
 
         Examples
@@ -363,12 +532,14 @@ class Path(BaseClass):
         Parameters
         ----------
         unique : bool, optional (default = True)
-            If unique is True only the number of unique edges in the path is
-            returnd.
+
+            If unique is ``True`` only the number of unique edges in the path
+            is returnd.
 
         Returns
         -------
         int
+
             Returns the number of edges in the path.
 
         Examples
@@ -395,17 +566,30 @@ class Path(BaseClass):
             return len(self.as_edges)
 
     def add_edges_from(self, edges: Sequence[Edge], **kwargs: Any) -> None:
-        """Add multiple edges from a list.
+        """Add multiple edges from a list to the path.
 
         Parameters
         ----------
-        nodes: List[Edge]
+        nodes : List[Edge]
 
             Edges from a list of: py: class:`Edge` objects are added to the
             path.
 
-        kwargs: Any, optional(default={})
+        kwargs : Any, optional(default={})
+
             Attributes assigned to all nodes in the list as key = value pairs.
+
+        Examples
+        --------
+        Generate some edges and add them to a path
+
+        >>> from pathpy import Edge, Path
+        >>> e1 = Edge('a', 'b')
+        >>> e2 = Edge('b', 'c')
+        >>> p = Path()
+        >>> p.add_edges_from([e1, e2])
+        >>> p.uid
+        'a-b|b-c'
 
         """
 
@@ -419,11 +603,30 @@ class Path(BaseClass):
 
         Parameters
         ----------
-        edge: :py:class:`Edge`
+        edge : Edge
+
             The :py:class:`Edge` object, which will be added to the path.
 
-        kwargs: Any, optional(default={})
+        kwargs : Any, optional(default={})
+
             Attributes assigned to the node as key = value pairs.
+
+        Examples
+        --------
+        Generate an edge and add it to a path.
+
+        >>> from pathpy import Edge, Path
+        >>> e = Edge('a', 'b')
+        >>> p = Path()
+        >>> p.add_edge(e)
+        >>> p.uid
+        'a-b'
+
+        Add an other edge.
+
+        >>> p.add_edge('b-c')
+        >>> p.uid
+        'a-b|b-c'
 
         """
 
@@ -462,13 +665,35 @@ class Path(BaseClass):
 
         Parameters
         ----------
-        node:: py: class: `Node`
-            The: py: class: `Node` object, which will be added to the path.
 
-        kwargs: Any, optional(default={})
+        node : Node
+
+            The :py:class:`Node` object, which will be added to the path.
+
+        kwargs : Any, optional(default={})
+
             Attributes assigned to the node as key = value pairs.
 
+        Examples
+        --------
+        Generate a node and add it to a path.
+
+        >>> from pathpy import Edge, Path
+        >>> a = Node('a')
+        >>> p = Path()
+        >>> p.add_node(a)
+        >>> p.uid
+        'a'
+
+        Add other nodes.
+
+        >>> p.add_node('b')
+        >>> p.add_node('c')
+        >>> p.uid
+        'a-b|b-c'
+
         """
+
         # check if the right object is provided.
         if self.check:
             node = _check_node(self, node, **kwargs)
@@ -501,7 +726,7 @@ class Path(BaseClass):
                 self.add_edge(self.edges[edge_uid])
 
     def add_nodes_from(self, nodes: Sequence[Node], **kwargs: Any) -> None:
-        """Add multiple nodes from a list.
+        """Add multiple nodes from a list to the path.
 
         Parameters
         ----------
@@ -511,7 +736,21 @@ class Path(BaseClass):
             path.
 
         kwargs: Any, optional(default={})
+
             Attributes assigned to all nodes in the list as key = value pairs.
+
+        Examples
+        --------
+        Generate some nodes and add them to a path
+
+        >>> from pathpy import Edge, Path
+        >>> a = Node('a')
+        >>> b = Node('b')
+        >>> c = Node('c')
+        >>> p = Path()
+        >>> p.add_nodes_from([a, b, c])
+        >>> p.uid
+        'a-b|b-c'
 
         """
         # iterate over a list of nodes
@@ -519,7 +758,7 @@ class Path(BaseClass):
         for node in nodes:
             self.add_node(node, **kwargs)
 
-    def add_args(self, *args: Any) -> None:
+    def _add_args(self, *args: Any) -> None:
         """Add args to the path."""
 
         # iterate over all given arguments
@@ -554,35 +793,43 @@ class Path(BaseClass):
                  include_path: bool = False) -> Dict[str, Path]:
         """Returns a list of subpaths.
 
+        .. warning::
+
+            This function will be removed soon!  Functionality regarding
+            sub-path statistics will be provide by the submodule subpaths!
+
         Parameters
         ----------
+        min_length: int, optional(default=0)
 
-        min_length : int, optional (default = 0)
             Parameter which defines the minimum length of the sub-paths. This
             parameter has to be smaller then the maximum length parameter.
 
-        max_length : int, optional (default = sys.maxsize)
+        max_length: int, optional(default=sys.maxsize)
+
             Parameter which defines the maximum length of the sub-paths. This
             parameter has to be greater then the minimum length parameter. If
             the parameter is also greater then the maximum length of the path,
             the maximum path length is used instead.
 
-        include_path : bool, optional (default = Flase)
+        include_path: bool, optional(default=Flase)
+
             If this option is enabled also the current path is added as a
             sub-path of it self.
 
         Returns
         -------
         Dict[str, Paths]
-            Return a dictionary with the :py:class:`Paht` uids as key and the
-            :py:class:`Path` objects as values.
+
+            Return a dictionary with the: py: class: `Paht` uids as key and the
+            : py: class: `Path` objects as values.
 
         Examples
         --------
-        >>> from pathpy import Path
-        >>> p = Path('a','b','c','d','e')
-        >>> for k in p.subpaths():
-        ...     print(k)
+        >> > from pathpy import Path
+        >> > p = Path('a', 'b', 'c', 'd', 'e')
+        >> > for k in p.subpaths():
+        ... print(k)
         a
         b
         c
@@ -592,17 +839,17 @@ class Path(BaseClass):
         b-c
         c-d
         d-e
-        a-b|b-c
-        b-c|c-d
-        c-d|d-e
-        a-b|b-c|c-d
-        b-c|c-d|d-e
+        a-b | b-c
+        b-c | c-d
+        c-d | d-e
+        a-b | b-c | c-d
+        b-c | c-d | d-e
 
-        >>> for k in p.subpaths(min_length = 2, max_length = 2)
-        ...     print(k)
-        a-b|b-c
-        b-c|c-d
-        c-d|d-e
+        >> > for k in p.subpaths(min_length=2, max_length=2)
+        ... print(k)
+        a-b | b-c
+        b-c | c-d
+        c-d | d-e
 
         """
 
@@ -642,13 +889,74 @@ class Path(BaseClass):
         # return the dict of subpaths
         return subpaths
 
-    def has_subpath(self, subpath: Path) -> bool:
-        """Return True if the path has a sub-path."""
-        raise NotImplementedError
+    # def has_subpath(self, subpath: Path) -> bool:
+    #     """Return True if the path has a sub-path."""
+    #     raise NotImplementedError
 
-    def subpath(self, *args: str) -> Path:
-        """Returns a sup-path of the path."""
-        raise NotImplementedError
+    # def subpath(self, *args: str) -> Path:
+    #     """Returns a sup-path of the path."""
+    #     raise NotImplementedError
+
+    def update(self, other: Path = None, attributes: bool = True,
+               **kwargs: Any) -> None:
+        """Update of the path object.
+
+        Update the path with new kwargs or based on an other given
+        :py:class:`Path` object. If an other object is given, the other
+        attributes can be used or not.
+
+        Parameters
+        ----------
+        other : Path, optional (default = None)
+
+            An other :py:class:`Path` object, which is used to update the edge
+            attributes and properties.
+
+        attributes : bool, optional (default = True)
+
+            If ``True`` the attributes from the other path are written to the
+            initial path. If ``False`` only the information about the
+            associated edges and nodes is updated.
+
+        kwargs : Any
+
+            Keyword arguments stored as path attributes. Attributes are added
+            to the path as ``key=value`` pairs.
+
+        Examples
+        --------
+        Create an :py:class:`Path` object with an assigned attribute.
+
+        >>> from pathpy import Path
+        >>> p = path('a','b', 'c', length=10)
+        >>> p['length']
+        10
+
+        Update attributes (and add new).
+
+        >>> p.update(length = 2, capacity = 3, speed = 10)
+        >>> p.attributes
+        {'length': 2, 'capacity': 3, 'speed': 10}
+
+        Create a new path.
+
+        >>> q = Path('v', 'w', length=4, speed=30)
+        >>> p.update(q)
+        >>> p.attributes
+        {'length': 4, 'capacity': 3, 'speed': 30}
+
+        """
+        if other:
+            # get relations with the associated nodes
+            for v in self.nodes.values():
+                v.update(other.nodes[v.uid], attributes=False)
+
+            # get the attributes
+            if attributes:
+                self.attributes.update(
+                    **other.attributes.to_dict(history=False))
+
+        self.attributes.update(**kwargs)
 
     @classmethod
     def from_nodes(cls, nodes: Sequence[Node], **kwargs: Any) -> Path:
@@ -656,19 +964,21 @@ class Path(BaseClass):
 
         Parameters
         ----------
-        nodes: List[Node]
+        nodes : List[Node]
 
-            Nodes from a list of: py: class: `Node` objects are added to the
+            Nodes from a list of :py:class:`Node` objects are added to the
             path.
 
-        kwargs: Any, optional (default = {})
+        kwargs : Any, optional(default={})
+
             Attributes assigned to the path as key = value pairs.
 
         Returns
         -------
         :py:class:`Path`
+
             Returns a :py:class:`Path` object with nodes and edges according to
-            the given list of :py:class:`Nodes`.
+            the given list of :py:class:`Node` objects.
 
         Examples
         --------
@@ -690,19 +1000,21 @@ class Path(BaseClass):
 
         Parameters
         ----------
-        edges: List[Edge]
+        edges : List[Edge]
 
-            Edges from a list of: py:class:`Edge` objects are added to the
+            Edges from a list of :py:class:`Edge` objects are added to the
             path.
 
-        kwargs: Any, optional (default = {})
+        kwargs : Any, optional(default={})
+
             Attributes assigned to the path as key = value pairs.
 
         Returns
         -------
         :py:class:`Path`
+
             Returns a :py:class:`Path` object with nodes and edges according to
-            the given list of :py:class:`Nodes`.
+            the given list of :py:class:`Edge` objects.
 
         Examples
         --------
@@ -717,21 +1029,6 @@ class Path(BaseClass):
         path: Path = cls(**kwargs)
         path.add_edges_from(edges)
         return path
-
-    def update(self, other: Path = None, attributes: bool = True,
-               **kwargs: Any) -> None:
-        """Update of the epath object."""
-        if other:
-            # get relations with the associated nodes
-            for v in self.nodes.values():
-                v.update(other.nodes[v.uid], attributes=False)
-
-            # get the attributes
-            if attributes:
-                self.attributes.update(
-                    **other.attributes.to_dict(history=False))
-
-        self.attributes.update(**kwargs)
 
 
 # =============================================================================
