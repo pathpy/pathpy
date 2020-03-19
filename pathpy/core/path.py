@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-03-19 11:25 juergen>
+# Time-stamp: <Thu 2020-03-19 15:58 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -58,7 +58,7 @@ class Path(BaseClass):
         as a key value for all dict which saving edge objects. If no edge uid
         is specified the edge ``uid`` will be defined as a combination of the
         node uids separated by ``-``. The separation sign can be changed in the
-        :ref:`config_file`.
+        config file.
 
     directed : bool, optional (default = True)
 
@@ -71,17 +71,16 @@ class Path(BaseClass):
 
         :py:class:`Edge` objects can be used as arguments to build a
         path. While the default options is using edges. `pathpy` also supports
-        nodes and str uid to generate a path.
+        :py:class:`Node` objects and ``str`` uid to generate a path.
 
     kwargs : Any
 
-        Keyword arguments to store edge attributes. Attributes are added to the
-        edge as ``key=value`` pairs.
+        Keyword arguments to store path attributes. Attributes are added to the
+        path as ``key=value`` pairs.
 
     See Also
     --------
-    Node
-    Edge
+    Node, Edge
 
     Examples
     --------
@@ -515,7 +514,7 @@ class Path(BaseClass):
         >>> p.number_of_nodes()
         3
 
-        Get the number of all nodes in the path:
+        Get the number of all node visits in the path:
 
         >>> p.number_of_nodes(unique=False)
         5
@@ -554,7 +553,7 @@ class Path(BaseClass):
         >>> p.number_of_edges()
         3
 
-        Get the number of all edges in the path:
+        Get the number of all observed edges in the path:
 
         >>> p.number_of_nodes(unique=False)
         4
@@ -572,12 +571,13 @@ class Path(BaseClass):
         ----------
         nodes : List[Edge]
 
-            Edges from a list of: py: class:`Edge` objects are added to the
+            Edges from a list of :py:class:`Edge` objects are added to the
             path.
 
         kwargs : Any, optional(default={})
 
-            Attributes assigned to all nodes in the list as key = value pairs.
+            Attributes assigned to all edges in the list as ``key=value``
+            pairs.
 
         Examples
         --------
@@ -609,7 +609,7 @@ class Path(BaseClass):
 
         kwargs : Any, optional(default={})
 
-            Attributes assigned to the node as key = value pairs.
+            Attributes assigned to the edge as ``key=value`` pairs.
 
         Examples
         --------
@@ -732,7 +732,7 @@ class Path(BaseClass):
         ----------
         nodes: List[Node]
 
-            Nodes from a list of: py: class: `Node` objects are added to the
+            Nodes from a list of :py:class:`Node` objects are added to the
             path.
 
         kwargs: Any, optional(default={})
@@ -743,7 +743,7 @@ class Path(BaseClass):
         --------
         Generate some nodes and add them to a path
 
-        >>> from pathpy import Edge, Path
+        >>> from pathpy import Node, Path
         >>> a = Node('a')
         >>> b = Node('b')
         >>> c = Node('c')

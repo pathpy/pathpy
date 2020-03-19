@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-03-18 16:36 juergen>
+# Time-stamp: <Thu 2020-03-19 15:55 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -27,7 +27,165 @@ log = logger(__name__)
 
 
 class Network(BaseNetwork):
-    """Base class for a network."""
+    """Base class for a network.
+
+    A network is a structure amounting to a set of objects in which some of the
+    objects are related to each other. The objects correspond to mathematical
+    abstractions called nodes (or vertices) and each of the related pairs of
+    nodes is called an edge (or link). Furthermore, related edges form
+    paths. Thereby, the edges and paths may be directed or undirected.
+
+    In ``pathpy`` a :py:class:`Network` stores :py:class:`Node`,
+    :py:class:`Edge` and :py:class:`Path` objects with optional data or
+    attributes. Instances of this class capture a network that can be directed,
+    undirected, unweighted or weighted as well as static or temporal. Self
+    loops and multiple (parallel) edges are allowed.
+
+    Parameters
+    ----------
+
+    uid : str, optional (default = None)
+
+        The parameter ``uid`` is the unique identifier for the network. This
+        option can late be used for multi-layer networks. Currently the ``uid``
+        of the network is not in use.
+
+    directed : bool, optional  (default = True)
+
+        Specifies if a network contains directed edges and paths, i.e u->v->w
+        or undirected edges and paths i.d. u-v-w.  If ``True`` the all
+        subsequent objects are directed, i.e. quantities can only transmited
+        from the source node ``v`` to the traget node ``w``. If ``False`` the
+        al subsequent obects are undirected, i.e. quantities can be transmited
+        in both directions. Per default networks in ``pathpy`` are directed.
+
+    temporal : bool, optional (default = False)
+
+        A :py:class:`Network` can be static or temporal. If ``True`` the
+        network is temporal; i.e. properties of nodes, edges or paths can
+        change over time. If ``False`` the network is static, i.e. no changes
+        over time. Per default the network is assumed to be static.
+
+    args : Path
+
+        :py:class:`Path` objects can be used as arguments to build a
+        network. While the default options is using paths, `pathpy` also
+        supports :py:class:`Node`, :py:class:`Edge` objects and ``str`` uids to
+        generate networks.
+
+    kwargs : Any
+
+        Keyword arguments to store network attributes. Attributes are added to
+        the network as ``key=value`` pairs.
+
+    See Also
+    --------
+    Node, Edge, Path
+
+    Examples
+    --------
+    Examples
+    --------
+    Create an empty network structure with no nodes, edges or paths.
+
+    >>> form pathpy import Node, Edge, Path, Network
+    >>> net = Network()
+
+    Some properties of the network are: the name, if directed or if temporal
+
+    >>> net.name = 'my test network'
+    >>> net.name
+    my test network
+
+    Per default the network is directed and static
+
+    >>> net.directed
+    True
+    >>> net.temporal
+    False
+
+    The network can be grown in several ways.
+
+    **Nodes:**
+
+    Add single node to the network.
+
+    >>> net.add_node('a')
+
+    Also a node object can be added to the network.
+
+    >>> b = Node('b')
+    >>> net.add_node(b)
+
+    In addition to single nodes, also nodes from a list can added to the
+    network at once. Attributes are assigned to all nodes.
+
+    >>> net.add_nodes_from(['c','d','e'], color='green')
+    >>> net.nodes['c']['color']
+    'green'
+
+    Single nodes can be removed.
+
+    >>> net.remove_node('c')
+
+    While multiple nodes can be removed from a list of nodes.
+
+    >>> net.remove_nodes_from(['a','b'])
+
+    **Edges**
+
+    Adding a singe new edge to the network.
+
+    >>> net = Network()
+    >>> net.add_edge('a-b', length = 10)
+
+    Adding an existing edge object to the network.
+
+    >>> e = Edge('b', 'c', length = 5)
+    >>> net.add_edge(e)
+    >>> net.number_of_edges()
+    2
+
+    **Path**
+
+    Adding a single path to the network.
+
+    >>> net = Network()
+    >>> p = Path('a-b-c')
+    >>> net.add_path(p)
+    >>> net.number_of_nodes()
+    3
+    >>> net.number_of_edges()
+    2
+    >>> net.number_of_paths()
+    1
+
+    **str uids**
+
+    String uids can be used to add objects to the network.
+
+    >>> net = Network('a','b-c','c-d-e')
+    >>> net.number_of_nodes()
+    5
+    >>> net.number_of_edges()
+    3
+    >>> net.number_of_paths()
+    1
+
+    Plot a network.
+
+    >>> net = Network('a-b-c-d','b-e-f-c')
+    >>> plt = net.plot()
+    >>> plt.show('png')
+
+    .. plot::
+
+       import pathpy as pp
+       net = pp.Network('a-b-c-d','b-e-f-c')
+       plt = net.plot()
+       plt.show('png')
+
+    """
 
     def __init__(self, *args: Path, uid: str = '',
                  directed: bool = True, temporal: bool = False,
@@ -64,7 +222,7 @@ class Network(BaseNetwork):
 
         # add objects from args if given
         if args:
-            self.add_args(*args)
+            self._add_args(*args)
         # self.add_paths_from(list(args))
 
         # check the network class
@@ -112,6 +270,7 @@ class Network(BaseNetwork):
         Returns
         -------
         str
+
             Returns the description of the network with the class, the name (if
             deffined) and the assigned system id.
 
@@ -122,32 +281,11 @@ class Network(BaseNetwork):
         >>> from pathpy import Network
         >>> net = Network()
         >>> print(net)
+        <DirectedNetwork object  at 0x139942320561264x>
 
         """
         return '<{} object {} at 0x{}x>'.format(self._desc(),
                                                 self.name, id(self))
-
-    # def _repr_html_(self) -> str:
-    #     """Display an interactive d3js visualisation
-    # of the network in jupyter.
-
-    #     Returns
-    #     -------
-    #     html
-    #         Returns the html code for the d3js visualisation.
-
-    #     Examples
-    #     --------
-    #     Genarate simple network
-
-    #     >>> from pathpy import Network
-    #     >>> net = Network()
-    #     >>> net.add_edges_from([('a','b'),('b','c')]
-    #     >>> net
-
-    #     """
-    #     from pathpy import plot
-    #     return plot(self)
 
     def _desc(self) -> str:
         """Return a string *Network*."""
@@ -161,13 +299,14 @@ class Network(BaseNetwork):
     def uid(self) -> str:
         """Returns the unique id of the network.
 
-        Id of the network. If no id is assigned the network is called after the
+        Uid of the network. If no uid is assigned the network is called after the
         system id.
 
         Returns
         -------
         str
-            Returns the uid of the path as a string.
+
+            Returns the uid of the network as a string.
 
         Examples
         --------
@@ -179,6 +318,7 @@ class Network(BaseNetwork):
         testnet
 
         Generate a simple network without uid.
+
         >>> p = Network()
         >>> p.uid
         139862868063504
@@ -191,16 +331,17 @@ class Network(BaseNetwork):
 
     @property
     def name(self) -> str:
-        """Return the name of the network if defined, else an empty space.
+        """Return the name of the network if defined, else an empty string.
 
         The name of the network is an attribute of the network, in order to
         make the classification and identification easier. However the name of
-        the network do not have to be unique like an id. Therefore, the name of
+        the network do not have to be unique like an uid. Therefore, the name of
         the network can be changed.
 
         Returns
         -------
         str
+
             Returns the name of the network (if defined), otherwise an empty
             string is returnd.
 
@@ -214,12 +355,14 @@ class Network(BaseNetwork):
         Add a name of the network
 
         >>> net.name = 'my test network'
-        >>> print(net.name)
+        >>> net.name
+        'my test network'
 
-        Create a new network with name.
+        Create a new network with a name.
 
         >>> net = Network(name='an other network')
-        >>> print(net.name)
+        >>> net.name
+        'an other network'
 
         """
         return self.attributes.get('name', '')
@@ -231,22 +374,73 @@ class Network(BaseNetwork):
         Parameters
         ----------
         name : str
+
             New name of the network.
 
         """
         self.attributes['name'] = name
 
-    # TODO: Add also the paths as a shape inidcator
     @property
-    def shape(self) -> Tuple[int, int]:
-        """Return the size of the Network as tuple of number of nodes and number
-        of edges"""
-        return self.number_of_nodes(), self.number_of_edges()
+    def shape(self) -> Tuple[int, int, int]:
+        """Return the size of the Network as tuple of number of nodes, edges and paths.
+
+        Returns
+        -------
+        Tuple[int, int, int]
+
+            Size of the network as tuple: (number of nodes, number of edges,
+            number of paths)
+
+        Examples
+        --------
+        Genarate a simple network
+
+        >>> form pathpy import Network
+        >>> net = Network('a-b-c-d','b-e-f-c')
+        >>> net.shape
+        (6, 6, 2)
+
+        """
+        return self.number_of_nodes(), self.number_of_edges(), self.number_of_paths()
 
     @property
     def directed(self) -> bool:
-        """Return if the network is directed (True) or undirected (False)."""
+        """Return if the network is directed (True) or undirected (False).
+
+        Returns
+        -------
+        bool
+
+            Retun ``True`` if the network is directed or ``False`` if the
+            network is undirected.
+
+        Examples
+        --------
+        Generate an undirected network.
+
+        >>> from pathpy import Network
+        >>> net = Network('a-b', directed=False)
+        >>> net.directed
+        False
+        >>> net.edges['a-b'].directed
+        False
+
+        """
         return self._directed
+
+    @property
+    def temporal(self) -> bool:
+        """Return if the network is temproal (True) or static (False).
+
+        Returns
+        -------
+        bool
+
+            Retun ``True`` if the network is temporal or ``False`` if the
+            network is static.
+
+        """
+        return self._temporal
 
     @property
     def nodes(self) -> NodeDict:
@@ -255,6 +449,7 @@ class Network(BaseNetwork):
         Returns
         -------
         NodeDict
+
             Return a dictionary with the :py:class:`Node` uids as key and the
             :py:class:`Node` objects as values, associated with the network.
 
@@ -262,14 +457,14 @@ class Network(BaseNetwork):
         --------
         Generate a simple network.
 
-        >>> from pathpy import Path, Network
-        >>> p = Path('a','b','c')
-        >>> net = Network(p)
+        >>> from pathpy import Network
+        >>> net = Network('a-b-c')
 
         Get the nodes of the network
 
         >>> net.nodes
         {'a': Node a, 'b': Node b, 'c': Node c}
+
         """
         return self._nodes
 
@@ -280,6 +475,7 @@ class Network(BaseNetwork):
         Returns
         -------
         EdgeDict
+
             Return a dictionary with the :py:class:`Edge` uids as key and the
             :py:class:`Edge` objects as values, associated with the network.
 
@@ -287,24 +483,25 @@ class Network(BaseNetwork):
         --------
         Generate a simple network.
 
-        >>> from pathpy import Path, Network
-        >>> p = Path('a','b','c')
-        >>> net = Network(p)
+        >>> from pathpy import Network
+        >>> net = Network('a-b-c')
 
         Get the edges of the network
 
         >>> net.edges
         {'a-b': Edge a-b, 'b-c': Edge b-c}
+
         """
         return self._edges
 
     @property
     def paths(self) -> PathDict:
-        """Return the associated pathss of the network.
+        """Return the associated paths of the network.
 
         Returns
         -------
         PathDict
+
             Return a dictionary with the :py:class:`Path` uids as key and the
             :py:class:`Path` objects as values, associated with the network.
 
@@ -313,13 +510,13 @@ class Network(BaseNetwork):
         Generate a simple network.
 
         >>> from pathpy import Path, Network
-        >>> p = Path('a','b','c')
-        >>> net = Network(p)
+        >>> net = Network('a-b-c')
 
         Get the paths of the network
 
         >>> net.paths
         {'a-b|b-c': Path a-b|b-c}
+
         """
         return self._paths
 
@@ -343,7 +540,7 @@ class Network(BaseNetwork):
         summary = [
             'Name:\t\t\t{}\n'.format(self.name),
             'Type:\t\t\t{}\n'.format(self.__class__.__name__),
-            'Directed:\t\t{}\n'.format(str(self.directed)),
+            # 'Directed:\t\t{}\n'.format(str(self.directed)),
             'Number of unique nodes:\t{}\n'.format(self.number_of_nodes()),
             'Number of unique edges:\t{}'.format(self.number_of_edges()),
             'Number of unique paths:\t{}'.format(self.number_of_paths()),
@@ -363,12 +560,14 @@ class Network(BaseNetwork):
         Parameters
         ----------
         unique : bool, optional (default = True)
-            If unique is True only the number of unique nodes in the network is
-            returnd.
+
+            If unique is ``True`` only the number of unique nodes in the
+            network is returnd.
 
         Returns
         -------
         int
+
             Returns the number of nodes in the network.
 
         Examples
@@ -376,16 +575,16 @@ class Network(BaseNetwork):
         Generate a simple network.
 
         >>> from pathy import Path, Network
-        >>> net = Network(Path('a', 'b', 'c', 'a', 'b'))
+        >>> net = Network('a-b-c-a-b')
 
         Get the number of unique nodes:
 
-        >>> p.number_of_nodes()
+        >>> net.number_of_nodes()
         3
 
-        Get the number of all nodes in the network:
+        Get the number of all observed node visits in the network:
 
-        >>> p.number_of_nodes(unique=False)
+        >>> net.number_of_nodes(unique=False)
         5
 
         """
@@ -400,12 +599,14 @@ class Network(BaseNetwork):
         Parameters
         ----------
         unique : bool, optional (default = True)
-            If unique is True only the number of unique edges in the network is
-            returnd.
+
+            If unique is ``True`` only the number of unique edges in the
+            network is returnd.
 
         Returns
         -------
         int
+
             Returns the number of edges in the network.
 
         Examples
@@ -413,14 +614,14 @@ class Network(BaseNetwork):
         Generate a simple network.
 
         >>> from pathy import Path, Network
-        >>> net = Network(Path('a', 'b', 'c', 'a', 'b'))
+        >>> net = Network('a-b-c-a-b')
 
         Get the number of unique edges:
 
         >>> net.number_of_edges()
         3
 
-        Get the number of all edges in the path:
+        Get the number of all observed edges in the path:
 
         >>> net.number_of_edges(unique=False)
         4
@@ -437,29 +638,29 @@ class Network(BaseNetwork):
         Parameters
         ----------
         unique : bool, optional (default = True)
-            If unique is True only the number of unique paths in the network is
-            returnd.
+
+            If unique is ``True`` only the number of unique paths in the
+            network is returnd.
 
         Returns
         -------
         int
+
             Returns the number of paths in the network.
 
         Examples
         --------
         Generate a simple network.
 
-        >>> from pathy import Path, Network
-        >>> p1 = Path('a', 'b', 'c')
-        >>> p2 = Path('d', 'b', 'e')
-        >>> net = Network(p1, p2 , p1)
+        >>> from pathy import Network
+        >>> net = Network('a-b-c', 'd-b-e', 'a-b-c')
 
         Get the number of unique paths:
 
         >>> net.number_of_paths()
         2
 
-        Get the number of all paths in the path:
+        Get the number of all observed paths in the path:
 
         >>> net.number_of_paths(unique=False)
         3
@@ -471,17 +672,31 @@ class Network(BaseNetwork):
             return sum(self.paths.counter().values())
 
     def add_nodes_from(self, nodes: List[Node], **kwargs: Any) -> None:
-        """Add multiple nodes from a list.
+        """Add multiple nodes from a list to the network.
 
         Parameters
         ----------
         nodes : List[Node]
 
             Nodes from a list of :py:class:`Node` objects are added to the
-            network.
+            networ.
 
-        kwargs : Any, optional (default = {})
-            Attributes assigned to all nodes in the list as key=value pairs.
+        kwargs: Any, optional(default={})
+
+            Attributes assigned to all nodes in the list as ``key=value`` pairs.
+
+        Examples
+        --------
+        Generate some nodes and add them to the network
+
+        >>> from pathpy import Node, Network
+        >>> a = Node('a')
+        >>> b = Node('b')
+        >>> c = Node('c')
+        >>> net = Network()
+        >>> net.add_nodes_from([a, b, c])
+        >>> net.number_of_nodes()
+        3
 
         """
         # iterate over a list of nodes
@@ -490,16 +705,31 @@ class Network(BaseNetwork):
             self.add_node(node, **kwargs)
 
     def add_edges_from(self, edges: Sequence[Edge], **kwargs: Any) -> None:
-        """Add multiple edges from a list.
+        """Add multiple edges from a list to the network.
 
         Parameters
         ----------
-        nodes: List[Edge]
+        nodes : List[Edge]
+
             Edges from a list of :py:class:`Edge` objects are added to the
             network.
 
-        kwargs: Any, optional(default={})
-            Attributes assigned to all nodes in the list as key = value pairs.
+        kwargs : Any, optional(default={})
+
+            Attributes assigned to all edges in the list as ``key=value``
+            pairs.
+
+        Examples
+        --------
+        Generate some edges and add them to the network.
+
+        >>> from pathpy import Edge, Network
+        >>> e1 = Edge('a', 'b')
+        >>> e2 = Edge('b', 'c')
+        >>> net = Network()
+        >>> net.add_edges_from([e1, e2])
+        >>> net.number_of_edges()
+        2
 
         """
 
@@ -509,17 +739,18 @@ class Network(BaseNetwork):
             self.add_edge(edge, **kwargs)
 
     def add_paths_from(self, paths: Sequence[Path], **kwargs: Any) -> None:
-        """Add multiple paths from a list.
+        """Add multiple paths from a list to the network.
 
         Parameters
         ----------
         paths: List[Path]
-            Paths from a list of :py:class:`path` objects are added to the
+
+            Paths from a list of :py:class:`Path` objects are added to the
             network.
 
         Examples
         --------
-        Generate a simple network generated by paths.
+        Generate some paths and add them to the network,
 
         >>> from pathpy import Path,Network
         >>> p1 = Path('a', 'c', 'd')
@@ -538,10 +769,12 @@ class Network(BaseNetwork):
 
         Parameters
         ----------
-        node : :py:class:`Node`
+        node : Node
+
             The :py:class:`Node` object, which will be added to the network.
 
         kwargs : Any, optional (default = {})
+
             Attributes assigned to the node as key=value pairs.
 
         Examples
@@ -555,7 +788,7 @@ class Network(BaseNetwork):
         >>> net.nodes
         {'a': Node a}
 
-        Generate new node from string.
+        Generate new node from string uid.
 
         >>> net.add_node('b', color='blue')
         >>> net.nodes
@@ -580,7 +813,36 @@ class Network(BaseNetwork):
         self._check_class()
 
     def add_edge(self, edge: Edge, *args, **kwargs: Any) -> None:
-        """Add a single edge to the network."""
+        """Add a single edge to the network.
+
+        Parameters
+        ----------
+        edge : Edge
+
+            The :py:class:`Edge` object, which will be added to the network.
+
+        kwargs : Any, optional(default={})
+
+            Attributes assigned to the edge as ``key=value`` pairs.
+
+        Examples
+        --------
+        Generate an edge and add it to the network.
+
+        >>> from pathpy import Edge, Network
+        >>> e = Edge('a', 'b')
+        >>> net = Network()
+        >>> net.add_edge(e)
+        >>> net.number_of_edges()
+        1
+
+        Add an other edge.
+
+        >>> net.add_edge('b-c')
+        >>> net.number_of_edges()
+        2
+
+        """
 
         # check if the right object is provided
         if self.check:
@@ -605,36 +867,35 @@ class Network(BaseNetwork):
 
         Parameters
         ----------
-        path: :py:class:`Path`
-            The: py: class: `Edge` object, which will be added to the path.
+        path : Path
+
+            The :py:class:`Path` object, which will be added to the network.
+
+        kwargs : Any, optional(default={})
+
+            Attributes assigned to the path as ``key=value`` pairs.
+
+        Examples
+        --------
+        Generate a path and add it to the network.
+
+        >>> from pathpy import Path, Network
+        >>> p = Path('a', 'b', 'c')
+        >>> net = Network()
+        >>> net.add_path(p)
+        >>> net.number_of_paths()
+        1
+
+        Add an other edge.
+
+        >>> net.add_path('e-f-g')
+        >>> net.number_of_paths()
+        2
 
         """
-        # print(path)
-        # for n, v in path.nodes.items():
-        #     print(n, v.incoming, v.outgoing)
+        # check if the right object is provided
         if self.check:
             path = _check_path(self, path, *args, **kwargs)
-
-        # # check if the right object is provided
-        # if not isinstance(path, Path) and self.check:
-        #     # TODO: Add this _check function
-        #     #misc = _check_path(self, path, *args, **kwargs)
-        #     path = Path(path, **kwargs)
-
-        # TODO : Move this to check paths
-        # update nodes
-        # for uid, node in path.nodes.items():
-        #     if uid in self.nodes:
-        #         #         print(uid)
-        #         #         print('>>> in ', node.incoming, self.nodes[uid].incoming)
-        #         #         print('>>> ou', node.outgoing, self.nodes[uid].outgoing)
-        #         node.update(self.nodes[uid], attributes=False)
-
-        # # update nodes, edges and the path
-        # if path.uid not in self.paths:
-        #     self.nodes.update(path.nodes)
-        #     self.edges.update(path.edges)
-        #     self.paths[path.uid] = path
 
         # add new path to the network or update modified path
         if (path.uid not in self.paths or
@@ -651,8 +912,8 @@ class Network(BaseNetwork):
         # check the network class
         self._check_class()
 
-    def add_args(self, *args: Any) -> None:
-        """Add args to the path."""
+    def _add_args(self, *args: Any) -> None:
+        """Add args to the network."""
 
         # iterate over all given arguments
         for arg in args:
@@ -688,15 +949,33 @@ class Network(BaseNetwork):
                 raise AttributeError
 
     def remove_node(self, node: str) -> None:
-        """Remove a single node from the network."""
+        """Remove a single node from the network.
+
+        .. todo::
+
+            Implement this function!
+
+        """
         raise NotImplementedError
 
     def remove_edge(self, path: str) -> None:
-        """Remove a single edge from the network."""
+        """Remove a single edge from the network.
+
+        .. todo::
+
+            Implement this function!
+
+        """
         raise NotImplementedError
 
     def remove_path(self, path: str) -> None:
-        """Remove a single path from the network."""
+        """Remove a single path from the network.
+
+        .. todo::
+
+            Implement this function!
+
+        """
         raise NotImplementedError
 
     def _check_class(self):

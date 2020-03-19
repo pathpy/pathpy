@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an single edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-03-19 11:20 juergen>
+# Time-stamp: <Thu 2020-03-19 14:30 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -69,7 +69,7 @@ class Edge(BaseClass):
         as a key value for all dict which saving edge objects. If no edge uid
         is specified the edge ``uid`` will be defined as a combination of the
         node uids separated by ``-``. The separation sign can be changed in the
-        :ref:`config_file`.
+        config file.
 
     directed : bool, optional (default = True)
 
