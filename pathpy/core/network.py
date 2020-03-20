@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-03-19 15:55 juergen>
+# Time-stamp: <Fri 2020-03-20 12:33 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -956,7 +956,7 @@ class Network(BaseNetwork):
             Implement this function!
 
         """
-        raise NotImplementedError
+        pass
 
     def remove_edge(self, path: str) -> None:
         """Remove a single edge from the network.
@@ -968,15 +968,87 @@ class Network(BaseNetwork):
         """
         raise NotImplementedError
 
-    def remove_path(self, path: str) -> None:
+    def remove_path(self, uid: str, frequency: int = None) -> None:
         """Remove a single path from the network.
 
-        .. todo::
+        .. note::
 
-            Implement this function!
+            If a path is removed from the network. The underlying nodes and
+            edges remain in the network. I.e. only the :py:class:`Path` object
+            is removed. Edge and Node counter are adjusted accordingly.
+
+        Parameters
+        ----------
+
+        uid : str
+
+            The parameter ``uid`` is the unique identifier for the path which
+            should be removed.
+
+        frequency : int, optional (default = None)
+
+            Number of path observations which should be removed from the
+            network. Per default all path observation are removed.
+
+        Examples
+        --------
+        Generate a network and add paths with a frequency.
+
+        >>> from pathpy import Network
+        >>> net = Network()
+        >>> net.add_paths_from(['a-b-c-d', 'b-c-d'], frequency=10)
+        >>> net.paths.counter()
+        Counter({'a-b|b-c|c-d': 10, 'b-c|c-d': 10})
+
+        Remove some path observations.
+
+        >>> net.remove_path('b-c-d', frequency=3)
+        >>> net.paths.counter()
+        Counter({'a-b|b-c|c-d': 10, 'b-c|c-d': 7})
+
+        Remove the path.
+
+        >>> net.remove_path('b-c|c-d')
+        >>> net.paths.counter()
+        Counter({'a-b|b-c|c-d': 10})
 
         """
-        raise NotImplementedError
+        # initializing varialbes
+        path: str = uid
+
+        # check if the right object is provided
+        if self.check:
+            # check the given string
+            string, mode = _check_str(self, path, expected='path')[0]
+
+            # if string represents a path
+            if mode == 'path':
+                # get the path uid
+                path = _check_path(self, string[0]).uid
+            else:
+                log.warning('Invalide path uid "{}"!'.format(string[0]))
+
+        # check if the path is in the network
+        if path in self.paths:
+            # get the path object and the frequency
+            _path = self.paths[path]
+            _frequency = self.paths.counter()[path]
+
+            # check if frequency is given and smaller than observed
+            if frequency is not None and frequency < _frequency:
+                _frequency = frequency
+            else:
+                frequency = None
+
+            # decrease the counters
+            self.nodes.decrease_counter(_path.as_nodes, _frequency)
+            self.edges.decrease_counter(_path.as_edges, _frequency)
+            self.paths.decrease_counter(_path.uid, _frequency)
+
+            # remove path from the network
+            # if frequency is equal to the observations
+            if frequency is None:
+                del self.paths[path]
 
     def _check_class(self):
         """Check which is the appropriated network class."""

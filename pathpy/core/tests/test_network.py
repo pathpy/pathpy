@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2019-12-16 16:15 juergen>
+# Time-stamp: <Fri 2020-03-20 12:32 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -15,14 +15,14 @@ from pathpy import Node, Edge, Path, Network
 # ------------
 
 
-# @pytest.fixture(params=[True, False])
-# def net(request):
-#     net = Network(directed=request.param)
-#     net.add_edge('ab', 'a', 'b')
-#     net.add_edge('bc', 'b', 'c')
-#     net.add_edge('cd', 'c', 'd')
-#     net.add_edge('ab2', 'a', 'b')
-#     return net
+@pytest.fixture(params=[True, False])
+def net(request):
+    net = Network(directed=request.param)
+    net.add_edge('a', 'b')
+    net.add_edge('b', 'c')
+    net.add_edge('c', 'd')
+    net.add_edge('a', 'b')
+    return net
 
 # test magic methods
 # ------------------
@@ -364,21 +364,38 @@ def test_check_class():
     # net.summary()
     pass
 
-# def test_remove_node(net):
+
+def test_remove_path():
+    """Test to remove a path from the network."""
+    net = Network()
+    net.add_paths_from(['a-b-c-d', 'b-c-d'], frequency=10)
+
+    net.remove_path('b-c-d', frequency=3)
+    assert net.paths.counter()['b-c|c-d'] == 7
+    assert net.nodes.counter()['b'] == 17
+    assert net.edges.counter()['b-c'] == 17
+
+    net.remove_path('b-c|c-d')
+    assert net.number_of_paths() == 1
+    assert net.nodes.counter()['b'] == 10
+    assert net.edges.counter()['b-c'] == 10
+
+    net.remove_path('a-b-c-d')
+    assert net.number_of_paths() == 0
+    assert net.nodes.counter()['b'] == 0
+    assert net.edges.counter()['b-c'] == 0
+
+    net = Network()
+    net.add_paths_from(['a-b-c-d', 'b-c-d'], frequency=10)
+
+    net.remove_path('b-c-d', frequency=30)
+    assert net.number_of_paths() == 1
+    assert net.nodes.counter()['b'] == 10
+    assert net.edges.counter()['b-c'] == 10
+
+
+# def test_remove_node():
 #     """Test to remove node from a network."""
-
-#     non = net.number_of_nodes()
-#     noe = net.number_of_edges()
-
-#     # number of edges sharing the node b
-#     n2e = len(net.nodes['b'].adjacent_edges)
-
-#     net.remove_node('b')
-
-#     assert net.number_of_nodes() == non - 1
-#     assert net.number_of_edges() == noe - n2e
-
-#     net.remove_node('not a node')
 
 
 # def test_remove_nodes_from(net):
