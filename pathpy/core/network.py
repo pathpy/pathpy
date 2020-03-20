@@ -3,12 +3,12 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-03-20 13:49 juergen>
+# Time-stamp: <Fri 2020-03-20 14:04 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, List, Tuple, Optional, Sequence
+from typing import Any, List, Tuple, Optional, Sequence, Set
 
 from .. import logger, config
 from .base import BaseNetwork
@@ -948,15 +948,53 @@ class Network(BaseNetwork):
                 log.error('Invalide argument "{}"!'.format(arg))
                 raise AttributeError
 
-    def remove_node(self, node: str) -> None:
+    def remove_node(self, uid: str) -> None:
         """Remove a single node from the network.
 
-        .. todo::
+        .. note::
 
-            Implement this function!
+            If an node is removed from the network, all associated edges and
+            paths are deleted.
+
+        Parameters
+        ----------
+
+        uid : str
+
+            The parameter ``uid`` is the unique identifier for the node which
+            should be removed.
+
+        Examples
+        --------
+        Generate a simple network.
+
+        >>> from pathpy import Network
+        >>> net = Network('a-b', 'b-c', 'c-d', 'a-b-c-d')
+        >>> net.shape
+        (4, 3, 1)
+
+        Remove a node.
+
+        >>> net.remove_node('b')
+        >>> net.shape
+        (3, 1, 0)
 
         """
-        pass
+        # initializing varialbes
+        node: str = uid
+
+        # check if the node node exists in the network
+        if node in self.nodes:
+
+            # get set of adjacent edges
+            _edges: Set = self.nodes[node].adjacent_edges
+
+            # remove edges
+            for edge in _edges:
+                self.remove_edge(edge)
+
+            # remove node
+            del self.nodes[node]
 
     def remove_edge(self, uid: str, *args: str) -> None:
         """Remove a single edge from the network.
@@ -991,8 +1029,9 @@ class Network(BaseNetwork):
         2
 
         """
-
+        # initializing varialbes
         edge: str = uid
+
         # check if the right object is provided
         if self.check:
             edge = _check_edge(self, edge, *args).uid

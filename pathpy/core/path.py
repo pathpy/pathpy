@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-03-19 15:58 juergen>
+# Time-stamp: <Fri 2020-03-20 12:33 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -53,11 +53,11 @@ class Path(BaseClass):
 
     uid : str, optional (default = None)
 
-        The parameter ``uid`` is the unique identifier for the edge. Every edge
+        The parameter ``uid`` is the unique identifier for the path. Every path
         should have an uid. The uid is converted to a string value and is used
-        as a key value for all dict which saving edge objects. If no edge uid
-        is specified the edge ``uid`` will be defined as a combination of the
-        node uids separated by ``-``. The separation sign can be changed in the
+        as a key value for all dict which saving edge objects. If no path uid
+        is specified the path ``uid`` will be defined as a combination of the
+        edge uids separated by ``|``. The separation sign can be changed in the
         config file.
 
     directed : bool, optional (default = True)

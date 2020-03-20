@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : _check_str.py -- Helper function to check the str format
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-03-18 08:43 juergen>
+# Time-stamp: <Fri 2020-03-20 09:50 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================

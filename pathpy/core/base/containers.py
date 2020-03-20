@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : containers.py -- Base containers for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-03-18 08:49 juergen>
+# Time-stamp: <Fri 2020-03-20 12:05 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
