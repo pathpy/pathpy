@@ -3,14 +3,14 @@
 # =============================================================================
 # File      : edge.py -- Base class for an single edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-03-20 10:22 juergen>
+# Time-stamp: <Fri 2020-03-20 14:18 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, List
+from typing import Any, List, Optional
 
-from .. import logger
+from .. import logger, config
 from .base import BaseClass
 from .base import NodeDict
 from .utils.separator import separator
@@ -417,6 +417,38 @@ class Edge(BaseClass):
 
         """
         return self._directed
+
+    def summary(self) -> Optional[str]:
+        """Returns a summary of the edge.
+
+        The summary contains the uid, the associated nodes, and if it is
+        directed or not.
+
+        If logging is enabled (see config), the summary is written to the log
+        file and showed as information on in the terminal. If logging is not
+        enabled, the function will return a string with the information, which
+        can be printed to the console.
+
+        Returns
+        -------
+        str
+
+            Return a summary of the edge.
+
+        """
+        summary = [
+            'Uid:\t\t\t{}\n'.format(self.uid),
+            'Type:\t\t\t{}\n'.format(self.__class__.__name__),
+            'Directed:\t\t{}\n'.format(str(self.directed)),
+            'Source node:\t\t{}\n'.format(self.v.uid),
+            'Target node:\t\t{}'.format(self.w.uid),
+        ]
+        if config['logging']['enabled']:
+            for line in summary:
+                log.info(line.rstrip())
+            return None
+        else:
+            return ''.join(summary)
 
     def add_node(self, node: Node, **kwargs: Any) -> None:
         """Add a single node to the edge.

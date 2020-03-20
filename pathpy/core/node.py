@@ -3,14 +3,14 @@
 # =============================================================================
 # File      : node.py -- Base class for a single node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-03-18 11:01 juergen>
+# Time-stamp: <Fri 2020-03-20 14:22 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, Set
+from typing import Any, Set, Optional
 
-from .. import logger
+from .. import logger, config
 from .base import BaseClass
 
 # create logger for the Node class
@@ -267,6 +267,36 @@ class Node(BaseClass):
 
         """
         return self.incoming.union(self.outgoing)
+
+    def summary(self) -> Optional[str]:
+        """Returns a summary of the node.
+
+        The summary contains the uid, the type, the in- and outdegree.
+
+        If logging is enabled (see config), the summary is written to the log
+        file and showed as information on in the terminal. If logging is not
+        enabled, the function will return a string with the information, which
+        can be printed to the console.
+
+        Returns
+        -------
+        str
+
+            Return a summary of the edge.
+
+        """
+        summary = [
+            'Uid:\t\t\t{}\n'.format(self.uid),
+            'Type:\t\t\t{}\n'.format(self.__class__.__name__),
+            'Incoming:\t\t{}\n'.format(len(self.incoming)),
+            'Outgoing:\t\t{}\n'.format(len(self.outgoing)),
+        ]
+        if config['logging']['enabled']:
+            for line in summary:
+                log.info(line.rstrip())
+            return None
+        else:
+            return ''.join(summary)
 
     def update(self, other: Node = None, attributes: bool = True,
                **kwargs: Any) -> None:
