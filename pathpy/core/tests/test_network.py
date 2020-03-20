@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-03-20 12:32 juergen>
+# Time-stamp: <Fri 2020-03-20 13:49 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -392,6 +392,26 @@ def test_remove_path():
     assert net.number_of_paths() == 1
     assert net.nodes.counter()['b'] == 10
     assert net.edges.counter()['b-c'] == 10
+
+
+def test_remove_edge():
+    """Test to remove an edge from the network."""
+
+    net = Network()
+    net.add_edges_from(['a-b', 'b-c', 'c-d'])
+
+    net.remove_edge('b-c')
+    assert net.number_of_edges() == 2
+    assert net.nodes['b'].outgoing == set()
+    assert net.nodes['c'].incoming == set()
+    assert net.nodes.counter()['b'] == 1
+
+    net = Network()
+    net.add_edges_from(['a-b', 'b-c', 'c-d'])
+    net.add_path('a-b-c-d')
+
+    net.remove_edge('b-c')
+    assert net.number_of_paths() == 0
 
 
 # def test_remove_node():

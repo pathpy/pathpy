@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-03-20 12:33 juergen>
+# Time-stamp: <Fri 2020-03-20 13:49 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -958,22 +958,72 @@ class Network(BaseNetwork):
         """
         pass
 
-    def remove_edge(self, path: str) -> None:
+    def remove_edge(self, uid: str, *args: str) -> None:
         """Remove a single edge from the network.
 
-        .. todo::
+        .. note::
 
-            Implement this function!
+            If an edge is removed from the network, all associated paths are
+            deleted. Nodes are not removed from the network. Edge and Node
+            counter are adjusted accordingly.
+
+        Parameters
+        ----------
+
+        uid : str
+
+            The parameter ``uid`` is the unique identifier for the edge which
+            should be removed.
+
+        Examples
+        --------
+        Generate a network with some edges.
+
+        >>> from pathpy import Network
+        >>> net = Network('a-b', 'b-c', 'c-d')
+        >>> net.number_of_edges()
+        3
+
+        Remove an edge.
+
+        >>> net.remove_edge('b-c')
+        >>> net.number_of_edges()
+        2
 
         """
-        raise NotImplementedError
+
+        edge: str = uid
+        # check if the right object is provided
+        if self.check:
+            edge = _check_edge(self, edge, *args).uid
+
+        # check if the edge is in the network
+        if edge in self.edges:
+
+            # TODO: Find a better solution for this.
+            #       Now all paths have to be checked.
+            for path in list(self.paths.values()):
+                # check if edge is part of a path
+                if edge in path.as_edges:
+                    # remove path if edge is removed
+                    self.remove_path(path.uid)
+
+            # update counters
+            self.nodes.decrease_counter(
+                self.edges[edge].nodes, self.edges.counter()[edge])
+
+            # remove associated nodes
+            self.edges[edge].delete()
+
+            # remove the edge from the network
+            del self.edges[edge]
 
     def remove_path(self, uid: str, frequency: int = None) -> None:
         """Remove a single path from the network.
 
         .. note::
 
-            If a path is removed from the network. The underlying nodes and
+            If a path is removed from the network, the underlying nodes and
             edges remain in the network. I.e. only the :py:class:`Path` object
             is removed. Edge and Node counter are adjusted accordingly.
 

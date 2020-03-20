@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an single edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-03-19 14:30 juergen>
+# Time-stamp: <Fri 2020-03-20 10:22 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -276,7 +276,12 @@ class Edge(BaseClass):
         """
         return hash(self.uid)
 
-    def __del__(self) -> None:
+    # def __del__(self) -> None:
+    #     """Delete the edge."""
+    #     # update associated nodes
+    #     self.delete()
+
+    def delete(self) -> None:
         """Delete the edge."""
         # update associated nodes
         try:
