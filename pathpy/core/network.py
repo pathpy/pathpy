@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-03-20 14:04 juergen>
+# Time-stamp: <Mon 2020-03-23 11:25 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -263,6 +263,11 @@ class Network(BaseNetwork):
         from ..visualizations.plot import plot
     except ImportError:
         log.debug('pathpy.plot failed to be imported')
+
+    try:
+        from ..io.edgelist import read_edgelist
+    except ImportError:
+        log.debug('pathpy.io.edgelist failed to be imported')
 
     def __repr__(self) -> str:
         """Return the description of the network.
