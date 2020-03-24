@@ -525,6 +525,80 @@ class Network(BaseNetwork):
         """
         return self._paths
 
+    def successors(self, v) -> Set[str]:
+        """Returns the uids of all successor nodes for a given node.
+
+        Returns
+        -------
+        Set[str]
+
+            Return the uids of all successor nodes.
+
+        Examples
+        --------
+        Generate network with two nodes and a (directed) edge.
+
+        >>> import pathpy as pp
+        >>> n = pp.Network()
+        >>> n.add_edge('u', 'v')
+
+        Print the successors for node u.
+
+        >>> n.successors('u')
+        {'v'}
+
+        """
+        successors = set()
+        node = self.nodes[v]
+        for e_id in node.adjacent_edges:
+            e = self.edges[e_id]
+            if e.directed:
+                if e.v == node:
+                    successors.add(e.w.uid)
+            else:
+                if e.w == node:
+                    successors.add(e.v.uid)
+                else:
+                    successors.add(e.w.uid)
+        return successors
+
+    def predecessors(self, v) -> Set[str]:
+        """Returns the uids of all predecessor nodes for a given node.
+
+        Returns
+        -------
+        Set[str]
+
+            Return the uids of all predecessor nodes.
+
+        Examples
+        --------
+        Generate network with two nodes and a (directed) edge.
+
+        >>> import pathpy as pp
+        >>> n = pp.Network()
+        >>> n.add_edge('u', 'v')
+
+        Print the predecessors for node v.
+
+        >>> n.predecessors('v')
+        {'u'}
+
+        """
+        predecessors = set()
+        node = self.nodes[v]
+        for e_id in node.adjacent_edges:
+            e = self.edges[e_id]
+            if e.directed:
+                if e.w == node:
+                    predecessors.add(e.v.uid)
+            else:
+                if e.w == node:
+                    predecessors.add(e.v.uid)
+                else:
+                    predecessors.add(e.w.uid)
+        return predecessors
+
     def summary(self) -> Optional[str]:
         """Returns a summary of the network.
 
