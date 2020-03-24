@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : config.py -- Module to read and parse configuration files
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sun 2020-01-12 11:56 juergen>
+# Time-stamp: <Tue 2020-03-24 11:19 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -47,11 +47,16 @@ config['computation']['check_code'] = parser.getboolean(
 config['object']['separator'] = parser.get('object', 'separator')
 
 config['edge']['separator'] = parser.get('edge', 'separator')
+config['edge']['replace'] = parser.get('edge', 'replace')
+config['edge']['v_synonyms'] = parser.get('edge', 'v_synonyms').split(", ")
+config['edge']['w_synonyms'] = parser.get('edge', 'w_synonyms').split(", ")
 
 
 config['path']['separator'] = parser.get('path', 'separator')
+config['path']['replace'] = parser.get('path', 'replace')
 config['path']['max_name_length'] = parser.getint('path', 'max_name_length')
 config['hon']['separator'] = parser.get('hon', 'separator')
+config['hon']['replace'] = parser.get('hon', 'replace')
 
 config['temporal']['time'] = parser.get('temporal', 'time')
 config['temporal']['active'] = parser.get('temporal', 'active')
