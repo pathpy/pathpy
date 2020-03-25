@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : easel.py -- Environment to draw the pathpy objects
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-03-25 09:34 juergen>
+# Time-stamp: <Wed 2020-03-25 14:27 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -531,30 +531,38 @@ class D3JS(Easel):
         try:
             # check if python is used in a jupyter environment
             # TODO: find a more elegant method to do this.
-            get_ipython()
-            shell = get_ipython().config
-            print(shell)
+            get_ipython
 
-            from IPython.display import display, HTML
+            from IPython.display import display_html
 
+            # generate single html file
             html = self._generate_html(config, data, **kwargs)
-            # print(html)
-            display(HTML(html))
-            display(HTML('<h1>Hello, world!</h1>'))
-            # log.debug('Load js libraries')
-            # self._load_js_libraries()
 
-            # log.debug('create js network')
-            # self._create_js_network(config, data)
-
-            with open('plottest.html', 'w+') as f:
-                f.write(html)
+            # display html file
+            display_html(html, raw=True)
 
         except:
 
             log.debug('Not in an IPython environment.')
 
-            self._generate_html(config, data, **kwargs)
+            # get current directory
+            current_dir = os.getcwd()
+
+            # create temp file name
+            filename = os.path.join(current_dir, self.filename)
+
+            # generate html file
+            html = self._generate_html(config, data, **kwargs)
+
+            # write file to disc
+            # TODO: write temp file
+            with open(filename, 'w+') as f:
+                f.write(html)
+
+            print(filename)
+            # open the file
+            webbrowser.open(r'file:///'+filename)
+
             # # get directories and file name
             # current_dir, output_dir = self._get_directories(self.filename)
 
@@ -582,13 +590,12 @@ class D3JS(Easel):
 
             # # change back to the working directory
             # os.chdir(current_dir)
+
     def _generate_html(self, config, data, **kwargs):
         log.debug('Generate single html document.')
         widgets_id = 'x'+uuid.uuid4().hex
         network_id = 'x'+uuid.uuid4().hex
 
-        print(widgets_id)
-        print(network_id)
         # load template
         with open(os.path.join(self.base_dir, 'template.html')) as f:
             js_template = f.read()
@@ -614,15 +621,13 @@ class D3JS(Easel):
         # load required libraries
         from IPython.display import display, Javascript, HTML
 
-        display(HTML('<h1>Hello, world!</h1>'))
-        # display(HTML('<script data-main="/home/juergen/dev/pathpy/pathpy/visualizations/network/js/main" src="/home/juergen/dev/pathpy/pathpy/visualizations/network/lib/require.js"></script>'))
-        display(HTML(filename='./mytest/net3.html'))
-        # display(Javascript("require.config({paths: {d3: 'https://d3js.org/d3.v5.min'}});"))
-        # display(Javascript(filename=self.base_dir+"/js/tooltip.js"))
-        # display(Javascript(filename=self.base_dir+"/js/network.js"))
-        # display(Javascript(filename=self.base_dir+"/js/widgets.js"))
-        # display(Javascript(filename=self.base_dir+"/js/slider.js"))
-        # display(HTML(filename=self.base_dir+"/css/style.css.html"))
+        display(Javascript(
+            "require.config({paths: {d3: 'https://d3js.org/d3.v5.min'}});"))
+        display(Javascript(filename=self.base_dir+"/js/tooltip.js"))
+        display(Javascript(filename=self.base_dir+"/js/network.js"))
+        display(Javascript(filename=self.base_dir+"/js/widgets.js"))
+        display(Javascript(filename=self.base_dir+"/js/slider.js"))
+        display(HTML(filename=self.base_dir+"/css/style.css.html"))
 
     def _create_js_network(self, config, data):
 
