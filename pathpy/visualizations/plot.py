@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : plot.py -- Module to plot networks as a tikz-network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-03-25 09:39 juergen>
+# Time-stamp: <Wed 2020-03-25 13:32 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -23,7 +23,7 @@ def plot(self, filename=None, fileformat=None, **kwargs):
 
     # plot the network
     plt.plot(self, filename=filename, fileformat=fileformat, **kwargs)
-    # return plt
+    return plt
 
 
 class Plot:
@@ -59,7 +59,7 @@ class Plot:
                   fileformat=fileformat, **kwargs)
 
     def _repr_html_(self):
-        self.easel.show()
+        self.show()
 
     def plot(self, network=None, filename=None, fileformat=None, **kwargs):
 
@@ -77,10 +77,9 @@ class Plot:
         # draw object
         self.easel.draw(network, **kwargs)
 
-        self.easel.show()
-        # # save object
-        # if filename is not None:
-        #     self.easel.save()
+        # save object
+        if filename is not None:
+            self.easel.save()
 
     def save(self, filename=None, fileformat=None):
 
