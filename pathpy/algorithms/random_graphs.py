@@ -193,3 +193,114 @@ def Watts_Strogatz(n: int, s: int, p: int) -> Network:
                     new_target = x
             network.add_edge(v, new_target)
     return network
+
+def is_graphic_Erdos_Gallai(degrees):
+    """Checks whether the condition by Erdös and Gallai (1967) for 
+    a graphic degree sequence is fulfilled.
+
+    Parameters
+        ----------
+        degrees : list
+
+            List of integer node degrees to be tested.       
+
+        Examples
+        --------
+        Test non-graphic degree sequence:
+
+        >>> import pathpy as pp
+        >>> pp.algorithms.random_graphs.is_graphic_Erdos_Gallai([1,0])
+        False
+
+        Test graphic degree sequence:
+
+        >>> import pathpy as pp
+        >>> pp.algorithms.random_graphs.is_graphic_Erdos_Gallai([1,1])
+        True
+    """
+    degree_sequence = sorted(degrees, reverse=True)
+    S = sum(degree_sequence)
+    n = len(degree_sequence)
+    if S%2 != 0:
+        return False
+    for r in range(1, n):
+        M = 0
+        S = 0
+        for i in range(1, r+1):
+            S += degree_sequence[i-1]
+        for i in range(r+1, n+1):
+            M += min(r, degree_sequence[i-1])
+        if S > r * (r-1) + M:
+            return False
+    return True
+
+def Molloy_Reed(degrees: list, relax: bool = False):
+    """Generates a random undirected network with 
+    given degree sequence based on the Molloy-Reed algorithm.
+    
+    .. note::
+
+        The condition proposed by Erdös and Gallai (1967) is used 
+        to test whether the degree sequence is graphic, i.e. whether 
+        a network with the given degree sequence exists.
+
+    Parameters
+        ----------
+        degrees : list
+
+            List of integer node degrees. The number of nodes of the 
+            generated network corresponds to len(degrees).
+
+        relax : bool
+
+            If True, we conceptually allow self-loops and multi-edges, 
+            but do not add them to the network This implies that the 
+            generated network may not have exactly sum(degrees)/2 links, 
+            but it ensures that the algorithm always finishes.
+
+        Examples
+        --------
+        Generate random undirected network with given degree sequence
+
+        >>> import pathpy as pp
+        >>> random_network = pp.algorithms.random_graphs.Molloy_Reed([1,0])
+        >>> print(random_network.summary())
+        ...
+
+        Network generation fails for non-graphic sequences
+
+        >>> import pathpy as pp
+        >>> random_network = pp.algorithms.random_graphs.Molloy_Reed([1,0])
+        >>> print(random_network)
+        None
+    """
+    # assume that we are given a graphical degree sequence
+    if not is_graphic_Erdos_Gallai(degrees):
+        return
+    
+    # create empty network with n nodes
+    n = len(degrees)
+    network = Network(directed = False)
+    
+    # generate link stubs based on degree sequence
+    stubs = []
+    for i in range(n):
+        for k in range(degrees[i]):
+            stubs.append(str(i))
+    
+    # connect randomly chosen pairs of link stubs
+    # note: if relax is True, we conceptually allow self-loops 
+    # and multi-edges, but do not add them to the network/
+    # This implies that the generated network may not have 
+    # exactly sum(degrees)/2 links, but it ensures that the algorithm 
+    # always finishes.
+    while(len(stubs)>0):
+        v, w = np.random.choice(stubs, 2, replace=False)
+        e = Edge(v, w, directed=False)
+        if relax or (v!=w and (e.uid not in network.edges)):
+            # do not add self-loops and multi-edges
+            if (v!=w and e not in network.edges):
+                network.add_edge(e)
+            stubs.remove(v)
+            stubs.remove(w)
+    return network
