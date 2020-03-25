@@ -26,7 +26,7 @@ from ..core import Path
 log = logger(__name__)
 
 
-def distance_matrix(network, weighted=False):
+def distance_matrix(network, weighted: bool = False) -> np.ndarray:
     """Calculates shortest path distances between all pairs of nodes
 
     .. note::
@@ -68,7 +68,7 @@ def distance_matrix(network, weighted=False):
 
     return dist_matrix
 
-def all_shortest_paths(network, weighted=False):
+def all_shortest_paths(network, weighted: bool = False) -> defaultdict:
     """Calculates shortest paths between all pairs of nodes.
 
     .. note::
@@ -139,16 +139,70 @@ def all_shortest_paths(network, weighted=False):
 
     return s_p
 
-def diameter(network):
-    """
-    Returns the length of the longest shortest path between any two nodes
-    """
-    dist = distance_matrix(network)
-    return np.max(dist)
+def diameter(network, weighted: bool = False) -> float:
+    """Calculates the length of the longest shortest path
 
-def avg_path_length(network):
+    .. note::
+
+        Shortest path lengths are calculated using the implementation
+        of the Floyd-Warshall algorithm in scipy.csgraph.
+
+    Parameters
+        ----------
+        network : Network
+
+            The :py:class:`Network` object that contains the network
+
+        weighted : bool
+
+            If True cheapest paths will be calculated.
+
+        Examples
+        --------
+        Generate simple network
+
+        >>> import pathpy as pp
+        >>> net = pp.Network(directed=False)
+        >>> net.add_edge('a', 'x')
+        >>> net.add_edge('x', 'c')
+        >>> pp.algorithms.shortest_paths.diameter(net)
+        2
+
+        Add additional path
+
+        >>> net.add_edge('a', 'c')
+        >>> pp.algorithms.shortest_paths.diameter(net)
+        1
     """
-    Returns the average shortest path length between all nodes
+    return np.max(distance_matrix(network, weighted))
+
+def avg_path_length(network, weighted: bool = False) -> float:
+    """Calculates the average shortest path length
+
+    .. note::
+
+        Shortest path lengths are calculated using the implementation
+        of the Floyd-Warshall algorithm in scipy.csgraph.
+
+    Parameters
+        ----------
+        network : Network
+
+            The :py:class:`Network` object that contains the network
+
+        weighted : bool
+
+            If True cheapest paths will be calculated.
+
+        Examples
+        --------
+        Generate simple network
+
+        >>> import pathpy as pp
+        >>> net = pp.Network(directed=False)
+        >>> net.add_edge('a', 'x')
+        >>> net.add_edge('x', 'c')
+        >>> pp.algorithms.shortest_paths.avg_path_length(net)
+        0.6667
     """
-    dist = distance_matrix(network)
-    return np.mean(dist)
+    return np.mean(distance_matrix(network, weighted))
