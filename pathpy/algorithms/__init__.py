@@ -10,6 +10,7 @@
 
 from . import shortest_paths
 from . import centralities
+from . import random_graphs
 
 # =============================================================================
 # eof
