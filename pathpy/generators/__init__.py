@@ -1,15 +1,13 @@
 #!/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
-# File      : __init__.py -- Initialize network and path algorithms
+# File      : __init__.py -- Initialize models for networks generation
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-03-27 13:20 juergen>
+# Time-stamp: <Fri 2020-03-27 13:21 juergen>
 #
-# Copyright (c) 2016-2019 Pathpy Developers
+# Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 
-from . import shortest_paths
-from . import centralities
 
 # =============================================================================
 # eof
