@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : subpaths.py -- Modules for subpath analysis
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2019-11-20 11:29 juergen>
+# Time-stamp: <Fri 2020-03-27 12:24 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -404,14 +404,13 @@ class SubPaths:
         summary.append('='*line_length,)
 
         # if logging is enabled print summary as INFO log
-        if config['logging']['enabled']:
+        # TODO: Move this code to a helper function
+        if config['logging']['verbose']:
             for line in summary:
                 log.info(line.rstrip())
-            return None
-
-        # otherwise return the summary as string
+            return ''
         else:
-            return '\n'.join(summary)
+            return ''.join(summary)
 
 # =============================================================================
 # eof

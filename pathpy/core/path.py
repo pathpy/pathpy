@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-03-20 14:09 juergen>
+# Time-stamp: <Fri 2020-03-27 12:21 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -229,6 +229,25 @@ class Path(BaseClass):
         """Return a string *Path()*."""
         return '{}'.format(self.__class__.__name__)
 
+    def __str__(self) -> str:
+        """Print a summary of the path.
+
+        The summary contains the name, the used path class, if it is directed
+        or not, the number of unique nodes and unique edges, and the number of
+        nodes in the path.
+
+        Since a path can multiple times pass the same node and edge objects,
+        the length of the path (i.e. the consecutive nodes) might be larger
+        then the number of unique nodes.
+
+        If logging is enabled (see config), the summary is written to the log
+        file and showed as information on in the terminal. If logging is not
+        enabled, the function will return a string with the information, which
+        can be printed to the console.
+
+        """
+        return self.summary()
+
     def __len__(self) -> int:
         """Returns the number of edges in the path."""
         return len(self.as_edges)
@@ -448,7 +467,7 @@ class Path(BaseClass):
         """
         return self._as_edges
 
-    def summary(self) -> Optional[str]:
+    def summary(self) -> str:
         """Returns a summary of the path.
 
         The summary contains the name, the used path class, if it is directed
@@ -476,13 +495,15 @@ class Path(BaseClass):
             'Type:\t\t\t{}\n'.format(self.__class__.__name__),
             'Directed:\t\t{}\n'.format(str(self.directed)),
             'Number of unique nodes:\t{}\n'.format(self.number_of_nodes()),
-            'Number of unique edges:\t{}'.format(self.number_of_edges()),
+            'Number of unique edges:\t{}\n'.format(self.number_of_edges()),
             'Path length (# edges):\t{}'.format(len(self))
         ]
-        if config['logging']['enabled']:
+
+        # TODO: Move this code to a helper function
+        if config['logging']['verbose']:
             for line in summary:
                 log.info(line.rstrip())
-            return None
+            return ''
         else:
             return ''.join(summary)
 

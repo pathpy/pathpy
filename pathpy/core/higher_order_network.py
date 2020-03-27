@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2019-12-16 16:17 juergen>
+# Time-stamp: <Fri 2020-03-27 12:23 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -303,7 +303,7 @@ class HigherOrderNode(Node, Path):
         """Returns the order of the Node."""
         return self.number_of_nodes(unique=False)
 
-    def summary(self) -> Optional[str]:
+    def summary(self) -> str:
         """Returns a summary of the path.
 
         The summary contains the name, the used path class, if it is directed
@@ -329,10 +329,12 @@ class HigherOrderNode(Node, Path):
             'Number of unique edges:\t{}'.format(self.number_of_edges()),
             # 'Path length (# edges):\t{}'.format(len(self))
         ]
-        if config['logging']['enabled']:
+
+        # TODO: Move this code to a helper function
+        if config['logging']['verbose']:
             for line in summary:
                 log.info(line.rstrip())
-            return None
+            return ''
         else:
             return ''.join(summary)
 

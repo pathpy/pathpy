@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an single edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-03-20 14:18 juergen>
+# Time-stamp: <Fri 2020-03-27 12:14 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -268,6 +268,20 @@ class Edge(BaseClass):
         """Return a string *Edge()*."""
         return '{}'.format(self.__class__.__name__)
 
+    def __str__(self) -> str:
+        """Print a summary of the edge.
+
+        The summary contains the uid, the associated nodes, and if it is
+        directed or not.
+
+        If logging is enabled (see config), the summary is written to the log
+        file and showed as information on in the terminal. If logging is not
+        enabled, the function will return a string with the information, which
+        can be printed to the console.
+
+        """
+        return self.summary()
+
     def __hash__(self) -> Any:
         """Returns the unique hash of the edge.
 
@@ -418,7 +432,7 @@ class Edge(BaseClass):
         """
         return self._directed
 
-    def summary(self) -> Optional[str]:
+    def summary(self) -> str:
         """Returns a summary of the edge.
 
         The summary contains the uid, the associated nodes, and if it is
@@ -443,10 +457,12 @@ class Edge(BaseClass):
             'Source node:\t\t{}\n'.format(self.v.uid),
             'Target node:\t\t{}'.format(self.w.uid),
         ]
-        if config['logging']['enabled']:
+
+        # TODO: Move this code to a helper function
+        if config['logging']['verbose']:
             for line in summary:
                 log.info(line.rstrip())
-            return None
+            return ''
         else:
             return ''.join(summary)
 

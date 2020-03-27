@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : helper.py -- Little helpers for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-11-15 13:33 juergen>
+# Time-stamp: <Fri 2020-03-27 12:03 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================

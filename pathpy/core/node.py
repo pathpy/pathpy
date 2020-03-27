@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : node.py -- Base class for a single node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-03-20 14:22 juergen>
+# Time-stamp: <Fri 2020-03-27 12:18 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -145,6 +145,19 @@ class Node(BaseClass):
         """
         return '{} {}'.format(self._desc(), self.uid)
 
+    def __str__(self) -> str:
+        """Print a summary of the node.
+
+        The summary contains the uid, the type, the in- and outdegree.
+
+        If logging is enabled (see config), the summary is written to the log
+        file and showed as information on in the terminal. If logging is not
+        enabled, the function will return a string with the information, which
+        can be printed to the console.
+
+        """
+        return self.summary()
+
     def _desc(self) -> str:
         """Return a string *Node*."""
         return '{}'.format(self.__class__.__name__)
@@ -268,7 +281,7 @@ class Node(BaseClass):
         """
         return self.incoming.union(self.outgoing)
 
-    def summary(self) -> Optional[str]:
+    def summary(self) -> str:
         """Returns a summary of the node.
 
         The summary contains the uid, the type, the in- and outdegree.
@@ -289,12 +302,14 @@ class Node(BaseClass):
             'Uid:\t\t\t{}\n'.format(self.uid),
             'Type:\t\t\t{}\n'.format(self.__class__.__name__),
             'Incoming:\t\t{}\n'.format(len(self.incoming)),
-            'Outgoing:\t\t{}\n'.format(len(self.outgoing)),
+            'Outgoing:\t\t{}'.format(len(self.outgoing)),
         ]
-        if config['logging']['enabled']:
+
+        # TODO: Move this code to a helper function
+        if config['logging']['verbose']:
             for line in summary:
                 log.info(line.rstrip())
-            return None
+            return ''
         else:
             return ''.join(summary)
 

@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-03-20 14:07 juergen>
+# Time-stamp: <Fri 2020-03-27 12:26 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -44,6 +44,13 @@ def test_getitem():
 
     assert net['city'] == 'London'
     assert net['attribute not in dict'] == None
+
+
+def test_str():
+    """Test string representations of the network."""
+    net = Network()
+    assert isinstance(net.summary(), str)
+
 
 # Test properties
 # ---------------

@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : logger.py -- Module to log output information
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-10-11 12:48 juergen>
+# Time-stamp: <Fri 2020-03-27 12:07 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -47,14 +47,18 @@ def logger(name, level=None):
     # logging messages are not passed to the handlers of ancestor loggers
     logger.propagate = False
 
-    # get formatter options
-    logger.addHandler(console)
+    # check if logger should write to the terminal
+    if config['logging']['verbose']:
+
+        # get formatter options
+        logger.addHandler(console)
 
     # if no level is defined the config level will be used
     if level is None:
         logger.setLevel(logging._nameToLevel[config['logging']['level']])
     else:
         logger.setLevel(logging._nameToLevel[level])
+
     return logger
 
 

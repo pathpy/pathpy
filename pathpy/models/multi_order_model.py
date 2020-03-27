@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : multi_order_models.py -- Multi order models for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-11-21 10:02 juergen>
+# Time-stamp: <Fri 2020-03-27 12:25 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -111,14 +111,13 @@ class MultiOrderModel:
         summary.append('='*line_length,)
 
         # if logging is enabled print summary as INFO log
-        if config['logging']['enabled']:
+        # TODO: Move this code to a helper function
+        if config['logging']['verbose']:
             for line in summary:
                 Log.info(line.rstrip())
-            return None
-
-        # otherwise return the summary as string
+            return ''
         else:
-            return '\n'.join(summary)
+            return ''.join(summary)
 
     def estimate(self, observations=None, stop=None, threshold=0.01):
         """Estimate the optimal order for a multi-order network."""
