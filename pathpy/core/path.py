@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-03-27 12:21 juergen>
+# Time-stamp: <Mon 2020-03-30 16:48 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -664,7 +664,7 @@ class Path(BaseClass):
         # add new edge to the path or update modified edge
         if (edge.uid not in self.edges or
                 (edge.uid in self.edges and edge != self.edges[edge.uid])):
-            self.nodes.update(edge.nodes)
+            self.nodes.add(edge.nodes)
             self.edges[edge.uid] = edge
 
         # append edge to the path and update counter
@@ -680,6 +680,10 @@ class Path(BaseClass):
         # add node to the path and update counter
         self.as_nodes.append(edge.w.uid)
         self.nodes.increase_counter(edge.w.uid, self.attributes.frequency)
+
+        self.edges.related[edge.uid].nodes.add(edge.v)
+        self.edges.related[edge.uid].nodes.add(edge.w)
+        self.edges.related[edge.uid].paths.add(self)
 
     def add_node(self, node: Node, **kwargs: Any) -> None:
         """Add a single node to the path.
@@ -745,6 +749,8 @@ class Path(BaseClass):
                          separator=self.separator['edge']))
             else:
                 self.add_edge(self.edges[edge_uid])
+
+        self.nodes.related[node.uid].paths.add(self)
 
     def add_nodes_from(self, nodes: Sequence[Node], **kwargs: Any) -> None:
         """Add multiple nodes from a list to the path.

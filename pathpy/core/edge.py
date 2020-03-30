@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an single edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-03-27 12:14 juergen>
+# Time-stamp: <Mon 2020-03-30 19:26 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -235,7 +235,20 @@ class Edge(BaseClass):
         else:
             self._uid = uid
 
-        # update associated nodes
+        # add relationships
+        self.nodes.related[self.v.uid].edges.add(self)
+        self.nodes.related[self.w.uid].edges.add(self)
+
+        # self.nodes.properties.update(self.v.uid,
+        #                              successors=self.w,
+        #                              outgoing=self,
+        #                              frequencies=self.attributes.frequency)
+        # self.nodes.properties.update(self.w.uid,
+        #                              predecessors=self.v,
+        #                              incoming=self,
+        #                              frequencies=self.attributes.frequency)
+
+        # old code should be removed
         self.v.outgoing.add(self.uid)
         self.w.incoming.add(self.uid)
         if not self.directed:

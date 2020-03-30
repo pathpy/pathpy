@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-03-27 12:17 juergen>
+# Time-stamp: <Mon 2020-03-30 19:30 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -947,8 +947,12 @@ class Network(BaseNetwork):
         # add new edge to the network or update modified edge
         if (edge.uid not in self.edges or
                 (edge.uid in self.edges and edge != self.edges[edge.uid])):
-            self.nodes.update(edge.nodes)
+            self.nodes.add(edge.nodes)
             self.edges[edge.uid] = edge
+
+        # add related object to the edge dictionary
+        self.edges.related[edge.uid].nodes.add(edge.v)
+        self.edges.related[edge.uid].nodes.add(edge.w)
 
         # update counters
         self.edges.increase_counter(edge.uid, edge.attributes.frequency)
@@ -995,8 +999,8 @@ class Network(BaseNetwork):
         # add new path to the network or update modified path
         if (path.uid not in self.paths or
                 (path.uid in self.paths and path != self.paths[path.uid])):
-            self.nodes.update(path.nodes)
-            self.edges.update(path.edges)
+            self.nodes.add(path.nodes)
+            self.edges.add(path.edges)
             self.paths[path.uid] = path
 
         # increas the counters
@@ -1082,7 +1086,7 @@ class Network(BaseNetwork):
         if node in self.nodes:
 
             # get set of adjacent edges
-            _edges: Set = self.nodes[node].adjacent_edges
+            _edges: Set = self.nodes.adjacent_edges[node]
 
             # remove edges
             for edge in _edges:
@@ -1142,12 +1146,13 @@ class Network(BaseNetwork):
                     # remove path if edge is removed
                     self.remove_path(path.uid)
 
-            # update counters
-            self.nodes.decrease_counter(
-                self.edges[edge].nodes, self.edges.counter()[edge])
+            # # update properties
+            # self.nodes.properties.update(
+            #     self.edges[edge].nodes, remove=self.edges[edge],
+            #     frequencies=self.edges.frequencies[edge])
 
-            # remove associated nodes
-            self.edges[edge].delete()
+            # # remove associated nodes
+            # self.edges[edge].delete()
 
             # remove the edge from the network
             del self.edges[edge]

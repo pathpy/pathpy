@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : containers.py -- Base containers for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-03-20 12:05 juergen>
+# Time-stamp: <Mon 2020-03-30 19:22 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -12,7 +12,23 @@ from typing import Any, List, Dict, Optional, Sequence
 from collections import defaultdict, Counter
 
 import pandas as pd
-from ... import config
+from ... import config, logger
+
+log = logger(__name__)
+
+
+class RelatedObjects:
+    def __init__(self) -> None:
+        """Initialize the BaseDict object."""
+        self.nodes = set()
+        self.edges = set()
+        self.paths = set()
+
+    def add(self, other):
+        """Add objects."""
+        self.nodes.update(other.nodes)
+        self.edges.update(other.edges)
+        self.paths.update(other.paths)
 
 
 class BaseDict(defaultdict):
@@ -21,11 +37,29 @@ class BaseDict(defaultdict):
     def __init__(self, *args: Any) -> None:
         """Initialize the BaseDict object."""
 
+        # initialize related objects dictionary
+        self._related: defaultdict = defaultdict(dict)
+
         # generate counter
         self._counter: defaultdict = defaultdict(int)
 
         # initialize the base class
         super().__init__(*args)
+
+    def __setitem__(self, key, value):
+        self._related[key] = RelatedObjects()
+        defaultdict.__setitem__(self, key, value)
+
+    def add(self, other):
+        for key in other:
+            if key not in self._related:
+                self._related[key] = RelatedObjects()
+            self._related[key].add(other.related[key])
+        self.update(other)
+
+    @property
+    def related(self):
+        return self._related
 
     def increase_counter(self, key, count: int) -> None:
         """Increase the object counter."""
@@ -201,6 +235,96 @@ class NodeDict(TemporalDict):
 
         # initialize the base class
         super().__init__(*args)
+
+        # initialize nodes attributes
+        self._attributes = defaultdict(dict)
+        self._attributes['successors'] = defaultdict(set)
+        self._attributes['predecessors'] = defaultdict(set)
+        self._attributes['outgoing'] = defaultdict(set)
+        self._attributes['incoming'] = defaultdict(set)
+        self._attributes['adjacent_nodes'] = defaultdict(set)
+        self._attributes['adjacent_edges'] = defaultdict(set)
+        self._attributes['indegrees'] = defaultdict(float)
+        self._attributes['outdegrees'] = defaultdict(float)
+        self._attributes['degrees'] = defaultdict(float)
+
+    def add(self, other):
+        for key in other:
+            if key not in self._related:
+                self._related[key] = RelatedObjects()
+            self._related[key].add(other.related[key])
+            for edge in self._related[key].edges:
+                if key == edge.v.uid:
+                    self._attributes['successors'][key].add(edge.w)
+                    self._attributes['adjacent_nodes'][key].add(edge.w)
+                    self._attributes['outgoing'][key].add(edge)
+                    self._attributes['adjacent_edges'][key].add(edge)
+                if key == edge.w.uid:
+                    self._attributes['predecessors'][key].add(edge.w)
+                    self._attributes['adjacent_nodes'][key].add(edge.w)
+                    self._attributes['incoming'][key].add(edge)
+                    self._attributes['adjacent_edges'][key].add(edge)
+            self._attributes['indegrees'][key] = len(
+                self._attributes['incoming'][key])
+            self._attributes['outdegrees'][key] = len(
+                self._attributes['outgoing'][key])
+            self._attributes['degrees'][key] = len(
+                self._attributes['adjacent_edges'][key])
+
+        self.update(other)
+
+    @property
+    def successors(self):
+        """Retuns a dict with sets of successors."""
+        return self._attributes['successors']
+
+    @property
+    def predecessors(self):
+        """Retuns a dict with sets of predecessors."""
+        return self._attributes['predecessors']
+
+    @property
+    def outgoing(self):
+        """Retuns a dict with sets of outgoing edges."""
+        return self._attributes['outgoing']
+
+    @property
+    def incoming(self):
+        """Retuns a dict with sets of incoming edges."""
+        return self._attributes['incoming']
+
+    @property
+    def adjacent_nodes(self):
+        """Retuns a dict with sets of adjacent nodes."""
+        return self._attributes['adjacent_nodes']
+
+    @property
+    def adjacent_edges(self):
+        """Retuns a dict with sets of adjacent edges."""
+        return self._attributes['adjacent_edges']
+
+    def _degrees(self, degree, edges, weight):
+        """Helper function to get the degrees"""
+        if weight is None:
+            d = self._attributes[degree]
+        else:
+            d = defaultdict(float)
+            for uid in self:
+                d[uid] = sum([e.weight(weight)
+                              for e in self._attributes[edges][uid]])
+        return d
+
+    def indegrees(self, weight=None):
+        """Retuns a dict with indegrees of the nodes."""
+        return self._degrees('indegrees', 'incoming', weight)
+
+    def outdegrees(self, weight=None):
+        """Retuns a dict with outdegrees of the nodes."""
+        return self._degrees('outdegrees', 'outgoing', weight)
+
+    def degrees(self, weight=None):
+        """Retuns a dict with degrees of the nodes."""
+        return self._degrees('degrees', 'adjacent_edges', weight)
 
 
 class EdgeDict(TemporalDict):
