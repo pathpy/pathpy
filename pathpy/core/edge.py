@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an single edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-03-30 19:26 juergen>
+# Time-stamp: <Tue 2020-03-31 14:02 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -236,8 +236,8 @@ class Edge(BaseClass):
             self._uid = uid
 
         # add relationships
-        self.nodes.related[self.v.uid].edges.add(self)
-        self.nodes.related[self.w.uid].edges.add(self)
+        self.nodes.add_edge(self)
+        # self.nodes.related[self.w.uid].add_edge(self)
 
         # self.nodes.properties.update(self.v.uid,
         #                              successors=self.w,
