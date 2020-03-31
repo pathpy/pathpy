@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : containers.py -- Base containers for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-03-31 17:35 juergen>
+# Time-stamp: <Tue 2020-03-31 17:50 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -356,9 +356,11 @@ class NodeDict(TemporalDict):
         """Delete a node from the NodeDict."""
 
         # iterate over all properties and delete the node
-        for k, _ in self._properties:
-            del self._attributes[k][key]
-
+        for prop, _ in self._properties:
+            try:
+                del self._attributes[prop][key]
+            except:
+                pass
         # delete the related objects of the node
         del self._related[key]
 
