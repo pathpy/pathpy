@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : containers.py -- Base containers for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-03-31 17:50 juergen>
+# Time-stamp: <Tue 2020-03-31 17:57 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -357,10 +357,11 @@ class NodeDict(TemporalDict):
 
         # iterate over all properties and delete the node
         for prop, _ in self._properties:
-            try:
+            # check if the property is given in the dict
+            if key in self._attributes[prop]:
+                # remove the node from the property
                 del self._attributes[prop][key]
-            except:
-                pass
+
         # delete the related objects of the node
         del self._related[key]
 
