@@ -27,6 +27,7 @@ from pathpy.utils.progress import tqdm  # noqa: F401
 from pathpy.core import *
 from .algorithms import *
 from .models import *
+from .generators import *
 
 from .visualizations import plot  # noqa: F401
 

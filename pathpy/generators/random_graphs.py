@@ -14,14 +14,11 @@ from collections import Counter
 from collections import defaultdict
 import datetime
 import sys
-from scipy.sparse import csgraph
 import numpy as np
-
 
 from .. import config, logger, tqdm
 from ..core.base import BaseNetwork
 from ..core import Network, Edge
-from . import shortest_paths
 
 # create logger
 log = logger(__name__)

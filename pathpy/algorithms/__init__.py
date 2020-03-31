@@ -10,6 +10,7 @@
 
 from . import shortest_paths
 from . import centralities
+from . import components
 
 # =============================================================================
 # eof
