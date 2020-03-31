@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-03-30 16:48 juergen>
+# Time-stamp: <Tue 2020-03-31 15:24 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -221,9 +221,10 @@ class Path(BaseClass):
         Path object  at 0x140458648250512x
 
         """
-        return '<{} object {} at 0x{}x>'.format(self._desc(),
-                                                self.name,
-                                                id(self))
+        return '{} {}'.format(self._desc(), self.uid)
+        # return '<{} object {} at 0x{}x>'.format(self._desc(),
+        #                                         self.name,
+        #                                         id(self))
 
     def _desc(self) -> str:
         """Return a string *Path()*."""
@@ -664,8 +665,8 @@ class Path(BaseClass):
         # add new edge to the path or update modified edge
         if (edge.uid not in self.edges or
                 (edge.uid in self.edges and edge != self.edges[edge.uid])):
-            self.nodes.add(edge.nodes)
-            self.edges[edge.uid] = edge
+            self.nodes.add_edge(edge)
+            self.edges.add_edge(edge)
 
         # append edge to the path and update counter
         self.as_edges.append(edge.uid)
@@ -681,9 +682,14 @@ class Path(BaseClass):
         self.as_nodes.append(edge.w.uid)
         self.nodes.increase_counter(edge.w.uid, self.attributes.frequency)
 
-        self.edges.related[edge.uid].nodes.add(edge.v)
-        self.edges.related[edge.uid].nodes.add(edge.w)
+        # add related object to the edge dictionary
+        # TODO make function to do this
+        # self.edges.related[edge.uid].nodes[edge.v.uid] = edge.v
+        # self.edges.related[edge.uid].nodes[edge.w.uid] = edge.w
         self.edges.related[edge.uid].paths.add(self)
+
+        # self.edges.related[edge.uid].nodes.add(edge.v)
+        # self.edges.related[edge.uid].nodes.add(edge.w)
 
     def add_node(self, node: Node, **kwargs: Any) -> None:
         """Add a single node to the path.

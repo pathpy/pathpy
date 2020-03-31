@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-03-30 19:30 juergen>
+# Time-stamp: <Tue 2020-03-31 16:29 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -947,14 +947,16 @@ class Network(BaseNetwork):
         # add new edge to the network or update modified edge
         if (edge.uid not in self.edges or
                 (edge.uid in self.edges and edge != self.edges[edge.uid])):
-            self.nodes.add(edge.nodes)
-            self.edges[edge.uid] = edge
+            self.nodes.add_edge(edge)
+            self.edges.add_edge(edge)
 
         # add related object to the edge dictionary
-        self.edges.related[edge.uid].nodes.add(edge.v)
-        self.edges.related[edge.uid].nodes.add(edge.w)
+        # TODO make function to do this
+        # self.edges.related[edge.uid].nodes[edge.v.uid] = edge.v
+        # self.edges.related[edge.uid].nodes[edge.w.uid] = edge.w
 
         # update counters
+        # TODO find better way to do this
         self.edges.increase_counter(edge.uid, edge.attributes.frequency)
         self.nodes.increase_counter(edge.nodes, edge.attributes.frequency)
 
@@ -999,9 +1001,11 @@ class Network(BaseNetwork):
         # add new path to the network or update modified path
         if (path.uid not in self.paths or
                 (path.uid in self.paths and path != self.paths[path.uid])):
-            self.nodes.add(path.nodes)
-            self.edges.add(path.edges)
-            self.paths[path.uid] = path
+            # self.nodes.add(path.nodes)
+            self.nodes.add_edges(path.edges)
+            self.edges.add_edges(path.edges)
+            self.paths.add_path(path)
+            #self.paths[path.uid] = path
 
         # increas the counters
         self.nodes.increase_counter(path.as_nodes, path.attributes.frequency)
@@ -1085,15 +1089,22 @@ class Network(BaseNetwork):
         # check if the node node exists in the network
         if node in self.nodes:
 
+            # get associated paths
+            _paths: dict = self.nodes.related[node].paths
+
             # get set of adjacent edges
-            _edges: Set = self.nodes.adjacent_edges[node]
+            _edges: dict = self.nodes.related[node].edges
+
+            # remove paths
+            for path in list(_paths):
+                self.remove_path(path.uid)
 
             # remove edges
-            for edge in _edges:
+            for edge in list(_edges):
                 self.remove_edge(edge)
 
             # remove node
-            del self.nodes[node]
+            self.nodes.delete(node)
 
     def remove_edge(self, uid: str, *args: str) -> None:
         """Remove a single edge from the network.
@@ -1138,24 +1149,22 @@ class Network(BaseNetwork):
         # check if the edge is in the network
         if edge in self.edges:
 
-            # TODO: Find a better solution for this.
-            #       Now all paths have to be checked.
-            for path in list(self.paths.values()):
-                # check if edge is part of a path
-                if edge in path.as_edges:
-                    # remove path if edge is removed
-                    self.remove_path(path.uid)
+            # get associated paths
+            _paths: Set = self.edges.related[edge].paths
 
-            # # update properties
-            # self.nodes.properties.update(
-            #     self.edges[edge].nodes, remove=self.edges[edge],
-            #     frequencies=self.edges.frequencies[edge])
+            # remove paths
+            for path in list(_paths):
+                self.remove_path(path.uid)
 
-            # # remove associated nodes
-            # self.edges[edge].delete()
+            # decrease node counter
+            self.nodes.decrease_counter(
+                list(self.edges[edge].nodes), self.edges.counter()[edge])
+
+            # remove associated nodes
+            self.nodes.remove_edge(self.edges[edge])
 
             # remove the edge from the network
-            del self.edges[edge]
+            self.edges.delete(edge)
 
     def remove_path(self, uid: str, frequency: int = None) -> None:
         """Remove a single path from the network.
@@ -1237,7 +1246,12 @@ class Network(BaseNetwork):
             # remove path from the network
             # if frequency is equal to the observations
             if frequency is None:
-                del self.paths[path]
+                # remove associated nodes and edges
+                self.nodes.remove_path(self.paths[path])
+                self.edges.remove_path(self.paths[path])
+
+                # remove path from the network
+                self.paths.delete(path)
 
     def _check_class(self):
         """Check which is the appropriated network class."""

@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : containers.py -- Base containers for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-03-30 19:22 juergen>
+# Time-stamp: <Tue 2020-03-31 16:35 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -20,15 +20,33 @@ log = logger(__name__)
 class RelatedObjects:
     def __init__(self) -> None:
         """Initialize the BaseDict object."""
-        self.nodes = set()
-        self.edges = set()
+        self.nodes = dict()
+        self.edges = dict()
         self.paths = set()
 
-    def add(self, other):
-        """Add objects."""
+    def update(self, other):
         self.nodes.update(other.nodes)
         self.edges.update(other.edges)
         self.paths.update(other.paths)
+
+    def add_edge(self, edge):
+        self.edges[edge.uid] = edge
+
+    def remove_edge(self, edge):
+        del self.edges[edge.uid]
+
+    def add_node(self, node):
+        self.nodes[node.uid] = node
+
+    def remove_node(self, node):
+        del self.nodes[node.uid]
+
+    def add_path(self, path):
+        self.paths[path.uid] = path
+
+    def remove_path(self, path):
+        self.paths = {p for p in self.paths}
+        self.paths.remove(path)
 
 
 class BaseDict(defaultdict):
@@ -50,12 +68,9 @@ class BaseDict(defaultdict):
         self._related[key] = RelatedObjects()
         defaultdict.__setitem__(self, key, value)
 
-    def add(self, other):
-        for key in other:
-            if key not in self._related:
-                self._related[key] = RelatedObjects()
-            self._related[key].add(other.related[key])
-        self.update(other)
+    def delete(self, key):
+        del self._related[key]
+        del self[key]
 
     @property
     def related(self):
@@ -238,40 +253,103 @@ class NodeDict(TemporalDict):
 
         # initialize nodes attributes
         self._attributes = defaultdict(dict)
-        self._attributes['successors'] = defaultdict(set)
-        self._attributes['predecessors'] = defaultdict(set)
-        self._attributes['outgoing'] = defaultdict(set)
-        self._attributes['incoming'] = defaultdict(set)
-        self._attributes['adjacent_nodes'] = defaultdict(set)
-        self._attributes['adjacent_edges'] = defaultdict(set)
+        self._attributes['successors'] = defaultdict(dict)
+        self._attributes['predecessors'] = defaultdict(dict)
+        self._attributes['outgoing'] = defaultdict(dict)
+        self._attributes['incoming'] = defaultdict(dict)
+        self._attributes['adjacent_nodes'] = defaultdict(dict)
+        self._attributes['adjacent_edges'] = defaultdict(dict)
         self._attributes['indegrees'] = defaultdict(float)
         self._attributes['outdegrees'] = defaultdict(float)
         self._attributes['degrees'] = defaultdict(float)
 
-    def add(self, other):
-        for key in other:
-            if key not in self._related:
-                self._related[key] = RelatedObjects()
-            self._related[key].add(other.related[key])
-            for edge in self._related[key].edges:
-                if key == edge.v.uid:
-                    self._attributes['successors'][key].add(edge.w)
-                    self._attributes['adjacent_nodes'][key].add(edge.w)
-                    self._attributes['outgoing'][key].add(edge)
-                    self._attributes['adjacent_edges'][key].add(edge)
-                if key == edge.w.uid:
-                    self._attributes['predecessors'][key].add(edge.w)
-                    self._attributes['adjacent_nodes'][key].add(edge.w)
-                    self._attributes['incoming'][key].add(edge)
-                    self._attributes['adjacent_edges'][key].add(edge)
-            self._attributes['indegrees'][key] = len(
-                self._attributes['incoming'][key])
-            self._attributes['outdegrees'][key] = len(
-                self._attributes['outgoing'][key])
-            self._attributes['degrees'][key] = len(
-                self._attributes['adjacent_edges'][key])
+    def add_edges(self, edges):
+        for edge in edges.values():
+            self.add_edge(edge, edges.related[edge.uid])
 
-        self.update(other)
+    def add_edge(self, edge, other=None):
+        v = edge.v
+        w = edge.w
+
+        if v.uid not in self._related:
+            self._related[v.uid] = RelatedObjects()
+        if w.uid not in self._related:
+            self._related[w.uid] = RelatedObjects()
+
+        if other is not None:
+            self._related[v.uid].update(other)
+            self._related[w.uid].update(other)
+
+        self._related[v.uid].add_edge(edge)
+        self._related[w.uid].add_edge(edge)
+
+        self._related[v.uid].add_node(w)
+        self._related[w.uid].add_node(v)
+
+        self._attributes['successors'][v.uid][w.uid] = edge.w
+        self._attributes['adjacent_nodes'][v.uid][w.uid] = edge.w
+        self._attributes['outgoing'][v.uid][edge.uid] = edge
+        self._attributes['adjacent_edges'][v.uid][edge.uid] = edge
+
+        self._attributes['predecessors'][w.uid][v.uid] = edge.v
+        self._attributes['adjacent_nodes'][w.uid][v.uid] = edge.v
+        self._attributes['incoming'][w.uid][edge.uid] = edge
+        self._attributes['adjacent_edges'][w.uid][edge.uid] = edge
+
+        self._update_degrees(v.uid)
+        self._update_degrees(w.uid)
+
+        self.update({v.uid: v})
+        self.update({w.uid: w})
+
+    def remove_edge(self, edge):
+        v = edge.v
+        w = edge.w
+
+        self._related[v.uid].remove_edge(edge)
+        self._related[w.uid].remove_edge(edge)
+
+        # Fix this for multi edges
+        self._related[v.uid].remove_node(w)
+        self._related[w.uid].remove_node(v)
+
+        del self._attributes['successors'][v.uid][w.uid]
+        del self._attributes['adjacent_nodes'][v.uid][w.uid]
+        del self._attributes['outgoing'][v.uid][edge.uid]
+        del self._attributes['adjacent_edges'][v.uid][edge.uid]
+
+        del self._attributes['predecessors'][w.uid][v.uid]
+        del self._attributes['adjacent_nodes'][w.uid][v.uid]
+        del self._attributes['incoming'][w.uid][edge.uid]
+        del self._attributes['adjacent_edges'][w.uid][edge.uid]
+
+        self._update_degrees(v.uid)
+        self._update_degrees(w.uid)
+
+    def remove_path(self, path):
+        for node in path.nodes:
+            self._related[node].remove_path(path)
+
+    def delete(self, key):
+        del self._attributes['successors'][key]
+        del self._attributes['predecessors'][key]
+        del self._attributes['adjacent_nodes'][key]
+        del self._attributes['outgoing'][key]
+        del self._attributes['incoming'][key]
+        del self._attributes['adjacent_edges'][key]
+        del self._attributes['indegrees'][key]
+        del self._attributes['outdegrees'][key]
+        del self._attributes['degrees'][key]
+        del self._related[key]
+        del self[key]
+
+    def _update_degrees(self, key):
+        tuples = [('indegrees', 'incoming'),
+                  ('outdegrees', 'outgoing'),
+                  ('degrees', 'adjacent_edges')]
+        for degree, edges in tuples:
+            self._attributes[degree][key] = len(
+                self._attributes[edges][key])
 
     @property
     def successors(self):
@@ -311,7 +389,7 @@ class NodeDict(TemporalDict):
             d = defaultdict(float)
             for uid in self:
                 d[uid] = sum([e.weight(weight)
-                              for e in self._attributes[edges][uid]])
+                              for e in self._attributes[edges][uid].values()])
         return d
 
     def indegrees(self, weight=None):
@@ -334,6 +412,25 @@ class EdgeDict(TemporalDict):
 
         # initialize the base class
         super().__init__(*args)
+
+    def add_edges(self, edges):
+        for edge in edges.values():
+            self.add_edge(edge, edges.related[edge.uid])
+
+    def add_edge(self, edge, other=None):
+        if edge.uid not in self._related:
+            self._related[edge.uid] = RelatedObjects()
+        if other is not None:
+            self._related[edge.uid].update(other)
+
+        self._related[edge.uid].add_node(edge.v)
+        self._related[edge.uid].add_node(edge.w)
+
+        self.update({edge.uid: edge})
+
+    def remove_path(self, path):
+        for edge in path.edges:
+            self._related[edge].remove_path(path)
 
     def to_frame(self) -> pd.DataFrame:
         """Return a pandas data frame of all edges."""
@@ -363,6 +460,17 @@ class PathDict(BaseDict):
 
         # initialize the base class
         super().__init__(*args)
+
+    def add_path(self, path):
+        if path.uid not in self._related:
+            self._related[path.uid] = RelatedObjects()
+
+        for node in path.nodes.values():
+            self._related[path.uid].add_node(node)
+        for edge in path.edges.values():
+            self._related[path.uid].add_edge(edge)
+
+        self.update({path.uid: path})
 
     def to_frame(self) -> pd.DataFrame:
         """Return a pandas data frame of all paths."""
