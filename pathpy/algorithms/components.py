@@ -50,7 +50,7 @@ def reduce_to_gcc(network) -> None:
         S.append(v)
         on_stack[v] = True
 
-        for w in network.successors(v):
+        for w in network.nodes.successors[v]:
             if indices[w] is None:
                 strong_connect(w)
                 low_link[v] = min(low_link[v], low_link[w])

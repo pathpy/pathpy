@@ -51,7 +51,7 @@ def local_clustering_coefficient(network, v: str) -> float:
     k = 0
     for e in network.edges:
         edge = network.edges[e]
-        if edge.v.uid in network.successors(v) and edge.w.uid in network.successors(v):
+        if edge.v.uid in network.nodes.successors[v] and edge.w.uid in network.nodes.successors[v]:
             k += 1
     if network.directed:
         return k/(network.nodes.outdegrees()[v]*(network.nodes.outdegrees()[v]-1))    
@@ -87,7 +87,7 @@ def closed_triads(network, v: str) -> Set:
     closed_triads = set()
     for e in network.edges:
         edge = network.edges[e]
-        if edge.v.uid in network.successors(v) and edge.w.uid in network.successors(v):
+        if edge.v.uid in network.nodes.successors[v] and edge.w.uid in network.nodes.successors[v]:
             closed_triads.add(edge)
     return closed_triads
     
