@@ -14,7 +14,6 @@ from collections import Counter
 from collections import defaultdict
 import datetime
 import sys
-from scipy.sparse import csgraph
 import numpy as np
 
 
