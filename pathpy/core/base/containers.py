@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : containers.py -- Base containers for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-03-31 16:35 juergen>
+# Time-stamp: <Tue 2020-03-31 17:35 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -14,37 +14,49 @@ from collections import defaultdict, Counter
 import pandas as pd
 from ... import config, logger
 
-log = logger(__name__)
+LOG = logger(__name__)
 
 
 class RelatedObjects:
+    """Class to stor relationships of Node, Edge and Path objects."""
+
     def __init__(self) -> None:
         """Initialize the BaseDict object."""
+
+        # initialize variables
         self.nodes = dict()
         self.edges = dict()
         self.paths = set()
 
     def update(self, other):
+        """Update the relationships."""
         self.nodes.update(other.nodes)
         self.edges.update(other.edges)
         self.paths.update(other.paths)
 
     def add_edge(self, edge):
+        """Add new edge relationship."""
         self.edges[edge.uid] = edge
 
     def remove_edge(self, edge):
+        """Remove edge relationship."""
         del self.edges[edge.uid]
 
     def add_node(self, node):
+        """Add new node relationship."""
         self.nodes[node.uid] = node
 
     def remove_node(self, node):
+        """Remove node relationship."""
         del self.nodes[node.uid]
 
     def add_path(self, path):
+        """Add new path relationship."""
         self.paths[path.uid] = path
 
     def remove_path(self, path):
+        """Remove path relationship."""
+        # update path properties to avoid multiple similar paths
         self.paths = {p for p in self.paths}
         self.paths.remove(path)
 
@@ -253,97 +265,108 @@ class NodeDict(TemporalDict):
 
         # initialize nodes attributes
         self._attributes = defaultdict(dict)
-        self._attributes['successors'] = defaultdict(dict)
-        self._attributes['predecessors'] = defaultdict(dict)
-        self._attributes['outgoing'] = defaultdict(dict)
-        self._attributes['incoming'] = defaultdict(dict)
-        self._attributes['adjacent_nodes'] = defaultdict(dict)
-        self._attributes['adjacent_edges'] = defaultdict(dict)
-        self._attributes['indegrees'] = defaultdict(float)
-        self._attributes['outdegrees'] = defaultdict(float)
-        self._attributes['degrees'] = defaultdict(float)
+        self._properties = [('successors', dict), ('predecessors', dict),
+                            ('outgoing', dict), ('incoming', dict),
+                            ('adjacent_nodes', dict), ('adjacent_edges', dict),
+                            ('indegrees', float), ('outdegrees', float),
+                            ('degrees', float)]
+
+        for k, t in self._properties:
+            self._attributes[k] = defaultdict(t)
 
     def add_edges(self, edges):
+        """Add multiple edges to the NodeDicht."""
+        # iterate over an EdgeDicht
         for edge in edges.values():
             self.add_edge(edge, edges.related[edge.uid])
 
     def add_edge(self, edge, other=None):
-        v = edge.v
-        w = edge.w
+        """Add a relationship with an edge."""
 
-        if v.uid not in self._related:
-            self._related[v.uid] = RelatedObjects()
-        if w.uid not in self._related:
-            self._related[w.uid] = RelatedObjects()
+        # iterate over the nodes of the edge
+        for node in edge.nodes.values():
+            # create objects for related objects
+            if node.uid not in self._related:
+                self._related[node.uid] = RelatedObjects()
 
-        if other is not None:
-            self._related[v.uid].update(other)
-            self._related[w.uid].update(other)
+            # if other related objects are given update the instance
+            if other is not None:
+                self._related[node.uid].update(other)
 
-        self._related[v.uid].add_edge(edge)
-        self._related[w.uid].add_edge(edge)
+            # add related edge
+            self._related[node.uid].add_edge(edge)
 
-        self._related[v.uid].add_node(w)
-        self._related[w.uid].add_node(v)
+            # add attributes gained by the edge
+            if node == edge.v:
+                self._related[node.uid].add_node(edge.w)
 
-        self._attributes['successors'][v.uid][w.uid] = edge.w
-        self._attributes['adjacent_nodes'][v.uid][w.uid] = edge.w
-        self._attributes['outgoing'][v.uid][edge.uid] = edge
-        self._attributes['adjacent_edges'][v.uid][edge.uid] = edge
+                self._attributes['successors'][node.uid][edge.w.uid] = edge.w
+                self._attributes['adjacent_nodes'][node.uid][edge.w.uid] = edge.w
+                self._attributes['outgoing'][node.uid][edge.uid] = edge
+                self._attributes['adjacent_edges'][node.uid][edge.uid] = edge
 
-        self._attributes['predecessors'][w.uid][v.uid] = edge.v
-        self._attributes['adjacent_nodes'][w.uid][v.uid] = edge.v
-        self._attributes['incoming'][w.uid][edge.uid] = edge
-        self._attributes['adjacent_edges'][w.uid][edge.uid] = edge
+            if node == edge.w:
+                self._related[node.uid].add_node(edge.v)
 
-        self._update_degrees(v.uid)
-        self._update_degrees(w.uid)
+                self._attributes['predecessors'][node.uid][edge.v.uid] = edge.v
+                self._attributes['adjacent_nodes'][node.uid][edge.v.uid] = edge.v
+                self._attributes['incoming'][node.uid][edge.uid] = edge
+                self._attributes['adjacent_edges'][node.uid][edge.uid] = edge
 
-        self.update({v.uid: v})
-        self.update({w.uid: w})
+            # update the degrees
+            self._update_degrees(node.uid)
+
+            # update the NodeDict
+            self.update({node.uid: node})
 
     def remove_edge(self, edge):
-        v = edge.v
-        w = edge.w
+        """Remove the relationship with an edge"""
 
-        self._related[v.uid].remove_edge(edge)
-        self._related[w.uid].remove_edge(edge)
+        # iterate over the nodes of the edge
+        for node in edge.nodes.values():
 
-        # Fix this for multi edges
-        self._related[v.uid].remove_node(w)
-        self._related[w.uid].remove_node(v)
+            # remove the relationship with the edge
+            self._related[node.uid].remove_edge(edge)
 
-        del self._attributes['successors'][v.uid][w.uid]
-        del self._attributes['adjacent_nodes'][v.uid][w.uid]
-        del self._attributes['outgoing'][v.uid][edge.uid]
-        del self._attributes['adjacent_edges'][v.uid][edge.uid]
+            # remove attributes gained by the edge
+            if node == edge.v:
+                self._related[node.uid].remove_node(edge.w)
+                del self._attributes['successors'][node.uid][edge.w.uid]
+                del self._attributes['adjacent_nodes'][node.uid][edge.w.uid]
+                del self._attributes['outgoing'][node.uid][edge.uid]
+                del self._attributes['adjacent_edges'][node.uid][edge.uid]
 
-        del self._attributes['predecessors'][w.uid][v.uid]
-        del self._attributes['adjacent_nodes'][w.uid][v.uid]
-        del self._attributes['incoming'][w.uid][edge.uid]
-        del self._attributes['adjacent_edges'][w.uid][edge.uid]
+            if node == edge.w:
+                self._related[node.uid].remove_node(edge.v)
+                del self._attributes['predecessors'][node.uid][edge.v.uid]
+                del self._attributes['adjacent_nodes'][node.uid][edge.v.uid]
+                del self._attributes['incoming'][node.uid][edge.uid]
+                del self._attributes['adjacent_edges'][node.uid][edge.uid]
 
-        self._update_degrees(v.uid)
-        self._update_degrees(w.uid)
+            # update the degrees
+            self._update_degrees(node.uid)
 
     def remove_path(self, path):
+        """Remove nodes associated with a path."""
+        # iterate over nodes and remove the path relationship
         for node in path.nodes:
             self._related[node].remove_path(path)
 
     def delete(self, key):
-        del self._attributes['successors'][key]
-        del self._attributes['predecessors'][key]
-        del self._attributes['adjacent_nodes'][key]
-        del self._attributes['outgoing'][key]
-        del self._attributes['incoming'][key]
-        del self._attributes['adjacent_edges'][key]
-        del self._attributes['indegrees'][key]
-        del self._attributes['outdegrees'][key]
-        del self._attributes['degrees'][key]
+        """Delete a node from the NodeDict."""
+
+        # iterate over all properties and delete the node
+        for k, _ in self._properties:
+            del self._attributes[k][key]
+
+        # delete the related objects of the node
         del self._related[key]
+
+        # delete the node from the NodeDict
         del self[key]
 
     def _update_degrees(self, key):
+        """Helper function to update the degrees."""
         tuples = [('indegrees', 'incoming'),
                   ('outdegrees', 'outgoing'),
                   ('degrees', 'adjacent_edges')]
@@ -383,8 +406,10 @@ class NodeDict(TemporalDict):
 
     def _degrees(self, degree, edges, weight):
         """Helper function to get the degrees"""
+        # look up degrees when no weight is given
         if weight is None:
             d = self._attributes[degree]
+        # if weight is given iterate throug all edges and get the weight
         else:
             d = defaultdict(float)
             for uid in self:
@@ -414,21 +439,32 @@ class EdgeDict(TemporalDict):
         super().__init__(*args)
 
     def add_edges(self, edges):
+        """Add multiple edges to the EdgeDict."""
+        # iterate over an EdgeDict
         for edge in edges.values():
             self.add_edge(edge, edges.related[edge.uid])
 
     def add_edge(self, edge, other=None):
+        """Add edge to the EdgeDict."""
+
+        # create an object for related objects
         if edge.uid not in self._related:
             self._related[edge.uid] = RelatedObjects()
+
+        # if other related objects are given update the instance
         if other is not None:
             self._related[edge.uid].update(other)
 
-        self._related[edge.uid].add_node(edge.v)
-        self._related[edge.uid].add_node(edge.w)
+        # add related nodes
+        for node in edge.nodes.values():
+            self._related[edge.uid].add_node(node)
 
+        # update the EdgeDict
         self.update({edge.uid: edge})
 
     def remove_path(self, path):
+        """Remove edges associated with a path."""
+        # iterate over edges and remove the path relationship
         for edge in path.edges:
             self._related[edge].remove_path(path)
 
@@ -462,14 +498,21 @@ class PathDict(BaseDict):
         super().__init__(*args)
 
     def add_path(self, path):
+        """Add a path to the PathDict."""
+
+        # create an object for related objects
         if path.uid not in self._related:
             self._related[path.uid] = RelatedObjects()
 
+        # add related nodes
         for node in path.nodes.values():
             self._related[path.uid].add_node(node)
+
+        # add related edges
         for edge in path.edges.values():
             self._related[path.uid].add_edge(edge)
 
+        # update the PathDict
         self.update({path.uid: path})
 
     def to_frame(self) -> pd.DataFrame:
