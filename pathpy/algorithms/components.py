@@ -18,16 +18,30 @@ import numpy as np
 
 from .. import config, logger, tqdm
 from ..core.base import BaseNetwork
+from .. import core
 
 # create logger
 log = logger(__name__)
 
-# TODO: replace this by a function that returns a new network
-def reduce_to_gcc(network) -> None:
-    """Reduces the network to the largest connected component.
+def find_connected_components(network) -> dict:
+    """Computes connected components of a network.
+
+    Parameters
+    ----------
+
+        network: Network
+
+            Network instance
+
+    Returns
+    -------
+
+        dict
+
+            dictionary mapping node uids to components (represented as integer IDs)
     """
 
-    # these are used as nonlocal variables (!)
+    # these are used as nonlocal variables in tarjan
     index = 0
     S = []
     indices = defaultdict(lambda: None)
@@ -36,7 +50,7 @@ def reduce_to_gcc(network) -> None:
     components = {}
 
     # Tarjan's algorithm
-    def strong_connect(v):
+    def tarjan(v):
         nonlocal index
         nonlocal S
         nonlocal indices
@@ -50,9 +64,9 @@ def reduce_to_gcc(network) -> None:
         S.append(v)
         on_stack[v] = True
 
-        for w in network.nodes.successors[v]:
+        for w in network.successors[v]:
             if indices[w] is None:
-                strong_connect(w)
+                tarjan(w)
                 low_link[v] = min(low_link[v], low_link[w])
             elif on_stack[w]:
                 low_link[v] = min(low_link[v], indices[w])
@@ -70,16 +84,29 @@ def reduce_to_gcc(network) -> None:
     # compute strongly connected components
     for v in network.nodes:
         if indices[v] is None:
-            strong_connect(v)
-            # print('node {v}, size = {n}, component = {component}'.format(v=v, component=components[v], n = len(components[v]) ))
+            tarjan(v)
 
+    return dict(zip(range(len(components)), components.values()))
+
+
+def largest_connected_component(network: core.Network) -> core.Network:
+    """Returns the largest connected component of the network as a new 
+    network
+    """
+
+    components = find_connected_components(network)
     max_size = 0
-    for v in components:
-        if len(components[v]) > max_size:            
-            scc = components[v]
-            max_size = len(components[v])
+    max_comp = None
+    for i in components:
+        if len(components[i]) > max_size:
+            max_size = len(components[i])
+            max_comp = components[i]
 
-    # Reduce network to SCC
-    for v in list(network.nodes):
-        if v not in scc:
-            network.remove_node(v)
+    lcc = core.Network(directed = network.directed)
+    for v in max_comp:
+        lcc.add_node(network.nodes[v])
+    for e in network.edges:
+        edge = network.edges[e]
+        if edge.v.uid in max_comp and edge.v.uid in max_comp:
+            lcc.add_edge(edge)
+    return lcc
