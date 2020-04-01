@@ -110,3 +110,7 @@ def largest_connected_component(network: core.Network) -> core.Network:
         if edge.v.uid in max_comp and edge.v.uid in max_comp:
             lcc.add_edge(edge)
     return lcc
+
+def largest_component_size(network: core.Network) -> int:
+    components = find_connected_components(network)
+    return max(map(len, components.values()))
