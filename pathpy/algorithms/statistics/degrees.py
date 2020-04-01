@@ -125,7 +125,7 @@ def central_moment(network, k: int = 1, weight: bool = False) -> float:
     mean = np.mean(sequence(network))
     m = 0.
     for x in p_k:
-        m += (x - mean) * p_k[x]
+        m += (x - mean)**k * p_k[x]
     return m
 
 
