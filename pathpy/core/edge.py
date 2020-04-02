@@ -3,22 +3,22 @@
 # =============================================================================
 # File      : edge.py -- Base class for an single edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-03-31 14:02 juergen>
+# Time-stamp: <Thu 2020-04-02 15:54 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, List, Optional
+from typing import Any, List
 
-from .. import logger, config
-from .base import BaseClass
-from .base import NodeDict
-from .utils.separator import separator
-from .utils._check_node import _check_node
-from . import Node
+from pathpy import logger, config
+from pathpy.core.base import BaseClass
+from pathpy.core.base import NodeDict
+from pathpy.core.utils.separator import separator
+from pathpy.core.utils._check_node import _check_node
+from pathpy.core.node import Node
 
 # create logger for the Edge class
-log = logger(__name__)
+LOG = logger(__name__)
 
 
 class Edge(BaseClass):
@@ -474,7 +474,7 @@ class Edge(BaseClass):
         # TODO: Move this code to a helper function
         if config['logging']['verbose']:
             for line in summary:
-                log.info(line.rstrip())
+                LOG.info(line.rstrip())
             return ''
         else:
             return ''.join(summary)

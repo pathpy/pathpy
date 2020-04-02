@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : centralities.py -- Module to calculate node centrality measures
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Wed 2020-03-25 13:39 scholtes>
+# Time-stamp: <Thu 2020-04-02 16:35 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -17,13 +17,14 @@ import sys
 import numpy as np
 
 
-from .. import config, logger, tqdm
-from ..core.base import BaseNetwork
-from ..core import Path
-from . import shortest_paths
+from pathpy import config, logger, tqdm
+from pathpy.core.base import BaseNetwork
+from pathpy.core.path import Path
+from pathpy.algorithms import shortest_paths
 
 # create logger
 log = logger(__name__)
+
 
 def betweenness_centrality(network, normalized: bool = False) -> Counter:
     """Calculates the betweenness centrality of all nodes.
@@ -119,7 +120,7 @@ def closeness_centrality(network, normalized: bool = False) -> Counter:
     distances = shortest_paths.distance_matrix(network)
     cl = Counter()
 
-    mapping = {idx:v for idx, v in enumerate(network.nodes)}
+    mapping = {idx: v for idx, v in enumerate(network.nodes)}
 
     n = network.number_of_nodes()
     # calculate closeness values

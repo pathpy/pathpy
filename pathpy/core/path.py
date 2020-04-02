@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-04-02 11:55 juergen>
+# Time-stamp: <Thu 2020-04-02 15:55 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -11,16 +11,17 @@ from __future__ import annotations
 from typing import Any, List, Dict, Optional, Sequence
 import sys
 
-from .. import logger, config
-from .base import BaseClass
-from .base import NodeDict
-from .base import EdgeDict
-from .base import PathDict
-from .utils.separator import separator
-from .utils._check_node import _check_node
-from .utils._check_edge import _check_edge
-from .utils._check_str import _check_str
-from . import Node, Edge
+from pathpy import logger, config
+from pathpy.core.base import BaseClass
+from pathpy.core.base import NodeDict
+from pathpy.core.base import EdgeDict
+from pathpy.core.base import PathDict
+from pathpy.core.utils.separator import separator
+from pathpy.core.utils._check_node import _check_node
+from pathpy.core.utils._check_edge import _check_edge
+from pathpy.core.utils._check_str import _check_str
+from pathpy.core.node import Node
+from pathpy.core.edge import Edge
 
 # create logger for the Path class
 log = logger(__name__)

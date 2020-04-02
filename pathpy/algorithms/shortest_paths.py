@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : shortest_paths.py -- Module to calculate shortest paths and diameter
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Wed 2020-03-25 11:48 scholtes>
+# Time-stamp: <Thu 2020-04-02 16:34 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -12,18 +12,16 @@ from typing import Any, List, Dict, Tuple, Optional
 from functools import singledispatch
 from collections import Counter
 from collections import defaultdict
-import datetime
-import sys
 from scipy.sparse import csgraph
 import numpy as np
 
 
-from .. import config, logger, tqdm
-from ..core.base import BaseNetwork
-from ..core import Path
+from pathpy import config, logger, tqdm
+from pathpy.core.base import BaseNetwork
+from pathpy.core.path import Path
 
 # create logger
-log = logger(__name__)
+LOG = logger(__name__)
 
 
 def distance_matrix(network, weighted: bool = False) -> np.ndarray:
@@ -64,9 +62,11 @@ def distance_matrix(network, weighted: bool = False) -> np.ndarray:
     """
 
     A = network.adjacency_matrix(weighted=weighted)
-    dist_matrix = csgraph.floyd_warshall(A, network.directed, unweighted=(not weighted), overwrite=False)
+    dist_matrix = csgraph.floyd_warshall(
+        A, network.directed, unweighted=(not weighted), overwrite=False)
 
     return dist_matrix
+
 
 def all_shortest_paths(network, weighted: bool = False) -> defaultdict:
     """Calculates shortest paths between all pairs of nodes.
@@ -111,10 +111,12 @@ def all_shortest_paths(network, weighted: bool = False) -> defaultdict:
     for e in network.edges:
         # set distances between neighbors to 1
         dist[network.edges[e].v.uid][network.edges[e].w.uid] = 1
-        s_p[network.edges[e].v.uid][network.edges[e].w.uid].add((network.edges[e].v.uid, network.edges[e].w.uid))
+        s_p[network.edges[e].v.uid][network.edges[e].w.uid].add(
+            (network.edges[e].v.uid, network.edges[e].w.uid))
         if not network.edges[e].directed:
             dist[network.edges[e].w.uid][network.edges[e].v.uid] = 1
-            s_p[network.edges[e].w.uid][network.edges[e].v.uid].add((network.edges[e].w.uid, network.edges[e].v.uid))
+            s_p[network.edges[e].w.uid][network.edges[e].v.uid].add(
+                (network.edges[e].w.uid, network.edges[e].v.uid))
 
     for k in tqdm(network.nodes, desc='all_shortest_paths'):
         for v in network.nodes:
@@ -138,6 +140,7 @@ def all_shortest_paths(network, weighted: bool = False) -> defaultdict:
         s_p[v][v].add((v,))
 
     return s_p
+
 
 def diameter(network, weighted: bool = False) -> float:
     """Calculates the length of the longest shortest path
@@ -175,6 +178,7 @@ def diameter(network, weighted: bool = False) -> float:
         1
     """
     return np.max(distance_matrix(network, weighted))
+
 
 def avg_path_length(network, weighted: bool = False) -> float:
     """Calculates the average shortest path length

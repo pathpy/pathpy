@@ -3,20 +3,20 @@
 # =============================================================================
 # File      : _check_edge.py -- Helper function to check the edge format
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-04-02 13:12 juergen>
+# Time-stamp: <Thu 2020-04-02 15:49 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
 from typing import Any
 
-from ... import logger
-from .. import Node
-from .. import Edge
-from ._check_node import _check_node
+from pathpy import logger
+from pathpy.core.node import Node
+from pathpy.core.edge import Edge
+from pathpy.core.utils._check_node import _check_node
 
 # create a logger
-log = logger(__name__)
+LOG = logger(__name__)
 
 
 def _check_edge(self, edge: Any, *args: Any, **kwargs: Any) -> Edge:
@@ -44,7 +44,7 @@ def _check_edge(self, edge: Any, *args: Any, **kwargs: Any) -> Edge:
             _v['uid'] = v_uid
             _w['uid'] = w_uid
         except Exception:
-            log.error('The definition of the edge "{}" is incorrect! '
+            LOG.error('The definition of the edge "{}" is incorrect! '
                       'Please use an Edge object!'.format(edge))
             raise AttributeError
 
@@ -76,7 +76,7 @@ def _check_edge(self, edge: Any, *args: Any, **kwargs: Any) -> Edge:
 
     # raise error if nothing works.
     else:
-        log.error('The definition of the edge "{}" is incorrect! '
+        LOG.error('The definition of the edge "{}" is incorrect! '
                   'Please use an Edge object!'.format(edge))
         raise AttributeError
 
@@ -102,7 +102,7 @@ def _check_edge(self, edge: Any, *args: Any, **kwargs: Any) -> Edge:
         _edge = Edge(v, w, uid=_e['uid'], **kwargs)
 
     else:
-        log.error('The definition of the edge "{}" is incorrect! '
+        LOG.error('The definition of the edge "{}" is incorrect! '
                   'Please use an Edge object!'.format(edge))
         raise AttributeError
 

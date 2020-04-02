@@ -3,17 +3,17 @@
 # =============================================================================
 # File      : _check_str.py -- Helper function to check the str format
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-03-20 09:50 juergen>
+# Time-stamp: <Thu 2020-04-02 15:58 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
 from typing import Any, List
-from ... import logger, config
+from pathpy import logger, config
 
 
 # create a logger
-log = logger(__name__)
+LOG = logger(__name__)
 
 
 def _check_str(self, *args: Any, expected=None, **kwargs: Any) -> List:

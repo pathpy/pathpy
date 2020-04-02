@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : multi_order_models.py -- Multi order models for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-03-27 12:25 juergen>
+# Time-stamp: <Thu 2020-04-02 16:51 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -11,13 +11,13 @@
 import datetime
 import numpy as np
 from scipy.stats import chi2
-from .. import logger, config
-from ..core import HigherOrderNetwork
-from ..utils import window
-from . null_model import NullModel
+from pathpy import logger, config
+from pathpy.core.higher_order_network import HigherOrderNetwork
+from pathpy.utils import window
+from pathpy.models.null_model import NullModel
 
 # create logger
-Log = logger(__name__)
+LOG = logger(__name__)
 
 
 class MultiOrderModel:
@@ -46,7 +46,7 @@ class MultiOrderModel:
     def add_layer(self, order):
         """Add layer to the multi-order model."""
 
-        Log.debug('Generating {}-th order layer ...'.format(order))
+        LOG.debug('Generating {}-th order layer ...'.format(order))
         # generate higher order network
         _hon = HigherOrderNetwork(self.network, order=order)
 
@@ -114,7 +114,7 @@ class MultiOrderModel:
         # TODO: Move this code to a helper function
         if config['logging']['verbose']:
             for line in summary:
-                Log.info(line.rstrip())
+                LOG.info(line.rstrip())
             return ''
         else:
             return ''.join(summary)
@@ -122,7 +122,7 @@ class MultiOrderModel:
     def estimate(self, observations=None, stop=None, threshold=0.01):
         """Estimate the optimal order for a multi-order network."""
 
-        Log.debug('start estimate optimal order')
+        LOG.debug('start estimate optimal order')
         a = datetime.datetime.now()
 
         # initialize variables
@@ -132,8 +132,8 @@ class MultiOrderModel:
         max_accepted_order = 1
 
         for order in range(2, max_considerd_order+1):
-            Log.debug('---')
-            Log.debug('> estimating order {}'.format(order))
+            LOG.debug('---')
+            LOG.debug('> estimating order {}'.format(order))
             accept, p_value = self.likelihood_ratio_test(
                 observations, null=order-1, order=order, threshold=threshold)
 
@@ -143,13 +143,13 @@ class MultiOrderModel:
         print(max_accepted_order)
 
         b = datetime.datetime.now()
-        Log.debug('end estimate optiomal order:' +
+        LOG.debug('end estimate optiomal order:' +
                   ' {} seconds'.format((b-a).total_seconds()))
 
     def likelihood_ratio_test(self, observations=None, null=0, order=1,
                               threshold=0.01):
 
-        Log.debug('start likelihood ratio test')
+        LOG.debug('start likelihood ratio test')
         a = datetime.datetime.now()
 
         # calculate likelihoods
@@ -173,14 +173,14 @@ class MultiOrderModel:
         accept = p_value < threshold
 
         # some information
-        Log.debug('Likelihood ratio test for order = {}'.format(order))
-        Log.debug('test statistics x = {}'.format(x))
-        Log.debug('additional degrees of freedom = {}'.format(delta_dof))
-        Log.debug('p-value = {}'.format(p_value))
-        Log.debug('reject the null hypothesis = {}'.format(accept))
+        LOG.debug('Likelihood ratio test for order = {}'.format(order))
+        LOG.debug('test statistics x = {}'.format(x))
+        LOG.debug('additional degrees of freedom = {}'.format(delta_dof))
+        LOG.debug('p-value = {}'.format(p_value))
+        LOG.debug('reject the null hypothesis = {}'.format(accept))
 
         b = datetime.datetime.now()
-        Log.debug('end likelihood ratio test:' +
+        LOG.debug('end likelihood ratio test:' +
                   ' {} seconds'.format((b-a).total_seconds()))
 
         return accept, p_value
@@ -237,7 +237,7 @@ class MultiOrderModel:
             min_length = order
         else:
             min_length = max(order, min_length)
-            Log.debug('Add warning')
+            LOG.debug('Add warning')
 
         if longer_paths:
             max_length = max(path_lengths)

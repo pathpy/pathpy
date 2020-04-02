@@ -3,18 +3,18 @@
 # =============================================================================
 # File      : _check_node.py -- Helper function to check the node format
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-03-18 09:00 juergen>
+# Time-stamp: <Thu 2020-04-02 15:48 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
 from typing import Any
 
-from ... import logger
-from .. import Node
+from pathpy import logger
+from pathpy.core.node import Node
 
 # create a logger
-log = logger(__name__)
+LOG = logger(__name__)
 
 
 def _check_node(self, node: Any, **kwargs: Any) -> Node:
@@ -37,7 +37,7 @@ def _check_node(self, node: Any, **kwargs: Any) -> Node:
 
     # raise error if not defined in the right format
     else:
-        log.error('The definition of the node "{}" is incorrect!'
+        LOG.error('The definition of the node "{}" is incorrect!'
                   'Please use a Node object or a unique str!'.format(node))
         raise AttributeError
 

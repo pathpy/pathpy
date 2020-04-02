@@ -3,24 +3,24 @@
 # =============================================================================
 # File      : _check_path.py -- Helper function to check the path format
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-04-02 13:12 juergen>
+# Time-stamp: <Thu 2020-04-02 15:59 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
 from typing import Any
 
-from ... import logger
-from .. import Node
-from .. import Edge
-from .. import Path
+from pathpy import logger
+from pathpy.core.node import Node
+from pathpy.core.edge import Edge
+from pathpy.core.path import Path
 
-from ._check_node import _check_node
-from ._check_edge import _check_edge
-from ._check_str import _check_str
+from pathpy.core.utils._check_node import _check_node
+from pathpy.core.utils._check_edge import _check_edge
+from pathpy.core.utils._check_str import _check_str
 
 # create a logger
-log = logger(__name__)
+LOG = logger(__name__)
 
 
 def _check_path(self, path: Any, *args: Any, **kwargs: Any) -> Path:
@@ -60,7 +60,7 @@ def _check_path(self, path: Any, *args: Any, **kwargs: Any) -> Path:
 
         # check if all the strings are the same objects
         if len({x[1] for x in objects}) != 1:
-            log.error('Path objects have to be from the same type!')
+            LOG.error('Path objects have to be from the same type!')
             raise AttributeError
 
         # get list of uids
@@ -72,7 +72,7 @@ def _check_path(self, path: Any, *args: Any, **kwargs: Any) -> Path:
 
     # raise error if nothing works.
     else:
-        log.error('The definition of the path "{}" is incorrect! '
+        LOG.error('The definition of the path "{}" is incorrect! '
                   'Please use an Path object!'.format(path))
         raise AttributeError
 
@@ -105,7 +105,7 @@ def _check_path(self, path: Any, *args: Any, **kwargs: Any) -> Path:
         _path = Path(*n, **kwargs)
 
     else:
-        log.error('The definition of the path "{}" is incorrect! '
+        LOG.error('The definition of the path "{}" is incorrect! '
                   'Please use an Path object!'.format(path))
         raise AttributeError
 

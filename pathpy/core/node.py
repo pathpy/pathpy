@@ -3,18 +3,18 @@
 # =============================================================================
 # File      : node.py -- Base class for a single node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-03-27 12:18 juergen>
+# Time-stamp: <Thu 2020-04-02 15:16 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, Set, Optional
+from typing import Any, Set
 
-from .. import logger, config
-from .base import BaseClass
+from pathpy import logger, config
+from pathpy.core.base import BaseClass
 
 # create logger for the Node class
-log = logger(__name__)
+LOG = logger(__name__)
 
 
 class Node(BaseClass):
@@ -308,7 +308,7 @@ class Node(BaseClass):
         # TODO: Move this code to a helper function
         if config['logging']['verbose']:
             for line in summary:
-                log.info(line.rstrip())
+                LOG.info(line.rstrip())
             return ''
         else:
             return ''.join(summary)

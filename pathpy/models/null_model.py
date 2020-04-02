@@ -3,15 +3,18 @@
 # =============================================================================
 # File      : null_models.py -- Null models for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2019-11-20 15:17 juergen>
+# Time-stamp: <Thu 2020-04-02 16:50 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
 from typing import List
 import datetime
-from ..core import HigherOrderNetwork, HigherOrderNode, Edge, Path
-from .. import logger, tqdm, config
+from pathpy import logger, tqdm, config
+from pathpy.core.edge import Edge
+from pathpy.core.path import Path
+from pathpy.core.higher_order_network import (
+    HigherOrderNetwork, HigherOrderNode)
 
 # create logger
 log = logger(__name__)

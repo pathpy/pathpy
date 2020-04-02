@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-03-27 12:23 juergen>
+# Time-stamp: <Thu 2020-04-02 16:59 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -15,10 +15,13 @@ from typing import Any, List, Optional
 
 import numpy as np
 
-from .. import logger, config
-from .base import BaseHigherOrderNetwork
-from .utils.separator import separator
-from . import Node, Path, Network, Edge
+from pathpy import logger, config
+from pathpy.core.base import BaseHigherOrderNetwork
+from pathpy.core.utils.separator import separator
+from pathpy.core.node import Node
+from pathpy.core.edge import Edge
+from pathpy.core.path import Path
+from pathpy.core.network import Network
 
 # create logger for the Higher Order Network class
 log = logger(__name__)
@@ -50,7 +53,7 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
 
     # import external functions
     try:
-        from ..algorithms.statistics.likelihoods import likelihood
+        from pathpy.statistics.likelihoods import likelihood
     except ImportError:
         log.debug('pathpy.likelihood faild to be import')
 

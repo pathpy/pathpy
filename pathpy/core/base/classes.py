@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : classes.py -- Base classes for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2019-12-17 09:30 juergen>
+# Time-stamp: <Thu 2020-04-02 15:46 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -11,9 +11,9 @@ from abc import ABC
 from typing import Any
 from copy import deepcopy
 
-from ... import config
-from . import Attributes
-from . import TemporalAttributes
+from pathpy import config
+from pathpy.core.base.attributes import (Attributes,
+                                         TemporalAttributes)
 
 
 class AbstractNetwork(ABC):

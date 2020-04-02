@@ -3,25 +3,23 @@
 # =============================================================================
 # File      : matrices.py -- Module to calculate various matrices
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2019-11-15 08:37 juergen>
+# Time-stamp: <Thu 2020-04-02 16:12 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, List, Dict, Tuple, Optional
+from typing import Any, List
 from functools import singledispatch
-from collections import Counter
-import datetime
-import sys
 from scipy import sparse
 import numpy as np
 
-from .. import config, logger, tqdm
-from ..core.base import BaseNetwork, BaseHigherOrderNetwork
+from pathpy import config, logger, tqdm
+from pathpy.core.base import (BaseNetwork,
+                              BaseHigherOrderNetwork)
 
 
 # create logger
-log = logger(__name__)
+LOG = logger(__name__)
 
 
 @singledispatch
@@ -84,7 +82,7 @@ def _network(self, weight: Any = None, transposed: bool = False,
     """Returns a sparse adjacency matrix of the network."""
 
     # some information for debugging
-    log.debug('I\'m a Network')
+    LOG.debug('I\'m a Network')
 
     # update weight if frequency is chosen
     if weight == config['attributes']['frequency']:
@@ -104,7 +102,7 @@ def _hon(self, weight: Any = None, transposed: bool = False,
     """Returns a sparse adjacency matrix of the higher order network."""
 
     # some information for debugging
-    log.debug('I\'m an adjacency matrix of a HigherOrderNetwork')
+    LOG.debug('I\'m an adjacency matrix of a HigherOrderNetwork')
 
     # get additional information for HONs
     subpaths: bool = kwargs.get('subpaths', True)

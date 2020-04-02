@@ -3,27 +3,31 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-04-02 12:23 juergen>
+# Time-stamp: <Thu 2020-04-02 16:47 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, List, Tuple, Optional, Sequence, Set, Dict
+from typing import Any, List, Tuple, Sequence, Set, Dict
 
-from .. import logger, config
-from .base import BaseNetwork
-from .base import BaseDirectedNetwork, BaseUndirectedNetwork
-from .base import BaseDirectedTemporalNetwork, BaseUndirectedTemporalNetwork
-from .base import NodeDict, EdgeDict, PathDict
-from .utils.separator import separator
-from .utils._check_node import _check_node
-from .utils._check_edge import _check_edge
-from .utils._check_path import _check_path
-from .utils._check_str import _check_str
-from . import Node, Edge, Path
+from pathpy import logger, config
+from pathpy.core.base import BaseNetwork
+from pathpy.core.base import (BaseDirectedNetwork,
+                              BaseUndirectedNetwork)
+from pathpy.core.base import (BaseDirectedTemporalNetwork,
+                              BaseUndirectedTemporalNetwork)
+from pathpy.core.base import NodeDict, EdgeDict, PathDict
+from pathpy.core.utils.separator import separator
+from pathpy.core.utils._check_node import _check_node
+from pathpy.core.utils._check_edge import _check_edge
+from pathpy.core.utils._check_path import _check_path
+from pathpy.core.utils._check_str import _check_str
+from pathpy.core.node import Node
+from pathpy.core.edge import Edge
+from pathpy.core.path import Path
 
 # create logger for the Network class
-log = logger(__name__)
+LOG = logger(__name__)
 
 
 class Network(BaseNetwork):
@@ -230,7 +234,7 @@ class Network(BaseNetwork):
 
     try:
         # import sub paths object
-        from ..algorithms.statistics.subpaths import SubPaths as _SubPathsConstructor
+        from pathpy.statistics.subpaths import SubPaths as _SubPathsConstructor
 
         # initialize a local variable to store sub paths
         # NOTE: this will be only created if the module is loaded
@@ -252,22 +256,23 @@ class Network(BaseNetwork):
 
     except ImportError:
         # if library could not be loaded raise a warning
-        log.warning('pathpy.subpaths failed to be imported')
+        LOG.warning('pathpy.subpaths failed to be imported')
 
     try:
-        from ..algorithms.matrices import adjacency_matrix, transition_matrix
+        from pathpy.algorithms.matrices import (adjacency_matrix,
+                                                transition_matrix)
     except ImportError:
-        log.debug('pathpy.matrices failed to be imported')
+        LOG.debug('pathpy.matrices failed to be imported')
 
     try:
         from ..visualizations.plot import plot
     except ImportError:
-        log.debug('pathpy.plot failed to be imported')
+        LOG.debug('pathpy.plot failed to be imported')
 
     try:
         from ..io.edgelist import read_edgelist
     except ImportError:
-        log.debug('pathpy.io.edgelist failed to be imported')
+        LOG.debug('pathpy.io.edgelist failed to be imported')
 
     def __repr__(self) -> str:
         """Return the description of the network.
@@ -588,7 +593,7 @@ class Network(BaseNetwork):
         # TODO: Move this code to a helper function
         if config['logging']['verbose']:
             for line in summary:
-                log.info(line.rstrip())
+                LOG.info(line.rstrip())
             return ''
         else:
             return ''.join(summary)
@@ -991,7 +996,7 @@ class Network(BaseNetwork):
                     elif mode == 'node':
                         self.add_nodes_from(string)
             else:
-                log.error('Invalide argument "{}"!'.format(arg))
+                LOG.error('Invalide argument "{}"!'.format(arg))
                 raise AttributeError
 
     def remove_node(self, uid: str) -> None:
@@ -1167,7 +1172,7 @@ class Network(BaseNetwork):
                 # get the path uid
                 path = _check_path(self, string[0]).uid
             else:
-                log.warning('Invalide path uid "{}"!'.format(string[0]))
+                LOG.warning('Invalide path uid "{}"!'.format(string[0]))
 
         # check if the path is in the network
         if path in self.paths:
@@ -1205,7 +1210,7 @@ class Network(BaseNetwork):
             _directed = self.edges.directed
 
         if _directed is None:
-            log.error('Edges must either be directed or undirected!')
+            LOG.error('Edges must either be directed or undirected!')
             raise AttributeError
 
         # TODO: Consider also temporal paths

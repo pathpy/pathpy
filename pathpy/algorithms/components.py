@@ -3,19 +3,20 @@
 # =============================================================================
 # File      : shortest_paths.py -- Module to calculate connected components
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Wed 2020-03-31 16:40 scholtes>
+# Time-stamp: <Thu 2020-04-02 16:15 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Dict, Union
+from typing import Dict
 from collections import defaultdict
 
-from .. import logger, tqdm
+from pathpy import logger, tqdm
 
-from ..core.network import Network
+from pathpy.core.network import Network
 
-log = logger(__name__)
+LOG = logger(__name__)
+
 
 def find_connected_components(network: Network) -> Dict:
     """Computes connected components of a network.
@@ -76,12 +77,12 @@ def find_connected_components(network: Network) -> Dict:
                     break
 
     # compute strongly connected components
-    log.debug('Computing connected components')
+    LOG.debug('Computing connected components')
     for v in tqdm(network.nodes, desc='component calculation'):
         if indices[v] is None:
             tarjan(v)
 
-    log.debug('Mapping component sizes')
+    LOG.debug('Mapping component sizes')
     return dict(zip(range(len(components)), components.values()))
 
 
@@ -90,7 +91,7 @@ def largest_connected_component(network: Network) -> Network:
     network
     """
 
-    log.debug('Computing connected components')
+    LOG.debug('Computing connected components')
     components = find_connected_components(network)
     max_size = 0
     max_comp = None
@@ -99,16 +100,17 @@ def largest_connected_component(network: Network) -> Network:
             max_size = len(components[i])
             max_comp = components[i]
 
-    log.debug('Copying network')
+    LOG.debug('Copying network')
     lcc = network.copy()
 
-    log.debug('Removing nodes outside largest component')
+    LOG.debug('Removing nodes outside largest component')
     for v in list(lcc.nodes):
         if v not in max_comp:
             lcc.remove_node(v)
     return lcc
 
+
 def largest_component_size(network: Network) -> int:
-    log.debug('Computing connected components')
+    LOG.debug('Computing connected components')
     components = find_connected_components(network)
     return max(map(len, components.values()))
