@@ -8,17 +8,15 @@
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, List, Dict, Tuple, Optional
-from functools import singledispatch
-from collections import Counter
-import datetime
-import sys
+from typing import Union, Dict
+from collections import defaultdict
+
 import numpy as np
 
-from ... import config, logger, tqdm
+from ...core.network import Network
 
 
-def sequence(network, weight: bool = False) -> np.array:
+def sequence(network: Network, weight: bool = False) -> np.array:
     """Calculates the degree sequence of a network.
 
     Parameters
@@ -53,7 +51,7 @@ def sequence(network, weight: bool = False) -> np.array:
 
     return np.fromiter(network.nodes.degrees(weight=weight).values(), dtype=float)
 
-def distribution(network, weight: bool = False) -> Counter:
+def distribution(network: Network, weight: bool = False) -> Dict:
     """Calculates the degree distribution of a network.
 
     Parameters
@@ -76,16 +74,16 @@ def distribution(network, weight: bool = False) -> Counter:
         >>> net.add_edge('a', 'c', weight = 1.0)
         >>> s = pp.algorithms.statistics.degree_distribution(net)
         >>> s
-        Counter({ 2.: 0.33333., 1.: 0.66667})
+        dict({ 2.: 0.33333., 1.: 0.66667})
 
         Return weighted degree distribution
 
         >>> s = pp.algorithms.statistics.degree_distribution(net, weights = True)
         >>> s
-        Counter({ 3.1: 0.33333., 2.1: 0.33333., 1.: 0.333333. })
+        dict({ 3.1: 0.33333., 2.1: 0.33333., 1.: 0.333333. })
     """
 
-    cnt = Counter()
+    cnt = defaultdict(float)
     n = network.number_of_nodes()
     for v in network.nodes:
         cnt[network.nodes.degrees(weight=weight)[v]] += 1.0 / n
@@ -110,7 +108,7 @@ def raw_moment(network, k: int = 1, weight: bool = False) -> float:
     return mom
 
 
-def central_moment(network, k: int = 1, weight: bool = False) -> float:
+def central_moment(network: Network, k: int = 1, weight: bool = False) -> float:
     """Calculates the k-th central moment of the degree distribution of a network
 
     Parameters
@@ -129,7 +127,7 @@ def central_moment(network, k: int = 1, weight: bool = False) -> float:
     return m
 
 
-def generating_func(network, x, weight: bool = False) -> Union[float,np.ndarray]:
+def generating_func(network: Network, x: float, weight: bool = False) -> Union[float, np.ndarray]:
     """Returns f(x) where f is the probability generating function for the
     degree distribution P(k) for a network. The function is defined in the interval [0,1].
     The value returned is from the range [0,1]. The following properties hold:
@@ -188,7 +186,7 @@ def generating_func(network, x, weight: bool = False) -> Union[float,np.ndarray]
     else:
         x_range = x
 
-    values = Counter()
+    values = defaultdict(float)
     for k in p_k:
         for v in x_range:
             values[v] += p_k[k] * v**k
@@ -199,7 +197,7 @@ def generating_func(network, x, weight: bool = False) -> Union[float,np.ndarray]
         return values[x]
 
 
-def molloy_reed_fraction(network, weight: bool = False) -> float:
+def molloy_reed_fraction(network: Network, weight: bool = False) -> float:
     """Calculates the Molloy-Reed fraction k**2/<k> based on the (in/out)-degree
     distribution of a directed or undirected network.
 
@@ -213,7 +211,7 @@ def molloy_reed_fraction(network, weight: bool = False) -> float:
     return raw_moment(network, k=2, weight=weight)/raw_moment(network, k=1, weight=weight)
 
 
-def assortativity(network, weight: bool = False) -> float:
+def assortativity(network: Network, weight: bool = False) -> float:
     """Calculates the degree assortativity coefficient of a network.
 
     Parameters

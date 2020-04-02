@@ -8,22 +8,16 @@
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, List, Dict, Tuple, Optional
-from functools import singledispatch
-from collections import Counter
+from typing import Dict, Union
 from collections import defaultdict
-import datetime
-import sys
-import numpy as np
 
-from .. import config, logger, tqdm
-from ..core.base import BaseNetwork
-from .. import core
+from .. import logger, tqdm
 
-# create logger
+from ..core.network import Network
+
 log = logger(__name__)
 
-def find_connected_components(network) -> dict:
+def find_connected_components(network: Network) -> Dict:
     """Computes connected components of a network.
 
     Parameters
@@ -50,7 +44,7 @@ def find_connected_components(network) -> dict:
     components = {}
 
     # Tarjan's algorithm
-    def tarjan(v):
+    def tarjan(v: str):
         nonlocal index
         nonlocal S
         nonlocal indices
@@ -82,18 +76,21 @@ def find_connected_components(network) -> dict:
                     break
 
     # compute strongly connected components
-    for v in network.nodes:
+    log.debug('Computing connected components')
+    for v in tqdm(network.nodes, desc='component calculation'):
         if indices[v] is None:
             tarjan(v)
 
+    log.debug('Mapping component sizes')
     return dict(zip(range(len(components)), components.values()))
 
 
-def largest_connected_component(network: core.Network) -> core.Network:
+def largest_connected_component(network: Network) -> Network:
     """Returns the largest connected component of the network as a new 
     network
     """
 
+    log.debug('Computing connected components')
     components = find_connected_components(network)
     max_size = 0
     max_comp = None
@@ -102,15 +99,16 @@ def largest_connected_component(network: core.Network) -> core.Network:
             max_size = len(components[i])
             max_comp = components[i]
 
-    lcc = core.Network(directed = network.directed)
-    for v in max_comp:
-        lcc.add_node(network.nodes[v])
-    for e in network.edges:
-        edge = network.edges[e]
-        if edge.v.uid in max_comp and edge.v.uid in max_comp:
-            lcc.add_edge(edge)
+    log.debug('Copying network')
+    lcc = network.copy()
+
+    log.debug('Removing nodes outside largest component')
+    for v in list(lcc.nodes):
+        if v not in max_comp:
+            lcc.remove_node(v)
     return lcc
 
-def largest_component_size(network: core.Network) -> int:
+def largest_component_size(network: Network) -> int:
+    log.debug('Computing connected components')
     components = find_connected_components(network)
     return max(map(len, components.values()))
