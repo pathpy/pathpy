@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-04-01 16:50 juergen>
+# Time-stamp: <Thu 2020-04-02 12:23 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -885,8 +885,7 @@ class Network(BaseNetwork):
 
         # check if the right object is provided
         if self.check:
-            edge = _check_edge(self, edge, *args,
-                               directed=self.directed, **kwargs)
+            edge = _check_edge(self, edge, *args, **kwargs)
 
         # add new edge to the network or update modified edge
         if (edge.uid not in self.edges or
@@ -1214,12 +1213,20 @@ class Network(BaseNetwork):
 
         if _directed and not _temporal:
             self.__class__ = DirectedNetwork
+            self._directed = True
+            self._temporal = False
         elif not _directed and not _temporal:
             self.__class__ = UndirectedNetwork
+            self._directed = False
+            self._temporal = False
         elif _directed and _temporal:
             self.__class__ = DirectedTemporalNetwork
+            self._directed = True
+            self._temporal = True
         elif not _directed and _temporal:
             self.__class__ = UndirectedTemporalNetwork
+            self._directed = False
+            self._temporal = True
 
 
 class DirectedNetwork(BaseDirectedNetwork, Network):
@@ -1228,7 +1235,7 @@ class DirectedNetwork(BaseDirectedNetwork, Network):
                  **kwargs: Any) -> None:
         """Initialize the network object."""
         # initialize the base class
-        super().__init__(*args, directed=directed, temporal=temporal ** kwargs)
+        super().__init__(*args, directed=directed, temporal=temporal, **kwargs)
 
     @property
     def successors(self) -> Dict[str, Dict[str, Node]]:
@@ -1292,7 +1299,7 @@ class UndirectedNetwork(BaseUndirectedNetwork, Network):
                  **kwargs: Any) -> None:
         """Initialize the network object."""
         # initialize the base class
-        super().__init__(*args, directed=directed, temporal=temporal ** kwargs)
+        super().__init__(*args, directed=directed, temporal=temporal, **kwargs)
 
     @property
     def successors(self) -> Dict[str, Dict[str, Node]]:

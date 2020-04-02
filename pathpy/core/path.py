@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-03-31 15:24 juergen>
+# Time-stamp: <Thu 2020-04-02 11:55 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -752,7 +752,7 @@ class Path(BaseClass):
             if edge_uid not in self.edges:
                 self.add_edge(
                     Edge(self.nodes[v_uid], node,
-                         separator=self.separator['edge']))
+                         separator=self.separator['edge'], directed=self.directed))
             else:
                 self.add_edge(self.edges[edge_uid])
 

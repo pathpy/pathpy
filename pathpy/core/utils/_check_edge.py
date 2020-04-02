@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : _check_edge.py -- Helper function to check the edge format
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-03-18 11:23 juergen>
+# Time-stamp: <Thu 2020-04-02 13:12 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -25,6 +25,10 @@ def _check_edge(self, edge: Any, *args: Any, **kwargs: Any) -> Edge:
     _e: dict = {'uid': None, 'object': None}
     _v: dict = {'uid': None, 'object': None}
     _w: dict = {'uid': None, 'object': None}
+
+    # if network is undirected but no edges are given
+    if kwargs.get('directed', None) is None and self.directed is False:
+        kwargs.update({'directed': False})
 
     # check if edge is an Edge object
     if isinstance(edge, Edge):

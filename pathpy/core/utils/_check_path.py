@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : _check_path.py -- Helper function to check the path format
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-03-19 09:49 juergen>
+# Time-stamp: <Thu 2020-04-02 13:12 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -29,6 +29,10 @@ def _check_path(self, path: Any, *args: Any, **kwargs: Any) -> Path:
     _p = None
     _e: dict = {'uids': [], 'objects': []}
     _n: dict = {'uids': [], 'objects': []}
+
+    # if network is undirected but no edges are given
+    if kwargs.get('directed', None) is None and self.directed is False:
+        kwargs.update({'directed': False})
 
     # check if path is a Path object
     if isinstance(path, Path):

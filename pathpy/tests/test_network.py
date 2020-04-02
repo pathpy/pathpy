@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-03-31 16:31 juergen>
+# Time-stamp: <Thu 2020-04-02 13:13 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -435,83 +435,82 @@ def test_remove_node():
     assert net.nodes.counter()['d'] == 1
     assert net.nodes.adjacent_edges['a'] == {}
     assert list(net.nodes.adjacent_edges['c']) == ['c-d']
-# def test_remove_nodes_from(net):
-#     """Test to remove multiple nodes."""
-
-#     non = net.number_of_nodes()
-#     noe = net.number_of_edges()
-
-#     # number of edges sharing node a and b
-#     a2e = net.nodes['a'].adjacent_edges
-#     b2e = net.nodes['b'].adjacent_edges
-#     n2e = len(a2e.union(b2e))
-
-#     net.remove_nodes_from(['a', 'b'])
-
-#     assert net.number_of_nodes() == non - 2
-#     assert net.number_of_edges() == noe - n2e
 
 
-# def test_remove_edge(net):
-#     """Test to remve a single edge."""
+def test_add_undirected_edge():
+    """Test to add undirected path to the network."""
+    e1 = Edge('a', 'b', directed=False)
+    e2 = Edge('b', 'c', directed=True)
 
-#     noe = net.number_of_edges()
+    net = Network()
+    net.add_edge(e1)
+    assert net.directed == False
 
-#     net.remove_edge('cd')
+    net = Network()
+    net.add_edge(e2)
+    assert net.directed == True
 
-#     assert net.number_of_edges() == noe - 1
+    with pytest.raises(Exception):
+        net = Network()
+        net.add_edge(e1)
+        net.add_edge(e2)
 
-#     with pytest.raises(ValueError):
-#         net.remove_edge('a', 'b')
+    net = Network()
+    net.add_edge('a', 'b')
+    assert net.directed == True
 
-#     n2e = net.node_to_edges_map
+    net = Network()
+    net.add_edge('a', 'b', directed=False)
+    assert net.directed == False
 
-#     assert len(n2e[('a', 'b')]) == 2
-#     assert 'ab' in n2e[('a', 'b')] and 'ab2' in n2e[('a', 'b')]
+    with pytest.raises(Exception):
+        net = Network()
+        net.add_edge('a', 'b', directed=False)
+        net.add_edge('b', 'c', directed=True)
 
-#     net.remove_edge('ab')
-#     n2e = net.node_to_edges_map
-
-#     assert len(n2e[('a', 'b')]) == 1
-#     assert 'ab' not in n2e[('a', 'b')] and 'ab2' in n2e[('a', 'b')]
-#     assert net.number_of_edges() == noe - 2
-
-#     net.remove_edge('a', 'b')
-#     assert net.number_of_edges() == noe - 3
-
-
-# def test_remove_edges_from(net):
-#     """Test to remove edges from a list."""
-#     noe = net.number_of_edges()
-
-#     net.remove_edges_from(['ab', 'ab2', ('b', 'c')])
-
-#     assert net.number_of_edges() == noe - 3
-
-
-# def test_has_edge(net):
-#     """Test if an edge is in the network."""
-
-#     assert net.has_edge('ab') is True
-#     assert net.has_edge('not an edge') is False
-#     assert net.has_edge('a', 'b') is True
-
-# # Test external methods
-# # ---------------------
+    net = Network(directed=False)
+    net.add_edge('a', 'b')
+    net.add_edge('b', 'c')
+    assert net.directed == False
 
 
-# def test_adjacency_matrix():
-#     """Test the adjacency matrix."""
-#     net = Network()
-#     net.add_edges_from([('a', 'b'), ('b', 'c')])
+def test_add_undirected_path():
+    """Test to add undirected path to the network."""
 
-#     A = net.adjacency_matrix()
+    p1 = Path('a-b-c', directed=False)
+    p2 = Path('c-d-e', directed=True)
 
-#     assert A[0, 1] == 1.
-#     # print('')
-#     # print(type(A.todense()))
-#     # print(A[0, 1])
-#     # assert A == _A
+    net = Network()
+    net.add_path(p1)
+    assert net.directed == False
+
+    net = Network()
+    net.add_path(p2)
+    assert net.directed == True
+
+    with pytest.raises(Exception):
+        net = Network()
+        net.add_path(p1)
+        net.add_path(p2)
+
+    net = Network()
+    net.add_path('a-b-c')
+    assert net.directed == True
+
+    net = Network()
+    net.add_path('a-b-c', directed=False)
+    assert net.directed == False
+
+    with pytest.raises(Exception):
+        net = Network()
+        net.add_path('a-b-c', directed=False)
+        net.add_path('c-d-e', directed=True)
+
+    net = Network(directed=False)
+    net.add_path('a-b-c')
+    net.add_path('b-c')
+    assert net.directed == False
+
 
 # =============================================================================
 # eof
