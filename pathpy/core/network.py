@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-04-02 16:47 juergen>
+# Time-stamp: <Thu 2020-04-02 17:46 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -1232,6 +1232,23 @@ class Network(BaseNetwork):
             self.__class__ = UndirectedTemporalNetwork
             self._directed = False
             self._temporal = True
+
+    def copy(self):
+        """Return a copy of the network.
+
+        ... warning::
+
+           This is a quick fix and should be replaced with a more sustainable
+           solution. (See Issue #13)
+
+        """
+        from copy import deepcopy
+        new = deepcopy(self)
+        new.nodes._related = deepcopy(self.nodes._related)
+        new.edges._related = deepcopy(self.edges._related)
+        new.paths._related = deepcopy(self.paths._related)
+        new.nodes._attributes = deepcopy(self.nodes._attributes)
+        return new
 
 
 class DirectedNetwork(BaseDirectedNetwork, Network):
