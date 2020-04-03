@@ -80,7 +80,7 @@ def from_sqlite(filename: str, directed: bool = True, con: sqlite3.Connection = 
         sql = 'SELECT * from {}'.format(table)
 
     # load pandas data frame
-    df = pd.read_sql(sql, con, **kwargs)
+    df = pd.read_sql(sql, con)
 
     # close connection to the database
     con.close()

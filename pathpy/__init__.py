@@ -25,7 +25,7 @@ from pathpy.utils.config import config  # noqa: F401
 from pathpy.utils.logger import logger  # noqa: F401
 from pathpy.utils.progress import tqdm  # noqa: F401
 
-from pathpy.io.edgelist import from_pd
+from pathpy.io.edgelist import from_pd, from_csv, from_sqlite
 
 from pathpy.core.api import (Node,
                              Edge,
