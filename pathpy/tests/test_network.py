@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-04-02 13:13 juergen>
+# Time-stamp: <Fri 2020-04-03 09:30 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -436,6 +436,19 @@ def test_remove_node():
     assert net.nodes.adjacent_edges['a'] == {}
     assert list(net.nodes.adjacent_edges['c']) == ['c-d']
 
+    net = Network(directed=True)
+    net.add_edge('a', 'b')
+    net.add_edge('a', 'c')
+    net.add_edge('b', 'd')
+    net.add_edge('b', 'e')
+    net.add_edge('d', 'b')
+    net.add_edge('d', 'e')
+    net.add_edge('e', 'd')
+
+    net.summary()
+    net.remove_node('b')
+    net.summary()
+
 
 def test_add_undirected_edge():
     """Test to add undirected path to the network."""
@@ -444,11 +457,11 @@ def test_add_undirected_edge():
 
     net = Network()
     net.add_edge(e1)
-    assert net.directed == False
+    assert net.directed is False
 
     net = Network()
     net.add_edge(e2)
-    assert net.directed == True
+    assert net.directed is True
 
     with pytest.raises(Exception):
         net = Network()
@@ -457,11 +470,11 @@ def test_add_undirected_edge():
 
     net = Network()
     net.add_edge('a', 'b')
-    assert net.directed == True
+    assert net.directed is True
 
     net = Network()
     net.add_edge('a', 'b', directed=False)
-    assert net.directed == False
+    assert net.directed is False
 
     with pytest.raises(Exception):
         net = Network()
@@ -471,7 +484,7 @@ def test_add_undirected_edge():
     net = Network(directed=False)
     net.add_edge('a', 'b')
     net.add_edge('b', 'c')
-    assert net.directed == False
+    assert net.directed is False
 
 
 def test_add_undirected_path():
@@ -482,11 +495,11 @@ def test_add_undirected_path():
 
     net = Network()
     net.add_path(p1)
-    assert net.directed == False
+    assert net.directed is False
 
     net = Network()
     net.add_path(p2)
-    assert net.directed == True
+    assert net.directed is True
 
     with pytest.raises(Exception):
         net = Network()
@@ -495,11 +508,11 @@ def test_add_undirected_path():
 
     net = Network()
     net.add_path('a-b-c')
-    assert net.directed == True
+    assert net.directed is True
 
     net = Network()
     net.add_path('a-b-c', directed=False)
-    assert net.directed == False
+    assert net.directed is False
 
     with pytest.raises(Exception):
         net = Network()
@@ -509,7 +522,7 @@ def test_add_undirected_path():
     net = Network(directed=False)
     net.add_path('a-b-c')
     net.add_path('b-c')
-    assert net.directed == False
+    assert net.directed is False
 
 
 # =============================================================================

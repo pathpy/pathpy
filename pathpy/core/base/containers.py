@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : containers.py -- Base containers for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-04-01 15:53 juergen>
+# Time-stamp: <Fri 2020-04-03 09:36 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -40,7 +40,7 @@ class RelatedObjects:
 
     def remove_edge(self, edge):
         """Remove edge relationship."""
-        del self.edges[edge.uid]
+        self.edges.pop(edge.uid, None)
 
     def add_node(self, node):
         """Add new node relationship."""
@@ -48,7 +48,7 @@ class RelatedObjects:
 
     def remove_node(self, node):
         """Remove node relationship."""
-        del self.nodes[node.uid]
+        self.nodes.pop(node.uid, None)
 
     def add_path(self, path):
         """Add new path relationship."""
@@ -81,11 +81,13 @@ class BaseDict(defaultdict):
         defaultdict.__setitem__(self, key, value)
 
     def delete(self, key):
-        del self._related[key]
-        del self[key]
+        """Delete objects from BaseDict."""
+        self._related.pop(key, None)
+        self.pop(key, None)
 
     @property
     def related(self):
+        """Returns the related objects."""
         return self._related
 
     @property
@@ -347,17 +349,19 @@ class NodeDict(TemporalDict):
             # remove attributes gained by the edge
             if node == edge.v:
                 self._related[node.uid].remove_node(edge.w)
-                del self._attributes['successors'][node.uid][edge.w.uid]
-                del self._attributes['adjacent_nodes'][node.uid][edge.w.uid]
-                del self._attributes['outgoing'][node.uid][edge.uid]
-                del self._attributes['adjacent_edges'][node.uid][edge.uid]
+                self._attributes['successors'][node.uid].pop(edge.w.uid, None)
+                self._attributes['adjacent_nodes'][node.uid].pop(
+                    edge.w.uid, None)
+                self._attributes['outgoing'][node.uid].pop(edge.uid, None)
+                self._attributes['adjacent_edges'][node.uid].pop(edge.uid, None)
 
             if node == edge.w:
                 self._related[node.uid].remove_node(edge.v)
-                del self._attributes['predecessors'][node.uid][edge.v.uid]
-                del self._attributes['adjacent_nodes'][node.uid][edge.v.uid]
-                del self._attributes['incoming'][node.uid][edge.uid]
-                del self._attributes['adjacent_edges'][node.uid][edge.uid]
+                self._attributes['predecessors'][node.uid].pop(edge.v.uid, None)
+                self._attributes['adjacent_nodes'][node.uid].pop(
+                    edge.v.uid, None)
+                self._attributes['incoming'][node.uid].pop(edge.uid, None)
+                self._attributes['adjacent_edges'][node.uid].pop(edge.uid, None)
 
             # update the degrees
             self._update_degrees(node.uid)
@@ -376,13 +380,13 @@ class NodeDict(TemporalDict):
             # check if the property is given in the dict
             if key in self._attributes[prop]:
                 # remove the node from the property
-                del self._attributes[prop][key]
+                self._attributes[prop].pop(key, None)
 
         # delete the related objects of the node
-        del self._related[key]
+        self._related.pop(key, None)
 
         # delete the node from the NodeDict
-        del self[key]
+        self.pop(key, None)
 
     def _update_degrees(self, key):
         """Helper function to update the degrees."""
