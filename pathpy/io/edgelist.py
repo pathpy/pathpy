@@ -31,6 +31,23 @@ def from_csv(filename: str, directed: bool=True, sep: str=',', header: bool=True
 
 def from_pd(df: pd.DataFrame, directed: bool=True, **kwargs: Any) -> Network:
     """Read network from a pandas dataframe."""
+
+    # if not v/w columns pick first synonym    
+    if 'v' not in df.columns:
+        log.info('No column v, searching for synonyms')
+        for col in df.columns:
+            if col in config['edge']['v_synonyms']:
+                log.info('Remapping column \'{}\' to \'v\''.format(col))
+                df.rename(columns = {col: "v"}, inplace=True)
+                continue
+
+    if 'w' not in df.columns:
+        log.info('No column w, searching for synonyms')
+        for col in df.columns:
+            if col in config['edge']['w_synonyms']:
+                log.info('Remapping column \'{}\' to \'w\''.format(col))
+                df.rename(columns = {col: "w"}, inplace=True)
+                continue
     n = Network(directed=directed, **kwargs)
     for row in df.to_dict(orient='records'):
 
@@ -38,7 +55,7 @@ def from_pd(df: pd.DataFrame, directed: bool=True, **kwargs: Any) -> Network:
         v = row.get('v', None)
         w = row.get('w', None)
         uid = row.get('uid', None)
-        if 'v' is None or 'w' is None:
+        if v is None or w is None:
             log.error('DataFrame minimally needs columns \'v\' and \'w\'')
             raise IOError
         if uid ==None:
@@ -46,6 +63,7 @@ def from_pd(df: pd.DataFrame, directed: bool=True, **kwargs: Any) -> Network:
         else:
             edge = Edge(v, w, uid=uid)
         n.add_edge(edge)
+
         reserved_columns = set(['v', 'w', 'uid'])
         for k in row:
             if k not in reserved_columns:
@@ -79,12 +97,13 @@ def from_sqlite(filename: str, directed: bool = True, con: sqlite3.Connection = 
         # generate sql query
         sql = 'SELECT * from {}'.format(table)
 
-    # load pandas data frame
+    # read to pandas data frame
     df = pd.read_sql(sql, con)
 
     # close connection to the database
     con.close()
 
+    # construct network from pandas data frame
     return from_pd(df)
 
 
