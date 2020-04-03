@@ -8,7 +8,7 @@
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, List, Dict, Tuple, Optional
+from typing import Dict, Union
 from functools import singledispatch
 from collections import Counter
 from collections import defaultdict
@@ -18,15 +18,14 @@ import numpy as np
 
 
 from pathpy import config, logger, tqdm
-from pathpy.core.base import BaseNetwork
-from pathpy.core.path import Path
+from pathpy.core.network import Network
 from pathpy.algorithms import shortest_paths
 
 # create logger
 log = logger(__name__)
 
 
-def betweenness_centrality(network, normalized: bool = False) -> Counter:
+def betweenness_centrality(network: Network, normalized: bool = False) -> Counter:
     """Calculates the betweenness centrality of all nodes.
     .. note::
 
@@ -82,7 +81,7 @@ def betweenness_centrality(network, normalized: bool = False) -> Counter:
     return bw
 
 
-def closeness_centrality(network, normalized: bool = False) -> Counter:
+def closeness_centrality(network: Network, normalized: bool = False) -> Counter:
     """Calculates the closeness centrality of all nodes.
 
     .. note::
@@ -138,3 +137,48 @@ def closeness_centrality(network, normalized: bool = False) -> Counter:
             cl[v] *= n-1
 
     return cl
+
+def degree_centrality(network: Network, mode: str='degree') -> Union[Dict, None]:
+    """Calculates the degree centrality of all nodes.
+
+    Parameters
+        ----------
+        network : Network
+
+            The :py:class:`Network` object that contains the network
+
+        normalized : bool
+
+            If True the resulting centralities will be normalized based
+            on the average shortest path length.
+
+        Examples
+        --------
+        Compute closeness centrality in a simple network
+
+        >>> import pathpy as pp
+        >>> net = pp.Network(directed=True)
+        >>> net.add_edge('a', 'x')
+        >>> net.add_edge('x', 'b')        
+        >>> c = pp.algorithms.centralities.degree_centrality(net)
+        >>> c['a']
+        1.
+
+        >>> c = pp.algorithms.centralities.degree_centrality(net, mode='indegree')
+        >>> c['a']
+        0.
+    """
+    d = dict()
+    if mode not in set(['degree', 'indegree', 'outdegree']):
+        log.error('Mode must be \'degree\', \'indegree\' or \'outdegree\'')
+        return None
+
+    for v in network.nodes:
+        if mode == 'indegree':
+            d[v] = network.nodes.indegrees()[v]
+        elif mode == 'outdegree':
+            d[v] = network.nodes.outdegrees()[v]
+        else:
+            d[v] = network.nodes.degrees()[v]
+
+    return d
