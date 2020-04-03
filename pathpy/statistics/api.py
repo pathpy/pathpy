@@ -8,18 +8,6 @@
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 
-from pathpy.statistics.clustering import (local_clustering_coefficient,
-                                          avg_clustering_coefficient,
-                                          closed_triads)
-
-from pathpy.statistics.degrees import (sequence,
-                                       distribution,
-                                       raw_moment,
-                                       central_moment,
-                                       generating_func,
-                                       molloy_reed_fraction,
-                                       assortativity)
-
 from pathpy.statistics.likelihoods import (likelihood)
 
 # =============================================================================

@@ -8,6 +8,19 @@
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 
+from pathpy.statistics.degrees import (degree_sequence, 
+                                    degree_distribution,
+                                    degree_assortativity,
+                                    degree_central_moment,
+                                    degree_raw_moment,
+                                    degree_generating_func,
+                                    )
+
+from pathpy.statistics.clustering import (local_clustering_coefficient,
+                                    avg_clustering_coefficient,
+                                    closed_triads,
+                                    )
+
 # =============================================================================
 # eof
 #
