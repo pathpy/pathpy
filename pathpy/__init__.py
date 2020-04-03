@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : __init__.py -- pathpy init file
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-04-02 16:55 juergen>
+# Time-stamp: <Fri 2020-04-03 09:38 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -35,7 +35,10 @@ from pathpy.utils.progress import tqdm  # noqa: F401
 from pathpy.core.api import (Node,
                              Edge,
                              Path,
-                             Network
+                             Network,
+                             HigherOrderNode,
+                             HigherOrderEdge,
+                             HigherOrderNetwork,
                              )
 
 from pathpy.algorithms.api import (adjacency_matrix,
