@@ -30,7 +30,32 @@ def from_csv(filename: str, directed: bool=True, sep: str=',', header: bool=True
         return from_pd(df, directed=directed, **kwargs)
 
 def from_pd(df: pd.DataFrame, directed: bool=True, **kwargs: Any) -> Network:
-    """Read network from a pandas dataframe."""
+    """Reads a network from a pandas dataframe. By default, columns `v` and `w` will be used 
+    as source and target of edges. If no column 'v' or 'w' exists, the list of synonyms for `v` and `w``
+    in the config file will be used to remap columns, choosing the first matching entries. Any columns not 
+    used to create edges will be used as edge attributes, e.g. if a column 'v' is present and an additional 
+    column `source`is given, `source` will be assigned as an edge property.
+    
+    In addition, an optional column `uid` will be used to 
+    assign node uids. If this column is not present, default edge uids will be created. 
+    Any other columns (e.g. weight, type, time, etc.) will be assigned as edge attributes. kwargs 
+    will be assigned as network attributes.
+    
+
+    Parameters
+    ----------
+
+    directed: bool
+        Whether to generate a directed or undirected network.
+
+    **kwargs: Any
+        List of key-value pairs that will be assigned as network attributes
+
+    Examples
+    --------
+    
+
+    """
 
     # if no v/w columns are included, pick first synonym
     if 'v' not in df.columns:
