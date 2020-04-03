@@ -81,9 +81,6 @@ def _network(self, weight: Any = None, transposed: bool = False,
              **kwargs: Any) -> sparse.coo_matrix:
     """Returns a sparse adjacency matrix of the network."""
 
-    # some information for debugging
-    LOG.debug('I\'m a Network')
-
     # update weight if frequency is chosen
     if weight == config['attributes']['frequency']:
 
@@ -100,9 +97,6 @@ def _network(self, weight: Any = None, transposed: bool = False,
 def _hon(self, weight: Any = None, transposed: bool = False,
          **kwargs: Any) -> sparse.coo_matrix:
     """Returns a sparse adjacency matrix of the higher order network."""
-
-    # some information for debugging
-    LOG.debug('I\'m an adjacency matrix of a HigherOrderNetwork')
 
     # get additional information for HONs
     subpaths: bool = kwargs.get('subpaths', True)
