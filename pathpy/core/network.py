@@ -718,7 +718,7 @@ class Network(BaseNetwork):
         nodes : List[Node]
 
             Nodes from a list of :py:class:`Node` objects are added to the
-            networ.
+            network.
 
         kwargs: Any, optional(default={})
 
