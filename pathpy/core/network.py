@@ -270,9 +270,9 @@ class Network(BaseNetwork):
         LOG.debug('pathpy.plot failed to be imported')
 
     try:
-        from ..io.edgelist import read_edgelist
+        from pathpy.io.edgelist import from_pd, from_csv, from_sqlite
     except ImportError:
-        LOG.debug('pathpy.io.edgelist failed to be imported')
+        LOG.debug('pathpy.io functions failed to be imported')
 
     def __repr__(self) -> str:
         """Return the description of the network.
