@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : centralities.py -- Module to calculate node centrality measures
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Thu 2020-04-02 16:35 juergen>
+# Time-stamp: <Thu 2020-04-02 16:35 ingo>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -12,8 +12,7 @@ from typing import Dict, Union
 from functools import singledispatch
 from collections import Counter
 from collections import defaultdict
-import datetime
-import sys
+import operator
 import numpy as np
 
 
@@ -138,6 +137,7 @@ def closeness_centrality(network: Network, normalized: bool = False) -> Counter:
 
     return cl
 
+
 def degree_centrality(network: Network, mode: str='degree') -> Union[Dict, None]:
     """Calculates the degree centrality of all nodes.
 
@@ -182,3 +182,28 @@ def degree_centrality(network: Network, mode: str='degree') -> Union[Dict, None]
             d[v] = network.nodes.degrees()[v]
 
     return d
+
+def rank_centralities(centralities):
+    """Returns a list of (node, centrality) tuples in which tuples are ordered
+    by centrality in descending order
+
+    Parameters
+    ----------
+    centralities: dict
+        dictionary of centralities
+
+    Examples
+    --------
+    >>> centralities = {'a': .2, 'b': .8, 'c': .5}
+    >>> rank_centralities(centralities)
+    [('b', 0.8), ('c', 0.5), ('a', 0.2)]
+
+    Returns
+    -------
+    list 
+        list of (node,centrality) tuples
+
+    """
+    ranked_nodes = sorted(centralities.items(), key=operator.itemgetter(1))
+    ranked_nodes.reverse()
+    return ranked_nodes
