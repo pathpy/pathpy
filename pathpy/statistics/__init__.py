@@ -3,13 +3,10 @@
 # =============================================================================
 # File      : __init__.py -- Initialize statistics methods for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-04-02 16:38 juergen>
+# Time-stamp: <Fri 2020-04-03 10:45 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
-
-# from . import degrees
-# from . import clustering
 
 # =============================================================================
 # eof

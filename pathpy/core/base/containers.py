@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : containers.py -- Base containers for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-04-03 09:36 juergen>
+# Time-stamp: <Fri 2020-04-03 10:39 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -24,37 +24,37 @@ class RelatedObjects:
         """Initialize the BaseDict object."""
 
         # initialize variables
-        self.nodes = dict()
-        self.edges = dict()
-        self.paths = set()
+        self.nodes: dict = dict()
+        self.edges: dict = dict()
+        self.paths: set = set()
 
-    def update(self, other):
+    def update(self, other: Any) -> None:
         """Update the relationships."""
         self.nodes.update(other.nodes)
         self.edges.update(other.edges)
         self.paths.update(other.paths)
 
-    def add_edge(self, edge):
+    def add_edge(self, edge) -> None:
         """Add new edge relationship."""
         self.edges[edge.uid] = edge
 
-    def remove_edge(self, edge):
+    def remove_edge(self, edge) -> None:
         """Remove edge relationship."""
         self.edges.pop(edge.uid, None)
 
-    def add_node(self, node):
+    def add_node(self, node) -> None:
         """Add new node relationship."""
         self.nodes[node.uid] = node
 
-    def remove_node(self, node):
+    def remove_node(self, node) -> None:
         """Remove node relationship."""
         self.nodes.pop(node.uid, None)
 
-    def add_path(self, path):
+    def add_path(self, path) -> None:
         """Add new path relationship."""
-        self.paths[path.uid] = path
+        self.paths.add(path)
 
-    def remove_path(self, path):
+    def remove_path(self, path) -> None:
         """Remove path relationship."""
         # update path properties to avoid multiple similar paths
         self.paths = {p for p in self.paths}
@@ -76,11 +76,15 @@ class BaseDict(defaultdict):
         # initialize the base class
         super().__init__(*args)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: Any) -> None:
+        """Add item to the BaseDict."""
+        # add container for related objects to the item
         self._related[key] = RelatedObjects()
+
+        # add item to the BaseDict
         defaultdict.__setitem__(self, key, value)
 
-    def delete(self, key):
+    def delete(self, key: str) -> None:
         """Delete objects from BaseDict."""
         self._related.pop(key, None)
         self.pop(key, None)
@@ -153,9 +157,11 @@ class BaseDict(defaultdict):
 
         # return the new data frame
         if len(data) > 0:
-            return pd.concat(data, ignore_index=True, sort=False)
+            _df = pd.concat(data, ignore_index=True, sort=False)
         else:
-            return pd.DataFrame()
+            _df = pd.DataFrame()
+
+        return _df
 
     def counter(self) -> Counter:
         """Return a counter of the objects."""
@@ -173,12 +179,12 @@ class TemporalDict(BaseDict):
         super().__init__(*args)
 
     @property
-    def temporal(self):
+    def temporal(self) -> bool:
         """Returns true if a temporal object is observed."""
         return any([v.attributes.temporal for v in self.values()])
 
     def to_temporal_frame(self, frequency=None, interpolate=[], **kwargs):
-
+        """Return a temporal pandas data frame."""
         # check in which unit the time shoudl be stored
         if frequency is None:
             frequency = config['temporal']['unit']
@@ -282,7 +288,7 @@ class NodeDict(TemporalDict):
         super().__init__(*args)
 
         # initialize nodes attributes
-        self._attributes = defaultdict(dict)
+        self._attributes: defaultdict = defaultdict(dict)
         self._properties = [('successors', dict), ('predecessors', dict),
                             ('outgoing', dict), ('incoming', dict),
                             ('adjacent_nodes', dict), ('adjacent_edges', dict),
@@ -544,9 +550,9 @@ class PathDict(BaseDict):
                 for obj in self.values()]
         return pd.DataFrame(data)
 
-    def lengths(self) -> Counter:
+    def lengths(self) -> defaultdict:
         """Return a dictionary of path uids where key is the length."""
-        data = defaultdict(list)
+        data: defaultdict = defaultdict(list)
         for obj in self.values():
             data[len(obj)].append(obj.uid)
         return data

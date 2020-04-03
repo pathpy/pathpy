@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : __init__.py -- pathpy init file
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-04-03 09:38 juergen>
+# Time-stamp: <Fri 2020-04-03 10:43 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -24,13 +24,6 @@ from .__about__ import (  # noqa: F401
 from pathpy.utils.config import config  # noqa: F401
 from pathpy.utils.logger import logger  # noqa: F401
 from pathpy.utils.progress import tqdm  # noqa: F401
-
-# from pathpy.core import *
-# from .algorithms import *
-# from .models import *
-# from .generators import *
-
-# from .visualizations import plot  # noqa: F401
 
 from pathpy.core.api import (Node,
                              Edge,

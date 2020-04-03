@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : api.py -- API for public functions of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-04-03 09:38 juergen>
+# Time-stamp: <Fri 2020-04-03 10:43 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -15,6 +15,7 @@ from pathpy.core.network import Network
 from pathpy.core.higher_order_network import (HigherOrderNode,
                                               HigherOrderEdge,
                                               HigherOrderNetwork)
+
 # =============================================================================
 # eof
 #

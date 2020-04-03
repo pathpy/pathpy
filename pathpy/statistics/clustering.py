@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : clustering.py -- Module to calculate clustering statistics
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Wed 2020-03-31 14:25 scholtes>
+# Time-stamp: <Fri 2020-04-03 10:44 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -15,7 +15,7 @@ import datetime
 import sys
 import numpy as np
 
-from ... import config, logger, tqdm
+from pathpy import config, logger, tqdm
 
 
 def local_clustering_coefficient(network, v: str) -> float:
@@ -54,8 +54,8 @@ def local_clustering_coefficient(network, v: str) -> float:
         if edge.v.uid in network.successors[v] and edge.w.uid in network.successors[v]:
             k += 1
     if network.directed:
-        return k/(network.nodes.outdegrees()[v]*(network.nodes.outdegrees()[v]-1))    
-    else:    
+        return k/(network.nodes.outdegrees()[v]*(network.nodes.outdegrees()[v]-1))
+    else:
         return 2*k/(network.nodes.degrees()[v]*(network.nodes.degrees()[v]-1))
 
 
@@ -70,7 +70,7 @@ def avg_clustering_coefficient(network) -> float:
         The network in which to calculate the local clustering coefficient.
 
     """
-    return np.mean([ local_clustering_coefficient(network, v) for v in network.nodes])
+    return np.mean([local_clustering_coefficient(network, v) for v in network.nodes])
 
 
 def closed_triads(network, v: str) -> Set:
@@ -90,4 +90,3 @@ def closed_triads(network, v: str) -> Set:
         if edge.v.uid in network.successors[v] and edge.w.uid in network.successors[v]:
             closed_triads.add(edge)
     return closed_triads
-    

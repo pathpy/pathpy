@@ -3,11 +3,10 @@
 # =============================================================================
 # File      : __init__.py -- Initialize input/output methods for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-03-23 09:29 juergen>
+# Time-stamp: <Fri 2020-04-03 10:45 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
-
 
 # =============================================================================
 # eof
