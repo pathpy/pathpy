@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-04-03 09:30 juergen>
+# Time-stamp: <Fri 2020-04-03 09:44 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -445,9 +445,10 @@ def test_remove_node():
     net.add_edge('d', 'e')
     net.add_edge('e', 'd')
 
-    net.summary()
+    assert net.shape == (5, 7, 0)
+
     net.remove_node('b')
-    net.summary()
+    assert net.shape == (4, 3, 0)
 
 
 def test_add_undirected_edge():
