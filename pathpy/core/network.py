@@ -254,25 +254,20 @@ class Network(BaseNetwork):
             # return sub path object
             return self._subpaths
 
-    except ImportError:
+    except ImportError as err:
         # if library could not be loaded raise a warning
-        LOG.warning('pathpy.subpaths failed to be imported')
+        LOG.warning('pathpy.subpaths failed to be imported: {}'.format(err))
 
     try:
         from pathpy.algorithms.matrices import (adjacency_matrix,
                                                 transition_matrix)
-    except ImportError:
-        LOG.debug('pathpy.matrices failed to be imported')
+    except ImportError as err:
+        LOG.debug('pathpy.matrices failed to be imported: {}'.format(err))
 
     try:
         from ..visualizations.plot import plot
-    except ImportError:
-        LOG.debug('pathpy.plot failed to be imported')
-
-    try:
-        from pathpy.io.edgelist import from_pd, from_csv, from_sqlite
-    except ImportError:
-        LOG.debug('pathpy.io functions failed to be imported')
+    except ImportError as err:
+        LOG.debug('pathpy.plot failed to be imported: {}'.format(err))
 
     def __repr__(self) -> str:
         """Return the description of the network.
@@ -282,7 +277,7 @@ class Network(BaseNetwork):
         str
 
             Returns the description of the network with the class, the name (if
-            deffined) and the assigned system id.
+            defined) and the assigned system id.
 
         Examples
         --------

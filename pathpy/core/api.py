@@ -15,6 +15,7 @@ from pathpy.core.network import Network
 from pathpy.core.higher_order_network import (HigherOrderNode,
                                               HigherOrderEdge,
                                               HigherOrderNetwork)
+from pathpy.core.io import from_csv, from_pd, from_sqlite
 
 # =============================================================================
 # eof

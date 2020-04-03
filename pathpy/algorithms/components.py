@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : shortest_paths.py -- Module to calculate connected components
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Thu 2020-04-02 17:49 juergen>
+# Time-stamp: <Thu 2020-04-02 17:49 ingo>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================

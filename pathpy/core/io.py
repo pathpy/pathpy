@@ -1,9 +1,9 @@
 #!/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
-# File      : edgelist.py -- Module for input/output edges to pathpy
-# Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-03-24 13:06 juergen>
+# File      : io.py -- Module for data import/export
+# Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
+# Time-stamp: <Tue 2020-04-03 12:41 ingo>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -13,7 +13,7 @@ import pandas as pd
 import sqlite3
 
 from typing import Any
-from .. import config, logger
+from pathpy import config, logger
 from pathpy.core.network import Network
 from pathpy.core.edge import Edge
 
@@ -27,12 +27,12 @@ def from_csv(filename: str, directed: bool=True, sep: str=',', header: bool=True
         return from_pd(df, directed, **kwargs)
     else:
         df = pd.read_csv(filename, header=0, names=names, sep=sep)
-        return from_pd(df, directed, **kwargs)
+        return from_pd(df, directed=directed, **kwargs)
 
 def from_pd(df: pd.DataFrame, directed: bool=True, **kwargs: Any) -> Network:
     """Read network from a pandas dataframe."""
 
-    # if not v/w columns pick first synonym    
+    # if no v/w columns are included, pick first synonym
     if 'v' not in df.columns:
         log.info('No column v, searching for synonyms')
         for col in df.columns:
@@ -48,10 +48,11 @@ def from_pd(df: pd.DataFrame, directed: bool=True, **kwargs: Any) -> Network:
                 log.info('Remapping column \'{}\' to \'w\''.format(col))
                 df.rename(columns = {col: "w"}, inplace=True)
                 continue
+    log.debug('Creating {} network'.format(directed))
     n = Network(directed=directed, **kwargs)
     for row in df.to_dict(orient='records'):
 
-        # get edge parameters                
+        # get edge
         v = row.get('v', None)
         w = row.get('w', None)
         uid = row.get('uid', None)
@@ -59,9 +60,9 @@ def from_pd(df: pd.DataFrame, directed: bool=True, **kwargs: Any) -> Network:
             log.error('DataFrame minimally needs columns \'v\' and \'w\'')
             raise IOError
         if uid ==None:
-            edge = Edge(v, w)
+            edge = Edge(v, w, directed=directed)
         else:
-            edge = Edge(v, w, uid=uid)
+            edge = Edge(v, w, uid=uid, directed=directed)
         n.add_edge(edge)
 
         reserved_columns = set(['v', 'w', 'uid'])
@@ -70,13 +71,19 @@ def from_pd(df: pd.DataFrame, directed: bool=True, **kwargs: Any) -> Network:
                 n.edges[edge.uid][k] = row[k]
     return n
 
-def from_sqlite(filename: str, directed: bool = True, con: sqlite3.Connection = None, sql: str = None, table: str = None, **kwargs: Any):
+def from_sqlite(filename: str = None, directed: bool = True, con: sqlite3.Connection = None, sql: str = None, table: str = None, **kwargs: Any) -> Network:
     """Read network from an sqlite database."""
 
     log.debug('Load sql file as pandas data frame.')
 
+    if con is None and filename is None:
+        log.error('Either an SQL connection or a filename is required')
+        raise IOError
+
+    con_close = False
     # connect to database if not given
     if con is None:
+        con_close = True
         con = sqlite3.connect(filename)
 
     # if sql query is not given check availabe tables
@@ -101,10 +108,11 @@ def from_sqlite(filename: str, directed: bool = True, con: sqlite3.Connection = 
     df = pd.read_sql(sql, con)
 
     # close connection to the database
-    con.close()
+    if con_close:
+        con.close()
 
     # construct network from pandas data frame
-    return from_pd(df)
+    return from_pd(df, directed=directed, **kwargs)
 
 
 # =============================================================================
