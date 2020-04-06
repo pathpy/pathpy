@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-04-06 13:04 juergen>
+# Time-stamp: <Mon 2020-04-06 13:07 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -514,8 +514,8 @@ def test_add_undirected_path():
 
     with pytest.raises(Exception):
         net = Network()
-        net.add_path(p1)
         net.add_path(p2)
+        net.add_path(p1)
 
     net = Network()
     net.add_path('a-b-c')
