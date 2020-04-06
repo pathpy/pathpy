@@ -118,7 +118,7 @@ def ER_np(n: int, p: float, directed: bool = False, loops: bool = False) -> Netw
     for i in range(n):
         network.add_node(str(i))
 
-    for s in range(n):
+    for s in tqdm(range(n)):
         if directed:
             x = n
         else:
