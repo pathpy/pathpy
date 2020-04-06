@@ -287,7 +287,7 @@ def Molloy_Reed(degrees: list, relax: bool = False):
     # generate link stubs based on degree sequence
     stubs = []
     for i in range(n):
-        for k in range(degrees[i]):
+        for k in range(int(degrees[i])):
             stubs.append(str(i))
 
     # connect randomly chosen pairs of link stubs
@@ -301,7 +301,7 @@ def Molloy_Reed(degrees: list, relax: bool = False):
         e = Edge(v, w, directed=False)
         if relax or (v != w and (e.uid not in network.edges)):
             # do not add self-loops and multi-edges
-            if (v != w and e not in network.edges):
+            if (v != w and e.uid not in network.edges):
                 network.add_edge(e)
             stubs.remove(v)
             stubs.remove(w)
