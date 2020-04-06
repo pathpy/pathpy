@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : _check_edge.py -- Helper function to check the edge format
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-04-02 15:49 juergen>
+# Time-stamp: <Mon 2020-04-06 13:03 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -89,6 +89,9 @@ def _check_edge(self, edge: Any, *args: Any, **kwargs: Any) -> Edge:
         _edge = _e['object']
 
         _edge.nodes.update({v.uid: v, w.uid: w})
+
+        if _edge.directed is not False:
+            _edge._directed = kwargs.get('directed', True)
 
     elif _v['object'] and _w['object']:
         v = _check_node(self, _v['object'])

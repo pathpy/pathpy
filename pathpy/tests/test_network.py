@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-04-06 10:29 juergen>
+# Time-stamp: <Mon 2020-04-06 13:04 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -466,8 +466,8 @@ def test_add_undirected_edge():
 
     with pytest.raises(Exception):
         net = Network()
-        net.add_edge(e1)
         net.add_edge(e2)
+        net.add_edge(e1)
 
     net = Network()
     net.add_edge('a', 'b')
@@ -489,6 +489,11 @@ def test_add_undirected_edge():
 
     net = Network(directed=False)
     e = Edge('a', 'b')
+    net.add_edge(e)
+    assert net.directed is False
+
+    net = Network()
+    e = Edge('a', 'b', directed=False)
     net.add_edge(e)
     assert net.directed is False
 
