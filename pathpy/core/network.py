@@ -430,7 +430,7 @@ class Network(BaseNetwork):
         -------
         bool
 
-            Retun ``True`` if the network is directed or ``False`` if the
+            Return ``True`` if the network is directed or ``False`` if the
             network is undirected.
 
         Examples
@@ -455,7 +455,7 @@ class Network(BaseNetwork):
         -------
         bool
 
-            Retun ``True`` if the network is temporal or ``False`` if the
+            Return ``True`` if the network is temporal or ``False`` if the
             network is static.
 
         """
