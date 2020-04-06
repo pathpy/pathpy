@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : easel.py -- Environment to draw the pathpy objects
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-03-25 14:27 juergen>
+# Time-stamp: <Mon 2020-04-06 12:13 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -540,6 +540,9 @@ class D3JS(Easel):
 
             # display html file
             display_html(html, raw=True)
+
+            # with open('thisisatest.html', 'w+') as f:
+            #     f.write(html)
 
         except:
 
