@@ -24,12 +24,12 @@ def from_csv(filename: str, directed: bool=True, sep: str=',', header: bool=True
     """Read network from a csv file"""
     if header:
         df = pd.read_csv(filename, sep=sep)
-        return from_pd(df, directed, **kwargs)
+        return from_dataframe(df, directed, **kwargs)
     else:
         df = pd.read_csv(filename, header=0, names=names, sep=sep)
-        return from_pd(df, directed=directed, **kwargs)
+        return from_dataframe(df, directed=directed, **kwargs)
 
-def from_pd(df: pd.DataFrame, directed: bool=True, **kwargs: Any) -> Network:
+def from_dataframe(df: pd.DataFrame, directed: bool=True, **kwargs: Any) -> Network:
     """Reads a network from a pandas dataframe. By default, columns `v` and `w` will be used 
     as source and target of edges. If no column 'v' or 'w' exists, the list of synonyms for `v` and `w``
     in the config file will be used to remap columns, choosing the first matching entries. Any columns not 
@@ -137,8 +137,94 @@ def from_sqlite(filename: str = None, directed: bool = True, con: sqlite3.Connec
         con.close()
 
     # construct network from pandas data frame
-    return from_pd(df, directed=directed, **kwargs)
+    return from_dataframe(df, directed=directed, **kwargs)
 
+def to_dataframe(network: Network) -> pd.DataFrame:
+    """Returns a pandas dataframe data that contains all edges including 
+    all edge attributes. Node and network-level attributes are not included."""
+
+    df = pd.DataFrame()
+    for e in network.edges:
+        edge = network.edges[e]
+        edge_df = edge.attributes.to_frame()
+        edge_df['v'] = edge.v.uid
+        edge_df['w'] = edge.w.uid
+        edge_df['uid'] = edge.uid
+        df = pd.concat([edge_df, df], ignore_index=True)
+    return df
+
+def to_csv(network: Network, path_or_buf: Any = None, **pdargs: Any):
+    """Stores all edges including edge attributes in a csv file. 
+    Node and network-level attributes are not included.
+    
+    Parameters
+    ----------
+
+    network: Network
+
+        The network to save as csv file
+
+    path_or_buf: Any
+
+        This can be a string, a file buffer, or None (default). Follows pandas.DataFrame.to_csv semantics. 
+        If a string filename is given, the network will be saved in a file. If None, the csv file contents
+        is returned as a string. If a file buffer is given, the csv file will be saved to the file. 
+
+    **pdargs:
+
+        Keyword args that will be passed to pandas.DataFrame.to_csv. This allows full control of the 
+        csv export.
+    """
+
+    df = to_dataframe(network)
+    return df.to_csv(path_or_buf = path_or_buf, **pdargs)
+
+def to_sqlite(network: Network,  table: str, filename: str = None, con: sqlite3.Connection = None, **pdargs: Any):
+    """Stores all edges including edge attributes in an sqlite database table. 
+    Node and network-level attributes are not included.
+    
+    Parameters
+    ----------
+
+    network: Network
+
+        The network to store in the sqlite database
+
+    filename: str
+
+        The name of the SQLite database in which the network will be stored
+
+    con: sqlite3.Connection
+
+        The SQLite3 connection in which the network will be stored
+
+    table: str
+
+        Name of the table in the database in which the network will be stored.
+
+    **pdargs: 
+
+        Keyword args that will be passed to pandas.DataFrame.to_sql.
+    """
+
+    df = to_dataframe(network)
+
+    log.debug('Store network as sql database.')
+
+    if con is None and filename is None:
+        log.error('Either an SQL connection or a filename is required')
+        raise IOError
+
+    con_close = False
+    # connect to database if not given
+    if con is None:
+        con_close = True
+        con = sqlite3.connect(filename)
+
+    df.to_sql(table, con, **pdargs)
+
+    if con_close: 
+        con.close()
 
 # =============================================================================
 # eof

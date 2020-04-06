@@ -33,9 +33,12 @@ from pathpy.core.api import (Node,
                              HigherOrderNode,
                              HigherOrderEdge,
                              HigherOrderNetwork,
-                             from_pd, 
+                             from_dataframe, 
                              from_csv,
                              from_sqlite,
+                             to_dataframe,
+                             to_csv,
+                             to_sqlite,
                              )
 
 from pathpy.algorithms.api import (adjacency_matrix,
