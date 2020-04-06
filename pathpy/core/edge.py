@@ -464,20 +464,14 @@ class Edge(BaseClass):
 
         """
         summary = [
-            'Uid:\t\t\t{}\n'.format(self.uid),
-            'Type:\t\t\t{}\n'.format(self.__class__.__name__),
-            'Directed:\t\t{}\n'.format(str(self.directed)),
-            'Source node:\t\t{}\n'.format(self.v.uid),
-            'Target node:\t\t{}'.format(self.w.uid),
+            'Uid:\t\t{}\n'.format(self.uid),
+            'Type:\t\t{}\n'.format(self.__class__.__name__),
+            'Directed:\t{}\n'.format(str(self.directed)),
+            'Source node:\t{}\n'.format(self.v.uid),
+            'Target node:\t{}'.format(self.w.uid),
         ]
 
-        # TODO: Move this code to a helper function
-        if config['logging']['verbose']:
-            for line in summary:
-                LOG.info(line.rstrip())
-            return ''
-        else:
-            return ''.join(summary)
+        return ''.join(summary)
 
     def add_node(self, node: Node, **kwargs: Any) -> None:
         """Add a single node to the edge.

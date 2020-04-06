@@ -575,23 +575,17 @@ class Network(BaseNetwork):
 
         """
         summary = [
-            'Name:\t\t\t{}\n'.format(self.name),
-            'Type:\t\t\t{}\n'.format(self.__class__.__name__),
+            'Name:\t\t{}\n'.format(self.name),
+            'Type:\t\t{}\n'.format(self.__class__.__name__),
             # 'Directed:\t\t{}\n'.format(str(self.directed)),
-            'Number of unique nodes:\t{}\n'.format(self.number_of_nodes()),
-            'Number of unique edges:\t{}\n'.format(self.number_of_edges()),
-            'Number of unique paths:\t{}\n'.format(self.number_of_paths()),
-            'Number of total paths:\t{}'.format(
+            'Unique nodes:\t{}\n'.format(self.number_of_nodes()),
+            'Unique edges:\t{}\n'.format(self.number_of_edges()),
+            'Unique paths:\t{}\n'.format(self.number_of_paths()),
+            'Total paths:\t{}'.format(
                 self.number_of_paths(unique=False)),
         ]
-
-        # TODO: Move this code to a helper function
-        if config['logging']['verbose']:
-            for line in summary:
-                LOG.info(line.rstrip())
-            return ''
-        else:
-            return ''.join(summary)
+        
+        return ''.join(summary)
 
     def number_of_nodes(self, unique: bool = True) -> int:
         """Return the number of nodes in the network.

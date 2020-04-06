@@ -295,23 +295,17 @@ class Node(BaseClass):
         -------
         str
 
-            Return a summary of the edge.
+            Return a summary of the node.
 
         """
         summary = [
-            'Uid:\t\t\t{}\n'.format(self.uid),
-            'Type:\t\t\t{}\n'.format(self.__class__.__name__),
-            'Incoming:\t\t{}\n'.format(len(self.incoming)),
-            'Outgoing:\t\t{}'.format(len(self.outgoing)),
+            'Uid:\t\t{}\n'.format(self.uid),
+            'Type:\t\t{}\n'.format(self.__class__.__name__),
+            'Indegree:\t{}\n'.format(len(self.incoming)),
+            'Outdegree:\t{}'.format(len(self.outgoing)),
         ]
-
-        # TODO: Move this code to a helper function
-        if config['logging']['verbose']:
-            for line in summary:
-                LOG.info(line.rstrip())
-            return ''
-        else:
-            return ''.join(summary)
+        
+        return ''.join(summary)
 
     def update(self, other: Node = None, attributes: bool = True,
                **kwargs: Any) -> None:
