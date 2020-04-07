@@ -36,7 +36,7 @@ class BaseWalk:
         pass
 
     @abc.abstractproperty
-    def t(self):
+    def t(self) -> int:
         pass
 
     @abc.abstractproperty
@@ -96,7 +96,9 @@ class RandomWalk(BaseWalk):
     @property
     def total_variation_distance(self) -> float:
         """Computes the total variation distance between the current 
-        visitation probabilies and the stationary probabilities.
+        visitation probabilities and the stationary probabilities. This quantity 
+        converges to zero for RandomWalk.t -> np.infty and its magnitude indicates 
+        the current relaxation of the random walk process.
         """
         return np.abs(self._stationary_probabilities - self.visitation_probabilities()).sum()/2.0
 
@@ -132,7 +134,7 @@ class RandomWalk(BaseWalk):
         return self._transition_matrix
 
     @property
-    def t(self):
+    def t(self) -> int:
         """Returns the current `time` of the random walker, i.e. 
         the number of random walk steps since the initial state.
         The initial time is set to zero and the initial state does not 
@@ -180,16 +182,19 @@ class RandomWalk(BaseWalk):
             array([0.3, 0.3, 0.4])
         """
         if self._current_node == None:
+            # Terminate the iteration
             return None
         for t in range(steps):
             prob = self.transition_probabilities(self._current_node)
             if prob.sum() == 0:
                 self._current_node = None
+                # Terminate the iteration
                 return None
             i = np.random.choice(a=self._network.number_of_nodes(), p=prob)
             self._current_node = self._node_uids[i]
             self._visitations[i] += 1
             self._t += 1
+            # yield the next visited node
             yield self._current_node
 
     def transition(self) -> str:
