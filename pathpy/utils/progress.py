@@ -8,47 +8,25 @@
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from typing import Any
-from tqdm.auto import tqdm as _tqdm
-from .. import config
+from tqdm import tqdm as tq
+from tqdm.notebook import tqdm as tqn
+from pathpy import config
 
+def tqdm_disabled(it, *args, **kwargs):
+    return it
 
-class tqdm_disabled(_tqdm):
-    """Progress bar based on tqdm.
+def tqdm_console(*args, **kwargs):
+    return tq(*args, **kwargs)
 
-    See Also
-    --------
-    https://github.com/tqdm/tqdm
-
-    """
-
-    def __init__(self, *args, **kwargs):
-        """Intitialize the disabled progress bar."""
-        # setup parent class
-        super().__init__(*args, disable=True, **kwargs)
-
-
-class tqdm_enabled(_tqdm):
-    """Progress bar based on tqdm.
-
-    See Also
-    --------
-    https://github.com/tqdm/tqdm
-
-    """
-
-    def __init__(self, *args, **kwargs):
-        """Intitialize the disabled progress bar."""
-        # setup parent class
-        leave = kwargs.get('leave', config['progress']['leave'])
-        kwargs['leave'] = leave
-        super().__init__(*args, **kwargs)
-
+def tqdm_notebook(*args, **kwargs):
+    return tqn(*args, **kwargs)
 
 # if progress is enabled show bar
 if config['progress']['enabled']:
-    tqdm: Any = tqdm_enabled
-
-# otherwise use the disable progress bar.
+    if config['environment']['interactive'] and config['environment']['IDE']!='vs code':
+        tqdm = tqdm_notebook
+    else:
+        tqdm = tqdm_console
 else:
     tqdm = tqdm_disabled
 
