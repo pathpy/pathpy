@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : config.py -- Module to read and parse configuration files
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-03-24 11:19 juergen>
+# Time-stamp: <Tue 2020-04-07 12:18 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -27,6 +27,9 @@ parser.read([_base_config, 'config.cfg'])
 # setup parser
 config: dict = defaultdict(dict)
 
+config['environment']['IDE'] = parser.get('environment', 'IDE')
+config['environment']['interactive'] = parser.getboolean(
+    'environment', 'interactive')
 
 # TODO: Find a better way to load the config file.
 config['logging']['enabled'] = parser.getboolean('logging', 'enabled')
