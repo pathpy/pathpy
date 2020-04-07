@@ -25,7 +25,7 @@ from pathpy.core.network import Network
 LOG = logger(__name__)
 
 
-def ER_nm(n: int, m: int, directed: bool = False, loops: bool = False, multi_edge: bool = False) -> Network:
+def ER_nm(n: int, m: int, directed: bool = False, loops: bool = False, multi_edge: bool = False, node_uids: List = None) -> Network:
     """Generates a random graph with a fixed number of n nodes 
     and m edges based on the Erdös-Renyi model.
 
@@ -52,6 +52,10 @@ def ER_nm(n: int, m: int, directed: bool = False, loops: bool = False, multi_edg
 
             Whether or not the same edge can be added multiple times
 
+        node_uids : list
+
+            Optional list of node uids that will be used. 
+
         Examples
         --------
         Generate random undirected network with 10 nodes and 25 edges
@@ -63,8 +67,15 @@ def ER_nm(n: int, m: int, directed: bool = False, loops: bool = False, multi_edg
     """
     network = Network(directed=directed)
 
-    for i in range(n):
-        network.add_node(str(i))
+    if node_uids == None or len(node_uids)!=n:
+        LOG.info('No valid node uids given, generating numeric node uids')
+        node_uids = []
+        for i in range(n):
+            network.add_node(str(i))
+            node_uids.append(str(i))
+    else:
+        for i in range(n):
+            network.add_node(node_uids[i])
 
     edges = 0
     while edges < m:
@@ -72,7 +83,7 @@ def ER_nm(n: int, m: int, directed: bool = False, loops: bool = False, multi_edg
         w = np.random.choice(n)
         if not loops and v == w:
             continue
-        e = Edge(str(v), str(w), directed=directed)
+        e = Edge(node_uids[v], node_uids[w], directed=directed)
         if not multi_edge and e.uid in network.edges:
             continue
         network.add_edge(e)
@@ -80,7 +91,7 @@ def ER_nm(n: int, m: int, directed: bool = False, loops: bool = False, multi_edg
     return network
 
 
-def ER_np(n: int, p: float, directed: bool = False, loops: bool = False) -> Network:
+def ER_np(n: int, p: float, directed: bool = False, loops: bool = False, node_uids: List = None) -> Network:
     """Generates a random graph with a fixed number of n nodes and edge 
     probability p based on the Erdös-Renyi model.
 
@@ -104,6 +115,10 @@ def ER_np(n: int, p: float, directed: bool = False, loops: bool = False) -> Netw
             Whether or not the generated network may contain 
             loops.
 
+        node_uids : list
+
+            Optional list of node uids that will be used.
+
         Examples
         --------
         Generate random undirected network with 10 nodes
@@ -115,8 +130,15 @@ def ER_np(n: int, p: float, directed: bool = False, loops: bool = False) -> Netw
     """
     network = Network(directed=directed)
 
-    for i in range(n):
-        network.add_node(str(i))
+    if node_uids == None or len(node_uids)!=n:
+        LOG.info('No valid node uids given, generating numeric node uids')
+        node_uids = []
+        for i in range(n):
+            network.add_node(str(i))
+            node_uids.append(str(i))
+    else:
+        for i in range(n):
+            network.add_node(node_uids[i])
 
     for s in tqdm(range(n)):
         if directed:
@@ -127,12 +149,12 @@ def ER_np(n: int, p: float, directed: bool = False, loops: bool = False) -> Netw
             if t == s and not loops:
                 continue
             if np.random.random() < p:
-                e = Edge(str(s), str(t), directed=directed)
+                e = Edge(node_uids[s], node_uids[t], directed=directed)
                 network.add_edge(e)
     return network
 
 
-def Watts_Strogatz(n: int, s: int, p: int) -> Network:
+def Watts_Strogatz(n: int, s: int, p: int, node_uids: List=None) -> Network:
     """Generates an undirected Watts-Strogatz lattice 
     network with lattice dimensionality one.
 
@@ -161,13 +183,20 @@ def Watts_Strogatz(n: int, s: int, p: int) -> Network:
         ...
     """
     network = Network(directed=False)
-    for i in range(n):
-        network.add_node(str(i))
+    if node_uids == None or len(node_uids)!=n:
+        LOG.info('No valid node uids given, generating numeric node uids')
+        node_uids = []
+        for i in range(n):
+            network.add_node(str(i))
+            node_uids.append(str(i))
+    else:
+        for i in range(n):
+            network.add_node(node_uids[i])
 
     # construct a ring lattice (dimension 1)
     for i in range(n):
         for j in range(1, s+1):
-            e = Edge(str(i), str((i+j) % n), directed=False)
+            e = Edge(node_uids[i], node_uids[(i+j) % n], directed=False)
             network.add_edge(e)
 
     if p == 0:
@@ -234,7 +263,6 @@ def is_graphic_Erdos_Gallai(degrees):
         if S > r * (r-1) + M:
             return False
     return True
-
 
 def Molloy_Reed(degrees: list, relax: bool = False):
     """Generates a random undirected network with 
