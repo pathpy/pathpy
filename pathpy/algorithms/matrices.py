@@ -119,49 +119,34 @@ def _hon(self, weight: Any = None, transposed: bool = False,
 
 
 def _adjacency_matrix(self, weight: Any = None,
-                      transposed: bool = False) -> sparse.coo_matrix:
+                      transposed: bool = False) -> sparse.csr_matrix:
     """Function to generate the adjacency matrix."""
 
     # initializing variables
-    row: List[float] = []
-    col: List[float] = []
-    data: List[float] = []
-
-    # get a list of nodes for the matrix indices
-    n = list(self.nodes.keys())
+    rows: List[int] = list()
+    cols: List[int] = list()
+    entries: List[float] = list()
 
     # iterate over the edges of the network
     for e_id, e in tqdm(self.edges.items(), desc='adj matrix'):
 
         # add notes if network is directed
-        row.append(n.index(e.v.uid))
-        col.append(n.index(e.w.uid))
+        rows.append(self.nodes.index[e.v.uid])
+        cols.append(self.nodes.index[e.w.uid])
+        entries.append(e.weight(weight))
 
         # add additional nodes if not directed
         if not self.directed:
-            row.append(n.index(e.w.uid))
-            col.append(n.index(e.v.uid))
+            rows.append(self.nodes.index[e.w.uid])
+            cols.append(self.nodes.index[e.v.uid])
+            entries.append(e.weight(weight))
 
-        # add weight
-        data.append(e.weight(weight))
 
-        # add weight for undirected edges
-        if not self.directed:
-            # exclude self loops
-            if e.v.uid != e.w.uid:
-                data.append(e.weight(weight))
-            else:
-                data.append(0.0)
-    # generate scipy sparse matrix
-    shape = (self.number_of_nodes(), self.number_of_nodes())
-    A = sparse.coo_matrix((data, (row, col)), shape=shape).tocsr()
-
-    # transpose matrix if needed
+    A = sparse.csr_matrix((entries, (rows, cols)))
     if transposed:
-        A = A.transpose()
-
-    # return the matrix
-    return A
+        return A.transpose()
+    else:
+        return A
 
 
 # @singledispatch
