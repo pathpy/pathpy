@@ -57,6 +57,8 @@ from pathpy.generators.api import (ER_nm,
 
 from pathpy.models.api import (NullModel,
                                MultiOrderModel)
+
+from pathpy.processes.api import (RandomWalk)
 # =============================================================================
 # eof
 #
