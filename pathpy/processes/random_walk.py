@@ -127,6 +127,6 @@ class RandomWalk:
             self._t += 1
             yield self._current_node
 
-
-
+    def transition(self) -> str: 
+        return next(self.walk())
     

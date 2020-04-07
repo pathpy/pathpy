@@ -8,7 +8,7 @@
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 
-from pathpy.processes.randomwalk import (RandomWalk)
+from pathpy.processes.random_walk import (RandomWalk)
 
 # =============================================================================
 # eof
