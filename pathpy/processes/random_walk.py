@@ -20,6 +20,7 @@ import numpy as np
 import scipy as sp
 
 from pathpy import config, logger, tqdm, adjacency_matrix
+from pathpy.core.path import Path
 from pathpy.core.base import BaseNetwork
 from pathpy.core.edge import Edge
 from pathpy.core.network import Network
@@ -56,7 +57,8 @@ class RandomWalk(BaseWalk):
         self._t = 0
         self._transition_matrix = RandomWalk.transition_matrix(network, weight)
         self._node_uids = [v for v in network.nodes]
-        self._visitations = np.ravel(np.zeros(shape=(1, network.number_of_nodes())))
+        self._visitations = np.ravel(np.zeros(shape=(1, network.number_of_nodes())))   
+        self._path = Path()     
 
         eigenvalues, eigenvectors = sp.sparse.linalg.eigs(self._transition_matrix.transpose(), k=1, which='LM')
         pi = eigenvectors.reshape(eigenvectors.size, )
@@ -69,6 +71,8 @@ class RandomWalk(BaseWalk):
             self._current_node = np.random.choice(self._node_uids)
         else:
             self._current_node = start_node
+
+        self._path.add_node(self._network.nodes[self._current_node])
 
     def stationary_probabilities(self, **kwargs: Any) -> np.array:
         """Computes stationary visitation probabilities of nodes based on the leading
@@ -194,6 +198,7 @@ class RandomWalk(BaseWalk):
             self._current_node = self._node_uids[i]
             self._visitations[i] += 1
             self._t += 1
+            self._path.add_node(self._network.nodes[self._current_node])
             # yield the next visited node
             yield self._current_node
 
@@ -201,3 +206,8 @@ class RandomWalk(BaseWalk):
         """Performs a single transition of the random walk 
         and returns the visited node"""
         return next(self.walk())
+
+    @property
+    def path(self) -> Path:
+        return self._path
+
