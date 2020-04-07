@@ -9,6 +9,7 @@
 # =============================================================================
 
 from __future__ import annotations
+import abc
 from typing import Any, List, Dict, Tuple, Optional
 from functools import singledispatch
 from collections import Counter
@@ -26,7 +27,25 @@ from pathpy.core.network import Network
 # create logger
 LOG = logger(__name__)
 
-class RandomWalk:
+
+class BaseWalk:
+    """Abstract base class for all implementations of walk processes.
+    """
+    @abc.abstractmethod
+    def walk(self):
+        pass
+
+    @abc.abstractproperty
+    def t(self):
+        pass
+
+    @abc.abstractproperty
+    def state(self):
+        pass
+
+
+class RandomWalk(BaseWalk):
+    """Instances of this class represent the state of a random walk in a network."""
 
     def __init__(self, network: Network, weight: bool=False, start_node: str = None):
         """Initialises a random walk process in a given start node. The initial time t of 
@@ -39,6 +58,10 @@ class RandomWalk:
         self._node_uids = [v for v in network.nodes]
         self._visitations = np.ravel(np.zeros(shape=(1, network.number_of_nodes())))
 
+        eigenvalues, eigenvectors = sp.sparse.linalg.eigs(self._transition_matrix.transpose(), k=1, which='LM')
+        pi = eigenvectors.reshape(eigenvectors.size, )
+        self._stationary_probabilities = np.real(pi/np.sum(pi))
+
         if start_node == None:
             self._current_node = np.random.choice(self._node_uids)
         elif start_node not in network.nodes:
@@ -47,28 +70,54 @@ class RandomWalk:
         else:
             self._current_node = start_node
 
-    def stationary_probabilities(self) -> np.array:
-        """Computes stationary visitation probabilities of nodes
-        """
-        eigenvalues, eigenvectors = sp.sparse.linalg.eigs(self._transition_matrix.transpose(), k=1, which='LM')
+    def stationary_probabilities(self, **kwargs: Any) -> np.array:
+        """Computes stationary visitation probabilities of nodes based on the leading
+        eigenvector of the transition matrix.
 
-        pi = eigenvectors.reshape(eigenvectors.size, )
-        return np.real(pi/np.sum(pi))
+        Parameters
+        ----------
+
+        **kwargs: Any
+            Arbitrary key-value pairs that will be passed to the scipy.sparse.linalg.eigs function.
+        """
+        if kwargs == {}:
+            return self._stationary_probabilities
+        else:
+            eigenvalues, eigenvectors = sp.sparse.linalg.eigs(self._transition_matrix.transpose(), k=1, which='LM', **kwargs)
+            pi = eigenvectors.reshape(eigenvectors.size, )
+            return np.real(pi/np.sum(pi))
 
     def visitation_probabilities(self) -> np.array:
-        """Returns the visitation probabilities of nodes based on the current history of 
-        the random walk.
+        """Returns the visitation probabilities of nodes based on the history of 
+        the random walk. Initially, all visitation probabilities are zero.
         """
         return np.nan_to_num(self._visitations/self._t)
 
+    @property
+    def total_variation_distance(self) -> float:
+        """Computes the total variation distance between the current 
+        visitation probabilies and the stationary probabilities.
+        """
+        return np.abs(self._stationary_probabilities - self.visitation_probabilities()).sum()/2.0
+
     def transition_probabilities(self, node: str) -> np.array:
-        """Returns a vector that contains the transition probabilities from a given node 
+        """Returns a vector that contains transition probabilities from a given node 
         to all other nodes in the network.
         """
         return np.nan_to_num(np.ravel(self._transition_matrix[self._network.nodes.index[node],:].todense()))
 
     @staticmethod
     def transition_matrix(network: Network, weight: bool = False) -> sp.sparse.csr_matrix:
+        """Returns a transition matrix that describes a random walk process in the given network.
+
+        Parameters
+        ----------
+            network: Network
+            The network for which the transition matrix will be created. 
+        
+            weight: bool
+            Whether to account for edge weights when computing transition probabilities.
+        """
         A = adjacency_matrix(network, weight=weight)
         D = A.sum(axis=1)
         T = sp.sparse.csr_matrix((network.number_of_nodes(), network.number_of_nodes()))
@@ -77,16 +126,29 @@ class RandomWalk:
         return T
 
     @property
+    def matrix(self) -> sp.sparse.csr_matrix:
+        """Returns the transition matrix of the random walk
+        """
+        return self._transition_matrix
+
+    @property
     def t(self):
+        """Returns the current `time` of the random walker, i.e. 
+        the number of random walk steps since the initial state.
+        The initial time is set to zero and the initial state does not 
+        count as a step.
+        """
         return self._t
 
     @property
-    def state(self):
+    def state(self) -> str:
+        """Returns the current state of the random walk process
+        """
         return self._current_node
 
     def walk(self, steps: int=1) -> str:
-        """Generator function that generates a given number of random walk steps 
-        starting from the current state of the random walk. 
+        """Returns a generator object that yields a sequence of `steps` visited
+        nodes, starting from the current state of the random walk process.
 
         Parameters
         ----------
@@ -109,7 +171,10 @@ class RandomWalk:
             Node visited at time 7 is a
             Node visited at time 8 is c
             Node visited at time 9 is a
-            Node visited at time 10 is b
+
+            >>> s = rw.transition()
+            >>> print(s)
+            b
 
             >>> pp.visitation_probabilities()
             array([0.3, 0.3, 0.4])
@@ -127,6 +192,7 @@ class RandomWalk:
             self._t += 1
             yield self._current_node
 
-    def transition(self) -> str: 
+    def transition(self) -> str:
+        """Performs a single transition of the random walk 
+        and returns the visited node"""
         return next(self.walk())
-    
