@@ -19,7 +19,8 @@ import sys
 import numpy as np
 import scipy as sp
 
-from pathpy import config, logger, tqdm, adjacency_matrix
+from pathpy import config, logger, tqdm
+from pathpy.algorithms.matrices import adjacency_matrix
 from pathpy.core.path import Path
 from pathpy.core.base import BaseNetwork
 from pathpy.core.edge import Edge
@@ -188,7 +189,7 @@ class RandomWalk(BaseWalk):
         if self._current_node == None:
             # Terminate the iteration
             return None
-        for t in range(steps):
+        for t in tqdm(range(steps)):
             prob = self.transition_probabilities(self._current_node)
             if prob.sum() == 0:
                 self._current_node = None

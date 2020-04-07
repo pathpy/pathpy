@@ -28,6 +28,7 @@ from pathpy.utils.config import config  # noqa: F401
 from pathpy.utils.logger import logger  # noqa: F401
 from pathpy.utils.progress import tqdm  # noqa: F401
 from pathpy import statistics
+from pathpy import processes
 
 from pathpy.core.api import (Node,
                              Edge,
@@ -60,8 +61,6 @@ from pathpy.generators.api import (ER_nm,
 
 from pathpy.models.api import (NullModel,
                                MultiOrderModel)
-
-from pathpy.processes.api import (RandomWalk)
 
 # create logger for the the init file
 LOG = logger(__name__)
