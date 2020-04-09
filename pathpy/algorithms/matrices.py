@@ -127,10 +127,13 @@ def _adjacency_matrix(self, weight: Any = None,
     cols: List[int] = list()
     entries: List[float] = list()
 
+    # get number of nodes
+    n = self.number_of_nodes()
+
     # iterate over the edges of the network
     for e_id, e in tqdm(self.edges.items(), desc='adj matrix'):
 
-        # add notes if network is directed
+        # directed network
         rows.append(self.nodes.index[e.v.uid])
         cols.append(self.nodes.index[e.w.uid])
         entries.append(e.weight(weight))
@@ -142,7 +145,7 @@ def _adjacency_matrix(self, weight: Any = None,
             entries.append(e.weight(weight))
 
 
-    A = sparse.csr_matrix((entries, (rows, cols)))
+    A = sparse.csr_matrix((entries, (rows, cols)), shape=(n,n))
     if transposed:
         return A.transpose()
     else:
