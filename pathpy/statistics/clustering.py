@@ -16,6 +16,7 @@ import sys
 import numpy as np
 
 from pathpy import config, logger, tqdm
+from pathpy.core.base import BaseNetwork
 
 
 def local_clustering_coefficient(network, v: str) -> float:

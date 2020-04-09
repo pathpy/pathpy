@@ -8,6 +8,10 @@
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 
+from pathpy.algorithms import components
+# from pathpy.algorithms import centralities
+# from pathpy.algorithms import shortest_paths
+
 # =============================================================================
 # eof
 #

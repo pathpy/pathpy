@@ -13,12 +13,12 @@ from collections import defaultdict
 
 from pathpy import logger, tqdm
 
-from pathpy.core.network import Network
+from pathpy.core.base import BaseNetwork
 
 LOG = logger(__name__)
 
 
-def find_connected_components(network: Network) -> Dict:
+def find_connected_components(network: BaseNetwork) -> Dict:
     """Computes connected components of a network.
 
     Parameters
@@ -86,7 +86,7 @@ def find_connected_components(network: Network) -> Dict:
     return dict(zip(range(len(components)), components.values()))
 
 
-def largest_connected_component(network: Network) -> Network:
+def largest_connected_component(network: BaseNetwork) -> Network:
     """Returns the largest connected component of the network as a new 
     network
     """
@@ -110,7 +110,7 @@ def largest_connected_component(network: Network) -> Network:
     return lcc
 
 
-def largest_component_size(network: Network) -> int:
+def largest_component_size(network: BaseNetwork) -> int:
     LOG.debug('Computing connected components')
     components = find_connected_components(network)
     return max(map(len, components.values()))

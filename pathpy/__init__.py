@@ -24,12 +24,19 @@ from .__about__ import (  # noqa: F401
     __status__
 )
 
+# import utils
 from pathpy.utils.config import config  # noqa: F401
 from pathpy.utils.logger import logger  # noqa: F401
 from pathpy.utils.progress import tqdm  # noqa: F401
-from pathpy import statistics
-from pathpy import processes
 
+# import submodules
+from pathpy import statistics
+from pathpy import algorithms
+from pathpy import processes
+from pathpy import generators
+from pathpy.core import io
+
+# import symbols into root namespace
 from pathpy.core.api import (Node,
                              Edge,
                              Path,
@@ -37,27 +44,7 @@ from pathpy.core.api import (Node,
                              HigherOrderNode,
                              HigherOrderEdge,
                              HigherOrderNetwork,
-                             from_dataframe,
-                             from_csv,
-                             from_sqlite,
-                             to_dataframe,
-                             to_csv,
-                             to_sqlite,
                              )
-
-from pathpy.algorithms.api import (adjacency_matrix,
-                                   transition_matrix,
-                                   find_connected_components,
-                                   largest_connected_component,
-                                   largest_component_size,
-                                   )
-
-from pathpy.generators.api import (ER_nm,
-                                   ER_np,
-                                   Watts_Strogatz,
-                                   is_graphic_Erdos_Gallai,
-                                   Molloy_Reed)
-
 
 from pathpy.models.api import (NullModel,
                                MultiOrderModel)

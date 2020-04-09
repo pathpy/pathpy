@@ -13,10 +13,10 @@ from collections import defaultdict
 
 import numpy as np
 
-from pathpy.core.network import Network
+from pathpy.core.base import BaseNetwork
 
 
-def degree_sequence(network: Network, weight: bool = False) -> np.array:
+def degree_sequence(network: BaseNetwork, weight: bool = False) -> np.array:
     """Calculates the degree sequence of a network.
 
     Parameters
@@ -52,7 +52,7 @@ def degree_sequence(network: Network, weight: bool = False) -> np.array:
     return np.fromiter(network.nodes.degrees(weight=weight).values(), dtype=float)
 
 
-def degree_distribution(network: Network, weight: bool = False) -> Dict:
+def degree_distribution(network: BaseNetwork, weight: bool = False) -> Dict:
     """Calculates the degree distribution of a network.
 
     Parameters
@@ -92,7 +92,7 @@ def degree_distribution(network: Network, weight: bool = False) -> Dict:
     return cnt
 
 
-def degree_raw_moment(network, k: int = 1, weight: bool = False) -> float:
+def degree_raw_moment(network: BaseNetwork, k: int = 1, weight: bool = False) -> float:
     """Calculates the k-th raw moment of the degree distribution of a network
 
     Parameters
@@ -110,7 +110,7 @@ def degree_raw_moment(network, k: int = 1, weight: bool = False) -> float:
     return mom
 
 
-def degree_central_moment(network: Network, k: int = 1, weight: bool = False) -> float:
+def degree_central_moment(network: BaseNetwork, k: int = 1, weight: bool = False) -> float:
     """Calculates the k-th central moment of the degree distribution of a network
 
     Parameters
@@ -129,7 +129,7 @@ def degree_central_moment(network: Network, k: int = 1, weight: bool = False) ->
     return m
 
 
-def degree_generating_func(network: Network, x: float, weight: bool = False) -> Union[float, np.ndarray]:
+def degree_generating_func(network: BaseNetwork, x: float, weight: bool = False) -> Union[float, np.ndarray]:
     """Returns f(x) where f is the probability generating function for the
     degree distribution P(k) for a network. The function is defined in the interval [0,1].
     The value returned is from the range [0,1]. The following properties hold:
@@ -199,7 +199,7 @@ def degree_generating_func(network: Network, x: float, weight: bool = False) -> 
         return values[x]
 
 
-def molloy_reed_fraction(network: Network, weight: bool = False) -> float:
+def molloy_reed_fraction(network: BaseNetwork, weight: bool = False) -> float:
     """Calculates the Molloy-Reed fraction k**2/<k> based on the (in/out)-degree
     distribution of a directed or undirected network.
 
@@ -213,7 +213,7 @@ def molloy_reed_fraction(network: Network, weight: bool = False) -> float:
     return degree_raw_moment(network, k=2, weight=weight)/degree_raw_moment(network, k=1, weight=weight)
 
 
-def degree_assortativity(network: Network, weight: bool = False) -> float:
+def degree_assortativity(network: BaseNetwork, weight: bool = False) -> float:
     """Calculates the degree assortativity coefficient of a network.
 
     Parameters

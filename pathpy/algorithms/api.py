@@ -11,13 +11,6 @@
 from pathpy.algorithms.matrices import (adjacency_matrix,
                                         transition_matrix)
 
-from pathpy.algorithms.components import (find_connected_components,
-                                          largest_connected_component,
-                                          largest_component_size)
-
-from pathpy.algorithms.centralities import (betweenness_centrality,
-                                            closeness_centrality)
-
 # =============================================================================
 # eof
 #

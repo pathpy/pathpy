@@ -24,7 +24,7 @@ from pathpy.core.path import Path
 LOG = logger(__name__)
 
 
-def distance_matrix(network, weighted: bool = False) -> np.ndarray:
+def distance_matrix(network: BaseNetwork, weighted: bool = False) -> np.ndarray:
     """Calculates shortest path distances between all pairs of nodes
 
     .. note::
@@ -68,7 +68,7 @@ def distance_matrix(network, weighted: bool = False) -> np.ndarray:
     return dist_matrix
 
 
-def all_shortest_paths(network, weighted: bool = False) -> defaultdict:
+def all_shortest_paths(network: BaseNetwork, weighted: bool = False) -> defaultdict:
     """Calculates shortest paths between all pairs of nodes.
 
     .. note::
@@ -142,7 +142,7 @@ def all_shortest_paths(network, weighted: bool = False) -> defaultdict:
     return s_p
 
 
-def diameter(network, weighted: bool = False) -> float:
+def diameter(network: BaseNetwork, weighted: bool = False) -> float:
     """Calculates the length of the longest shortest path
 
     .. note::
@@ -180,7 +180,7 @@ def diameter(network, weighted: bool = False) -> float:
     return np.max(distance_matrix(network, weighted))
 
 
-def avg_path_length(network, weighted: bool = False) -> float:
+def avg_path_length(network: BaseNetwork, weighted: bool = False) -> float:
     """Calculates the average shortest path length
 
     .. note::

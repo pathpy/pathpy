@@ -17,14 +17,14 @@ import numpy as np
 
 
 from pathpy import config, logger, tqdm
-from pathpy.core.network import Network
+from pathpy.core.base import BaseNetwork
 from pathpy.algorithms import shortest_paths
 
 # create logger
 log = logger(__name__)
 
 
-def betweenness_centrality(network: Network, normalized: bool = False) -> Dict:
+def betweenness_centrality(network: BaseNetwork, normalized: bool = False) -> Dict:
     """Calculates the betweenness centrality of all nodes.
     .. note::
 
@@ -80,7 +80,7 @@ def betweenness_centrality(network: Network, normalized: bool = False) -> Dict:
     return bw
 
 
-def closeness_centrality(network: Network, normalized: bool = False) -> Dict:
+def closeness_centrality(network: BaseNetwork, normalized: bool = False) -> Dict:
     """Calculates the closeness centrality of all nodes.
 
     .. note::
@@ -138,7 +138,7 @@ def closeness_centrality(network: Network, normalized: bool = False) -> Dict:
     return cl
 
 
-def degree_centrality(network: Network, mode: str='degree') -> Union[Dict, None]:
+def degree_centrality(network: BaseNetwork, mode: str='degree') -> Union[Dict, None]:
     """Calculates the degree centrality of all nodes.
 
     Parameters

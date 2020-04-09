@@ -8,6 +8,13 @@
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 
+from pathpy.generators.random_graphs import (ER_nm,
+                                            ER_np,
+                                            Watts_Strogatz,
+                                            is_graphic_Erdos_Gallai,
+                                            Molloy_Reed,
+                                            )
+
 # =============================================================================
 # eof
 #

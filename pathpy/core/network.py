@@ -25,6 +25,7 @@ from pathpy.core.utils._check_str import _check_str
 from pathpy.core.node import Node
 from pathpy.core.edge import Edge
 from pathpy.core.path import Path
+#import sys, traceback
 
 # create logger for the Network class
 LOG = logger(__name__)
@@ -254,20 +255,58 @@ class Network(BaseNetwork):
             # return sub path object
             return self._subpaths
 
-    except ImportError as err:
-        # if library could not be loaded raise a warning
-        LOG.warning('pathpy.subpaths failed to be imported: {}'.format(err))
+    except ImportError as err:        
+        LOG.error('pathpy.subpaths failed to be imported: {}'.format(err))
 
-    try:
+
+    try:        
         from pathpy.algorithms.matrices import (adjacency_matrix,
                                                 transition_matrix)
     except ImportError as err:
-        LOG.debug('pathpy.matrices failed to be imported: {}'.format(err))
+        LOG.error('pathpy.algorithms.matrices failed to be imported: {}'.format(err))
+
 
     try:
-        from ..visualizations.plot import plot
+        from pathpy.visualizations.plot import plot
     except ImportError as err:
-        LOG.debug('pathpy.plot failed to be imported: {}'.format(err))
+        LOG.error('pathpy.plot failed to be imported: {}'.format(err))
+
+
+    try:        
+        from pathpy.statistics.degrees import (degree_sequence,
+                                        degree_assortativity,
+                                        degree_central_moment,
+                                        degree_distribution,
+                                        degree_generating_func,
+                                        degree_raw_moment,
+                                        molloy_reed_fraction)
+    except ImportError as err:
+        #exc_type, exc_value, exc_traceback = sys.exc_info()
+        #traceback.print_tb(exc_traceback)
+        LOG.error('pathpy.statistics.degrees functions failed to be imported: {}'.format(err))
+
+
+    try:
+        from pathpy.statistics.clustering import (avg_clustering_coefficient,
+                                                    local_clustering_coefficient)
+    except ImportError as err:
+        LOG.error('pathpy.statistics.clustering functions failed to be imported: {}'.format(err))
+        
+    
+    try:
+        from pathpy.algorithms.components import (find_connected_components,
+                                        largest_component_size,
+                                        largest_connected_component)
+    except ImportError as err:
+        LOG.error('pathpy.algorithms.components functions failed to be imported: {}'.format(err))
+
+
+    try:
+        from pathpy.algorithms.centralities import (betweenness_centrality,
+                                        closeness_centrality,
+                                        )
+    except ImportError as err:
+        LOG.error('pathpy.algorithms.centralities functions failed to be imported: {}'.format(err))
 
     def __repr__(self) -> str:
         """Return the description of the network.
