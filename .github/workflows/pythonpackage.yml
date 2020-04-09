@@ -26,7 +26,7 @@ jobs:
       run: |
         pip install -U -e .
         pip install -U -r requirements/pathpy.txt
-        pip install -U -r pytest
+        pip install -U pytest
         pip install jupyter
     - name: Test with pytest
       run: |
