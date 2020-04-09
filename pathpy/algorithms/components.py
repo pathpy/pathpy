@@ -86,7 +86,7 @@ def find_connected_components(network: BaseNetwork) -> Dict:
     return dict(zip(range(len(components)), components.values()))
 
 
-def largest_connected_component(network: BaseNetwork) -> Network:
+def largest_connected_component(network: BaseNetwork) -> BaseNetwork:
     """Returns the largest connected component of the network as a new 
     network
     """

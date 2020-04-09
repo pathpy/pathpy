@@ -148,7 +148,7 @@ def ER_np(n: int, p: float, directed: bool = False, loops: bool = False, node_ui
         for t in range(x):
             if t == s and not loops:
                 continue
-            if np.random.random() < p:
+            if np.random.random_sample() < p:
                 e = Edge(node_uids[s], node_uids[t], directed=directed)
                 network.add_edge(e)
     return network
