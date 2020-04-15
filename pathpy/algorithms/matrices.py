@@ -131,7 +131,7 @@ def _adjacency_matrix(self, weight: Any = None,
     n = self.number_of_nodes()
 
     # iterate over the edges of the network
-    for e_id, e in tqdm(self.edges.items(), desc='adj matrix'):
+    for e_id, e in self.edges.items():
 
         # directed network
         rows.append(self.nodes.index[e.v.uid])
