@@ -23,7 +23,7 @@ LOG = logger(__name__)
 
 
 @singledispatch
-def adjacency_matrix(self, weight: str = 'weight', transposed: bool = False,
+def adjacency_matrix(self, weight: str = 'weight', transposed: bool = False, directed: bool = None,
                      **kwargs: Any) -> sparse.coo_matrix:
     """Returns a sparse adjacency matrix of the network.
 
@@ -77,7 +77,7 @@ def adjacency_matrix(self, weight: str = 'weight', transposed: bool = False,
 
 
 @adjacency_matrix.register(BaseNetwork)
-def _network(self, weight: Any = None, transposed: bool = False,
+def _network(self, weight: Any = None, transposed: bool = False, directed: bool = None,
              **kwargs: Any) -> sparse.coo_matrix:
     """Returns a sparse adjacency matrix of the network."""
 
@@ -90,11 +90,11 @@ def _network(self, weight: Any = None, transposed: bool = False,
             self.edges[uid][weight] = frequency
 
     # return an adjacency matrix
-    return _adjacency_matrix(self, weight, transposed)
+    return _adjacency_matrix(self, weight, transposed, directed)
 
 
 @adjacency_matrix.register(BaseHigherOrderNetwork)
-def _hon(self, weight: Any = None, transposed: bool = False,
+def _hon(self, weight: Any = None, transposed: bool = False, directed: bool = None,
          **kwargs: Any) -> sparse.coo_matrix:
     """Returns a sparse adjacency matrix of the higher order network."""
 
@@ -115,11 +115,11 @@ def _hon(self, weight: Any = None, transposed: bool = False,
         print('observed')
 
     # return an adjacency matrix
-    return _adjacency_matrix(self, weight, transposed)
+    return _adjacency_matrix(self, weight, transposed, directed)
 
 
 def _adjacency_matrix(self, weight: Any = None,
-                      transposed: bool = False) -> sparse.csr_matrix:
+                      transposed: bool = False, directed: bool = None) -> sparse.csr_matrix:
     """Function to generate the adjacency matrix."""
 
     # initializing variables
@@ -139,7 +139,7 @@ def _adjacency_matrix(self, weight: Any = None,
         entries.append(e.weight(weight))
 
         # add additional nodes if not directed
-        if not self.directed:
+        if directed == False or not self.directed:
             rows.append(self.nodes.index[e.w.uid])
             cols.append(self.nodes.index[e.v.uid])
             entries.append(e.weight(weight))
