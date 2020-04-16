@@ -326,7 +326,7 @@ class TikzNodePainter(object):
         """
         if mode == 'tex':
             self._check_color()
-            string = '\\Vertex[x={x:.{n}f},y={y:.{n}f}' \
+            string = '\\Vertex[x={x:.{n}f},y={y:.{n}f},IdAsLabel,' \
                 ''.format(x=self.x, y=self.y, n=self.digits)
 
             for k in self.tikz_kwds:
