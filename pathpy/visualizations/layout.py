@@ -234,7 +234,7 @@ def layout(network, **kwds):
             _w = True
         else:
             _w = False
-        adjacency_matrix = network.adjacency_matrix(weighted=_w)
+        adjacency_matrix = network.adjacency_matrix(weighted=_w, directed=False)
     # elif isinstance(network, tuple):
     #     # log.debug('The network is of type "list".')
     #     nodes = network[0]
