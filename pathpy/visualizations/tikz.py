@@ -101,7 +101,7 @@ class TikzNetworkPainter(Painter):
 
     @draw.register(BaseStaticNetwork)
     def _draw_static(self, network, mode='tex', **kwargs):
-        log.debug('I\'m a static tikz-network')
+        log.debug('Drawing a static tikz-network')
 
         # create new painting
         painting = Painting()

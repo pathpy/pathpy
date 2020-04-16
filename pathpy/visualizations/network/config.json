@@ -1,6 +1,6 @@
 {
-  "width" : 400,
-  "height" : 400,
+  "width" : 600,
+  "height" : 600,
   "layout" : "force",
   "velocityDecay": 0.2,
   "alphaMin": 0.1,
@@ -8,7 +8,7 @@
   "radiusMaxSize" : 16,
   "temporal":false,
   "coordinates":false,
-  "euclidean":false,
+  "euclidean":true,
   "animation":{
     "enabled":false,
     "start" : "1970-01-01T00:00:00+00:00",

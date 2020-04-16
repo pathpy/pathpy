@@ -246,7 +246,7 @@ class Network(BaseNetwork):
         def subpaths(self):
             """Returns a SubPath object."""
 
-            # check if alread a sub path object is initialzed
+            # check if already a sub path object is initialized
             if self._subpaths is None:
 
                 # if not generate initialize new object
@@ -268,8 +268,9 @@ class Network(BaseNetwork):
 
     try:
         from pathpy.visualizations.plot import plot
+        from pathpy.visualizations.plot import _repr_html_
     except ImportError as err:
-        LOG.error('pathpy.plot failed to be imported: {}'.format(err))
+        LOG.error('pathpy.visualization function failed to be imported: {}'.format(err))
 
 
     try:        

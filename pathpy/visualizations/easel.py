@@ -17,7 +17,9 @@ import uuid
 
 from string import Template
 
-from .. import logger
+from pathpy import logger
+from pathpy import config
+
 from .tikz import TikzNetworkPainter
 from .d3js import D3jsNetworkPainter
 
@@ -361,7 +363,7 @@ class TEX(Easel):
         latex_header = '\\documentclass'+header_options+'{standalone}\n' + \
             '\\usepackage{tikz-network}\n' + \
             '\\begin{document}\n'
-        latex_begin_tikz = '\\begin{tikzpicture}\n'
+        latex_begin_tikz = '\\begin{tikzpicture}\n\tikzset{every node}=[font=\\sffamily\\bfseries]\n'
         latex_end_tikz = '\\end{tikzpicture}\n'
         latex_footer = '\\end{document}'
         latex_begin_scope = '\\begin{scope}'
@@ -497,13 +499,13 @@ class D3JS(Easel):
         config_file = os.path.join(output_dir, 'config.json')
 
         data = self.painting.data
-        config = self.painting.config
+        painting_config = self.painting.config
 
         with open(data_file, 'w') as f:
             json.dump(data, f)
 
         with open(config_file, 'w') as f:
-            json.dump(config, f)
+            json.dump(painting_config, f)
 
     def _get_directories(self, filename):
 
@@ -522,29 +524,23 @@ class D3JS(Easel):
 
         return current_dir, output_dir
 
-    def show(self, **kwargs):
-        data = self.painting.data
-        config = self.painting.config
+    def show(self, **kwargs):   
 
-        port = kwargs.get('port', 8221)
+        # check if python is used in a jupyter environment
+        if config['environment']['interactive']:
 
-        try:
-            # check if python is used in a jupyter environment
-            # TODO: find a more elegant method to do this.
-            get_ipython
-
-            from IPython.display import display_html
+            from IPython.core.display import display, HTML
 
             # generate single html file
-            html = self._generate_html(config, data, **kwargs)
+            html = self._generate_html(self.painting.config, self.painting.data, **kwargs)
 
             # display html file
-            display_html(html, raw=True)
+            display(HTML(html))
 
             # with open('thisisatest.html', 'w+') as f:
             #     f.write(html)
 
-        except:
+        else:
 
             log.debug('Not in an IPython environment.')
 
@@ -595,7 +591,7 @@ class D3JS(Easel):
             # os.chdir(current_dir)
 
     def _generate_html(self, config, data, **kwargs):
-        log.debug('Generate single html document.')
+        log.debug('Generating html document.')
         widgets_id = 'x'+uuid.uuid4().hex
         network_id = 'x'+uuid.uuid4().hex
 
