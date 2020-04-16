@@ -919,7 +919,7 @@ class Network(BaseNetwork):
 
         # check if the right object is provided
         if self.check:
-            edge = _check_edge(self, edge, *args, **kwargs)
+            edge = _check_edge(self, edge, *args, **kwargs, directed  = self.directed)
 
         # add new edge to the network or update modified edge
         if (edge.uid not in self.edges or
