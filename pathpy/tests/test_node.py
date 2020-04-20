@@ -3,14 +3,27 @@
 # =============================================================================
 # File      : test_node.py -- Test environment for the Node class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-03-17 15:34 juergen>
+# Time-stamp: <Thu 2020-04-16 08:28 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 
-import pytest
+# import pytest
 
-from pathpy import Node, Edge
+from pathpy import Node
+
+
+def test_hash():
+    """Test the hash of a node"""
+    a = Node()
+    b = Node('b')
+    c = Node('b')
+
+    # different objects
+    assert a.__hash__() != b.__hash__()
+
+    # different objects but same uid
+    assert b.__hash__() != c.__hash__()
 
 
 def test_uid():
@@ -23,7 +36,14 @@ def test_uid():
     assert u.uid == 'u'
 
     v = Node(1)
+
     assert v.uid == '1'
+
+    w = Node()
+
+    assert isinstance(w, Node)
+    assert isinstance(w.uid, str)
+    assert w.uid == hex(id(w))
 
 
 def test_setitem():
@@ -51,6 +71,10 @@ def test_repr():
 
     assert u.__repr__() == 'Node u'
 
+    v = Node()
+
+    assert v.__repr__().replace('>', '').split(' ')[-1] == v.uid
+
 
 def test_update():
     """Test update node attributes."""
@@ -64,64 +88,32 @@ def test_update():
     assert u['color'] == 'green'
     assert u['shape'] == 'rectangle'
 
-    v = Node('v', shape='circle', size=30)
-    u.update(v)
 
-    assert u['size'] == 30
-    assert u['shape'] == 'circle'
-    assert u.attributes.to_dict() == {'color': 'green',
-                                      'shape': 'circle', 'size': 30}
+def test_update_from_other():
+    """Test to update node attributes from other node"""
+    # not implemented
+    # ---------------
+    # v = Node('v', shape='circle', size=30)
+    # u.update(v)
+
+    # assert u['size'] == 30
+    # assert u['shape'] == 'circle'
+    # assert u.attributes.to_dict() == {'color': 'green',
+    #                                   'shape': 'circle', 'size': 30}
 
 
 def test_copy():
     """Test to make a copy of a node."""
 
-    u = Node('u')
+    u = Node('u', color='blue')
     v = u.copy()
 
+    # same uid and attribtes
     assert v.uid == u.uid == 'u'
+    assert v['color'] == 'blue'
 
-
-def test_outgoing():
-    """Test the outgoing edges."""
-    u = Node('u')
-    v = Node('v')
-    w = Node('w')
-
-    uv = Edge(u, v)
-    assert u.outgoing == {'u-v'}
-
-    uw = Edge(u, w)
-    assert u.outgoing == {'u-v', 'u-w'}
-
-
-def test_incoming():
-    """Test the incominb edges."""
-
-    u = Node('u')
-    v = Node('v')
-    w = Node('w')
-
-    uv = Edge(u, v)
-    assert u.incoming == set()
-
-    wu = Edge(w, u)
-    assert u.incoming == {'w-u'}
-
-
-def test_adjacent_edges():
-    """Test the adjacent edges."""
-
-    u = Node('u')
-    v = Node('v')
-    w = Node('w')
-
-    uv = Edge(u, v)
-    vw = Edge(v, w)
-
-    assert u.adjacent_edges == {'u-v'}
-    assert v.adjacent_edges == {'v-w', 'u-v'}
-    assert w.adjacent_edges == {'v-w'}
+    # different objects
+    assert u != v
 
 
 # =============================================================================

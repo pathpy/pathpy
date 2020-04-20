@@ -3,17 +3,35 @@
 # =============================================================================
 # File      : classes.py -- Base classes for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-04-02 15:46 juergen>
+# Time-stamp: <Thu 2020-04-16 09:22 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from abc import ABC
-from typing import Any
+from typing import Any, Optional
 from copy import deepcopy
 
 from pathpy import config
 from pathpy.core.base.attributes import (Attributes,
                                          TemporalAttributes)
+
+
+class AbstractNode(ABC):
+    """Abstract base class for a Node.
+
+    Warning: This class should not be used directly.
+    Use derived classes instead.
+    """
+    pass
+
+
+class AbstractEdge(ABC):
+    """Abstract base class for an Edge.
+
+    Warning: This class should not be used directly.
+    Use derived classes instead.
+    """
+    pass
 
 
 class AbstractNetwork(ABC):
@@ -46,7 +64,7 @@ class AbstractTemporalNetwork(ABC):
 class BaseClass:
     """Base class for all pathpy objects."""
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, uid: Optional[str] = None, **kwargs: Any) -> None:
         """Initialize the base class."""
 
         # initialize attributes object
@@ -56,6 +74,18 @@ class BaseClass:
         # check code
         self.check: bool = kwargs.get(
             'check_code', config['computation']['check_code'])
+
+        # declare variable
+        self._uid: str
+        self._python_uid: bool
+
+        # assign node identifier
+        if uid is not None:
+            self._uid = str(uid)
+            self._python_uid = False
+        else:
+            self._uid = hex(id(self))
+            self._python_uid = True
 
     def __setitem__(self, key: Any, value: Any) -> None:
         """Add a specific attribute to the object.
@@ -124,7 +154,70 @@ class BaseClass:
 
     def __eq__(self, other: object) -> bool:
         """Returns True if two objects are equal, otherwise False."""
-        return self.__dict__ == other.__dict__
+        return self.__hash__ == other.__hash__
+
+    def __repr__(self) -> str:
+        """Return the description of the object.
+
+        Returns
+        -------
+        str
+
+            Returns the description of the object with the class and assigned
+            node uid.
+
+        Examples
+        --------
+        Genarate new node.
+
+        >>> from pathpy import Node
+        >>> u = Node('u')
+        >>> print(u)
+        Node u
+
+        """
+        # declare variable
+        string: str
+
+        # check if python id is used as uid or not
+        if self._python_uid:
+            # if python id is used dont show in the object description
+            string = super().__repr__()
+        else:
+            # if user uid is used show in the object description
+            string = '{} {}'.format(self.__class__.__name__, self.uid)
+
+        return string
+
+    def __hash__(self) -> Any:
+        """Returns the unique hash of the object.
+
+        Here the hash value is defined by the unique node id!
+
+        """
+        return hash(id(self))
+
+    @property
+    def uid(self) -> str:
+        """Return the unique identifier (uid) of the object.
+
+        Returns
+        -------
+        str
+
+            Return the node identifier (uid) as a string.
+
+        Examples
+        --------
+        Generate a single node and print the uid.
+
+        >>> from pathpy import Node
+        >>> u = Node('u')
+        >>> u.uid
+        u
+
+        """
+        return self._uid
 
     def update(self, **kwargs: Any) -> None:
         """Update the attributes of the object.
@@ -254,6 +347,16 @@ class BaseClass:
             return float(self.attributes.get(weight, 0.0))
         else:
             return float(self.attributes.get('weight', default))
+
+
+class BaseNode(AbstractNode, BaseClass):
+    """Base class for nodes."""
+    pass
+
+
+class BaseEdge(AbstractEdge, BaseClass):
+    """Base class for edges."""
+    pass
 
 
 class BaseNetwork(AbstractNetwork, BaseClass):

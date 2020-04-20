@@ -3,14 +3,14 @@
 # =============================================================================
 # File      : test_attributes.py -- Test environment for the attributes
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-11-14 15:52 juergen>
+# Time-stamp: <Mon 2020-04-20 07:29 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 
 import pytest
 
-from pathpy.core.base import Attributes
+from pathpy.core.base.attributes import Attributes
 import pathpy as pp
 
 
@@ -281,7 +281,7 @@ def test_to_dict():
     #d = a.to_dict('A', 'C', exclude=['C'], transpose=True)
     d = a.to_dict('A', 'C', exclude=['B'], transpose=False)
 
-    print(d)
+    # print(d)
 
 
 def test_data_frame():

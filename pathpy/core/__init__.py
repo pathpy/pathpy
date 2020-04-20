@@ -1,9 +1,9 @@
-#!/usr/bin/python -tt
+# !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
 # File      : __init__.py -- Initialize the basic classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-04-03 10:22 juergen>
+# Time-stamp: <Mon 2020-04-20 07:21 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================

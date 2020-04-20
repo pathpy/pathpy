@@ -1,22 +1,33 @@
-#!/usr/bin/python -tt
+"""Degree statistics."""
+# !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
 # File      : degrees.py -- Module to calculate degree-based statistics
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Thu 2020-04-02 17:04 juergen>
+# Time-stamp: <Mon 2020-04-20 09:09 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Union, Dict
+from typing import TYPE_CHECKING, Union, Dict
 from collections import defaultdict
 
 import numpy as np
 
-from pathpy.core.base import BaseNetwork
+from pathpy import logger
+
+# pseudo load class for type checking
+if TYPE_CHECKING:
+    from pathpy.core.network import Network
+
+# create custom types
+Weight = Union[str, bool, None]
+
+# create logger
+LOG = logger(__name__)
 
 
-def degree_sequence(network: BaseNetwork, weight: bool = False) -> np.array:
+def degree_sequence(network: Network, weight: Weight = None) -> np.array:
     """Calculates the degree sequence of a network.
 
     Parameters
@@ -38,21 +49,21 @@ def degree_sequence(network: BaseNetwork, weight: bool = False) -> np.array:
     >>> net = pp.Network(directed=False)
     >>> net.add_edge('a', 'b', weight = 2.1)
     >>> net.add_edge('a', 'c', weight = 1.0)
-    >>> s = pp.algorithms.statistics.degrees.sequence(net)
+    >>> s = pp.algorithms.statistics.degrees.degree_sequence(net)
     >>> s
-    array([2., 1., 1.])
+    np.array([2., 1., 1.])
 
     Return weighted degree sequence
-
-    >>> s = pp.algorithms.statistics.degrees.sequence(net, weights = True)
+    >>> s = pp.algorithms.statistics.degrees.degree_sequence(net,weight=True)
     >>> s
     array([3.1, 2.1, 1.0])
     """
+    _degrees = network.degrees(weight=weight).values()
+    return np.fromiter(_degrees, dtype=float)
 
-    return np.fromiter(network.nodes.degrees(weight=weight).values(), dtype=float)
 
-
-def degree_distribution(network: BaseNetwork, weight: bool = False) -> Dict:
+def degree_distribution(network: Network,
+                        weight: Weight = None) -> Dict[float, float]:
     """Calculates the degree distribution of a network.
 
     Parameters
@@ -84,15 +95,16 @@ def degree_distribution(network: BaseNetwork, weight: bool = False) -> Dict:
         dict({ 3.1: 0.33333., 2.1: 0.33333., 1.: 0.333333. })
     """
 
-    cnt = defaultdict(float)
+    cnt: defaultdict = defaultdict(float)
     n = network.number_of_nodes()
-    for v in network.nodes:
-        cnt[network.nodes.degrees(weight=weight)[v]] += 1.0 / n
+    for v in network.nodes.keys():
+        cnt[network.degrees(weight=weight)[v]] += 1.0 / n
 
     return cnt
 
 
-def degree_raw_moment(network: BaseNetwork, k: int = 1, weight: bool = False) -> float:
+def degree_raw_moment(network: Network, k: int = 1,
+                      weight: Weight = None) -> float:
     """Calculates the k-th raw moment of the degree distribution of a network
 
     Parameters
@@ -110,8 +122,9 @@ def degree_raw_moment(network: BaseNetwork, k: int = 1, weight: bool = False) ->
     return mom
 
 
-def degree_central_moment(network: BaseNetwork, k: int = 1, weight: bool = False) -> float:
-    """Calculates the k-th central moment of the degree distribution of a network
+def degree_central_moment(network: Network, k: int = 1,
+                          weight: Weight = None) -> float:
+    """Calculates the k-th central moment of the degree distribution.
 
     Parameters
     ----------
@@ -129,14 +142,24 @@ def degree_central_moment(network: BaseNetwork, k: int = 1, weight: bool = False
     return m
 
 
-def degree_generating_func(network: BaseNetwork, x: float, weight: bool = False) -> Union[float, np.ndarray]:
-    """Returns f(x) where f is the probability generating function for the
-    degree distribution P(k) for a network. The function is defined in the interval [0,1].
-    The value returned is from the range [0,1]. The following properties hold:
+def degree_generating_function(network: Network, x: float,
+                               weight: Weight = None) -> Union[float, np.ndarray]:
+    """Returns the degree generting function.
 
-    [1/k! d^k/dx f]_{x=0} = P(k)    with d^k/dx f being the k-th derivative of f by x
-    f'(1) = <k>                     with f' being the first derivative and <k> the mean degree
-    [(x d/dx)^m f]_{x=1} = <k^m>    with <k^m> being the m-th raw moment of P
+
+    Returns f(x) where f is the probability generating function for the degree
+    distribution P(k) for a network. The function is defined in the interval
+    [0,1].  The value returned is from the range [0,1]. The following properties
+    hold:
+
+    [1/k! d^k/dx f]_{x=0} = P(k)
+    with d^k/dx f being the k-th derivative of f by x
+
+    f'(1) = <k>
+    with f' being the first derivative and <k> the mean degree
+
+    [(x d/dx)^m f]_{x=1} = <k^m>
+    with <k^m> being the m-th raw moment of P
 
     Parameters
     ----------
@@ -164,7 +187,7 @@ def degree_generating_func(network: BaseNetwork, x: float, weight: bool = False)
     >>> n.add_edge('d', 'f')
     >>> n.add_edge('e', 'f')
 
-    Return single function value 
+    Return single function value
 
     >>> val = pp.statistics.degrees.generating_func(n, 0.3)
     >>> print(val)
@@ -176,6 +199,7 @@ def degree_generating_func(network: BaseNetwork, x: float, weight: bool = False)
     >>> y = pp.statistics.degrees.generating_func(n, x)
     >>> x = plt.plot(x, y)
     [Function plot]
+
     """
 
     assert isinstance(x, (float, list, np.ndarray)), \
@@ -188,19 +212,23 @@ def degree_generating_func(network: BaseNetwork, x: float, weight: bool = False)
     else:
         x_range = x
 
-    values = defaultdict(float)
+    values: defaultdict = defaultdict(float)
     for k in p_k:
         for v in x_range:
             values[v] += p_k[k] * v**k
 
+    _values: Union[float, np.ndarray]
     if len(x_range) > 1:
-        return np.fromiter(values.values(), dtype=float)
+        _values = np.fromiter(values.values(), dtype=float)
     else:
-        return values[x]
+        _values = values[x]
+    return _values
 
 
-def molloy_reed_fraction(network: BaseNetwork, weight: bool = False) -> float:
-    """Calculates the Molloy-Reed fraction k**2/<k> based on the (in/out)-degree
+def molloy_reed_fraction(network: Network, weight: Weight = False) -> float:
+    """Calculates the Molloy-Reed fraction.
+
+    Calculates the Molloy-Reed fraction k**2/<k> based on the (in/out)-degree
     distribution of a directed or undirected network.
 
     Parameters
@@ -209,11 +237,14 @@ def molloy_reed_fraction(network: BaseNetwork, weight: bool = False) -> float:
     network : Network
 
         The network in which to calculate the Molloy-Reed fraction
+
     """
-    return degree_raw_moment(network, k=2, weight=weight)/degree_raw_moment(network, k=1, weight=weight)
+    _mrf = (degree_raw_moment(network, k=2, weight=weight) /
+            degree_raw_moment(network, k=1, weight=weight))
+    return _mrf
 
 
-def degree_assortativity(network: BaseNetwork, weight: bool = False) -> float:
+def degree_assortativity(network: Network, weight: Weight = None) -> float:
     """Calculates the degree assortativity coefficient of a network.
 
     Parameters
@@ -225,22 +256,17 @@ def degree_assortativity(network: BaseNetwork, weight: bool = False) -> float:
     """
     m = network.number_of_edges()
     A = network.adjacency_matrix()
-    idx = dict()
-    i = 0
-    for v in network.nodes:
-        idx[v] = i
-        i += 1
+    d = network.degrees()
+    w = network.degrees(weight)
+    idx = network.nodes.index
 
-    cov = 0.
-    var = 0.
-    for i in network.nodes:
-        for j in network.nodes:
-            cov += (A[idx[i], idx[j]] - (network.nodes.degrees(weight)[i]*network.nodes.degrees(
-                weight)[j])/(2*m)) * network.nodes.degrees()[i] * network.nodes.degrees()[j]
+    cov: float = 0.
+    var: float = 0.
+    for i in network.nodes.keys():
+        for j in network.nodes.keys():
+            cov += (A[idx[i], idx[j]] - (w[i]*w[j])/(2*m)) * d[i] * d[j]
             if i != j:
-                var -= (network.nodes.degrees(weight)[i]*network.nodes.degrees(weight)[j])/(
-                    2*m) * network.nodes.degrees(weight)[i] * network.nodes.degrees(weight)[j]
+                var -= (w[i]*w[j])/(2*m) * w[i] * w[j]
             else:
-                var += (network.nodes.degrees(weight)[i] - (network.nodes.degrees()[i]*network.nodes.degrees()[
-                        j])/(2*m)) * network.nodes.degrees()[i] * network.nodes.degrees()[j]
+                var += (w[i] - (d[i]*d[j])/(2*m)) * d[i] * d[j]
     return cov/var

@@ -1,50 +1,72 @@
-#!/usr/bin/python -tt
+# !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
 # File      : test_edge.py -- Test environment for the Edge class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-03-18 11:07 juergen>
+# Time-stamp: <Thu 2020-04-16 10:00 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 
 import pytest
 
-from pathpy import Edge, Node, config
+from pathpy import Edge, Node
 
 
 @pytest.fixture(params=[True, False])
 def nodes(request):
     """Generate node objects."""
-    if not request.param:
-
-        v = Node('v')
-        w = Node('w')
-    else:
-        config['computation']['check_code'] = True
-        v = 'v'
-        w = 'w'
+    v = Node('v')
+    w = Node('w')
     return v, w
 
 
-def test_uid(nodes):
+def test_hash():
+    """Test the hash of an edge"""
+    a = Node('a')
+    b = Node('b')
+    c = Node('c')
+
+    e1 = Edge(a, b)
+    e2 = Edge(b, c)
+    e3 = Edge(a, b)
+
+    # different objects
+    assert e1.__hash__() != e2.__hash__()
+
+    # different objects but same uid
+    assert e1.__hash__() != e3.__hash__()
+
+
+def test_uid():
     """Test the uid assignment."""
 
-    v, w = nodes
+    a = Node('a')
+    b = Node('b')
 
-    vw = Edge(v, w)
+    e = Edge(a, b, uid='e')
 
-    assert isinstance(vw, Edge)
-    assert isinstance(vw.uid, str)
-    assert vw.uid == 'v-w'
-    assert isinstance(vw.v, Node) and vw.v.uid == 'v'
-    assert isinstance(vw.w, Node) and vw.w.uid == 'w'
+    assert isinstance(e, Edge)
+    assert isinstance(e.uid, str)
+    assert e.uid == 'e'
 
-    vw = Edge(v, w, uid='vw')
+    a = Node('a')
+    b = Node('b')
 
-    assert isinstance(vw, Edge)
-    assert isinstance(vw.uid, str)
-    assert vw.uid == 'vw'
+    e = Edge(a, b, 'e')
+
+    assert isinstance(e, Edge)
+    assert isinstance(e.uid, str)
+    assert e.uid == 'e'
+
+    a = Node()
+    b = Node()
+
+    e = Edge(a, b)
+
+    assert isinstance(e, Edge)
+    assert isinstance(e.uid, str)
+    assert e.uid == hex(id(e))
 
 
 def test_setitem(nodes):
@@ -74,9 +96,13 @@ def test_repr(nodes):
 
     v, w = nodes
 
+    vw = Edge(v, w, 'vw')
+
+    assert vw.__repr__() == 'Edge vw'
+
     vw = Edge(v, w)
 
-    assert vw.__repr__() == 'Edge v-w'
+    assert vw.__repr__().replace('>', '').split(' ')[-1] == vw.uid
 
 
 def test_update(nodes):
@@ -96,10 +122,13 @@ def test_copy(nodes):
     """Test to make a copy of a node."""
 
     v, w = nodes
-    vw = Edge(v, w)
+    vw = Edge(v, w, 'vw')
     ab = vw.copy()
 
-    assert ab.uid == vw.uid == 'v-w'
+    assert ab.uid == vw.uid == 'vw'
+
+    # different objects
+    assert ab != vw
 
 
 def test_weight(nodes):
@@ -123,23 +152,16 @@ def test_weight(nodes):
 
 def test_self_loop():
     """Test self loop as an edge."""
-    v = Node('v')
+    v = Node()
 
-    vv = Edge(v, v, directed=True)
+    vv = Edge(v, v)
     assert len(vv.nodes) == 1
-    assert list(v.outgoing)[0] == 'v-v'
-    assert list(v.incoming)[0] == 'v-v'
 
 
-def test_add_node():
-    """Test to add a node to the edge."""
-    pass
-
-
-def test_add_nodes_from():
-    """Test to add nodes from a list."""
-    pass
-
+def test_errors():
+    """Test some errors user can make"""
+    with pytest.raises(Exception):
+        e = Edge('a', 'b')
 
 # =============================================================================
 # eof

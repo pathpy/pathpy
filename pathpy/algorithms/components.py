@@ -1,51 +1,55 @@
-#!/usr/bin/python -tt
+"""Algorithms for component calculations."""
+# !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
 # File      : shortest_paths.py -- Module to calculate connected components
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Thu 2020-04-02 17:49 ingo>
+# Time-stamp: <Sun 2020-04-19 11:09 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Dict
+from typing import TYPE_CHECKING, Dict
 from collections import defaultdict
 
 from pathpy import logger, tqdm
 
-from pathpy.core.base import BaseNetwork
+# pseudo load class for type checking
+if TYPE_CHECKING:
+    from pathpy.core.network import Network
 
 LOG = logger(__name__)
 
 
-def find_connected_components(network: BaseNetwork) -> Dict:
+def find_connected_components(network: Network) -> Dict:
     """Computes connected components of a network.
 
     Parameters
     ----------
 
-        network: Network
+    network: Network
 
-            Network instance
+        Network instance
 
     Returns
     -------
 
-        dict
+    dict
 
-            dictionary mapping node uids to components (represented as integer IDs)
+        dictionary mapping node uids to components (represented as integer IDs)
+
     """
 
     # these are used as nonlocal variables in tarjan
-    index = 0
-    S = []
-    indices = defaultdict(lambda: None)
-    low_link = defaultdict(lambda: None)
-    on_stack = defaultdict(lambda: False)
-    components = {}
+    index: int = 0
+    S: list = []
+    indices: defaultdict = defaultdict(lambda: None)
+    low_link: defaultdict = defaultdict(lambda: None)
+    on_stack: defaultdict = defaultdict(lambda: False)
+    components: dict = {}
 
-    # Tarjan's algorithm
     def tarjan(v: str):
+        """Tarjan's algorithm"""
         nonlocal index
         nonlocal S
         nonlocal indices
@@ -59,7 +63,8 @@ def find_connected_components(network: BaseNetwork) -> Dict:
         S.append(v)
         on_stack[v] = True
 
-        for w in network.successors[v]:
+        for node in network.successors[v]:
+            w = node.uid
             if indices[w] is None:
                 tarjan(w)
                 low_link[v] = min(low_link[v], low_link[w])
@@ -78,7 +83,7 @@ def find_connected_components(network: BaseNetwork) -> Dict:
 
     # compute strongly connected components
     LOG.debug('Computing connected components')
-    for v in tqdm(network.nodes, desc='component calculation'):
+    for v in tqdm(network.nodes.keys(), desc='component calculation'):
         if indices[v] is None:
             tarjan(v)
 
@@ -86,15 +91,14 @@ def find_connected_components(network: BaseNetwork) -> Dict:
     return dict(zip(range(len(components)), components.values()))
 
 
-def largest_connected_component(network: BaseNetwork) -> BaseNetwork:
-    """Returns the largest connected component of the network as a new 
-    network
+def largest_connected_component(network: Network) -> Network:
+    """Returns the largest connected component of the network.
     """
 
     LOG.debug('Computing connected components')
     components = find_connected_components(network)
     max_size = 0
-    max_comp = None
+    max_comp: dict = {}
     for i in components:
         if len(components[i]) > max_size:
             max_size = len(components[i])
@@ -104,13 +108,14 @@ def largest_connected_component(network: BaseNetwork) -> BaseNetwork:
     lcc = network.copy()
 
     LOG.debug('Removing nodes outside largest component')
-    for v in list(lcc.nodes):
+    for v in list(lcc.nodes.keys()):
         if v not in max_comp:
             lcc.remove_node(v)
     return lcc
 
 
-def largest_component_size(network: BaseNetwork) -> int:
+def largest_component_size(network: Network) -> int:
+    """Largest component size of the network."""
     LOG.debug('Computing connected components')
     components = find_connected_components(network)
     return max(map(len, components.values()))

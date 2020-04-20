@@ -1,19 +1,49 @@
-#!/usr/bin/python -tt
+"""Pathpy"""
+# !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
 # File      : __init__.py -- pathpy init file
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-04-07 13:00 juergen>
+# Time-stamp: <Mon 2020-04-20 12:48 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 # flake8: noqa
+# pylint: disable=unused-import
 __version__ = '3.0.0a1'
 
+# import os
 import sys
-import os
 
-from .__about__ import (  # noqa: F401
+# import utils
+from pathpy.utils.config import config  # noqa: F401
+from pathpy.utils.logger import logger  # noqa: F401
+from pathpy.utils.progress import tqdm  # noqa: F401
+
+
+# import symbols into root namespace
+from pathpy.core.api import (Node,
+                             Edge,
+                             # Path,
+                             Network,
+                             # HigherOrderNode,
+                             # HigherOrderEdge,
+                             # HigherOrderNetwork,
+                             )
+
+# import models
+# from pathpy.models.api import (NullModel,
+#                                MultiOrderModel)
+
+# # import submodules
+from pathpy import io
+from pathpy import algorithms
+from pathpy import statistics
+from pathpy import processes
+from pathpy import generators
+
+
+from .__about__ import (
     __title__,
     __version__,
     __author__,
@@ -24,37 +54,12 @@ from .__about__ import (  # noqa: F401
     __status__
 )
 
-# import utils
-from pathpy.utils.config import config  # noqa: F401
-from pathpy.utils.logger import logger  # noqa: F401
-from pathpy.utils.progress import tqdm  # noqa: F401
-
-# import submodules
-from pathpy import statistics
-from pathpy import algorithms
-from pathpy import processes
-from pathpy import generators
-from pathpy.core import io
-
-# import symbols into root namespace
-from pathpy.core.api import (Node,
-                             Edge,
-                             Path,
-                             Network,
-                             HigherOrderNode,
-                             HigherOrderEdge,
-                             HigherOrderNetwork,
-                             )
-
-from pathpy.models.api import (NullModel,
-                               MultiOrderModel)
-
 # create logger for the the init file
 LOG = logger(__name__)
 
 # check in which environment pathpy is running
 try:
-    from IPython import get_ipython
+    from IPython import get_ipython  # noqa: F401
     if 'IPKernelApp' not in get_ipython().config:  # pragma: no cover
         ImportError("console")
 except AttributeError:
@@ -73,10 +78,9 @@ else:
     #     config['environment']['IDE'] = 'jupyter notebook'
     #     LOG.debug('pathpy runs in jupyter notebook')
 
-LOG.debug('pathpy version {}'.format(__version__))
-LOG.debug('platform is {}'.format(sys.platform))
-LOG.debug('pathpy runs in a {} environment'.format(
-    config['environment']['IDE']))
+LOG.debug('pathpy version %s', __version__)
+LOG.debug('platform is %s', sys.platform)
+LOG.debug('pathpy runs in a %s environment', config['environment']['IDE'])
 
 # =============================================================================
 # eof

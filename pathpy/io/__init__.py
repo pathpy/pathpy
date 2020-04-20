@@ -1,15 +1,19 @@
-#!/usr/bin/python -tt
+"""Module for inpout output data to pathpy"""
+# !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
-# File      : api.py -- API for public functions of pathpy
+# File      : __init__.py -- Initialize the basic classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-04-02 16:37 juergen>
+# Time-stamp: <Mon 2020-04-20 11:46 juergen>
 #
-# Copyright (c) 2016-2020 Pathpy Developers
+# Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
+# flake8: noqa
+# pylint: disable=unused-import
 
-from pathpy.algorithms.matrices import (adjacency_matrix,
-                                        transition_matrix)
+from pathpy.io.io import (from_csv,
+                          from_dataframe,
+                          from_sqlite)
 
 # =============================================================================
 # eof

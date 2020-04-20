@@ -1,30 +1,31 @@
-#!/usr/bin/python -tt
+"""Pathpy matrices."""
+# !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
 # File      : matrices.py -- Module to calculate various matrices
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-04-02 16:12 juergen>
+# Time-stamp: <Mon 2020-04-20 07:25 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, List
+from typing import Any, List, Union, Optional
 from functools import singledispatch
-from scipy import sparse
+
 import numpy as np
+from scipy import sparse  # pylint: disable=import-error
 
-from pathpy import config, logger, tqdm
-from pathpy.core.base import (BaseNetwork,
-                              BaseHigherOrderNetwork)
-
+from pathpy import logger
+from pathpy.core.base import BaseNetwork
 
 # create logger
 LOG = logger(__name__)
 
 
 @singledispatch
-def adjacency_matrix(self, weight: str = 'weight', transposed: bool = False, directed: bool = None,
-                     **kwargs: Any) -> sparse.coo_matrix:
+def adjacency_matrix(self, weight: Union[str, bool, None] = 'weight',
+                     transposed: bool = False, directed: Optional[bool] = None,
+                     **kwargs: Any) -> sparse.csr_matrix:
     """Returns a sparse adjacency matrix of the network.
 
     By default, the entry corresponding to a directed link v->w is stored in
@@ -46,7 +47,7 @@ def adjacency_matrix(self, weight: str = 'weight', transposed: bool = False, dir
 
     Returns
     -------
-    scipy.sparse.coo_matrix
+    scipy.sparse.csr_matrix
         Returns a space scipy matrix.
 
     Examples
@@ -55,7 +56,7 @@ def adjacency_matrix(self, weight: str = 'weight', transposed: bool = False, dir
 
     >>> from pathpy import Network
     >>> net = Network()
-    >>> net.add_edges_from([('a', 'b'), ('b', 'c')])
+    >>> net.add_edges_from(('a', 'b'), ('b', 'c'))
     >>> net.adjacency_matrix().todense()
     [[0. 1. 0.]
      [0. 0. 1.]
@@ -74,52 +75,53 @@ def adjacency_matrix(self, weight: str = 'weight', transposed: bool = False, dir
         Add more examples
 
     """
+    raise NotImplementedError
 
 
 @adjacency_matrix.register(BaseNetwork)
-def _network(self, weight: Any = None, transposed: bool = False, directed: bool = None,
-             **kwargs: Any) -> sparse.coo_matrix:
+def _network(self, weight: Union[str, bool, None] = None,
+             transposed: bool = False, directed: Optional[bool] = None,
+             **kwargs: Any) -> sparse.csr_matrix:
     """Returns a sparse adjacency matrix of the network."""
 
-    # update weight if frequency is chosen
-    if weight == config['attributes']['frequency']:
+    # # update weight if frequency is chosen
+    # if weight == config['attributes']['frequency']:
 
-        # update edge properties with the current frequencies
-        # TODO: find better solution to update frequencies
-        for uid, frequency in self.edges.counter().items():
-            self.edges[uid][weight] = frequency
-
-    # return an adjacency matrix
-    return _adjacency_matrix(self, weight, transposed, directed)
-
-
-@adjacency_matrix.register(BaseHigherOrderNetwork)
-def _hon(self, weight: Any = None, transposed: bool = False, directed: bool = None,
-         **kwargs: Any) -> sparse.coo_matrix:
-    """Returns a sparse adjacency matrix of the higher order network."""
-
-    # get additional information for HONs
-    subpaths: bool = kwargs.get('subpaths', True)
-
-    # get the appropriate weights
-    if weight is None and subpaths:
-        weight = config['attributes']['frequency']
-
-        # update edge properties with the current frequencies
-        # TODO: find better solution to update frequencies
-        for uid, frequency in self.edges.counter().items():
-            self.edges[uid][weight] = frequency
-
-    elif weight is None and not subpaths:
-        weight = 'observed'
-        print('observed')
+    #     # update edge properties with the current frequencies
+    #     for uid, frequency in self.edges.counter().items():
+    #         self.edges[uid][weight] = frequency
 
     # return an adjacency matrix
     return _adjacency_matrix(self, weight, transposed, directed)
 
 
-def _adjacency_matrix(self, weight: Any = None,
-                      transposed: bool = False, directed: bool = None) -> sparse.csr_matrix:
+# @adjacency_matrix.register(BaseHigherOrderNetwork)
+# def _hon(self, weight: Any = None, transposed: bool = False,
+#          **kwargs: Any) -> sparse.csr_matrix:
+#     """Returns a sparse adjacency matrix of the higher order network."""
+
+#     # get additional information for HONs
+#     subpaths: bool = kwargs.get('subpaths', True)
+
+#     # get the appropriate weights
+#     if weight is None and subpaths:
+#         weight = config['attributes']['frequency']
+
+#         # update edge properties with the current frequencies
+#         for uid, frequency in self.edges.counter().items():
+#             self.edges[uid][weight] = frequency
+
+#     elif weight is None and not subpaths:
+#         weight = 'observed'
+#         print('observed')
+
+#     # return an adjacency matrix
+#     return _adjacency_matrix(self, weight, transposed)
+
+
+def _adjacency_matrix(self, weight: Union[str, bool, None] = None,
+                      transposed: bool = False,
+                      directed: Optional[bool] = None) -> sparse.csr_matrix:
     """Function to generate the adjacency matrix."""
 
     # initializing variables
@@ -131,7 +133,7 @@ def _adjacency_matrix(self, weight: Any = None,
     n = self.number_of_nodes()
 
     # iterate over the edges of the network
-    for e_id, e in self.edges.items():
+    for e in self.edges:
 
         # directed network
         rows.append(self.nodes.index[e.v.uid])
@@ -139,22 +141,21 @@ def _adjacency_matrix(self, weight: Any = None,
         entries.append(e.weight(weight))
 
         # add additional nodes if not directed
-        if directed == False or not self.directed:
+        if directed is False or not self.directed:
             rows.append(self.nodes.index[e.w.uid])
             cols.append(self.nodes.index[e.v.uid])
             entries.append(e.weight(weight))
 
-
-    A = sparse.csr_matrix((entries, (rows, cols)), shape=(n,n))
+    A = sparse.csr_matrix((entries, (rows, cols)), shape=(n, n))
     if transposed:
-        return A.transpose()
-    else:
-        return A
+        A = A.transpose()
+
+    return A
 
 
-# @singledispatch
-def transition_matrix(self, weight: Any = None, transposed: bool = False,
-                      **kwargs: Any) -> sparse.coo_matrix:
+def transition_matrix(self, weight: Union[str, bool, None] = None,
+                      transposed: bool = False,
+                      **kwargs: Any) -> sparse.csr_matrix:
     """Returns a transition matrix of the network.
 
     The transition matrix is the matrix

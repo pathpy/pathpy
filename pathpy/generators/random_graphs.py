@@ -1,23 +1,19 @@
-#!/usr/bin/python -tt
+"""Random graphs for pathpy."""
+# !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
 # File      : random_graphs.py -- Module to generate random graphs
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Thu 2020-04-02 16:53 juergen>
+# Time-stamp: <Mon 2020-04-20 12:46 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, List, Dict, Tuple, Optional
-from functools import singledispatch
-from collections import Counter
-from collections import defaultdict
-import datetime
-import sys
+from typing import Optional
 import numpy as np
 
-from pathpy import config, logger, tqdm
-from pathpy.core.base import BaseNetwork
+from pathpy import logger, tqdm
+
 from pathpy.core.edge import Edge
 from pathpy.core.network import Network
 
@@ -25,49 +21,54 @@ from pathpy.core.network import Network
 LOG = logger(__name__)
 
 
-def ER_nm(n: int, m: int, directed: bool = False, loops: bool = False, multi_edge: bool = False, node_uids: List = None) -> Network:
-    """Generates a random graph with a fixed number of n nodes 
-    and m edges based on the Erdös-Renyi model.
+def ER_nm(n: int, m: int, directed: bool = False, loops: bool = False,
+          multiedges: bool = False,
+          node_uids: Optional[list] = None) -> Network:
+    """(n, m) Erdös-Renyi model.
+
+    Generates a random graph with a fixed number of n nodes and m edges based on
+    the Erdös-Renyi model.
 
     Parameters
-        ----------
-        n : int
+    ----------
+    n : int
 
-            The number of nodes in the generated network
+        The number of nodes in the generated network
 
-        m : int
+    m : int
 
-            The number of randomly generated edges in the network
+        The number of randomly generated edges in the network
 
-        directed : bool
+    directed : bool
 
-            Whether a directed network should be generated
+        Whether a directed network should be generated
 
-        loops : bool
+    loops : bool
 
-            Whether or not the generated network may contain 
-            loops.
+        Whether or not the generated network may contain
+        loops.
 
-        multi_edge : bool
+    multi_edge : bool
 
-            Whether or not the same edge can be added multiple times
+        Whether or not the same edge can be added multiple times
 
-        node_uids : list
+    node_uids : list
 
-            Optional list of node uids that will be used. 
+        Optional list of node uids that will be used.
 
-        Examples
-        --------
-        Generate random undirected network with 10 nodes and 25 edges
+    Examples
+    --------
+    Generate random undirected network with 10 nodes and 25 edges
 
-        >>> import pathpy as pp
-        >>> random_graph = pp.algorithms.random_graphs.ER_nm(n=10, m=25)
-        >>> print(random_graph.summary())
-        ...
+    >>> import pathpy as pp
+    >>> random_graph = pp.algorithms.random_graphs.ER_nm(n=10, m=25)
+    >>> print(random_graph.summary())
+    ...
+
     """
     network = Network(directed=directed)
 
-    if node_uids == None or len(node_uids)!=n:
+    if node_uids is None or len(node_uids) != n:
         LOG.info('No valid node uids given, generating numeric node uids')
         node_uids = []
         for i in range(n):
@@ -83,54 +84,58 @@ def ER_nm(n: int, m: int, directed: bool = False, loops: bool = False, multi_edg
         w = np.random.choice(n)
         if not loops and v == w:
             continue
-        e = Edge(node_uids[v], node_uids[w], directed=directed)
-        if not multi_edge and e.uid in network.edges:
+        e = Edge(node_uids[v], node_uids[w])
+        if not multiedges and not network.edges.contain(e):
             continue
         network.add_edge(e)
         edges += 1
     return network
 
 
-def ER_np(n: int, p: float, directed: bool = False, loops: bool = False, node_uids: List = None) -> Network:
-    """Generates a random graph with a fixed number of n nodes and edge 
-    probability p based on the Erdös-Renyi model.
+def ER_np(n: int, p: float, directed: bool = False, loops: bool = False,
+          node_uids: Optional[list] = None) -> Network:
+    """(n, p) Erdös-Renyi model
+
+    Generates a random graph with a fixed number of n nodes and edge probability
+    p based on the Erdös-Renyi model.
 
     Parameters
-        ----------
-        n : int
+    ----------
+    n : int
 
-            The number of nodes in the generated network
+        The number of nodes in the generated network
 
-        p : float
+    p : float
 
-            The probability with which an edge will be created 
-            between each pair of nodes
+        The probability with which an edge will be created
+        between each pair of nodes
 
-        directed : bool
+    directed : bool
 
-            Whether a directed network should be generated
+        Whether a directed network should be generated
 
-        loops : bool
+    loops : bool
 
-            Whether or not the generated network may contain 
-            loops.
+        Whether or not the generated network may contain
+        loops.
 
-        node_uids : list
+    node_uids : list
 
-            Optional list of node uids that will be used.
+        Optional list of node uids that will be used.
 
-        Examples
-        --------
-        Generate random undirected network with 10 nodes
+    Examples
+    --------
+    Generate random undirected network with 10 nodes
 
-        >>> import pathpy as pp
-        >>> random_graph = pp.algorithms.random_graphs.ER_np(n=10, p=0.03)
-        >>> print(random_graph.summary())
-        ...
+    >>> import pathpy as pp
+    >>> random_graph = pp.algorithms.random_graphs.ER_np(n=10, p=0.03)
+    >>> print(random_graph.summary())
+    ...
+
     """
     network = Network(directed=directed)
 
-    if node_uids == None or len(node_uids)!=n:
+    if node_uids is None or len(node_uids) != n:
         LOG.info('No valid node uids given, generating numeric node uids')
         node_uids = []
         for i in range(n):
@@ -149,41 +154,45 @@ def ER_np(n: int, p: float, directed: bool = False, loops: bool = False, node_ui
             if t == s and not loops:
                 continue
             if np.random.random_sample() < p:
-                e = Edge(node_uids[s], node_uids[t], directed=directed)
+                e = Edge(node_uids[s], node_uids[t])
                 network.add_edge(e)
     return network
 
 
-def Watts_Strogatz(n: int, s: int, p: int, node_uids: List=None) -> Network:
-    """Generates an undirected Watts-Strogatz lattice 
-    network with lattice dimensionality one.
+def Watts_Strogatz(n: int, s: int, p: int,
+                   node_uids: Optional[list] = None) -> Network:
+    """Undirected Watts-Strogatz lattice network
+
+    Generates an undirected Watts-Strogatz lattice network with lattice
+    dimensionality one.
 
     Parameters
-        ----------
-        n : int
+    ----------
+    n : int
 
-            The number of nodes in the generated network
+        The number of nodes in the generated network
 
-        s : float
+    s : float
 
-            The number of nearest neighbors that will be connected
-            in the ring lattice
+        The number of nearest neighbors that will be connected
+        in the ring lattice
 
-        p : float
+    p : float
 
-            The rewiring probability
+        The rewiring probability
 
-        Examples
-        --------
-        Generate a Watts-Strogatz network with 100 nodes
+    Examples
+    --------
+    Generate a Watts-Strogatz network with 100 nodes
 
-        >>> import pathpy as pp
-        >>> small_world = pp.algorithms.random_graphs.Watts_Strogatz(n=100, s=2, p=0.1)
-        >>> print(small_world.summary())
-        ...
+    >>> import pathpy as pp
+    >>> small_world = pp.algorithms.random_graphs.Watts_Strogatz(n=100, s=2, p=0.1)
+    >>> print(small_world.summary())
+    ...
+
     """
     network = Network(directed=False)
-    if node_uids == None or len(node_uids)!=n:
+    if node_uids is None or len(node_uids) != n:
         LOG.info('No valid node uids given, generating numeric node uids')
         node_uids = []
         for i in range(n):
@@ -196,7 +205,7 @@ def Watts_Strogatz(n: int, s: int, p: int, node_uids: List=None) -> Network:
     # construct a ring lattice (dimension 1)
     for i in range(n):
         for j in range(1, s+1):
-            e = Edge(node_uids[i], node_uids[(i+j) % n], directed=False)
+            e = Edge(node_uids[i], node_uids[(i+j) % n])
             network.add_edge(e)
 
     if p == 0:
@@ -204,11 +213,11 @@ def Watts_Strogatz(n: int, s: int, p: int, node_uids: List=None) -> Network:
         return network
 
     # Rewire each link with probability p
-    for e in network.edges:
+    for edge in network.edges:
         if np.random.rand() < p:
             # Delete original link and remember source node
-            v = network.edges[e].v.uid
-            network.remove_edge(e)
+            v = edge.v.uid
+            network.remove_edge(edge)
 
             # Find new random tgt, which is not yet connected to src
             new_target = None
@@ -216,37 +225,40 @@ def Watts_Strogatz(n: int, s: int, p: int, node_uids: List=None) -> Network:
             # This loop repeatedly chooses a random target until we find
             # a target not yet connected to src. Note that this could potentially
             # result in an infinite loop depending on parameters.
-            while new_target == None:
+            while new_target is None:
                 x = str(np.random.randint(n))
-                if not x is v and not x in network.nodes.successors[v]:
+                if x != v and x not in network.successors[v]:
                     new_target = x
             network.add_edge(v, new_target)
     return network
 
 
 def is_graphic_Erdos_Gallai(degrees):
-    """Checks whether the condition by Erdös and Gallai (1967) for 
-    a graphic degree sequence is fulfilled.
+    """Check Erdös and Gallai condition.
+
+    Checks whether the condition by Erdös and Gallai (1967) for a graphic degree
+    sequence is fulfilled.
 
     Parameters
-        ----------
-        degrees : list
+    ----------
+    degrees : list
 
-            List of integer node degrees to be tested.       
+        List of integer node degrees to be tested.
 
-        Examples
-        --------
-        Test non-graphic degree sequence:
+    Examples
+    --------
+    Test non-graphic degree sequence:
 
-        >>> import pathpy as pp
-        >>> pp.algorithms.random_graphs.is_graphic_Erdos_Gallai([1,0])
-        False
+    >>> import pathpy as pp
+    >>> pp.algorithms.random_graphs.is_graphic_Erdos_Gallai([1,0])
+    False
 
-        Test graphic degree sequence:
+    Test graphic degree sequence:
 
-        >>> import pathpy as pp
-        >>> pp.algorithms.random_graphs.is_graphic_Erdos_Gallai([1,1])
-        True
+    >>> import pathpy as pp
+    >>> pp.algorithms.random_graphs.is_graphic_Erdos_Gallai([1,1])
+    True
+
     """
     degree_sequence = sorted(degrees, reverse=True)
     S = sum(degree_sequence)
@@ -264,45 +276,49 @@ def is_graphic_Erdos_Gallai(degrees):
             return False
     return True
 
+
 def Molloy_Reed(degrees: list, relax: bool = False):
-    """Generates a random undirected network with 
-    given degree sequence based on the Molloy-Reed algorithm.
+    """Generate Molloy-Reed graph.
+
+    Generates a random undirected network with given degree sequence based on
+    the Molloy-Reed algorithm.
 
     .. note::
 
-        The condition proposed by Erdös and Gallai (1967) is used 
-        to test whether the degree sequence is graphic, i.e. whether 
-        a network with the given degree sequence exists.
+        The condition proposed by Erdös and Gallai (1967) is used to test
+        whether the degree sequence is graphic, i.e. whether a network with the
+        given degree sequence exists.
 
     Parameters
-        ----------
-        degrees : list
+    ----------
+    degrees : list
 
-            List of integer node degrees. The number of nodes of the 
-            generated network corresponds to len(degrees).
+        List of integer node degrees. The number of nodes of the generated
+        network corresponds to len(degrees).
 
-        relax : bool
+    relax : bool
 
-            If True, we conceptually allow self-loops and multi-edges, 
-            but do not add them to the network This implies that the 
-            generated network may not have exactly sum(degrees)/2 links, 
-            but it ensures that the algorithm always finishes.
+        If True, we conceptually allow self-loops and multi-edges, but do not
+        add them to the network This implies that the generated network may not
+        have exactly sum(degrees)/2 links, but it ensures that the algorithm
+        always finishes.
 
-        Examples
-        --------
-        Generate random undirected network with given degree sequence
+    Examples
+    --------
+    Generate random undirected network with given degree sequence
 
-        >>> import pathpy as pp
-        >>> random_network = pp.algorithms.random_graphs.Molloy_Reed([1,0])
-        >>> print(random_network.summary())
-        ...
+    >>> import pathpy as pp
+    >>> random_network = pp.algorithms.random_graphs.Molloy_Reed([1,0])
+    >>> print(random_network.summary())
+    ...
 
-        Network generation fails for non-graphic sequences
+    Network generation fails for non-graphic sequences
 
-        >>> import pathpy as pp
-        >>> random_network = pp.algorithms.random_graphs.Molloy_Reed([1,0])
-        >>> print(random_network)
-        None
+    >>> import pathpy as pp
+    >>> random_network = pp.algorithms.random_graphs.Molloy_Reed([1,0])
+    >>> print(random_network)
+    None
+
     """
     # assume that we are given a graphical degree sequence
     if not is_graphic_Erdos_Gallai(degrees):
@@ -326,10 +342,10 @@ def Molloy_Reed(degrees: list, relax: bool = False):
     # always finishes.
     while(len(stubs) > 0):
         v, w = np.random.choice(stubs, 2, replace=False)
-        e = Edge(v, w, directed=False)
-        if relax or (v != w and (e.uid not in network.edges)):
+        e = Edge(v, w)
+        if relax or (v != w and (e.uid not in network.edges.uids)):
             # do not add self-loops and multi-edges
-            if (v != w and e.uid not in network.edges):
+            if (v != w and e.uid not in network.edges.uids):
                 network.add_edge(e)
             stubs.remove(v)
             stubs.remove(w)

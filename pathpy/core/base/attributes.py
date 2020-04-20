@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : attributes.py -- Class for pathpy attributes
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2019-12-12 20:54 juergen>
+# Time-stamp: <Thu 2020-04-16 08:06 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -11,7 +11,7 @@ from __future__ import annotations
 from typing import Any
 from collections import defaultdict
 
-import pandas as pd
+import pandas as pd  # noqa: F401
 
 from ... import logger, config
 

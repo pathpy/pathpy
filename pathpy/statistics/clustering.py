@@ -1,30 +1,33 @@
-#!/usr/bin/python -tt
+"""Clustering statistics."""
+# !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
 # File      : clustering.py -- Module to calculate clustering statistics
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Fri 2020-04-03 10:44 juergen>
+# Time-stamp: <Mon 2020-04-20 10:01 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, List, Dict, Tuple, Optional, Set
-from functools import singledispatch
-from collections import Counter
-import datetime
-import sys
+from typing import TYPE_CHECKING, Set
 import numpy as np
 
-from pathpy import config, logger, tqdm
-from pathpy.core.base import BaseNetwork
+from pathpy import logger
+
+# pseudo load class for type checking
+if TYPE_CHECKING:
+    from pathpy.core.network import Network
+
+# create logger
+LOG = logger(__name__)
 
 
-def local_clustering_coefficient(network, v: str) -> float:
+def local_clustering_coefficient(network: Network, v: str) -> float:
     """Calculates the local clustering coefficient of a node in a network.
 
 
-    The local clustering coefficient of any node with an (out-)degree smaller than two is defined
-    as zero. For all other nodes, it is defined as:
+    The local clustering coefficient of any node with an (out-)degree smaller
+    than two is defined as zero. For all other nodes, it is defined as:
 
         cc(c) := 2*k(i)/(d_i(d_i-1))
 
@@ -43,25 +46,29 @@ def local_clustering_coefficient(network, v: str) -> float:
     node : str
 
         The node for which the local clustering coefficient shall be calculated
+
     """
+    lcc: float = 0.
+    d = network.degrees()
+    o = network.outdegrees()
 
-    if network.directed and network.nodes.degrees()[v] < 2:
-        return 0.
-    if not network.directed and network.nodes.degrees()[v] < 2:
-        return 0.
-    k = 0
-    for e in network.edges:
-        edge = network.edges[e]
-        if edge.v.uid in network.successors[v] and edge.w.uid in network.successors[v]:
-            k += 1
-    if network.directed:
-        return k/(network.nodes.outdegrees()[v]*(network.nodes.outdegrees()[v]-1))
-    else:
-        return 2*k/(network.nodes.degrees()[v]*(network.nodes.degrees()[v]-1))
+    if d[v] >= 2:
+        k: int = 0
+        for edge in network.edges:
+            if (edge.v.uid in network.successors[v] and
+                    edge.w.uid in network.successors[v]):
+                k += 1
+
+        if network.directed:
+            lcc = k/(o[v]*(o[v]-1))
+        else:
+            lcc = 2*k/(d[v]*(d[v]-1))
+
+    return lcc
 
 
-def avg_clustering_coefficient(network) -> float:
-    """Calculates the average (global) clustering coefficient of a directed or undirected network.
+def avg_clustering_coefficient(network: Network) -> float:
+    """Calculates the average (global) clustering coefficient.
 
     Parameters
     ----------
@@ -71,11 +78,13 @@ def avg_clustering_coefficient(network) -> float:
         The network in which to calculate the local clustering coefficient.
 
     """
-    return np.mean([local_clustering_coefficient(network, v) for v in network.nodes])
+    return np.mean([local_clustering_coefficient(network, v)
+                    for v in network.nodes.keys()])
 
 
-def closed_triads(network, v: str) -> Set:
-    """Calculates the set of edges that represent a closed triad around a given node v.
+def closed_triads(network: Network, v: str) -> Set:
+    """Calculates the set of edges that represent a closed triad
+    around a given node v.
 
     Parameters
     ----------
@@ -85,9 +94,9 @@ def closed_triads(network, v: str) -> Set:
         The network in which to calculate the list of closed triads
 
     """
-    closed_triads = set()
-    for e in network.edges:
-        edge = network.edges[e]
-        if edge.v.uid in network.successors[v] and edge.w.uid in network.successors[v]:
-            closed_triads.add(edge)
-    return closed_triads
+    ct: set = set()
+    for edge in network.edges:
+        if (edge.v.uid in network.successors[v] and
+                edge.w.uid in network.successors[v]):
+            ct.add(edge)
+    return ct
