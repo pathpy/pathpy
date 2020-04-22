@@ -54,9 +54,9 @@ class HTML:
         """Show the object."""
 
         if config['environment']['interactive']:
-            from IPython.display import display_html
-
-            display_html(self.html, raw=True)
+            #from IPython.display import display_html
+            from IPython.core.display import display, HTML
+            display(HTML(self.html))
         else:
 
             # create temporal file

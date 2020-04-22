@@ -34,8 +34,8 @@ LOG = logger(__name__)
 # config['environment']['interactive'] = False
 
 # General config
-config['plot']['width'] = 400
-config['plot']['height'] = 400
+config['plot']['width'] = 600
+config['plot']['height'] = 500
 config['plot']['unit'] = 'px'
 config['plot']['dpi'] = 96
 config['plot']['margin'] = None
