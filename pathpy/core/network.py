@@ -583,9 +583,9 @@ class Network(BaseNetwork):
 
         """
         summary = [
-            'Name:\t\t{}\n'.format(self.uid),
+            'Uid:\t\t{}\n'.format(self.uid),
             'Type:\t\t{}\n'.format(self.__class__.__name__),
-            'Directed:\t\t{}\n'.format(str(self.directed)),
+            'Directed:\t{}\n'.format(str(self.directed)),
             'Unique nodes:\t{}\n'.format(self.number_of_nodes()),
             'Unique edges:\t{}\n'.format(self.number_of_edges()),
             'Unique paths:\t{}\n'.format(self.number_of_paths()),
