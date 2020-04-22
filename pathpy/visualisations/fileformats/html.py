@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : html.py -- Module to create a html file
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-04-21 09:04 juergen>
+# Time-stamp: <Wed 2020-04-22 19:34 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
