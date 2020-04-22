@@ -154,7 +154,7 @@ class BaseClass:
 
     def __eq__(self, other: object) -> bool:
         """Returns True if two objects are equal, otherwise False."""
-        return self.__hash__ == other.__hash__
+        return self.__hash__() == other.__hash__()
 
     def __repr__(self) -> str:
         """Return the description of the object.

@@ -13,7 +13,10 @@
 
 from pathpy.io.io import (from_csv,
                           from_dataframe,
-                          from_sqlite)
+                          from_sqlite,
+                          to_csv,
+                          to_dataframe,
+                          to_sqlite)
 
 # =============================================================================
 # eof
