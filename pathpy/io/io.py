@@ -21,7 +21,7 @@ from pathpy.core.network import Network
 LOG = logger(__name__)
 
 
-def from_csv(filename: str, directed: bool = True, sep: str = ',',
+def read_csv(filename: str, directed: bool = True, sep: str = ',',
              header: bool = True, names: Optional[list] = None,
              **kwargs: Any) -> Network:
     """Read network from a csv file,"""
@@ -112,7 +112,7 @@ def from_dataframe(df: pd.DataFrame, directed: bool = True,
     return net
 
 
-def from_sqlite(filename: Optional[str] = None, directed: bool = True,
+def read_sql(filename: Optional[str] = None, directed: bool = True,
                 con: Optional[sqlite3.Connection] = None,
                 sql: Optional[str] = None, table: Optional[str] = None,
                 **kwargs: Any) -> Network:
@@ -176,7 +176,7 @@ def to_dataframe(network: Network) -> pd.DataFrame:
     return df
 
 
-def to_csv(network: Network, path_or_buf: Any = None, **pdargs: Any):
+def write_csv(network: Network, path_or_buf: Any = None, **pdargs: Any):
     """Stores all edges including edge attributes in a csv file.
 
     Node and network-level attributes are not included.
@@ -207,7 +207,7 @@ def to_csv(network: Network, path_or_buf: Any = None, **pdargs: Any):
     return df.to_csv(path_or_buf=path_or_buf, index=False, **pdargs)
 
 
-def to_sqlite(network: Network,  table: str,
+def write_sql(network: Network,  table: str,
               filename: Optional[str] = None,
               con: Optional[sqlite3.Connection] = None, **pdargs: Any) -> None:
     """Stores all edges including edge attributes in an sqlite database table.

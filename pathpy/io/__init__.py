@@ -11,12 +11,12 @@
 # flake8: noqa
 # pylint: disable=unused-import
 
-from pathpy.io.io import (from_csv,
+from pathpy.io.io import (read_csv,
                           from_dataframe,
-                          from_sqlite,
-                          to_csv,
+                          read_sql,
+                          write_csv,
                           to_dataframe,
-                          to_sqlite)
+                          write_sql)
 
 # =============================================================================
 # eof
