@@ -95,10 +95,14 @@ def from_dataframe(df: pd.DataFrame, directed: bool = True,
         if v is None or w is None:
             LOG.error('DataFrame minimally needs columns \'v\' and \'w\'')
             raise IOError
+        if v not in net.nodes.uids:
+            net.add_node(v)
+        if w not in net.nodes.uids:
+            net.add_node(w)
         if uid is None:
-            edge = Edge(v, w)
+            edge = Edge(net.nodes[v], net.nodes[w])
         else:
-            edge = Edge(v, w, uid=uid)
+            edge = Edge(net.nodes[v], net.nodes[w], uid=uid)
         net.add_edge(edge)
 
         reserved_columns = set(['v', 'w', 'uid'])
@@ -165,10 +169,9 @@ def to_dataframe(network: Network) -> pd.DataFrame:
     """
     df = pd.DataFrame()
     for edge in network.edges:
-        edge_df = edge.attributes.to_frame()
-        edge_df['v'] = edge.v.uid
-        edge_df['w'] = edge.w.uid
-        edge_df['uid'] = edge.uid
+        edge_df = pd.DataFrame(columns=['v', 'w', 'uid'])
+        edge_df.loc[0] = [edge.v.uid, edge.w.uid, edge.uid]        
+        edge_df = pd.concat([edge_df, edge.attributes.to_frame()], axis=1)
         df = pd.concat([edge_df, df], ignore_index=True)
     return df
 
@@ -201,7 +204,7 @@ def to_csv(network: Network, path_or_buf: Any = None, **pdargs: Any):
     """
 
     df = to_dataframe(network)
-    return df.to_csv(path_or_buf=path_or_buf, **pdargs)
+    return df.to_csv(path_or_buf=path_or_buf, index=False, **pdargs)
 
 
 def to_sqlite(network: Network,  table: str,
