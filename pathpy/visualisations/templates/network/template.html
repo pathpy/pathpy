@@ -469,8 +469,8 @@
      // get the coordinates of the nodes
      for (var key in allData.nodes) {
        var value = allData.nodes[key];
-       xs.push(value.euclidean[0]);
-       ys.push(value.euclidean[1]);
+       xs.push(value.coordinates[0]);
+       ys.push(value.coordinates[1]);
      }
 
      // find the min and the max coordinate
@@ -493,13 +493,13 @@
      // nodes with an x force
      var xForce = d3.forceX()
                     .strength(0.1)
-                    .x(function (d) { return xScale(d.euclidean[0]); });
+                    .x(function (d) { return xScale(d.coordinates[0]); });
 
      // use the node coordinates to adjust y position of
      // nodes with an y force
      var yForce = d3.forceY()
                     .strength(0.1)
-                    .y(function (d) { return yScale(d.euclidean[1]); });
+                    .y(function (d) { return yScale(d.coordinates[1]); });
 
 
      // add these forces to the simulation
@@ -645,7 +645,8 @@
      var radiusScale = d3.scaleLinear()
                          .range([radiusMinSize, radiusMaxSize])
                          .domain(countExtent);
-     return radiusScale(getSize(n));
+     /*      return radiusScale(getSize(n)); */
+     return getSize(n);
    };
 
    /*
@@ -1032,7 +1033,7 @@
    // euclidean layout button
    var euclideanBtn = d3.create('button')
                         .attr('id','euclidean')
-                        .text('Euclidean')
+                        .text('Coord')
                         .on('click', function () {
                           activate('layout', 'euclidean');
                           network.updateLayout('euclidean');
@@ -1040,7 +1041,7 @@
 
    // assign button to the layout
    layoutControl.append(function(){ return forceBtn.node(); });
-   if (config.euclidean === true){
+   if (config.coordinates === true){
      layoutControl.append(function(){ return euclideanBtn.node(); });};
 
 

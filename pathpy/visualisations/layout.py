@@ -4,7 +4,7 @@
 # File      : layout.py -- Module to layout the network
 # Author    : Juergen Hackl <hackl@ibi.baug.ethz.ch>
 # Creation  : 2018-07-26
-# Time-stamp: <Mon 2019-12-16 13:15 juergen>
+# Time-stamp: <Wed 2020-04-22 15:40 juergen>
 #
 # Copyright (c) 2018 Juergen Hackl <hackl@ibi.baug.ethz.ch>
 #
@@ -229,7 +229,7 @@ def layout(network, **kwds):
         adjacency_matrix = coo_matrix(A)
     elif 'pathpy' in str(type(network)):
         # log.debug('The network is of type "pathpy".')
-        nodes = list(network.nodes)
+        nodes = list(network.nodes.keys())
         if _weight is not None:
             _w = True
         else:

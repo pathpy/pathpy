@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : unit.py
 # Creation  : 08 May 2018
-# Time-stamp: <Wed 2019-12-18 12:37 juergen>
+# Time-stamp: <Wed 2020-04-22 14:28 juergen>
 #
 # Copyright (c) 2018 Jürgen Hackl <hackl@ibi.baug.ethz.ch>
 #               http://www.ibi.ethz.ch
@@ -25,9 +25,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =============================================================================
 
-from .. import logger
+from pathpy import logger
 
-log = logger(__name__)
+LOG = logger(__name__)
 
 
 class UnitConverter(object):
@@ -57,7 +57,7 @@ class UnitConverter(object):
 
     """
 
-    def __init__(self, input_unit='cm', output_unit='cm', digits=4):
+    def __init__(self, input_unit='cm', output_unit='cm', dpi=96, digits=4):
         """Initialize the unit converter.
 
         Parameters
@@ -78,6 +78,7 @@ class UnitConverter(object):
         """
         self.input_unit = input_unit
         self.output_unit = output_unit
+        self.dpi = dpi
         self.digits = digits
 
     def __call__(self, value):
@@ -98,9 +99,9 @@ class UnitConverter(object):
         return self.convert(value)
 
     @staticmethod
-    def px_to_mm(measure):
+    def px_to_mm(measure, dpi):
         """Convert pixel to millimeters."""
-        return measure * 0.26458333333719
+        return measure * 25.5/dpi
 
     @staticmethod
     def px_to_pt(measure):
@@ -113,9 +114,9 @@ class UnitConverter(object):
         return measure * 0.352778
 
     @staticmethod
-    def mm_to_px(measure):
+    def mm_to_px(measure, dpi):
         """Convert millimeters to pixel."""
-        return measure * 3.779527559
+        return measure * dpi/25.4
 
     @staticmethod
     def mm_to_pt(measure):
@@ -140,17 +141,26 @@ class UnitConverter(object):
         try:
             measure = float(value)
         except:
-            log.error('Value "{}" is not a number, and therefor can not'
+            LOG.error('Value "{}" is not a number, and therefor can not'
                       ' converted to an other unit!.'.format(value))
             raise ValueError
 
+        # to mm
+        if self.input_unit == 'mm' and self.output_unit == 'mm':
+            value = measure
+        elif self.input_unit == 'pt' and self.output_unit == 'mm':
+            value = self.pt_to_mm(measure)
+        elif self.input_unit == 'px' and self.output_unit == 'mm':
+            value = self.px_to_mm(measure, self.dpi)
+        elif self.input_unit == 'cm' and self.output_unit == 'mm':
+            value = measure*10
         # to cm
-        if self.input_unit == 'mm' and self.output_unit == 'cm':
+        elif self.input_unit == 'mm' and self.output_unit == 'cm':
             value = measure/10
         elif self.input_unit == 'pt' and self.output_unit == 'cm':
             value = self.pt_to_mm(measure)/10
         elif self.input_unit == 'px' and self.output_unit == 'cm':
-            value = self.px_to_mm(measure)/10
+            value = self.px_to_mm(measure, self.dpi)/10
         elif self.input_unit == 'cm' and self.output_unit == 'cm':
             value = measure
         # to pt
@@ -164,15 +174,15 @@ class UnitConverter(object):
             value = measure
         # to px
         elif self.input_unit == 'mm' and self.output_unit == 'px':
-            value = self.mm_to_px(measure)
+            value = self.mm_to_px(measure, self.dpi)
         elif self.input_unit == 'cm' and self.output_unit == 'px':
-            value = self.mm_to_px(10*measure)
+            value = self.mm_to_px(10*measure, self.dpi)
         elif self.input_unit == 'pt' and self.output_unit == 'px':
             value = measure*4/3
         elif self.input_unit == 'px' and self.output_unit == 'px':
             value = measure
         else:
-            log.error('The conversion from "{}" to "{}" is currently not '
+            LOG.error('The conversion from "{}" to "{}" is currently not '
                       'supported!'.format(self.input_unit,
                                           self.output_unit))
             raise NotImplementedError

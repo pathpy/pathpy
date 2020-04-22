@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-04-20 13:15 juergen>
+# Time-stamp: <Wed 2020-04-22 15:34 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -29,6 +29,7 @@ from pathpy.algorithms import (matrices,
 
 from pathpy.statistics import degrees as degree_statistics
 from pathpy.statistics import clustering
+from pathpy.visualisations.plot import plot as network_plot
 
 # create custom types
 Weight = Union[str, bool, None]
@@ -196,6 +197,8 @@ class Network(BaseNetwork):
     avg_clustering_coefficient = clustering.avg_clustering_coefficient
     local_clustering_coefficient = clustering.local_clustering_coefficient
 
+    plot = network_plot
+
     def __init__(self, uid: Optional[str] = None,
                  directed: bool = True, temporal: bool = False,
                  multiedges: bool = True, **kwargs: Any) -> None:
@@ -273,6 +276,10 @@ class Network(BaseNetwork):
 
         """
         return self.summary()
+
+    def _repr_html_(self):
+        """Plot the network in an interactive environment."""
+        self.plot()
 
     # def __add__(self):
     #     """Add two networks together."""
