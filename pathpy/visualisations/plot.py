@@ -4,13 +4,14 @@
 # =============================================================================
 # File      : plot.py -- Module to plot pathoy networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-04-22 15:02 juergen>
+# Time-stamp: <Wed 2020-04-22 16:10 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
 from typing import Any, List, Optional
 from collections import defaultdict
+from copy import deepcopy
 from singledispatchmethod import singledispatchmethod  # remove for python 3.8
 
 from pathpy import logger, config
@@ -154,8 +155,9 @@ def plot(obj, filename: Optional[str] = None,
     # initialize object parser
     parser: Parser = Parser()
 
+    _config = deepcopy(config['plot'])
     # parse object to json like dict
-    data: defaultdict = parser(obj, config['plot'], **kwargs)
+    data: defaultdict = parser(obj, _config, **kwargs)
 
     # check filename
     # if no file name is given
