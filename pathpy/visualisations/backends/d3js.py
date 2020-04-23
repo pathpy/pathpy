@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : d3js.py -- Module to draw a d3js-network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-04-22 13:34 juergen>
+# Time-stamp: <Wed 2020-04-22 19:51 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -45,6 +45,7 @@ class D3js:
         config = figure['config']
         config.pop('node')
         config.pop('edge')
+
         if config['coordinates']:
             config['layout'] = 'euclidean'
             config['euclidean'] = True

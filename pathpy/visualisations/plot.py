@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : plot.py -- Module to plot pathoy networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-04-22 16:10 juergen>
+# Time-stamp: <Wed 2020-04-22 19:51 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -34,8 +34,8 @@ LOG = logger(__name__)
 # config['environment']['interactive'] = False
 
 # General config
-config['plot']['width'] = 600
-config['plot']['height'] = 500
+config['plot']['width'] = 800
+config['plot']['height'] = 550
 config['plot']['unit'] = 'px'
 config['plot']['dpi'] = 96
 config['plot']['margin'] = None
@@ -156,6 +156,7 @@ def plot(obj, filename: Optional[str] = None,
     parser: Parser = Parser()
 
     _config = deepcopy(config['plot'])
+    # _config = config['plot']
     # parse object to json like dict
     data: defaultdict = parser(obj, _config, **kwargs)
 
