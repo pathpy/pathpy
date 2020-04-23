@@ -34,8 +34,8 @@ LOG = logger(__name__)
 # config['environment']['interactive'] = False
 
 # General config
-config['plot']['width'] = 400
-config['plot']['height'] = 400
+config['plot']['width'] = 800
+config['plot']['height'] = 550
 config['plot']['unit'] = 'px'
 config['plot']['dpi'] = 96
 config['plot']['margin'] = None
@@ -155,8 +155,8 @@ def plot(obj, filename: Optional[str] = None,
     # initialize object parser
     parser: Parser = Parser()
 
-    #_config = deepcopy(config['plot'])
-    _config = config['plot']
+    _config = deepcopy(config['plot'])
+    # _config = config['plot']
     # parse object to json like dict
     data: defaultdict = parser(obj, _config, **kwargs)
 
