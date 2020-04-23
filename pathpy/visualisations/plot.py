@@ -49,6 +49,7 @@ config['plot']['keep_aspect_ratio'] = True
 
 config['plot']['backend'] = ['tikz']
 config['plot']['fileformat'] = ['tex']
+config['plot']['latex_class_options'] = ''
 
 config['plot']['interactiv'] = {}
 config['plot']['interactiv']['backend'] = ['d3js']
@@ -66,14 +67,14 @@ config['plot']['animation']["unit"] = "seconds"
 # Node config
 config['plot']['node'] = {}
 config['plot']['node']['size'] = 15
-config['plot']['node']['color'] = 'green'
+config['plot']['node']['color'] = 'CornflowerBlue'
 config['plot']['node']['opacity'] = 1
 config['plot']['node']['id_as_label'] = True
 
 # Edge config
 config['plot']['edge'] = {}
-config['plot']['edge']['size'] = 1.5
-config['plot']['edge']['color'] = 'blue'
+config['plot']['edge']['size'] = 2
+config['plot']['edge']['color'] = 'black'
 config['plot']['edge']['opacity'] = 1
 
 # Widges config

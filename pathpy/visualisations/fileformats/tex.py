@@ -47,9 +47,11 @@ class TEX:
         # generate default tex file with parameters
         tex = (
             '\\documentclass$class_options{standalone}\n'
+            '\\usepackage[dvipsnames]{xcolor}\n'
             '\\usepackage{tikz-network}\n'
             '\\begin{document}\n'
             '\\begin{tikzpicture}\n'
+            '\\tikzset{every node}=[font=\\sffamily\\bfseries]\n'
             '\\clip (0,0) rectangle ($width,$height);\n'
             '$tikz'
             '\\end{tikzpicture}\n'
