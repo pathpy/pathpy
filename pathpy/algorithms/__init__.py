@@ -28,6 +28,8 @@ from pathpy.algorithms.components import (find_connected_components,
                                           largest_component_size,
                                           largest_connected_component)
 
+from pathpy.algorithms import community_detection
+
 # =============================================================================
 # eof
 #

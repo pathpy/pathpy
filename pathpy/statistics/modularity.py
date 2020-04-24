@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : modularity.py -- Methods to calculate modularity of networks
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Thu 2020-04-24 16:44 ingo>
+# Time-stamp: <Thu 2020-04-24 12:02 ingo>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -14,6 +14,9 @@ import numpy as np
 
 from pathpy import config, logger, tqdm
 from pathpy.core.base.classes import BaseNetwork
+
+# create logger for the Plot class
+LOG = logger(__name__)
 
 def Q_modularity(network: BaseNetwork, cluster_mapping: Dict) -> float:
     """Computes the Q-modularity of a network for a given cluster mapping
