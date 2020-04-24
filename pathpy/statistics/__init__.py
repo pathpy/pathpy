@@ -24,6 +24,11 @@ from pathpy.statistics.clustering import (local_clustering_coefficient,
                                           closed_triads,
                                           )
 
+from pathpy.statistics.modularity import (Q_modularity,
+                                          Q_max_modularity,
+                                          Q_assortativity_coefficient,
+                                          )                                          
+
 # =============================================================================
 # eof
 #
