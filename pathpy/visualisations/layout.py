@@ -22,7 +22,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =============================================================================
 import numpy as np
-from .. import logger
+from pathpy import config, logger, tqdm
 
 log = logger(__name__)
 
@@ -547,7 +547,7 @@ class Layout(object):
         # the inscrutable (but fast) version
         # this is still O(V^2)
         # could use multilevel methods to speed this up significantly
-        for iteration in range(self.iterations):
+        for iteration in tqdm(range(self.iterations), desc='Calculating Fruchterman-Reingold layout'):
             # matrix of difference between points
             delta = layout[:, np.newaxis, :] - layout[np.newaxis, :, :]
             # distance between points
