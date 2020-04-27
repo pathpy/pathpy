@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : plot.py -- Module to plot pathoy networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-04-22 21:58 juergen>
+# Time-stamp: <Mon 2020-04-27 07:50 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -218,6 +218,7 @@ class Parser:
             'group': None,
             'time': None,
             'coordinates': None,
+            'label_size': None,
             'id_as_label': None,
         }
         self.default_edge = {
