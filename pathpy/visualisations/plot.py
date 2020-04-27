@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : plot.py -- Module to plot pathoy networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-04-22 19:51 juergen>
+# Time-stamp: <Wed 2020-04-22 21:58 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
