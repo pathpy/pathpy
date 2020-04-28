@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : plot.py -- Module to plot pathoy networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-04-27 07:50 juergen>
+# Time-stamp: <Tue 2020-04-28 18:35 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -64,12 +64,22 @@ config['plot']['animation']["steps"] = 10
 config['plot']['animation']["speed"] = 100
 config['plot']['animation']["unit"] = "seconds"
 
+# Label config
+config['plot']['label'] = {}
+config['plot']['label']['centered'] = True
+config['plot']['label']['enabled'] = True
+config['plot']['label']['color'] = 'white'
+
+
 # Node config
 config['plot']['node'] = {}
 config['plot']['node']['size'] = 15
 config['plot']['node']['color'] = 'CornflowerBlue'
 config['plot']['node']['opacity'] = 1
 config['plot']['node']['id_as_label'] = True
+
+config['plot']['curved'] = False
+config['plot']['directed'] = False
 
 # Edge config
 config['plot']['edge'] = {}
@@ -82,6 +92,7 @@ config['plot']['widgets'] = {}
 
 # tooltip
 config['plot']['widgets']['tooltip'] = {}
+config['plot']['widgets']['tooltip']['enabled'] = False
 config['plot']['widgets']['tooltip']['size'] = '100px'
 
 # save
@@ -260,7 +271,9 @@ class Parser:
 
         # update default config
         self.config.update(plot_config)
-
+        if obj.directed:
+            self.config['directed'] = True
+            self.config['curved'] = True
         # convert default units to units
         u2u = UnitConverter(self.config['unit'],
                             kwargs.get('unit', self.config['unit']),

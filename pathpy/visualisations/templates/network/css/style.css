@@ -62,11 +62,23 @@ p.search_title {
     margin-left: 0px;
 }
 
+
+.arrow {
+    fill: #555;
+    stroke: #555;
+    stroke-width: 0px;
+    stroke-opacity: .3;
+}
+
 .edge {
     fill: none;
     stroke: #555;
     stroke-width: 1.5px;
     stroke-opacity: .3;
+}
+
+.nlabel{
+    pointer-events: none;
 }
 
 .node {
@@ -78,7 +90,7 @@ p.search_title {
 
 .node_highlight {
     stroke: #555;
-    stroke-width: 4.0px;
+    stroke-width: 4.0px;        /
 }
 
 .node_search {
