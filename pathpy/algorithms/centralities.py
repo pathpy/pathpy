@@ -59,7 +59,7 @@ def betweenness_centrality(network: Network, normalized: bool = False) -> Dict:
     2.0
 
     """
-    all_paths = shortest_paths.all_shortest_paths(network, weight=False)
+    all_paths = shortest_paths.all_shortest_paths(network, weight=False, return_distance_matrix=False)
     bw: defaultdict = defaultdict(float)
 
     for s in all_paths:
@@ -76,7 +76,7 @@ def betweenness_centrality(network: Network, normalized: bool = False) -> Dict:
             bw[v] = (bw[v] - min_centr) / (max_centr - min_centr)
 
     # assign zero values to nodes not occurring on shortest paths
-    for v in network.nodes.keys():
+    for v in network.nodes.uids:
         bw[v] += 0
 
     return bw
@@ -132,7 +132,7 @@ def closeness_centrality(network: Network, normalized: bool = False) -> Dict:
 
     # assign centrality zero to nodes not occurring
     # on higher-order shortest paths
-    for v in network.nodes.keys():
+    for v in network.nodes.uids:
         cl[v] += 0.0
         if cl[v] > 0.0:
             cl[v] = 1.0 / cl[v]
