@@ -67,12 +67,12 @@ def test_all_shortest_paths():
     """Test all shortest paths in a network."""
     net = pp.Network()
     net.add_edges(('a', 'x'), ('x', 'c'))
-    paths = pp.algorithms.shortest_paths.all_shortest_paths(net)
+    paths, m = pp.algorithms.shortest_paths.all_shortest_paths(net)
 
     assert paths['a']['c'] == {('a', 'x', 'c')}
 
     net.add_edges(('a', 'y'), ('y', 'c'))
-    paths = pp.algorithms.shortest_paths.all_shortest_paths(net)
+    paths, m = pp.algorithms.shortest_paths.all_shortest_paths(net)
 
     assert paths['a']['c'] == {('a', 'x', 'c'), ('a', 'y', 'c')}
 
