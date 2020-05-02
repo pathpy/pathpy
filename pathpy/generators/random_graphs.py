@@ -162,11 +162,10 @@ def ER_np(n: int, p: float, directed: bool = False, loops: bool = False,
         LOG.info('No valid node uids given, generating numeric node uids')
         node_uids = []
         for i in range(n):
-            network.add_node(Node(str(i)))
-            node_uids.append(Node(str(i)))
-    else:
-        for i in range(n):
-            network.add_node(Node(node_uids[i]))
+            node_uids.append(str(i))
+    
+    for i in range(n):
+        network.add_node(node_uids[i])
 
     for s in tqdm(range(n)):
         if directed:
@@ -177,8 +176,7 @@ def ER_np(n: int, p: float, directed: bool = False, loops: bool = False,
             if t == s and not loops:
                 continue
             if np.random.random_sample() < p:
-                e = Edge(network.nodes[node_uids[s]], network.nodes[node_uids[t]])
-                network.add_edge(e)
+                network.add_edge(node_uids[s], node_uids[t])
     return network
 
 
