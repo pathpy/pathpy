@@ -119,11 +119,17 @@ def all_shortest_paths(network: Network,
     s_p: defaultdict = defaultdict(lambda: defaultdict(set))
 
     for e in network.edges:
-        # set distances between neighbors to 1
-        dist[e.v.uid][e.w.uid] = 1
+        cost = 1
+            
+        if weight == True:
+            cost = e.attributes['weight']
+        elif weight != False and weight !=None:
+            cost = e.attributes[weight]
+
+        dist[e.v.uid][e.w.uid] = cost
         s_p[e.v.uid][e.w.uid].add((e.v.uid, e.w.uid))
         if not network.directed:
-            dist[e.w.uid][e.v.uid] = 1
+            dist[e.w.uid][e.v.uid] = cost
             s_p[e.w.uid][e.v.uid].add((e.w.uid, e.v.uid))
 
     for k in tqdm(network.nodes.keys(), desc='calculating shortest paths between all nodes'):
@@ -157,7 +163,7 @@ def all_shortest_paths(network: Network,
         return s_p
 
 
-def single_source_shortest_paths(network: Network, source: str) -> Union[dict, np.array]:
+def single_source_shortest_paths(network: Network, source: str, weight: Union[bool, str, None] = None) -> Union[dict, np.array]:
     """Calculates all shortest paths from a single given source node using a 
     custom implementation of Dijkstra's algorithm based on a priority queue.
     """
@@ -176,11 +182,22 @@ def single_source_shortest_paths(network: Network, source: str) -> Union[dict, n
         u = min(Q.keys(), key=(lambda k: Q[k])) # TODO: Do this more efficiently with a proper priority queue
         del Q[u]
         for v in network.successors[u]:
-            if dist[u] + 1 < dist[v.uid]:                
-                dist[v.uid] = dist[u] + 1
+            
+            # for networks with no edge costs, edges have constant cost
+            cost = 1
+            
+            if weight == True:
+                cost = list(network.edges[u,v])[0].attributes['weight']
+            elif weight != False and weight !=None:
+                cost = list(network.edges[u,v])[0].attributes[weight]
+
+            new_dist = dist[u] + cost
+
+            if new_dist < dist[v.uid]:                
+                dist[v.uid] = new_dist
                 prev[v.uid] = u
                 if v.uid in Q:
-                    Q[v.uid] = dist[u] + 1
+                    Q[v.uid] = new_dist
     
     # calculate distance vector
     dist_arr = np.zeros(network.number_of_nodes())
@@ -204,7 +221,7 @@ def single_source_shortest_paths(network: Network, source: str) -> Union[dict, n
     return dist_arr, s_p
 
 
-def shortest_path_tree(network: Network, source) -> Network:
+def shortest_path_tree(network: Network, source: str, weight: Union[bool, str, None] = None) -> Network:
     """Computes a shortest path tree rooted at the node with the
     given source uid."""
 
@@ -225,11 +242,21 @@ def shortest_path_tree(network: Network, source) -> Network:
         u = min(Q.keys(), key=(lambda k: Q[k])) # TODO: Do this more efficiently with a proper priority queue
         del Q[u]
         for v in network.successors[u]:
-            if dist[u] + 1 < dist[v.uid]:                
-                dist[v.uid] = dist[u] + 1
+            # for networks with no edge costs, edges have constant cost
+            cost = 1
+            
+            if weight == True:
+                cost = list(network.edges[u,v])[0].attributes['weight']
+            elif weight != False and weight !=None:
+                cost = list(network.edges[u,v])[0].attributes[weight]
+
+            new_dist = dist[u] + cost
+            
+            if new_dist < dist[v.uid]:                
+                dist[v.uid] = new_dist
                 prev[v.uid] = u
                 if v.uid in Q:
-                    Q[v.uid] = dist[u] + 1
+                    Q[v.uid] = new_dist
 
     for k, v in prev.items():
         if v != None:
