@@ -15,15 +15,34 @@ import numpy as np
 from pathpy import logger, tqdm
 
 from pathpy.core.edge import Edge
+from pathpy.core.node import Node
 from pathpy.core.network import Network
 
 # create logger
 LOG = logger(__name__)
 
 
-def ER_nm(n: int, m: int, directed: bool = False, loops: bool = False,
-          multiedges: bool = False,
-          node_uids: Optional[list] = None) -> Network:
+def max_edges(n: int, directed: bool = False, multiedges: bool = False, loops: bool = False) -> Union[int, float]:
+    """Returns the maximum number of edges that a directed/undirected network with or without loops 
+    can possible have """
+
+    if multiedges:
+        return np.inf
+    elif loops and directed:
+        return int(n**2)
+    elif loops and not directed:
+        return int(n*(n+1)/2)
+    elif not loops and not directed:
+        return int(n*(n-1)/2)
+    elif not loops and directed:
+        return int(n*(n-1))
+
+
+def ER_nm(n: int, m: int, 
+        directed: bool = False, 
+        loops: bool = False,
+        multiedges: bool = False,
+        node_uids: Optional[list] = None) -> Union[Network, None]:
     """(n, m) Erdös-Renyi model.
 
     Generates a random graph with a fixed number of n nodes and m edges based on
@@ -66,28 +85,32 @@ def ER_nm(n: int, m: int, directed: bool = False, loops: bool = False,
     ...
 
     """
+    # Check parameter sanity
+    M = max_edges(n, directed=directed, loops=loops, multiedges=multiedges)
+    if m > M:
+        LOG.error('Given network type with n nodes can have at most {} edges.'.format(M))
+        return None
+
     network = Network(directed=directed)
 
     if node_uids is None or len(node_uids) != n:
         LOG.info('No valid node uids given, generating numeric node uids')
         node_uids = []
         for i in range(n):
-            network.add_node(str(i))
             node_uids.append(str(i))
-    else:
-        for i in range(n):
-            network.add_node(node_uids[i])
+    
+    for i in range(n):
+        network.add_node(node_uids[i])
 
     edges = 0
     while edges < m:
-        v = np.random.choice(n)
-        w = np.random.choice(n)
-        if not loops and v == w:
+        if loops:
+            v, w = np.random.choice(node_uids, size=2, replace=True)
+        else:
+            v, w = np.random.choice(node_uids, size=2)
+        if not multiedges and w in network.successors[v]:
             continue
-        e = Edge(node_uids[v], node_uids[w])
-        if not multiedges and not network.edges.contain(e):
-            continue
-        network.add_edge(e)
+        network.add_edge(v,w)
         edges += 1
     return network
 
@@ -139,11 +162,11 @@ def ER_np(n: int, p: float, directed: bool = False, loops: bool = False,
         LOG.info('No valid node uids given, generating numeric node uids')
         node_uids = []
         for i in range(n):
-            network.add_node(str(i))
-            node_uids.append(str(i))
+            network.add_node(Node(str(i)))
+            node_uids.append(Node(str(i)))
     else:
         for i in range(n):
-            network.add_node(node_uids[i])
+            network.add_node(Node(node_uids[i]))
 
     for s in tqdm(range(n)):
         if directed:
@@ -154,7 +177,7 @@ def ER_np(n: int, p: float, directed: bool = False, loops: bool = False,
             if t == s and not loops:
                 continue
             if np.random.random_sample() < p:
-                e = Edge(node_uids[s], node_uids[t])
+                e = Edge(network.nodes[node_uids[s]], network.nodes[node_uids[t]])
                 network.add_edge(e)
     return network
 
@@ -196,7 +219,7 @@ def Watts_Strogatz(n: int, s: int, p: int,
         LOG.info('No valid node uids given, generating numeric node uids')
         node_uids = []
         for i in range(n):
-            network.add_node(str(i))
+            network.add_node(Node(str(i)))
             node_uids.append(str(i))
     else:
         for i in range(n):
@@ -205,7 +228,7 @@ def Watts_Strogatz(n: int, s: int, p: int,
     # construct a ring lattice (dimension 1)
     for i in range(n):
         for j in range(1, s+1):
-            e = Edge(node_uids[i], node_uids[(i+j) % n])
+            e = Edge(network.nodes[node_uids[i]], network.nodes[node_uids[(i+j) % n]])
             network.add_edge(e)
 
     if p == 0:
