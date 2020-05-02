@@ -16,6 +16,8 @@ from pathpy.algorithms.matrices import (adjacency_matrix,
 
 from pathpy.algorithms.shortest_paths import(distance_matrix,
                                              all_shortest_paths,
+                                             single_source_shortest_paths,
+                                             shortest_path_tree,
                                              diameter,
                                              avg_path_length)
 
