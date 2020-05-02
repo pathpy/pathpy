@@ -23,19 +23,14 @@ if TYPE_CHECKING:
 LOG = logger(__name__)
 
 
-def _Q_merge(network: Network, cluster_mapping: Dict, merge=set()) -> float:
-    """Helper function to mearge."""
-    m = network.number_of_edges()
-    A = network.adjacency_matrix(weighted=False)
-
+def _Q_merge(network: Network, A, D, n: int, m: int, C: Dict, merge: Set = set()) -> float:
+    """Helper function to compute modularity with merged partitions."""
+    
     q = 0.0
     for v in network.nodes.uids:
         for w in network.nodes.uids:
-            if (cluster_mapping[v] == cluster_mapping[w] or
-                    (cluster_mapping[v] in merge and
-                     cluster_mapping[w] in merge)):
-                q += A[network.nodes.index[v], network.nodes.index[w]] - \
-                    network.degrees()[v]*network.degrees()[w]/(2*m)
+            if C[v] == C[w] or (C[v] in merge and C[w] in merge):
+                q += A[network.nodes.index[v], network.nodes.index[w]] - D[v]*D[w]/(2*m)
     q /= 2*m
     return q
 
@@ -66,31 +61,37 @@ def color_map(network: Network, cluster_mapping: Dict) -> Dict:
 def modularity_maximisation(network: Network,
                             iterations: int = 1000) -> Tuple[Dict, float]:
     """Modularity maximisation."""
-    # start with each node being in a separate cluster
-    cluster_mapping = {}
+
+    A = network.adjacency_matrix(weighted=False)    
+    D = network.degrees()
+    n = network.number_of_nodes()
+    m = network.number_of_edges()
+
+    C = {}
+    num_communities = n
     community_to_nodes = {}
-
     c = 0
-    for n in network.nodes.uids:
-        cluster_mapping[n] = c
-        community_to_nodes[c] = set([n])
+    for v in network.nodes.uids:
+        C[v] = c
+        community_to_nodes[c] = set([v])
         c += 1
-    q = _Q_merge(network, cluster_mapping)
-    communities = list(cluster_mapping.values())
-
+    q = Q_merge(network, A, D, n, m, C)
+    
     for i in tqdm(range(iterations), desc='maximising modularity'):
 
         # randomly choose two communities
-        x, y = np.random.choice(communities, size=2)
+        x, y = random.sample(community_to_nodes.keys(), 2)
 
         # check Q of merged communities
-        q_new = _Q_merge(network, cluster_mapping, merge=set([x, y]))
+        q_new = Q_merge(network, A, D, n, m, C, merge=set([x, y]))
+
         if q_new > q:
-            # merge the communities
-            for n in community_to_nodes[x]:
-                cluster_mapping[n] = y
-            community_to_nodes[y] = community_to_nodes[y] | community_to_nodes[x]
+            # merge communities
+            for v in community_to_nodes[x]:
+                C[v] = y
+            community_to_nodes[y] = community_to_nodes[y].union(community_to_nodes[x])
             q = q_new
-            communities.remove(x)
+            num_communities -=1
             del community_to_nodes[x]
-    return cluster_mapping, q
+        
+    return C, q
