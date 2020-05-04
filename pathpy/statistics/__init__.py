@@ -17,6 +17,7 @@ from pathpy.statistics.degrees import (degree_sequence,
                                        degree_central_moment,
                                        degree_raw_moment,
                                        degree_generating_function,
+                                       mean_degree,
                                        )
 
 from pathpy.statistics.clustering import (local_clustering_coefficient,

@@ -58,7 +58,7 @@ def degree_sequence(network: Network, weight: Weight = None) -> np.array:
     >>> s
     array([3.1, 2.1, 1.0])
     """
-    _degrees = network.degrees(weight=weight).values()
+    _degrees = [ network.degrees(weight=weight)[v.uid] for v in network.nodes ]
     return np.fromiter(_degrees, dtype=float)
 
 
@@ -101,6 +101,10 @@ def degree_distribution(network: Network,
         cnt[network.degrees(weight=weight)[v]] += 1.0 / n
 
     return cnt
+
+
+def mean_degree(network, weight: Weight = None) -> float:
+    return degree_raw_moment(network, k=1, weight=weight)
 
 
 def degree_raw_moment(network: Network, k: int = 1,
