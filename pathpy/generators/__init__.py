@@ -17,6 +17,7 @@ from pathpy.generators.random_graphs import (ER_nm,
                                              is_graphic_Erdos_Gallai,
                                              Molloy_Reed,
                                              max_edges,
+                                             generate_degree_sequence,
                                              )
 
 # =============================================================================

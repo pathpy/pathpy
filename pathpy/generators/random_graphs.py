@@ -9,7 +9,7 @@
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Optional
+from typing import Optional, Union, Dict
 import numpy as np
 
 from pathpy import logger, tqdm
@@ -107,7 +107,7 @@ def ER_nm(n: int, m: int,
         if loops:
             v, w = np.random.choice(node_uids, size=2, replace=True)
         else:
-            v, w = np.random.choice(node_uids, size=2)
+            v, w = np.random.choice(node_uids, size=2, replace=False)
         if not multiedges and w in network.successors[v]:
             continue
         network.add_edge(v,w)
@@ -298,7 +298,17 @@ def is_graphic_Erdos_Gallai(degrees):
     return True
 
 
-def Molloy_Reed(degrees: list, relax: bool = False):
+def generate_degree_sequence(degree_dist: Dict[float, float], n) -> np.array:
+    """Generates a sequence of n degrees based on a given degree distribution"""
+
+    degrees = [ k for k in degree_dist ]
+    probs = [ degree_dist[k] for k in degree_dist ]
+    
+    return np.random.choice(a=degrees, size=n, p=probs)
+
+
+
+def Molloy_Reed(degrees: list, relax: bool = False, node_uids: Optional[list] = None):
     """Generate Molloy-Reed graph.
 
     Generates a random undirected network with given degree sequence based on
@@ -349,11 +359,20 @@ def Molloy_Reed(degrees: list, relax: bool = False):
     n = len(degrees)
     network = Network(directed=False)
 
+    if node_uids is None or len(node_uids) != n:
+        LOG.info('No valid node uids given, generating numeric node uids')
+        node_uids = []
+        for i in range(n):
+            node_uids.append(str(i))
+    
+    for i in range(n):
+        network.add_node(node_uids[i])
+
     # generate link stubs based on degree sequence
     stubs = []
     for i in range(n):
         for k in range(int(degrees[i])):
-            stubs.append(str(i))
+            stubs.append(str(node_uids[i]))
 
     # connect randomly chosen pairs of link stubs
     # note: if relax is True, we conceptually allow self-loops
@@ -363,10 +382,11 @@ def Molloy_Reed(degrees: list, relax: bool = False):
     # always finishes.
     while(len(stubs) > 0):
         v, w = np.random.choice(stubs, 2, replace=False)
-        e = Edge(v, w)
-        if relax or (v != w and (e.uid not in network.edges.uids)):
+        e = Edge(network.nodes[v], network.nodes[w])
+        if relax or (v != w and ((v,w) not in network.edges)):
+
             # do not add self-loops and multi-edges
-            if (v != w and e.uid not in network.edges.uids):
+            if (v != w and (v,w) not in network.edges):
                 network.add_edge(e)
             stubs.remove(v)
             stubs.remove(w)
