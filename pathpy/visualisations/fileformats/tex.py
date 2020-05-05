@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : tex.py -- Module to create a tex file
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-04-22 15:15 juergen>
+# Time-stamp: <Tue 2020-05-05 14:54 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================

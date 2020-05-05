@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : tikz.py -- Module to draw a tikz-network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-04-22 15:15 juergen>
+# Time-stamp: <Tue 2020-05-05 14:26 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -12,7 +12,7 @@ from __future__ import annotations  # remove for python 3.8
 from random import uniform
 
 from pathpy import logger
-from pathpy.visualisations.utils import UnitConverter
+from pathpy.visualisations.utils import UnitConverter, bend_factor
 
 # create logger
 LOG = logger(__name__)
@@ -97,6 +97,13 @@ class Tikz:
             node['size'] = px2cm(node['size'])
         for edge in data['edges']:
             edge['size'] = px2pt(edge['size'])
+            if edge.get('curved', None) is not None:
+                if not config.get('curved', False):
+                    edge.pop('curved')
+                else:
+                    edge['curved'] = bend_factor(edge['curved'])
+            if not config.get('directed', False):
+                edge.pop('directed', None)
 
         tex = ''
         for element in ['nodes', 'edges']:

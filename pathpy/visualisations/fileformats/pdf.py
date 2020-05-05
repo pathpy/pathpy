@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : pdf.py -- Module to create a pdf file
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-04-21 09:12 juergen>
+# Time-stamp: <Tue 2020-05-05 14:48 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -74,8 +74,16 @@ class PDF:
         # get current directory
         current_dir = os.getcwd()
 
+        # template directory
+        tikz_dir = str(os.path.join(
+            os.path.dirname(os.path.dirname(__file__)),
+            os.path.normpath('templates'), 'tikz-network.sty'))
+
         # get temporal directory
         temp_dir = tempfile.mkdtemp()
+
+        # copy tikz-network to temporal directory
+        shutil.copy(tikz_dir, temp_dir)
 
         # change to output dir
         os.chdir(temp_dir)
