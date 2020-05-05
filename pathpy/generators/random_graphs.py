@@ -104,14 +104,10 @@ def ER_nm(n: int, m: int,
 
     edges = 0
     while edges < m:
-        if loops:
-            v, w = np.random.choice(node_uids, size=2, replace=True)
-        else:
-            v, w = np.random.choice(node_uids, size=2, replace=False)
-        if not multiedges and w in network.successors[v]:
-            continue
-        network.add_edge(v,w)
-        edges += 1
+        v, w = np.random.choice(node_uids, size=2, replace=loops)
+        if multiedges or network.nodes[v] not in network.successors[w]:
+            network.add_edge(v,w)
+            edges += 1
     return network
 
 
@@ -307,8 +303,8 @@ def generate_degree_sequence(degree_dist: Dict[float, float], n) -> np.array:
     return np.random.choice(a=degrees, size=n, p=probs)
 
 
-
-def Molloy_Reed(degrees: list, relax: bool = False, node_uids: Optional[list] = None):
+# TODO: allow input 
+def Molloy_Reed(degrees: Union[np.array, Network, Dict[str, float]], multiedge: bool = False, node_uids: Optional[list] = None) -> Network:
     """Generate Molloy-Reed graph.
 
     Generates a random undirected network with given degree sequence based on
@@ -351,6 +347,7 @@ def Molloy_Reed(degrees: list, relax: bool = False, node_uids: Optional[list] = 
     None
 
     """
+
     # assume that we are given a graphical degree sequence
     if not is_graphic_Erdos_Gallai(degrees):
         return
@@ -375,19 +372,20 @@ def Molloy_Reed(degrees: list, relax: bool = False, node_uids: Optional[list] = 
             stubs.append(str(node_uids[i]))
 
     # connect randomly chosen pairs of link stubs
-    # note: if relax is True, we conceptually allow self-loops
-    # and multi-edges, but do not add them to the network/
-    # This implies that the generated network may not have
-    # exactly sum(degrees)/2 links, but it ensures that the algorithm
-    # always finishes.
     while(len(stubs) > 0):
         v, w = np.random.choice(stubs, 2, replace=False)
-        e = Edge(network.nodes[v], network.nodes[w])
-        if relax or (v != w and ((v,w) not in network.edges)):
 
-            # do not add self-loops and multi-edges
-            if (v != w and (v,w) not in network.edges):
-                network.add_edge(e)
+        if v == w or (multiedge == False and network.nodes[w] in network.successors[v]):
+            # remove random edge and add stubs
+            if network.number_of_edges()>0:
+                edge = np.random.choice(list(network.edges))
+                stubs.append(edge.v.uid)
+                stubs.append(edge.w.uid)
+                network.remove_edge(edge)
+        else:
+            network.add_edge(v, w)
             stubs.remove(v)
-            stubs.remove(w)
+            stubs.remove(w)            
+            
+
     return network
