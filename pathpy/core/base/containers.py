@@ -4,12 +4,12 @@
 # =============================================================================
 # File      : containers.py -- Base containers for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sat 2020-04-18 17:09 juergen>
+# Time-stamp: <Tue 2020-05-05 15:08 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import TYPE_CHECKING, Set, Dict, Union
+from typing import TYPE_CHECKING, Set, Dict, Union, Tuple
 
 from collections import defaultdict
 
@@ -262,6 +262,11 @@ class EdgeContainer(BaseContainer):
     def dict(self) -> Dict[str, Edge]:
         """Returns a dictionary of edge objects."""
         return self._map
+
+    @property
+    def nodes(self) -> Dict[Tuple[str, str], Set[Edge]]:
+        """Returns a dictionary pf edge objects with nodes as keys"""
+        return self._nodes
 
     def add(self, edge: Edge) -> None:
         """Add an edge to the set of edges."""
