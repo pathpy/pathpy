@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : plot.py -- Module to plot pathoy networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-05-05 14:28 juergen>
+# Time-stamp: <Tue 2020-05-05 15:27 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -174,7 +174,6 @@ def plot(obj, filename: Optional[str] = None,
     # parse object to json like dict
     data: defaultdict = parser(obj, _config, **kwargs)
 
-    print(data['data']['edges'])
     # check filename
     # if no file name is given
     if filename is None:
