@@ -69,15 +69,15 @@ def betweenness_centrality(network: Network, normalized: bool = False) -> Dict:
                     if s != t != x:
                         bw[x] += 1.0 / len(all_paths[s][t])
 
+    # assign zero values to nodes not occurring on shortest paths
+    for v in network.nodes.uids:
+        bw[v] += 0
+
     if normalized:
         max_centr = max(bw.values())
         min_centr = min(bw.values())
         for v in bw:
             bw[v] = (bw[v] - min_centr) / (max_centr - min_centr)
-
-    # assign zero values to nodes not occurring on shortest paths
-    for v in network.nodes.uids:
-        bw[v] += 0
 
     return bw
 
