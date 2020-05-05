@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : containers.py -- Base containers for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-05-05 15:08 juergen>
+# Time-stamp: <Tue 2020-05-05 15:56 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -239,6 +239,29 @@ class EdgeContainer(BaseContainer):
         self._nodes: defaultdict = defaultdict(set)
         self._properties: Properties = properties
 
+    def __contains__(self, item) -> bool:
+        """Returns if item is in edges."""
+        _contain: bool = False
+        if item in self._set:
+            _contain = True
+        elif isinstance(item, tuple):
+            try:
+                _v = item[0].uid
+            except AttributeError:
+                _v = item[0]
+
+            try:
+                _w = item[1].uid
+            except AttributeError:
+                _w = item[1]
+
+            if (_v, _w) in self._nodes:
+                _contain = True
+
+        elif isinstance(item, str) and item in self._map:
+            _contain = True
+        return _contain
+
     def __getitem__(self, key: Union[str, tuple]) -> Union[Edge, Set[Edge]]:
         """Returns a node object."""
         edges: Union[Edge, set]
@@ -262,11 +285,6 @@ class EdgeContainer(BaseContainer):
     def dict(self) -> Dict[str, Edge]:
         """Returns a dictionary of edge objects."""
         return self._map
-
-    @property
-    def nodes(self) -> Dict[Tuple[str, str], Set[Edge]]:
-        """Returns a dictionary pf edge objects with nodes as keys"""
-        return self._nodes
 
     def add(self, edge: Edge) -> None:
         """Add an edge to the set of edges."""

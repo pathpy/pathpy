@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-05-05 15:10 juergen>
+# Time-stamp: <Tue 2020-05-05 15:58 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -717,9 +717,20 @@ def test_get_edge():
     """Test to get edges."""
     net = Network(directed=False)
     net.add_edge('a', 'b')
-    assert (('a', 'b') in net.edges.nodes) is True
-    assert (('b', 'a') in net.edges.nodes) is True
-    assert (('a', 'c') in net.edges.nodes) is False
+    assert (('a', 'b') in net.edges) is True
+    assert (('b', 'a') in net.edges) is True
+    assert (('a', 'c') in net.edges) is False
+
+    a = Node('a')
+    b = Node('b')
+    e = Edge(a, b)
+    net = Network(directed=True)
+    net.add_edge(e)
+    assert ((a, b) in net.edges) is True
+    assert (e in net.edges) is True
+    assert (('a', b) in net.edges) is True
+    assert ((b, a) in net.edges) is False
+
 
 # =============================================================================
 # eof
