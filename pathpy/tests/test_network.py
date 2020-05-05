@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-04-20 11:44 juergen>
+# Time-stamp: <Tue 2020-05-05 15:10 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -713,6 +713,13 @@ def test_remove_node():
 #     net.add_path('b-c')
 #     assert net.directed is False
 
+def test_get_edge():
+    """Test to get edges."""
+    net = Network(directed=False)
+    net.add_edge('a', 'b')
+    assert (('a', 'b') in net.edges.nodes) is True
+    assert (('b', 'a') in net.edges.nodes) is True
+    assert (('a', 'c') in net.edges.nodes) is False
 
 # =============================================================================
 # eof

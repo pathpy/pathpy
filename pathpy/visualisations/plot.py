@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : plot.py -- Module to plot pathoy networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-04-28 18:35 juergen>
+# Time-stamp: <Tue 2020-05-05 14:28 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -86,6 +86,8 @@ config['plot']['edge'] = {}
 config['plot']['edge']['size'] = 2
 config['plot']['edge']['color'] = 'black'
 config['plot']['edge']['opacity'] = 1
+config['plot']['edge']['directed'] = True
+config['plot']['edge']['curved'] = .5
 
 # Widges config
 config['plot']['widgets'] = {}
@@ -172,6 +174,7 @@ def plot(obj, filename: Optional[str] = None,
     # parse object to json like dict
     data: defaultdict = parser(obj, _config, **kwargs)
 
+    print(data['data']['edges'])
     # check filename
     # if no file name is given
     if filename is None:
@@ -231,6 +234,7 @@ class Parser:
             'coordinates': None,
             'label_size': None,
             'id_as_label': None,
+            'style': None,
         }
         self.default_edge = {
             'uid': None,
@@ -243,6 +247,8 @@ class Parser:
             'source': None,
             'target': None,
             'directed': None,
+            'curved': None,
+            'style': None,
         }
         self.default_properties = {
             'node': self.default_node,
@@ -274,6 +280,8 @@ class Parser:
         if obj.directed:
             self.config['directed'] = True
             self.config['curved'] = True
+            self.config['edge']['directed'] = True
+
         # convert default units to units
         u2u = UnitConverter(self.config['unit'],
                             kwargs.get('unit', self.config['unit']),
