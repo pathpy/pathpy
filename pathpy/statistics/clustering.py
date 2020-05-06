@@ -52,11 +52,11 @@ def local_clustering_coefficient(network: Network, v: str) -> float:
     d = network.degrees()
     o = network.outdegrees()
 
-    if d[v] >= 2:
+    if network.directed and o[v] >= 2 or network.directed == False and d[v] >= 2:
         k: int = 0
         for edge in network.edges:
-            if (edge.v.uid in network.successors[v] and
-                    edge.w.uid in network.successors[v]):
+            if (edge.v in network.successors[v] and
+                    edge.w in network.successors[v]):
                 k += 1
 
         if network.directed:
@@ -96,7 +96,7 @@ def closed_triads(network: Network, v: str) -> Set:
     """
     ct: set = set()
     for edge in network.edges:
-        if (edge.v.uid in network.successors[v] and
-                edge.w.uid in network.successors[v]):
+        if (edge.v in network.successors[v] and
+                edge.w in network.successors[v]):
             ct.add(edge)
     return ct
