@@ -58,8 +58,10 @@ def degree_sequence(network: Network, weight: Weight = None) -> np.array:
     >>> s
     array([3.1, 2.1, 1.0])
     """
-    _degrees = [ network.degrees(weight=weight)[v.uid] for v in network.nodes ]
-    return np.fromiter(_degrees, dtype=float)
+    _degrees = np.zeros(network.number_of_nodes(), dtype=float)
+    for v in network.nodes.uids:
+        _degrees[network.nodes.index[v]] = network.degrees(weight=weight)[v]
+    return _degrees
 
 
 def degree_distribution(network: Network,
@@ -97,7 +99,7 @@ def degree_distribution(network: Network,
 
     cnt: defaultdict = defaultdict(float)
     n = network.number_of_nodes()
-    for v in network.nodes.keys():
+    for v in network.nodes.uids:
         cnt[network.degrees(weight=weight)[v]] += 1.0 / n
 
     return cnt
