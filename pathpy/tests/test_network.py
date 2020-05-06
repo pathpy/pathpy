@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-05-05 15:58 juergen>
+# Time-stamp: <Wed 2020-05-06 15:34 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -345,6 +345,21 @@ def test_add_edge():
     with pytest.raises(Exception):
         assert net.edges['a-b']['color'] == 'blue'
 
+    net = Network()
+    net.add_node("A")
+    net.add_edge("A", "B")
+
+    assert net.number_of_edges() == 1
+    assert net.number_of_nodes() == 2
+
+    net = Network()
+    edges = [("A", "B"), ("B", "C")]
+    for edge in edges:
+        net.add_edge(edge)
+
+    assert net.number_of_edges() == 2
+    assert net.number_of_nodes() == 3
+
 
 def test_call_edges():
     """Test to call edges"""
@@ -392,6 +407,22 @@ def test_add_edges():
     net.add_edges(ab, ('b', 'c'))
 
     assert net.number_of_edges() == 2
+
+    net = Network()
+    edges = [("A", "B"), ("B", "C")]
+    net.add_edges(edges)
+
+    assert net.number_of_edges() == 2
+    assert net.number_of_nodes() == 3
+
+    net = Network()
+    edges = [("a", "b"),
+             ("b", "c"),
+             ("c", "d"),
+             ("c", "e")]
+    edges = [tuple(Node(x) for x in e) for e in edges]
+    with pytest.raises(Exception):
+        net.add_edges(edges)
 
 
 def test_properties():

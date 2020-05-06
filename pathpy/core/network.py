@@ -4,12 +4,12 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-04-22 15:34 juergen>
+# Time-stamp: <Wed 2020-05-06 15:21 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, Tuple, Sequence, Set, Dict, Optional, Union, cast
+from typing import Any, Tuple, Sequence, Set, Dict, Optional, Union, List, cast
 
 from collections import defaultdict
 
@@ -778,7 +778,7 @@ class Network(BaseNetwork):
             LOG.error('The provided node "%s" is of the wrong type!', node)
             raise TypeError
 
-    def add_edge(self, edge: Union[str, Node, Edge],
+    def add_edge(self, edge: Union[str, Node, Edge, tuple],
                  *args: Union[str, Node], uid: Optional[str] = None,
                  **kwargs: Any) -> None:
         """Add a single edge to the network.
@@ -856,7 +856,11 @@ class Network(BaseNetwork):
             # create new edge object and add it to the network
             self.add_edge(Edge(_nodes['v'], _nodes['w'], uid=uid, **kwargs))
 
-        # otherwise raise error
+        # if tuple is given
+        elif isinstance(edge, tuple) and len(edge) >= 2:
+            self.add_edge(edge[0], edge[1], uid=uid, **kwargs)
+
+    # otherwise raise error
         else:
             LOG.error('The provided edge "%s" is of the wrong type!', edge)
             raise TypeError
@@ -894,7 +898,7 @@ class Network(BaseNetwork):
         for node in nodes:
             self.add_node(node, **kwargs)
 
-    def add_edges(self, *edges: Union[Sequence[Edge],
+    def add_edges(self, *edges: Union[List, Sequence[Edge],
                                       Sequence[Tuple[Node, Node]],
                                       Sequence[Tuple[str, str]]],
                   **kwargs: Any) -> None:
@@ -932,6 +936,8 @@ class Network(BaseNetwork):
                 self.add_edge(edge, **kwargs)
             elif isinstance(edge, tuple):
                 self.add_edge(edge[0], edge[1], **kwargs)
+            elif isinstance(edge, list):
+                self.add_edges(*edge, **kwargs)
 
     def remove_node(self, node: Union[str, Node]) -> None:
         """Remove a single node from the network.
