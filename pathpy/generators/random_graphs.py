@@ -9,7 +9,10 @@
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
+from functools import singledispatch
+
 from typing import Optional, Union, Dict
+
 import numpy as np
 
 from pathpy import logger, tqdm
@@ -23,8 +26,41 @@ LOG = logger(__name__)
 
 
 def max_edges(n: int, directed: bool = False, multiedges: bool = False, loops: bool = False) -> Union[int, float]:
-    """Returns the maximum number of edges that a directed/undirected network with or without loops 
-    can possible have """
+    """Returns the maximum number of edges that a directed or undirected network with n nodes can
+    possible have (with or without loops).
+    
+    Parameters
+    ----------
+    n : int 
+
+        The number of nodes in the network
+
+    directed : bool
+
+        If True, return the maximum number of edges in a directed network.
+
+    multiedges : bool 
+
+        If True, multiple edges between each node pair are allowed. In this case np.inf is returned.
+
+    loops : bool 
+
+        If True, include self-loops.
+    
+    Examples
+    --------
+    Compute maximum number of edges in directed/undirected network with/without self-loops and 100 nodes
+
+    >>> import pathpy as pp
+    >>> print(pp.generators.max_edges(100)
+    4950
+
+    >>> print(pp.generators.max_edges(100, directed=True)
+    9900
+
+    >>> print(pp.generators.max_edges(100, directed=True, loops=True)
+    10000
+    """
 
     if multiedges:
         return np.inf
@@ -111,6 +147,53 @@ def ER_nm(n: int, m: int,
     return network
 
 
+def ER_nm_randomize(network: Network, loops: bool = False, multiedges: bool = False) -> Union[Network, None]:
+    """Generates a random graph whose number of nodes, edges, edge directedness and node uids 
+    match the corresponding values of a given network instance. Useful to generate a randomized 
+    version of a network.
+    
+    Parameters
+    ----------
+    network : pathpy.Network
+
+        Given network used to determine number of nodes, edges, node uids, and edge directedness    
+
+    loops : bool
+
+        Whether or not the generated network can contain loops.
+
+    multi_edge : bool
+
+        Whether or not multiple edges can be added to the same node pair
+
+    Examples
+    --------
+    Generate random undirected network with 10 nodes and 25 edges
+
+    >>> import pathpy as pp
+    >>> n = pp.Network(directed=False)
+    >>> n.add_edge('a', 'b')
+    >>> n.add_edge('b', 'c')
+    >>> n.add_edge('d', 'e')
+    >>> r = pp.generators.ER_nm(n)
+    >>> print(r)
+    Uid:		0x...
+    Type:		Network
+    Directed:	False
+    Unique nodes:	5
+    Unique edges:	3
+    Unique paths:	0
+    Total paths:	0
+    >>> print(r.nodes.uids)
+    { 'a', 'b', 'c', 'd', 'e'}
+
+    """
+
+    return ER_nm(network.number_of_nodes(), network.number_of_edges(), 
+                    directed=network.directed, loops=loops, multiedges=multiedges,
+                    node_uids=list(network.nodes.uids))
+
+
 def ER_np(n: int, p: float, directed: bool = False, loops: bool = False,
           node_uids: Optional[list] = None) -> Network:
     """(n, p) Erdös-Renyi model
@@ -174,6 +257,19 @@ def ER_np(n: int, p: float, directed: bool = False, loops: bool = False,
             if np.random.random_sample() < p:
                 network.add_edge(node_uids[s], node_uids[t])
     return network
+
+
+def ER_np_randomize(network: Network, loops: bool = False) -> Network:
+    """Generates a random microstate based on the G(n,p) model. The number of nodes,
+    the expected number of edges, the edge directedness and the node uids of the 
+    generated network match the corresponding values of a given network instance.
+    """
+
+    n = network.number_of_nodes()
+    m = network.number_of_edges()
+    M = max_edges(n, directed=network.directed, loops=loops)
+    p = m/M
+    return ER_np(n=n, p=p, directed=network.directed, loops=loops, node_uids=list(network.nodes.uids))
 
 
 def Watts_Strogatz(n: int, s: int, p: int,
@@ -303,8 +399,7 @@ def generate_degree_sequence(degree_dist: Dict[float, float], n) -> np.array:
     return np.random.choice(a=degrees, size=n, p=probs)
 
 
-# TODO: allow input 
-def Molloy_Reed(degrees: Union[np.array, Network, Dict[str, float]], multiedge: bool = False, node_uids: Optional[list] = None) -> Network:
+def Molloy_Reed(degrees: Union[np.array, Dict[str, float]], multiedge: bool = False, node_uids: Optional[list] = None) -> Network:
     """Generate Molloy-Reed graph.
 
     Generates a random undirected network with given degree sequence based on
@@ -389,3 +484,16 @@ def Molloy_Reed(degrees: Union[np.array, Network, Dict[str, float]], multiedge: 
             
 
     return network
+
+
+def Molloy_Reed_randomize(network: Network) -> Network:
+
+    # degrees are listed in order of node indices 
+    degrees = network.degree_sequence()    
+
+    # generate node uids in same order
+    node_uids = ['-']*len(degrees)
+    for v in network.nodes.uids:
+        node_uids[network.nodes.index[v]] = v
+
+    return Molloy_Reed(degrees, node_uids=node_uids)

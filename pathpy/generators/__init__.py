@@ -13,11 +13,14 @@
 
 from pathpy.generators.random_graphs import (ER_nm,
                                              ER_np,
+                                             ER_nm_randomize,
+                                             ER_np_randomize,
                                              Watts_Strogatz,
                                              is_graphic_Erdos_Gallai,
                                              Molloy_Reed,
+                                             Molloy_Reed_randomize,
                                              max_edges,
-                                             generate_degree_sequence,
+                                             generate_degree_sequence,                                             
                                              )
 
 # =============================================================================
