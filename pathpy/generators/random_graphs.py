@@ -272,7 +272,7 @@ def ER_np_randomize(network: Network, loops: bool = False) -> Network:
     return ER_np(n=n, p=p, directed=network.directed, loops=loops, node_uids=list(network.nodes.uids))
 
 
-def Watts_Strogatz(n: int, s: int, p: int,
+def Watts_Strogatz(n: int, s: int, p: float = 0.0, loops: bool = False,
                    node_uids: Optional[list] = None) -> Network:
     """Undirected Watts-Strogatz lattice network
 
@@ -317,9 +317,17 @@ def Watts_Strogatz(n: int, s: int, p: int,
 
     # construct a ring lattice (dimension 1)
     for i in range(n):
-        for j in range(1, s+1):
-            e = Edge(network.nodes[node_uids[i]], network.nodes[node_uids[(i+j) % n]])
-            network.add_edge(e)
+        if loops:
+            x = 0
+            y = s
+        else:
+            x = 1
+            y = s+1
+        for j in range(x, y):
+            v = network.nodes[node_uids[i]]
+            w = network.nodes[node_uids[(i+j) % n]]
+            if (v.uid, w.uid) not in network.edges:
+                network.add_edge(v, w)
 
     if p == 0:
         # nothing to do here
@@ -340,7 +348,7 @@ def Watts_Strogatz(n: int, s: int, p: int,
             # result in an infinite loop depending on parameters.
             while new_target is None:
                 x = str(np.random.randint(n))
-                if x != v and x not in network.successors[v]:
+                if (x != v or loops) and (x not in network.successors[v]):
                     new_target = x
             network.add_edge(v, new_target)
     return network
