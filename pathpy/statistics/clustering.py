@@ -55,7 +55,7 @@ def local_clustering_coefficient(network: Network, v: str) -> float:
     if network.directed and o[v] >= 2 or network.directed == False and d[v] >= 2:
         k: int = 0
         for edge in network.edges:
-            if (edge.v in network.successors[v] and
+            if (edge.v.uid != edge.w.uid and edge.v in network.successors[v] and
                     edge.w in network.successors[v]):
                 k += 1
 
