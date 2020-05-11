@@ -314,6 +314,7 @@ class Layout(object):
         self.dimension = attr.get('dimension', 2)
         self.seed = attr.get('seed', None)
         self.positions = attr.get('positions', None)
+        self.radius = attr.get('radius', 1.0)
 
         # TODO: allow also higher dimensional layouts
         if self.dimension != 2:
@@ -369,9 +370,12 @@ class Layout(object):
         names_rand = ['Random', 'random', 'rand', None]
         names_fr = ['Fruchterman-Reingold', 'fruchterman_reingold', 'fr',
                     'spring_layout', 'spring layout', 'FR']
+        names_circular = ['circular', 'circle', 'ring']
         # check which layout should be plotted
         if self.layout_type in names_rand:
             self.layout = self.random()
+        elif self.layout_type in names_circular:
+            self.layout = self.circular()
         elif self.layout_type in names_fr:
             self.layout = self.fruchterman_reingold()
 
@@ -657,6 +661,36 @@ class Layout(object):
                 break
         return layout
 
+
+    def circular(self):
+        """Position nodes on a circle with given radius. 
+
+        This algorithm can be enabled with the keywords: 'circular', 'circle', 'ring'
+
+        **Keyword arguments used for the layout:**       
+
+        - ``radius`` : float, optional (default = 1.0)
+          Sets the radius of the circle on which nodes
+          are positioned
+
+        Returns
+        -------
+        layout : dict
+            A dictionary of positions keyed by node
+
+        """
+
+        n = len(self.nodes)
+        rad = 2.0 * np.pi / n
+        layout = {}
+        print(self.radius)
+
+        for i in range(n):
+            x = self.radius * np.cos(i*rad)
+            y = self.radius * np.sin(i*rad)
+            layout[self.nodes[i]] = (x,y)
+
+        return layout
 
 # =============================================================================
 # eof
