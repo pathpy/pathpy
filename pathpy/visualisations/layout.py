@@ -317,7 +317,7 @@ class Layout(object):
         self.radius = attr.get('radius', 1.0)
 
         # TODO: allow also higher dimensional layouts
-        if self.dimension != 2:
+        if self.dimension > 2:
             log.warning('Currently only plots with dimension 2 are supported!')
             self.dimension = 2
 
@@ -370,12 +370,15 @@ class Layout(object):
         names_rand = ['Random', 'random', 'rand', None]
         names_fr = ['Fruchterman-Reingold', 'fruchterman_reingold', 'fr',
                     'spring_layout', 'spring layout', 'FR']
-        names_circular = ['circular', 'circle', 'ring']
+        names_circular = ['circular', 'circle', 'ring', '1d-lattice', 'lattice-1d']
+        names_grid = ['grid', '2d-lattice', 'lattice-2d']
         # check which layout should be plotted
         if self.layout_type in names_rand:
             self.layout = self.random()
-        elif self.layout_type in names_circular:
+        elif self.layout_type in names_circular or (self.layout_type == 'lattice' and self.dimension == 1):
             self.layout = self.circular()
+        elif self.layout_type in names_grid or (self.layout_type == 'lattice' and self.dimension == 2):
+            self.layout = self.grid()
         elif self.layout_type in names_fr:
             self.layout = self.fruchterman_reingold()
 
@@ -665,7 +668,7 @@ class Layout(object):
     def circular(self):
         """Position nodes on a circle with given radius. 
 
-        This algorithm can be enabled with the keywords: 'circular', 'circle', 'ring'
+        This algorithm can be enabled with the keywords: 'circular', 'circle', 'ring', 'lattice-1d', '1d-lattice', 'lattice'
 
         **Keyword arguments used for the layout:**       
 
@@ -683,12 +686,39 @@ class Layout(object):
         n = len(self.nodes)
         rad = 2.0 * np.pi / n
         layout = {}
-        print(self.radius)
 
         for i in range(n):
             x = self.radius * np.cos(i*rad)
             y = self.radius * np.sin(i*rad)
             layout[self.nodes[i]] = (x,y)
+
+        return layout
+
+
+    def grid(self):
+        """Position nodes on a two-dimensional grid
+
+        This algorithm can be enabled with the keywords: 'grid', 'lattice-2d', '2d-lattice', 'lattice'
+
+        Returns
+        -------
+        layout : dict
+            A dictionary of positions keyed by node
+
+        """
+
+        n = len(self.nodes)
+        width = 1.0
+
+        # number of nodes in horizontal/vertical direction
+        k = np.floor(np.sqrt(n))
+        dist = width / k
+        layout = {}
+
+        i = 0
+        for i in range(n):
+            layout[self.nodes[i]] = ((i%k) *dist, -(np.floor(i/k))*dist)
+            i += 1
 
         return layout
 
