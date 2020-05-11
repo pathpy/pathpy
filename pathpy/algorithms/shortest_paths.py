@@ -304,6 +304,47 @@ def diameter(network: Network,
     return np.max(distance_matrix(network, weight=weight))
 
 
+def all_longest_paths(network: Network,
+                       weight: Union[str, bool, None] = None) -> defaultdict:
+    """Returns a dictionary containing all longest shortest paths, i.e. shortest paths
+    that correspond to the diameter of the network, between all pairs of nodes
+
+    .. note::
+
+        Shortest paths are calculated using a custom implementation of
+        the Floyd-Warshall algorithm.
+
+    Parameters
+    ----------
+    network : Network
+
+        The :py:class:`Network` object that contains the network
+
+    weighted : bool
+
+        If True cheapest paths will be calculated.
+
+    Examples
+    --------
+    Generate a path and add it to the network.
+
+    ....
+
+
+    """
+    l_p: defaultdict = defaultdict(lambda: defaultdict(set))
+    s_p, dist = all_shortest_paths(network, weight=weight)
+
+    diameter = np.max(dist)
+
+    for v in network.nodes.uids:
+        for w in network.nodes.uids:
+            if dist[network.nodes.index[v], network.nodes.index[w]]==diameter:
+                l_p[v][w] = s_p[v][w]
+    return l_p
+    
+
+
 def avg_path_length(network: Network,
                     weight: Union[str, bool, None] = None) -> float:
     """Calculates the average shortest path length

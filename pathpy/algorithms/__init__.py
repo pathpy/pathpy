@@ -19,7 +19,8 @@ from pathpy.algorithms.shortest_paths import(distance_matrix,
                                              single_source_shortest_paths,
                                              shortest_path_tree,
                                              diameter,
-                                             avg_path_length)
+                                             avg_path_length,
+                                             all_longest_paths)
 
 from pathpy.algorithms.centralities import (betweenness_centrality,
                                             closeness_centrality,
