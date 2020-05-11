@@ -315,10 +315,12 @@ class Layout(object):
         self.seed = attr.get('seed', None)
         self.positions = attr.get('positions', None)
         self.radius = attr.get('radius', 1.0)
+        self.direction = attr.get('direction', 1.0)
+        self.start_angle = attr.get('start_angle', 0.0)
 
         # TODO: allow also higher dimensional layouts
         if self.dimension > 2:
-            log.warning('Currently only plots with dimension 2 are supported!')
+            log.warning('Currently only plots with maximum dimension 2 are supported!')
             self.dimension = 2
 
     @staticmethod
@@ -676,6 +678,14 @@ class Layout(object):
           Sets the radius of the circle on which nodes
           are positioned
 
+        - ``direction`` : float, optional (default = 1.0)
+          Sets the direction in which nodes are placed on the circle. 1.0 for clockwise (default) 
+          and -1.0 for counter-clockwise direction.
+
+        - ``start_angle`` : float, optional (default = 90.0)
+          Sets the angle of the first node relative to the 3pm position on a clock.
+          and -1.0 for counter-clockwise direction.
+
         Returns
         -------
         layout : dict
@@ -685,11 +695,12 @@ class Layout(object):
 
         n = len(self.nodes)
         rad = 2.0 * np.pi / n
+        rotation = (90.0 - self.start_angle*self.direction) * np.pi / 180.0
         layout = {}
 
         for i in range(n):
-            x = self.radius * np.cos(i*rad)
-            y = self.radius * np.sin(i*rad)
+            x = self.radius * np.cos(rotation - i*rad*self.direction)
+            y = self.radius * np.sin(rotation - i*rad*self.direction)
             layout[self.nodes[i]] = (x,y)
 
         return layout
