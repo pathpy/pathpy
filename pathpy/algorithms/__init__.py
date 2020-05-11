@@ -31,6 +31,8 @@ from pathpy.algorithms.components import (find_connected_components,
                                           largest_component_size,
                                           largest_connected_component)
 
+from pathpy.algorithms.trees import (tree_size, check_tree)
+
 from pathpy.algorithms import community_detection
 
 # =============================================================================
