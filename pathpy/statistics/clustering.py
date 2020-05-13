@@ -79,7 +79,7 @@ def avg_clustering_coefficient(network: Network) -> float:
 
     """
     return np.mean([local_clustering_coefficient(network, v)
-                    for v in network.nodes.keys()])
+                    for v in network.nodes.uids])
 
 
 def closed_triads(network: Network, v: str) -> Set:
