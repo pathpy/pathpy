@@ -15,18 +15,24 @@ from pathpy import config
 
 
 def tqdm_disabled(it, *args, **kwargs):
-    """Disable the progress bar and return inital iterator."""
+    """Disable the progress bar and return initial iterator."""
     return it
 
 
 def tqdm_console(*args, **kwargs):
     """Progressbar for a console environment."""
-    return tq(*args, **kwargs)
+    if len(args[0]) > config['progress']['min_iter']:
+        return tq(*args, **kwargs)
+    else:
+        return args[0]
 
 
 def tqdm_notebook(*args, **kwargs):
     """Progressbar for a notebook environment."""
-    return tqn(*args, **kwargs)
+    if len(args[0]) > config['progress']['min_iter']:
+        return tqn(*args, **kwargs)
+    else:
+        return args[0]
 
 
 # overwrite original tqdm typing

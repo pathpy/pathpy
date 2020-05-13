@@ -37,6 +37,7 @@ config['logging']['verbose'] = parser.getboolean('logging', 'verbose')
 config['logging']['level'] = parser.get('logging', 'level')
 
 config['progress']['enabled'] = parser.getboolean('progress', 'enabled')
+config['progress']['min_iter'] = parser.getint('progress', 'min_iter')
 config['progress']['leave'] = parser.getboolean('progress', 'leave')
 
 config['attributes']['history'] = parser.getboolean('attributes', 'history')
