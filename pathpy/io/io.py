@@ -21,7 +21,7 @@ from pathpy.core.network import Network
 LOG = logger(__name__)
 
 
-def read_csv(filename: str, directed: bool = True, sep: str = ',',
+def read_csv(filename: str, directed: bool = True, loops: bool = True, sep: str = ',',
              header: bool = True, names: Optional[list] = None,
              **kwargs: Any) -> Network:
     """Read network from a csv file,"""
@@ -31,10 +31,10 @@ def read_csv(filename: str, directed: bool = True, sep: str = ',',
     else:
         df = pd.read_csv(filename, header=0, names=names, sep=sep)
 
-    return from_dataframe(df, directed=directed, **kwargs)
+    return from_dataframe(df, directed=directed, loops=loops, **kwargs)
 
 
-def from_dataframe(df: pd.DataFrame, directed: bool = True,
+def from_dataframe(df: pd.DataFrame, directed: bool = True, loops: bool = True,
                    **kwargs: Any) -> Network:
     """Reads a network from a pandas dataframe.
 
@@ -103,7 +103,8 @@ def from_dataframe(df: pd.DataFrame, directed: bool = True,
             edge = Edge(net.nodes[v], net.nodes[w])
         else:
             edge = Edge(net.nodes[v], net.nodes[w], uid=uid)
-        net.add_edge(edge)
+        if loops or edge.v != edge.w:
+            net.add_edge(edge)
 
         reserved_columns = set(['v', 'w', 'uid'])
         for k in row:
@@ -112,7 +113,7 @@ def from_dataframe(df: pd.DataFrame, directed: bool = True,
     return net
 
 
-def read_sql(filename: Optional[str] = None, directed: bool = True,
+def read_sql(filename: Optional[str] = None, directed: bool = True, loops: bool = True,
                 con: Optional[sqlite3.Connection] = None,
                 sql: Optional[str] = None, table: Optional[str] = None,
                 **kwargs: Any) -> Network:
@@ -157,7 +158,7 @@ def read_sql(filename: Optional[str] = None, directed: bool = True,
         _con.close()
 
     # construct network from pandas data frame
-    return from_dataframe(df, directed=directed, **kwargs)
+    return from_dataframe(df, directed=directed, loops=loops, **kwargs)
 
 
 def to_dataframe(network: Network) -> pd.DataFrame:
