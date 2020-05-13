@@ -246,7 +246,7 @@ def ER_np(n: int, p: float, directed: bool = False, loops: bool = False,
     for i in range(n):
         network.add_node(node_uids[i])
 
-    for s in tqdm(range(n)):
+    for s in tqdm(range(n), 'generating G(n,p) network'):
         if directed:
             x = n
         else:
@@ -334,7 +334,7 @@ def Watts_Strogatz(n: int, s: int, p: float = 0.0, loops: bool = False,
         return network
 
     # Rewire each link with probability p
-    for edge in network.edges:
+    for edge in tqdm(network.edges, 'generating WS network'):
         if np.random.rand() < p:
             # Delete original link and remember source node
             v = edge.v.uid
