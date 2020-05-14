@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : __init__.py • base -- Initialize base constructurs for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sat 2020-04-18 10:24 juergen>
+# Time-stamp: <Thu 2020-05-14 15:52 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -16,16 +16,17 @@
 #     TemporalAttributes
 # )
 
-from .containers import (
-    Properties,
-    NodeContainer,
-    EdgeContainer,
+from .collecions import (
+    BaseCollection,
 )
 
 from .classes import (
+    BaseClass,
     BaseNode,
     BaseEdge,
-    BaseNetwork,
+    BasePath,
+    BaseModel,
+    # BaseNetwork,
     # BaseHigherOrderNetwork,
     # BaseTemporalNetwork,
     # BaseStaticNetwork,

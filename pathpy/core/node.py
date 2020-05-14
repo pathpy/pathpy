@@ -4,15 +4,15 @@
 # =============================================================================
 # File      : node.py -- Base class for a single node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-04-16 09:26 juergen>
+# Time-stamp: <Thu 2020-05-14 11:13 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from pathpy import logger
-from pathpy.core.base import BaseNode
+from pathpy.core.base import BaseNode, BaseCollection
 
 # create logger for the Node class
 LOG = logger(__name__)
@@ -176,6 +176,80 @@ class Node(BaseNode):
 
         return ''.join(summary)
 
+
+class NodeCollection(BaseCollection):
+    """A collection of nodes"""
+
+    def __getitem__(self, key: Union[str, Node]) -> Node:
+        """Returns a node object."""
+        _node: Node
+        if isinstance(key, str):
+            _node = self._map[key]
+        elif isinstance(key, Node) and key in self:
+            _node = key
+        else:
+            raise KeyError
+        return _node
+
+    def add(self, *nodes: Union[str, Node, tuple, list], **kwargs: Any) -> None:
+        """Add multiple nodes. """
+        # iterate over a list of nodes
+        for node in nodes:
+            if isinstance(node, (tuple, list)):
+                self.add(*node, **kwargs)
+            else:
+                self._add_node(node, **kwargs)
+
+    def _add_node(self, node: Union[str, Node], **kwargs: Any) -> None:
+        """Add a single node to the network."""
+
+        # check if the right object is provided.
+        if isinstance(node, Node):
+            # check if node exists already
+            if not self.contain(node):
+                # if not add new node
+                self[node.uid] = node
+            else:
+                # raise error if node already exists
+                LOG.error('The node "%s" already exists in the Network', node.uid)
+                raise KeyError
+
+        # if string is given
+        elif isinstance(node, str):
+            self._add_node_from_str(node, **kwargs)
+
+        # otherwise raise error
+        else:
+            LOG.error('The provided node "%s" is of the wrong type!', node)
+            raise TypeError
+
+    def _add_node_from_str(self, node: str, **kwargs):
+        """Helper function to add a node from a str."""
+
+        # check if node with given uid str exists already
+        if node not in self:
+            # if not add new node with provided uid str
+            self[node] = Node(uid=node, **kwargs)
+        else:
+            # raise error if node already exists
+            LOG.error('The node "%s" already exists in the Network', node)
+            raise KeyError
+
+    def remove(self, *nodes: Union[str, Node, tuple, list], **kwargs) -> None:
+        """Remove multiple nodes. """
+        # pylint: disable=unused-argument
+        # iterate over a list of nodes
+        for node in nodes:
+            if isinstance(node, (tuple, list)):
+                self.remove(*node)
+            else:
+                self._remove_node(node)
+
+    def _remove_node(self, node: Union[str, Node]) -> None:
+        """Remove a single node."""
+        # if node obect is given
+        if node in self:
+            self.pop(self[node].uid, None)
 
 # =============================================================================
 # eof

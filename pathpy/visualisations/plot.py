@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : plot.py -- Module to plot pathoy networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-05-05 15:27 juergen>
+# Time-stamp: <Mon 2020-05-11 12:23 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -15,7 +15,7 @@ from copy import deepcopy
 from singledispatchmethod import singledispatchmethod  # remove for python 3.8
 
 from pathpy import logger, config
-from pathpy.core.base import (BaseNetwork)
+from pathpy.core.base import (BaseModel)
 from pathpy.visualisations.utils import UnitConverter
 
 from pathpy.visualisations.backends import (D3js,
@@ -269,7 +269,7 @@ class Parser:
     #     LOG.debug('Parse a temporal network')
     #     raise NotImplementedError
 
-    @parse.register(BaseNetwork)
+    @parse.register(BaseModel)
     def _parse_static(self, obj: Any, plot_config: defaultdict,
                       **kwargs: Any) -> defaultdict:
         """Parse static network."""

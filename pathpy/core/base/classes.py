@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : classes.py -- Base classes for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-04-16 09:22 juergen>
+# Time-stamp: <Tue 2020-05-12 11:16 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -27,6 +27,15 @@ class AbstractNode(ABC):
 
 class AbstractEdge(ABC):
     """Abstract base class for an Edge.
+
+    Warning: This class should not be used directly.
+    Use derived classes instead.
+    """
+    pass
+
+
+class AbstractPath(ABC):
+    """Abstract base class for a Path.
 
     Warning: This class should not be used directly.
     Use derived classes instead.
@@ -349,6 +358,11 @@ class BaseClass:
             return float(self.attributes.get('weight', default))
 
 
+class BaseCollection(BaseClass):
+    """Base class for collecting objects"""
+    pass
+
+
 class BaseNode(AbstractNode, BaseClass):
     """Base class for nodes."""
     pass
@@ -359,17 +373,22 @@ class BaseEdge(AbstractEdge, BaseClass):
     pass
 
 
-class BaseNetwork(AbstractNetwork, BaseClass):
+class BasePath(AbstractPath, BaseClass):
+    """Base class for paths."""
+    pass
+
+
+class BaseModel(AbstractNetwork, BaseClass):
     """Base class for networks."""
     pass
 
 
-class BaseTemporalNetwork(BaseNetwork):
+class BaseTemporalNetwork(BaseModel):
     """Base class for temporal networks."""
     pass
 
 
-class BaseStaticNetwork(BaseNetwork):
+class BaseStaticNetwork(BaseModel):
     """Base class for temporal networks."""
     pass
 

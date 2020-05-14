@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : __init__.py -- pathpy init file
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-04-22 21:43 juergen>
+# Time-stamp: <Thu 2020-05-14 15:51 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -24,7 +24,7 @@ from pathpy.utils.progress import tqdm  # noqa: F401
 # import symbols into root namespace
 from pathpy.core.api import (Node,
                              Edge,
-                             # Path,
+                             Path,
                              Network,
                              # HigherOrderNode,
                              # HigherOrderEdge,
@@ -38,7 +38,7 @@ from pathpy.visualisations.api import (plot,
 # from pathpy.models.api import (NullModel,
 #                                MultiOrderModel)
 
-# # import submodules
+# import submodules
 from pathpy import io
 from pathpy import algorithms
 from pathpy import statistics

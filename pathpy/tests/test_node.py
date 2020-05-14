@@ -3,14 +3,15 @@
 # =============================================================================
 # File      : test_node.py -- Test environment for the Node class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-04-16 08:28 juergen>
+# Time-stamp: <Wed 2020-05-13 14:40 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 
-# import pytest
+import pytest
 
 from pathpy import Node
+from pathpy.core.node import NodeCollection
 
 
 def test_hash():
@@ -89,19 +90,6 @@ def test_update():
     assert u['shape'] == 'rectangle'
 
 
-def test_update_from_other():
-    """Test to update node attributes from other node"""
-    # not implemented
-    # ---------------
-    # v = Node('v', shape='circle', size=30)
-    # u.update(v)
-
-    # assert u['size'] == 30
-    # assert u['shape'] == 'circle'
-    # assert u.attributes.to_dict() == {'color': 'green',
-    #                                   'shape': 'circle', 'size': 30}
-
-
 def test_copy():
     """Test to make a copy of a node."""
 
@@ -115,6 +103,53 @@ def test_copy():
     # different objects
     assert u != v
 
+
+def test_NodeCollection():
+    """Test node collection"""
+    nodes = NodeCollection()
+
+    assert len(nodes) == 0
+
+    a = Node('a')
+    nodes.add(a)
+
+    assert len(nodes) == 1
+    assert nodes['a'] == a
+    assert nodes[a] == a
+    assert 'a' in nodes
+    assert a in nodes
+    assert 'a' in nodes.uids
+    assert 'a' in nodes.keys()
+    assert a in nodes.values()
+    assert ('a', a) in nodes.items()
+    assert {'a': a} == nodes.dict
+
+    nodes.add('b', 'c')
+
+    print(nodes)
+    assert len(nodes) == 3
+
+    with pytest.raises(Exception):
+        nodes.add('a')
+
+    with pytest.raises(Exception):
+        nodes.add(a)
+
+    d = Node('d', color='blue')
+    nodes.add(d)
+
+    assert nodes['d']['color'] == 'blue'
+
+    d['color'] = 'red'
+    assert nodes['d']['color'] == 'red'
+
+    nodes.add('e', ('f', 'g'), ['h', 'i'])
+
+    assert len(nodes) == 9
+
+    nodes.remove(('e', 'f', 'g'), 'h', ['i'])
+
+    assert len(nodes) == 4
 
 # =============================================================================
 # eof

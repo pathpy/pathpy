@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : matrices.py -- Module to calculate various matrices
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-04-20 07:25 juergen>
+# Time-stamp: <Mon 2020-05-11 12:22 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -16,7 +16,7 @@ import numpy as np
 from scipy import sparse  # pylint: disable=import-error
 
 from pathpy import logger
-from pathpy.core.base import BaseNetwork
+from pathpy.core.base import BaseModel
 
 # create logger
 LOG = logger(__name__)
@@ -78,7 +78,7 @@ def adjacency_matrix(self, weight: Union[str, bool, None] = 'weight',
     raise NotImplementedError
 
 
-@adjacency_matrix.register(BaseNetwork)
+@adjacency_matrix.register(BaseModel)
 def _network(self, weight: Union[str, bool, None] = None,
              transposed: bool = False, directed: Optional[bool] = None,
              **kwargs: Any) -> sparse.csr_matrix:

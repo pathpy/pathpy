@@ -4,23 +4,18 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-05-06 15:21 juergen>
+# Time-stamp: <Thu 2020-05-14 15:41 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, Tuple, Sequence, Set, Dict, Optional, Union, List, cast
-
+from typing import Any, Tuple, Optional, Union, Dict, Set
 from collections import defaultdict
 
 from pathpy import logger
-from pathpy.core.base import BaseNetwork
-from pathpy.core.base import (Properties,
-                              NodeContainer,
-                              EdgeContainer)
-from pathpy.core.node import Node
-from pathpy.core.edge import Edge
-# from pathpy.core.path import Path
+from pathpy.core.base import BaseModel
+from pathpy.core.node import Node, NodeCollection
+from pathpy.core.edge import Edge, EdgeCollection
 
 from pathpy.algorithms import (matrices,
                                centralities,
@@ -38,7 +33,7 @@ Weight = Union[str, bool, None]
 LOG = logger(__name__)
 
 
-class Network(BaseNetwork):
+class Network(BaseModel):
     """Class for a network.
 
     A network is a structure amounting to a set of objects in which some of the
@@ -201,7 +196,7 @@ class Network(BaseNetwork):
 
     def __init__(self, uid: Optional[str] = None,
                  directed: bool = True, temporal: bool = False,
-                 multiedges: bool = True, **kwargs: Any) -> None:
+                 multiedges: bool = False, **kwargs: Any) -> None:
         """Initialize the network object."""
 
         # initialize the base class
@@ -216,52 +211,31 @@ class Network(BaseNetwork):
         # indicator whether the network has multi-edges
         self._multiedges: bool = multiedges
 
-        # a container for the network properties
-        self._properties: Properties = Properties(directed=directed)
+        # # a container for the network properties
+        self._properties: defaultdict = defaultdict()
 
         # a container for node objects
-        self._nodes: NodeContainer = NodeContainer(self._properties,
-                                                   directed=directed)
+        self._nodes: NodeCollection = NodeCollection()
 
         # a container for edge objects
-        self._edges: EdgeContainer = EdgeContainer(self._properties,
-                                                   directed=directed)
-
-        # a set containing path objects
-        self._paths: set = set()
+        self._edges: EdgeCollection = EdgeCollection(directed=directed,
+                                                     multiedges=multiedges,
+                                                     nodes=self._nodes)
 
         # add attributes to the network
         self.attributes.update(**kwargs)
 
-    # try:
-    #     # import sub paths object
-    #     from pathpy.statistics.subpaths import SubPaths as _SubPathsConstructor
-
-    #     # initialize a local variable to store sub paths
-    #     # NOTE: this will be only created if the module is loaded
-    #     _subpaths = None
-
-    #     # add property to the network
-    #     @property
-    #     def subpaths(self):
-    #         """Returns a SubPath object."""
-
-    #         # check if alread a sub path object is initialzed
-    #         if self._subpaths is None:
-
-    #             # if not generate initialize new object
-    #             self._subpaths = self._SubPathsConstructor(self)
-
-    #         # return sub path object
-    #         return self._subpaths
-
-    # except ImportError as err:
-    #     LOG.error('pathpy.subpaths failed to be imported: {}'.format(err))
-
-    # try:
-    #     from pathpy.visualizations.plot import plot
-    # except ImportError as err:
-    #     LOG.error('pathpy.plot failed to be imported: {}'.format(err))
+        # add network properties
+        self._properties['edges'] = set()
+        self._properties['successors'] = defaultdict(set)
+        self._properties['predecessors'] = defaultdict(set)
+        self._properties['outgoing'] = defaultdict(set)
+        self._properties['incoming'] = defaultdict(set)
+        self._properties['neighbors'] = defaultdict(set)
+        self._properties['incident_edges'] = defaultdict(set)
+        self._properties['indegrees'] = defaultdict(float)
+        self._properties['outdegrees'] = defaultdict(float)
+        self._properties['degrees'] = defaultdict(float)
 
     def __str__(self) -> str:
         """Print the summary of the network.
@@ -280,10 +254,6 @@ class Network(BaseNetwork):
     def _repr_html_(self):
         """Plot the network in an interactive environment."""
         self.plot()
-
-    # def __add__(self):
-    #     """Add two networks together."""
-    #     raise NotImplementedError
 
     @property
     def uid(self) -> str:
@@ -317,7 +287,7 @@ class Network(BaseNetwork):
         return super().uid
 
     @property
-    def shape(self) -> Tuple[int, int, int]:
+    def shape(self) -> Tuple[int, int]:
         """Return the size of the Network as tuple of number of nodes, edges and paths.
 
         Returns
@@ -337,7 +307,7 @@ class Network(BaseNetwork):
         (6, 6, 2)
 
         """
-        return self.number_of_nodes(), self.number_of_edges(), self.number_of_paths()
+        return self.number_of_nodes(), self.number_of_edges()
 
     @property
     def directed(self) -> bool:
@@ -365,6 +335,11 @@ class Network(BaseNetwork):
         return self._directed
 
     @property
+    def multiedges(self) -> bool:
+        """Return if edges are directed. """
+        return self._multiedges
+
+    @property
     def temporal(self) -> bool:
         """Return if the network is temproal (True) or static (False).
 
@@ -379,7 +354,7 @@ class Network(BaseNetwork):
         return self._temporal
 
     @property
-    def nodes(self) -> NodeContainer:
+    def nodes(self) -> NodeCollection:
         """Return the associated nodes of the network.
 
         Returns
@@ -405,7 +380,7 @@ class Network(BaseNetwork):
         return self._nodes
 
     @property
-    def edges(self) -> EdgeContainer:
+    def edges(self) -> EdgeCollection:
         """Return the associated edges of the network.
 
         Returns
@@ -429,32 +404,6 @@ class Network(BaseNetwork):
 
         """
         return self._edges
-
-    @property
-    def paths(self) -> set:
-        """Return the associated paths of the network.
-
-        Returns
-        -------
-        PathDict
-
-            Return a dictionary with the :py:class:`Path` uids as key and the
-            :py:class:`Path` objects as values, associated with the network.
-
-        Examples
-        --------
-        Generate a simple network.
-
-        >>> from pathpy import Path, Network
-        >>> net = Network('a-b-c')
-
-        Get the paths of the network
-
-        >>> net.paths
-        {'a-b|b-c': Path a-b|b-c}
-
-        """
-        return self._paths
 
     @property
     def successors(self) -> Dict[str, Set[Node]]:
@@ -481,7 +430,7 @@ class Network(BaseNetwork):
         {'v': {Node w}, 'w':{}}
 
         """
-        _d = self._properties.successors
+        _d = self._properties['successors']
         return {node.uid: _d[node] for node in self.nodes}
 
     @property
@@ -509,31 +458,31 @@ class Network(BaseNetwork):
         {'v':{}, 'w': {Node v}}
 
         """
-        _d = self._properties.predecessors
+        _d = self._properties['predecessors']
         return {node.uid: _d[node] for node in self.nodes}
 
     @property
     def outgoing(self) -> Dict[str, Set[Edge]]:
         """Retuns a dict with sets of outgoing edges."""
-        _d = self._properties.outgoing
+        _d = self._properties['outgoing']
         return {node.uid: _d[node] for node in self.nodes}
 
     @property
     def incoming(self) -> Dict[str, Set[Edge]]:
         """Retuns a dict with sets of incoming edges."""
-        _d = self._properties.incoming
+        _d = self._properties['incoming']
         return {node.uid: _d[node] for node in self.nodes}
 
     @property
     def neighbors(self) -> Dict[str, Set[Node]]:
         """Retuns a dict with sets of adjacent nodes."""
-        _d = self._properties.neighbors
+        _d = self._properties['neighbors']
         return {node.uid: _d[node] for node in self.nodes}
 
     @property
     def incident_edges(self) -> Dict[str, Set[Edge]]:
         """Retuns a dict with sets of adjacent edges."""
-        _d = self._properties.incident_edges
+        _d = self._properties['incident_edges']
         return {node.uid: _d[node] for node in self.nodes}
 
     def _degrees(self, _dict: defaultdict,
@@ -551,25 +500,25 @@ class Network(BaseNetwork):
     def indegrees(self, weight: Weight = None) -> Dict[str, float]:
         """Retuns a dict with indegrees of the nodes."""
         if weight is None:
-            _d = self._degrees(self._properties.indegrees, weight)
+            _d = self._degrees(self._properties['indegrees'], weight)
         else:
-            _d = self._degrees(self._properties.incoming, weight)
+            _d = self._degrees(self._properties['incoming'], weight)
         return _d
 
     def outdegrees(self, weight: Weight = None) -> Dict[str, float]:
         """Retuns a dict with outdegrees of the nodes."""
         if weight is None:
-            _d = self._degrees(self._properties.outdegrees, weight)
+            _d = self._degrees(self._properties['outdegrees'], weight)
         else:
-            _d = self._degrees(self._properties.outgoing, weight)
+            _d = self._degrees(self._properties['outgoing'], weight)
         return _d
 
     def degrees(self, weight: Weight = None) -> Dict[str, float]:
         """Retuns a dict with degrees of the nodes."""
         if weight is None:
-            _d = self._degrees(self._properties.degrees, weight)
+            _d = self._degrees(self._properties['degrees'], weight)
         else:
-            _d = self._degrees(self._properties.incident_edges, weight)
+            _d = self._degrees(self._properties['incident_edges'], weight)
         return _d
 
     def summary(self) -> str:
@@ -590,14 +539,12 @@ class Network(BaseNetwork):
 
         """
         summary = [
-            'Uid:\t\t{}\n'.format(self.uid),
-            'Type:\t\t{}\n'.format(self.__class__.__name__),
-            'Directed:\t{}\n'.format(str(self.directed)),
-            'Unique nodes:\t{}\n'.format(self.number_of_nodes()),
-            'Unique edges:\t{}\n'.format(self.number_of_edges()),
-            'Unique paths:\t{}\n'.format(self.number_of_paths()),
-            'Total paths:\t{}'.format(
-                self.number_of_paths()),
+            'Uid:\t\t\t{}\n'.format(self.uid),
+            'Type:\t\t\t{}\n'.format(self.__class__.__name__),
+            'Directed:\t\t{}\n'.format(str(self.directed)),
+            'Multi-Edges:\t\t{}\n'.format(str(self.multiedges)),
+            'Number of nodes:\t{}\n'.format(self.number_of_nodes()),
+            'Number of edges:\t{}'.format(self.number_of_edges()),
         ]
 
         return ''.join(summary)
@@ -676,44 +623,7 @@ class Network(BaseNetwork):
         # if unique:
         return len(self.edges)
 
-    def number_of_paths(self) -> int:
-        """Return the number of paths in the network.
-
-        Parameters
-        ----------
-        unique : bool, optional (default = True)
-
-            If unique is ``True`` only the number of unique paths in the
-            network is returnd.
-
-        Returns
-        -------
-        int
-
-            Returns the number of paths in the network.
-
-        Examples
-        --------
-        Generate a simple network.
-
-        >>> from pathy import Network
-        >>> net = Network('a-b-c', 'd-b-e', 'a-b-c')
-
-        Get the number of unique paths:
-
-        >>> net.number_of_paths()
-        2
-
-        Get the number of all observed paths in the path:
-
-        >>> net.number_of_paths(unique=False)
-        3
-
-        """
-        # if unique:
-        return len(self.paths)
-
-    def add_node(self, node: Union[str, Node], **kwargs: Any) -> None:
+    def add_node(self, *node: Union[str, Node], **kwargs: Any) -> None:
         """Add a single node to the network.
 
         Parameters
@@ -744,43 +654,10 @@ class Network(BaseNetwork):
         {'a': Node a, 'b': Node b}
 
         """
+        self.nodes.add(*node, **kwargs)
 
-        # check if the right object is provided.
-        # if node obect is given
-        if isinstance(node, Node):
-
-            # check if node exists already
-            if not self.nodes.contain(node):
-
-                # if not add new node
-                self.nodes.add(node)
-            else:
-                # raise error if node already exists
-                LOG.error('The node "%s" already exists in the Network',
-                          node.uid)
-                raise KeyError
-
-        # if string is given
-        elif isinstance(node, str):
-
-            # check if node with given uid str exists already
-            if node not in self.nodes.uids:
-
-                # if not add new node with provided uid str
-                self.nodes.add(Node(uid=node, **kwargs))
-            else:
-                # raise error if node already exists
-                LOG.error('The node "%s" already exists in the Network', node)
-                raise KeyError
-
-        # otherwise raise error
-        else:
-            LOG.error('The provided node "%s" is of the wrong type!', node)
-            raise TypeError
-
-    def add_edge(self, edge: Union[str, Node, Edge, tuple],
-                 *args: Union[str, Node], uid: Optional[str] = None,
-                 **kwargs: Any) -> None:
+    def add_edge(self, *edge: Union[str, tuple, list, Node, Edge],
+                 uid: Optional[str] = None, **kwargs: Any) -> None:
         """Add a single edge to the network.
 
         Parameters
@@ -811,59 +688,8 @@ class Network(BaseNetwork):
         2
 
         """
-
-        # check if the right object is provided.
-        # if edge obect is given
-        if isinstance(edge, Edge):
-
-            # check if edge exists already
-            if not self.edges.contain(edge):
-
-                # check if node exists already
-                if edge.v not in self.nodes:
-                    self.add_node(edge.v)
-                if edge.w not in self.nodes:
-                    self.add_node(edge.w)
-
-                # add edge to the network
-                self.edges.add(edge)
-            else:
-                # raise error if edge already exists
-                LOG.error('The edge "%s" already exists in the Network',
-                          edge.uid)
-                raise KeyError
-
-        # if two node objects are given
-        elif (isinstance(edge, (str, Node)) and args
-              and isinstance(args[0], (str, Node))):
-
-            # create temporal node dict
-            _nodes: Dict[str, Node] = {}
-
-            # iterate over the nodes
-            for key, node in [('v', edge), ('w', args[0])]:
-                if isinstance(node, str):
-                    # check if the node exists otherwise add new one
-                    if node not in self.nodes.uids:
-                        self.add_node(node)
-                    _nodes[key] = self.nodes[node]
-                if isinstance(node, Node):
-                    # check if the node exists otherwise add new one
-                    if node not in self.nodes:
-                        self.add_node(node)
-                    _nodes[key] = self.nodes[node.uid]
-
-            # create new edge object and add it to the network
-            self.add_edge(Edge(_nodes['v'], _nodes['w'], uid=uid, **kwargs))
-
-        # if tuple is given
-        elif isinstance(edge, tuple) and len(edge) >= 2:
-            self.add_edge(edge[0], edge[1], uid=uid, **kwargs)
-
-    # otherwise raise error
-        else:
-            LOG.error('The provided edge "%s" is of the wrong type!', edge)
-            raise TypeError
+        self.edges.add(*edge, uid=uid, **kwargs)
+        self._add_properties()
 
     def add_nodes(self, *nodes: Union[str, Node],
                   **kwargs: Any) -> None:
@@ -894,13 +720,9 @@ class Network(BaseNetwork):
         3
 
         """
-        # iterate over a list of nodes
-        for node in nodes:
-            self.add_node(node, **kwargs)
+        self.nodes.add(*nodes, **kwargs)
 
-    def add_edges(self, *edges: Union[List, Sequence[Edge],
-                                      Sequence[Tuple[Node, Node]],
-                                      Sequence[Tuple[str, str]]],
+    def add_edges(self, *edges: Union[str, tuple, list, Node, Edge],
                   **kwargs: Any) -> None:
         """Add multiple edges from a list to the network.
 
@@ -929,15 +751,8 @@ class Network(BaseNetwork):
         2
 
         """
-
-        # iterate over a list of nodes
-        for edge in edges:
-            if isinstance(edge, Edge):
-                self.add_edge(edge, **kwargs)
-            elif isinstance(edge, tuple):
-                self.add_edge(edge[0], edge[1], **kwargs)
-            elif isinstance(edge, list):
-                self.add_edges(*edge, **kwargs)
+        self.edges.add(*edges, **kwargs)
+        self._add_properties()
 
     def remove_node(self, node: Union[str, Node]) -> None:
         """Remove a single node from the network.
@@ -971,29 +786,13 @@ class Network(BaseNetwork):
         (3, 1, 0)
 
         """
-        # if node obect is given
-        if isinstance(node, Node) and node in self.nodes:
-
-            # remove incident edges
-            for _edge in list(self.incident_edges[node.uid]):
+        if node in self.nodes:
+            for _edge in list(self.incident_edges[self.nodes[node].uid]):
                 self.remove_edge(_edge)
+        self.nodes.remove(node)
 
-            # remove node
-            self.nodes.remove(node)
-
-        # if string is given
-        elif isinstance(node, str) and node in self.nodes.uids:
-
-            # remove incident edges
-            for _edge in list(self.incident_edges[node]):
-                self.remove_edge(_edge)
-
-            # remove node
-            self.nodes.remove(self.nodes[node])
-
-    def remove_edge(self, edge: Union[str, Node, Edge],
-                    *args: Union[str, Node],
-                    uid: Optional[str] = None,) -> None:
+    def remove_edge(self, *edge: Union[str, tuple, Node, Edge],
+                    uid: Optional[str] = None) -> None:
         """Remove a single edge from the network.
 
         .. note::
@@ -1028,28 +827,74 @@ class Network(BaseNetwork):
         """
         # check if the right object is provided.
         # if edge obect is given
-        if isinstance(edge, Edge) and edge in self.edges:
-            self.edges.remove(edge)
+        self.edges.remove(*edge, uid=uid)
+        self._remove_properties()
 
-        # if edge uid is given
-        elif isinstance(edge, str) and not args and edge in self.edges.uids:
-            _edge = cast(Edge, self.edges[edge])
-            self.edges.remove(_edge)
+    def remove_edges(self, *edges: Union[str, tuple, list, Node, Edge]) -> None:
+        """Remove a single edge from the network."""
+        self.edges.remove(*edges)
+        self._remove_properties()
 
-        # if two node objects are given
-        elif (isinstance(edge, (str, Node)) and args
-              and isinstance(args[0], (str, Node))):
-            _edges = cast(Set[Edge], self.edges[edge, args[0]])
+    def _add_properties(self):
+        """Helper function to update network properties."""
 
-            # iterate over all edges between the nodes
-            for _edge in list(_edges):
-                # if dedicated uid is given
-                if uid is not None:
-                    if _edge.uid == uid:
-                        self.remove_edge(_edge)
-                else:
-                    # remove all edges between the nodes
-                    self.remove_edge(_edge)
+        edges = set(self.edges).difference(self._properties['edges'])
+
+        for edge in edges:
+            _nodes: list = [(edge.v, edge.w), (edge.w, edge.v)]
+
+            for _v, _w in _nodes:
+                self._properties['successors'][_v].add(_w)
+                self._properties['outgoing'][_v].add(edge)
+                self._properties['predecessors'][_w].add(_v)
+                self._properties['incoming'][_w].add(edge)
+
+                if self.directed:
+                    break
+
+            for _v, _w in _nodes:
+                self._properties['neighbors'][_v].add(_w)
+                self._properties['incident_edges'][_v].add(edge)
+
+                self._properties['indegrees'][_v] = len(
+                    self._properties['incoming'][_v])
+                self._properties['outdegrees'][_v] = len(
+                    self._properties['outgoing'][_v])
+                self._properties['degrees'][_v] = len(
+                    self._properties['incident_edges'][_v])
+
+            self._properties['edges'].add(edge)
+
+    def _remove_properties(self):
+        """Helper function to update network properties."""
+
+        edges = self._properties['edges'].difference(set(self.edges))
+
+        for edge in edges:
+            _nodes: list = [(edge.v, edge.w), (edge.w, edge.v)]
+
+            for _v, _w in _nodes:
+                self._properties['successors'][_v].discard(_w)
+                self._properties['outgoing'][_v].discard(edge)
+                self._properties['predecessors'][_w].discard(_v)
+                self._properties['incoming'][_w].discard(edge)
+
+                if self.directed:
+                    break
+
+            for _v, _w in _nodes:
+                self._properties['neighbors'][_v].discard(_w)
+                self._properties['incident_edges'][_v].discard(edge)
+
+                self._properties['indegrees'][_v] = len(
+                    self._properties['incoming'][_v])
+                self._properties['outdegrees'][_v] = len(
+                    self._properties['outgoing'][_v])
+                self._properties['degrees'][_v] = len(
+                    self._properties['incident_edges'][_v])
+
+            self._properties['edges'].discard(edge)
+
 
 # =============================================================================
 # eof

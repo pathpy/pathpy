@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_algorithms.py -- Test environment for basic algorithms
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sun 2020-04-19 11:14 juergen>
+# Time-stamp: <Thu 2020-05-14 15:44 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -56,7 +56,7 @@ def test_distance_matrix():
     assert m[0, 3] == 3
     assert net.distance_matrix()[0, 3] == 3
 
-    net.add_edges(('a', 'x'), ('x', 'c'))
+    net.add_edges(('x', 'c'))
     m = pp.algorithms.shortest_paths.distance_matrix(net)
 
     assert m[0, 3] == 2

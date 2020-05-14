@@ -4,16 +4,17 @@
 # =============================================================================
 # File      : edge.py -- Base class for an single edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-04-16 10:06 juergen>
+# Time-stamp: <Thu 2020-05-14 14:25 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, Optional
+from typing import Any, Optional, Union, cast
+from collections import defaultdict
 
 from pathpy import logger
-from pathpy.core.base import BaseEdge
-from pathpy.core.node import Node
+from pathpy.core.base import BaseEdge, BaseCollection
+from pathpy.core.node import Node, NodeCollection
 
 # create logger for the Edge class
 LOG = logger(__name__)
@@ -293,7 +294,7 @@ class Edge(BaseEdge):
         -------
         :py:class:`Node`
 
-            Retun the source :py:class:`Node` of the edge.
+            Return the source :py:class:`Node` of the edge.
 
         Examples
         --------
@@ -315,7 +316,7 @@ class Edge(BaseEdge):
         -------
         :py:class:`Node`
 
-            Retun the target :py:class:`Node` of the edge.
+            Return the target :py:class:`Node` of the edge.
 
         Examples
         --------
@@ -355,6 +356,299 @@ class Edge(BaseEdge):
         ]
 
         return ''.join(summary)
+
+
+class EdgeSet(BaseCollection):
+    """A set of edges"""
+
+    def add(self, edge: Edge) -> None:
+        """Add a node to the set of nodes."""
+        # pylint: disable=unused-argument
+        self._map[edge.uid] = edge
+
+    def discard(self, edge: Edge) -> None:
+        """Removes the specified item from the set."""
+        self.pop(edge.uid, None)
+
+    def __getitem__(self, key: Union[int, str, Edge]) -> Edge:
+        """Returns a node object."""
+        edge: Edge
+        if isinstance(key, Edge) and key in self:
+            edge = key
+        elif isinstance(key, (int, slice)):
+            edge = list(self._map.values())[key]
+        else:
+            edge = self._map[key]
+        return edge
+
+    def __setitem__(self, key: Any, value: Any) -> None:
+        """set a object"""
+        for edge in self.values():
+            edge[key] = value
+
+
+class EdgeCollection(BaseCollection):
+    """A collection of edges"""
+
+    def __init__(self, directed: bool = True, multiedges: bool = False,
+                 nodes: Optional[NodeCollection] = None) -> None:
+        """Initialize the network object."""
+
+        # initialize the base class
+        super().__init__()
+
+        # inidcator whether the network is directed or undirected
+        self._directed: bool = directed
+
+        # indicator whether the network has multi-edges
+        self._multiedges: bool = multiedges
+
+        # collection of nodes
+        self._nodes: NodeCollection = NodeCollection()
+        if nodes is not None:
+            self._nodes = nodes
+
+        # map node tuples to edges
+        self._nodes_map: defaultdict = defaultdict(EdgeSet)
+
+        # map single node to edges
+        self._node_map: defaultdict = defaultdict(set)
+
+    def __contains__(self, item) -> bool:
+        """Returns if item is in edges."""
+        _contain: bool = False
+        if isinstance(item, Edge) and item in self._map.values():
+            _contain = True
+        elif isinstance(item, (tuple, list)):
+            try:
+                if tuple(self.nodes[i].uid for i in item) in self._nodes_map:
+                    _contain = True
+            except KeyError:
+                pass
+
+        elif isinstance(item, str) and item in self._map:
+            _contain = True
+        return _contain
+
+    def __getitem__(self, key: Union[str, tuple, Edge]) -> Union[Edge, EdgeSet]:
+        """Returns a node object."""
+        edge: Edge
+        if isinstance(key, tuple):
+            _node = tuple(self.nodes[i].uid for i in key)
+            if self.multiedges:
+                edge = self._nodes_map[_node]
+            else:
+                edge = self._nodes_map[_node][-1]
+        elif isinstance(key, Edge) and key in self:
+            edge = key
+        else:
+            edge = self._map[key]
+        return edge
+
+    @property
+    def nodes(self) -> NodeCollection:
+        """Return the associated nodes. """
+        return self._nodes
+
+    @property
+    def directed(self) -> bool:
+        """Return if edges are directed. """
+        return self._directed
+
+    @property
+    def multiedges(self) -> bool:
+        """Return if edges are directed. """
+        return self._multiedges
+
+    def add(self, *edges: Union[str, tuple, list, Node, Edge],
+            **kwargs: Any) -> None:
+        """Add multiple edges. """
+
+        uid: Optional[str] = kwargs.pop('uid', None)
+        nodes: bool = kwargs.pop('nodes', True)
+
+        if all(isinstance(arg, (str, Node)) for arg in edges) and nodes:
+            edges = tuple(cast(Union[str, Node], edge)
+                          for edge in zip(edges[:-1], edges[1:]))
+
+        if isinstance(edges[0], list) and len(edges) == 1:
+            edges = tuple(edges[0])
+
+        if not edges:
+            LOG.warning('No edge was added!')
+
+        for edge in edges:
+            self._add_edge(edge, uid=uid, nodes=nodes, **kwargs)
+
+    def _add_edge(self, *edge: Union[str, tuple, list, Node, Edge],
+                  uid: Optional[str] = None, nodes: bool = True,
+                  **kwargs: Any) -> None:
+        """Add a single edge to the network."""
+        # check if the right object is provided.
+        # if edge obect is given
+        if len(edge) == 1 and isinstance(edge[0], Edge):
+            _edge = edge[0]
+            _edge.update(**kwargs)
+            # check if edge exists already
+            if not self.contain(_edge):
+
+                # check if node exists already
+                if _edge.v not in self.nodes:
+                    self.nodes.add(_edge.v)
+                if _edge.w not in self.nodes:
+                    self.nodes.add(_edge.w)
+
+                # add edge to the network
+                self._add(_edge)
+            else:
+                # raise error if edge already exists
+                LOG.error('The edge "%s" already exists.', _edge.uid)
+                raise KeyError
+
+        elif len(edge) == 1 and isinstance(edge[0], (list, tuple)):
+            self._add_edge(*edge[0], uid=uid, **kwargs)
+
+        elif all(isinstance(arg, (str, Node)) for arg in edge) and nodes:
+            _nodes = [cast(Union[str, Node], node) for node in edge]
+            self._add_edge_from_nodes(*_nodes, uid=uid, **kwargs)
+
+        elif len(edge) == 1 and isinstance(edge[0], str) and not nodes:
+            _uid = cast(str, edge[0])
+            self._add_edge_from_str(_uid, **kwargs)
+
+        # otherwise raise error
+        else:
+            LOG.error('The provided edge "%s" is of the wrong type!', edge)
+            raise TypeError
+
+    def _add_edge_from_nodes(self, *nodes: Union[str, Node],
+                             uid: Optional[str] = None, **kwargs: Any) -> None:
+        """Helper function to add an edge from nodes."""
+
+        _nodes: list = []
+        for node in nodes:
+            if node not in self.nodes:
+                self.nodes.add(node)
+            _nodes.append(self.nodes[node])
+
+        if (_nodes[0], _nodes[1]) not in self or self.multiedges:
+            # create new edge object and add it to the network
+            self._add_edge(Edge(_nodes[0], _nodes[1], uid=uid, **kwargs))
+        else:
+            # raise error if node already exists
+            LOG.error('The edge "%s" already exists in the Network', _nodes)
+            raise KeyError
+
+    def _add_edge_from_str(self, edge: str, **kwargs: Any) -> None:
+        """Helper function to add an edge from nodes."""
+        # check if edge with given uid str exists already
+        if edge not in self:
+            # if not add new node with provided uid str
+            self._add_edge(Edge(Node(), Node(), uid=edge, **kwargs))
+        else:
+            # raise error if node already exists
+            LOG.error('The node "%s" already exists in the Network', edge)
+            raise KeyError
+
+    def _add(self, edge: Edge) -> None:
+        """Add an edge to the set of edges."""
+        self[edge.uid] = edge
+
+        _v: str = edge.v.uid
+        _w: str = edge.w.uid
+
+        self._nodes_map[(_v, _w)].add(edge)
+        if not self.directed:
+            self._nodes_map[(_w, _v)].add(edge)
+
+        self._node_map[_v].add(edge)
+        self._node_map[_w].add(edge)
+
+    def remove(self, *edges: Union[str, tuple, list, Node, Edge],
+               **kwargs: Any) -> None:
+        """Remove multiple edges. """
+
+        uid: Optional[str] = kwargs.pop('uid', None)
+        nodes: bool = kwargs.pop('nodes', True)
+
+        if (all(isinstance(arg, (str, Node)) for arg in edges)
+                and nodes and len(edges) > 1):
+            edges = tuple(cast(Union[str, Node], edge)
+                          for edge in zip(edges[:-1], edges[1:]))
+
+        if not edges:
+            LOG.warning('No edge was removed!')
+
+        for edge in edges:
+            self._remove_edge(edge, uid=uid)
+
+    def _remove_edge(self, *edge: Union[str, tuple, list, Node, Edge],
+                     uid: Optional[str] = None) -> None:
+        """Remove a single edge."""
+        # check if the right object is provided.
+        # if edge obect is given
+        if len(edge) == 1 and isinstance(edge[0], Edge) and edge[0] in self:
+            self._remove(edge[0])
+
+        elif len(edge) == 1 and isinstance(edge[0], str) and edge[0] in self:
+            _edge = cast(Edge, self[edge[0]])
+            self._remove(_edge)
+
+        elif len(edge) == 1 and isinstance(edge[0], (tuple, list)):
+            self._remove_edge(*edge[0], uid=uid)
+
+        elif all(isinstance(arg, (str, Node)) for arg in edge):
+
+            if all(arg in self for arg in edge):
+                _edges = [cast(Edge, self[cast(str, _edge)]) for _edge in edge]
+            elif self.multiedges:
+                _edges = [cast(Edge, _edge) for _edge in cast(
+                    EdgeSet, self[edge[0], edge[1]]).values()]
+            else:
+                _edges = [cast(Edge, self[edge[0], edge[1]])]
+
+            # iterate over all edges between the nodes
+            for _edge in list(_edges):
+                # if dedicated uid is given
+                if uid is not None:
+                    if _edge.uid == uid:
+                        self._remove_edge(_edge)
+                else:
+                    # remove all edges between the nodes
+                    self._remove_edge(_edge)
+
+    def _remove_node(self, node: Union[str, Node]) -> None:
+        """Remove a single node."""
+        if node in self.nodes:
+
+            # remove incident edges
+            for _edge in list(self._node_map[self.nodes[node].uid]):
+                self._remove_edge(_edge)
+
+            # remove node
+            self.nodes.remove(self.nodes[node])
+
+    def _remove(self, edge: Edge) -> None:
+        """Remove an edge from the set of edges."""
+        self.pop(edge.uid, None)
+
+        _v: str = edge.v.uid
+        _w: str = edge.w.uid
+
+        self._nodes_map[(_v, _w)].discard(edge)
+
+        if not self.directed:
+            self._nodes_map[(_w, _v)].discard(edge)
+
+        self._node_map[_v].discard(edge)
+        self._node_map[_w].discard(edge)
+
+        for _a, _b in [(_v, _w), (_w, _v)]:
+            if len(self._nodes_map[(_a, _b)]) == 0:
+                self._nodes_map.pop((_a, _b), None)
+
+            if len(self._node_map[_a]) == 0:
+                self._node_map.pop(_a, None)
 
 # =============================================================================
 # eof

@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-05-06 15:34 juergen>
+# Time-stamp: <Thu 2020-05-14 15:34 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -24,151 +24,85 @@ from pathpy import Node, Edge, Network
 #     net.add_edge('a', 'b')
 #     return net
 
-# # test magic methods
-# # ------------------
+# test magic methods
+# ------------------
 
 
-# def test_setitem():
-#     """Test the assignment of attributes."""
+def test_setitem():
+    """Test the assignment of attributes."""
 
-#     net = Network()
-#     net['city'] = 'Zurich'
+    net = Network()
+    net['city'] = 'Zurich'
 
-#     assert net['city'] == 'Zurich'
-
-
-# def test_getitem():
-#     """Test the extraction of attributes."""
-
-#     net = Network(city='London')
-
-#     assert net['city'] == 'London'
-#     assert net['attribute not in dict'] == None
+    assert net['city'] == 'Zurich'
 
 
-# def test_str():
-#     """Test string representations of the network."""
-#     net = Network()
-#     assert isinstance(net.summary(), str)
+def test_getitem():
+    """Test the extraction of attributes."""
+
+    net = Network(city='London')
+
+    assert net['city'] == 'London'
+    assert net['attribute not in dict'] == None
 
 
-# # Test properties
-# # ---------------
+def test_str():
+    """Test string representations of the network."""
+    net = Network()
+    assert isinstance(net.summary(), str)
 
 
-# def test_uid():
-#     """Test the uid assignment."""
-#     net = Network(uid='test')
-
-#     assert isinstance(net, Network)
-#     assert isinstance(net.uid, str)
-#     assert net.uid == 'test'
-
-#     net = Network()
-
-#     assert isinstance(net, Network)
-#     assert isinstance(net.uid, str)
+# Test properties
+# ---------------
 
 
-# def test_name():
-#     """Test the name assignment."""
+def test_uid():
+    """Test the uid assignment."""
+    net = Network(uid='test')
 
-#     net = Network()
+    assert isinstance(net, Network)
+    assert isinstance(net.uid, str)
+    assert net.uid == 'test'
 
-#     assert isinstance(net, Network)
+    net = Network()
 
-#     assert net.name == ''
-
-#     net.name = 'my network'
-
-#     assert net.name == 'my network'
-
-#     net = Network(name='an other network')
-
-#     assert net.name == 'an other network'
+    assert isinstance(net, Network)
+    assert isinstance(net.uid, str)
 
 
-# def test_directed():
-#     """Test if a network is directed."""
+def test_directed():
+    """Test if a network is directed."""
 
-#     net = Network()
+    net = Network()
 
-#     assert net.directed is True
+    assert net.directed is True
 
-#     net = Network(directed=False)
+    net = Network(directed=False)
 
-#     assert net.directed is False
-
-
-# def test_shape():
-#     """Test the shape of the network."""
-#     pass
+    assert net.directed is False
 
 
-# # # Test methods
-# # # ------------
+def test_shape():
+    """Test the shape of the network."""
+    net = Network()
+    assert net.shape == (0, 0)
 
 
-# def test_update():
-#     """Test update network attributes."""
-
-#     net = Network(city='London')
-
-#     assert net['city'] == 'London'
-
-#     net.update(city='Vienna', year='1850')
-
-#     assert net['city'] == 'Vienna'
-#     assert net['year'] == '1850'
+# Test methods
+# ------------
 
 
-# def test_add_path():
-#     """Test the path assignment."""
+def test_update():
+    """Test update network attributes."""
 
-#     p1 = Path('a', 'b', 'c', 'a', 'b')
-#     p2 = Path('d', 'b', 'e')
+    net = Network(city='London')
 
-#     net = Network()
+    assert net['city'] == 'London'
 
-#     net.add_path(p1)
+    net.update(city='Vienna', year='1850')
 
-#     assert net.number_of_nodes() == 3
-#     assert net.number_of_nodes() == 3
-#     assert net.number_of_paths() == 1
-
-#     net.add_path(p2)
-
-#     assert net.number_of_paths() == 2
-
-
-# def test_number_of_nodes():
-#     """Test the number of nodes."""
-
-#     net = Network(Path('a', 'b', 'c', 'a', 'b'))
-
-#     assert net.number_of_nodes() == 3
-
-#     assert net.number_of_nodes(unique=False) == 5
-
-
-# def test_number_of_edges():
-#     """Test the number of edges."""
-#     net = Network(Path('a', 'b', 'c', 'a', 'b'))
-
-#     assert net.number_of_edges() == 3
-
-#     assert net.number_of_edges(unique=False) == 4
-
-
-# def test_number_of_paths():
-#     """Test the number of edges."""
-#     p1 = Path('a', 'b', 'c')
-#     p2 = Path('d', 'b', 'e')
-#     net = Network(p1, p2, p1)
-
-#     assert net.number_of_paths() == 2
-
-#     assert net.number_of_paths(unique=False) == 3
+    assert net['city'] == 'Vienna'
+    assert net['year'] == '1850'
 
 
 def test_add_node():
@@ -292,6 +226,17 @@ def test_add_edge():
     assert len(net.nodes) == 2
     assert len(net.edges) == 1
 
+    with pytest.raises(Exception):
+        net.add_edge('a', 'b')
+
+    net = Network(multiedges=True)
+    net.add_node('a')
+    net.add_node('b')
+    net.add_edge('a', 'b')
+
+    assert len(net.nodes) == 2
+    assert len(net.edges) == 1
+
     net.add_edge('a', 'b')
 
     assert len(net.nodes) == 2
@@ -341,9 +286,7 @@ def test_add_edge():
     net = Network()
     net.add_edge(ab, color='blue')
 
-    # TODO: Should attribute be updated?
-    with pytest.raises(Exception):
-        assert net.edges['a-b']['color'] == 'blue'
+    assert net.edges['a-b']['color'] == 'blue'
 
     net = Network()
     net.add_node("A")
@@ -371,10 +314,9 @@ def test_call_edges():
 
     assert net.edges['a-b'].uid == 'a-b'
 
-    # TODO make this nicer
-    assert list(net.edges['a', 'b'])[0].uid == 'a-b'
+    assert net.edges['a', 'b'].uid == 'a-b'
 
-    net = Network()
+    net = Network(multiedges=True)
     net.add_edge('a', 'b')
     net.add_edge('a', 'b')
     net.add_edge('a', 'b', uid='a-b')
@@ -387,16 +329,12 @@ def test_call_edges():
     net.add_edge('b', 'a')
 
     assert net.number_of_edges() == 2
-    assert len(net.edges['a', 'b']) == 1
-    assert len(net.edges['b', 'a']) == 1
 
     net = Network(directed=False)
     net.add_edge('a', 'b')
-    net.add_edge('b', 'a')
 
-    assert net.number_of_edges() == 2
-    assert len(net.edges['a', 'b']) == 2
-    assert len(net.edges['b', 'a']) == 2
+    with pytest.raises(Exception):
+        net.add_edge('b', 'a')
 
 
 def test_add_edges():
@@ -432,141 +370,7 @@ def test_properties():
 
     net.edges['a-b']['color'] = 'red'
 
-    # print(net._properties._neighbors)
-    # s = {'a', 'b'}
-    # s.discard('c')
-    # print(net.nodes.successors['a'])
-    # print(net.indegrees())
-# def test_add_args():
-#     """Test various input args for path generation."""
-
-#     a = Node('a', color='blue')
-#     b = Node('b', color='red')
-#     c = Node('c', color='cyan')
-
-#     ab = Edge(a, b, capacity=5)
-#     bc = Edge(b, c, capacity=10)
-
-#     # edge object
-#     p1 = Path(ab)
-#     p2 = Path(bc)
-#     p3 = Path(ab, bc)
-
-#     # node objects
-#     net = Network(a, b, c)
-#     assert list(net.nodes) == ['a', 'b', 'c']
-
-#     # edge object
-#     net = Network(ab, bc)
-#     assert list(net.nodes) == ['a', 'b', 'c']
-#     assert list(net.edges) == ['a-b', 'b-c']
-
-#     # path object
-#     net = Network(p1, p2, p3)
-#     assert list(net.nodes) == ['a', 'b', 'c']
-#     assert list(net.edges) == ['a-b', 'b-c']
-#     assert list(net.paths) == ['a-b', 'b-c', 'a-b|b-c']
-
-#     # mixed objectes
-#     net = Network(a, bc, p3)
-#     assert list(net.nodes) == ['a', 'b', 'c']
-#     assert list(net.edges) == ['b-c', 'a-b']
-#     assert list(net.paths) == ['a-b|b-c']
-
-#     # singel node as string
-#     net = Network('a')
-#     assert list(net.nodes) == ['a']
-#     assert list(net.edges) == []
-#     assert list(net.paths) == []
-
-#     # node as seperate strings
-#     net = Network('a', 'b', 'c')
-#     assert list(net.nodes) == ['a', 'b', 'c']
-#     assert list(net.edges) == []
-#     assert list(net.paths) == []
-
-#     # nodes as single string
-#     net = Network('a,b,c')
-#     assert list(net.nodes) == ['a', 'b', 'c']
-#     assert list(net.edges) == []
-#     assert list(net.paths) == []
-
-#     # singe edge as string
-#     net = Network('a-b')
-#     assert list(net.nodes) == ['a', 'b']
-#     assert list(net.edges) == ['a-b']
-#     assert list(net.paths) == []
-
-#     # edge as seperate strings
-#     net = Network('a-b', 'b-c')
-#     assert list(net.nodes) == ['a', 'b', 'c']
-#     assert list(net.edges) == ['a-b', 'b-c']
-#     assert list(net.paths) == []
-
-#     # edges as single string
-#     net = Network('a-b,b-c')
-#     assert list(net.nodes) == ['a', 'b', 'c']
-#     assert list(net.edges) == ['a-b', 'b-c']
-#     assert list(net.paths) == []
-
-#     # nodes as simple path
-#     net = Network('a-b-c')
-#     assert list(net.nodes) == ['a', 'b', 'c']
-#     assert list(net.edges) == ['a-b', 'b-c']
-#     assert list(net.paths) == ['a-b|b-c']
-
-#     # simple path uid
-#     net = Network('a-b|b-c')
-#     assert list(net.nodes) == ['a', 'b', 'c']
-#     assert list(net.edges) == ['a-b', 'b-c']
-#     assert list(net.paths) == ['a-b|b-c']
-
-#     # mixed strings
-#     net = Network('a', 'b-c', 'a-b-c')
-#     assert list(net.nodes) == ['a', 'b', 'c']
-#     assert list(net.edges) == ['b-c', 'a-b']
-#     assert list(net.paths) == ['a-b|b-c']
-
-
-# def test_check_class():
-#     """Test the class assignment"""
-#     # cb = Edge('c', 'b', directed=True, start=10)
-#     # a = Node('a', start=5)
-#     # net = Network(a, cb)
-#     # #net = Network('a')
-#     # net._check_class()
-
-#     # net.summary()
-#     pass
-
-
-# def test_remove_path():
-#     """Test to remove a path from the network."""
-#     net = Network()
-#     net.add_paths_from(['a-b-c-d', 'b-c-d'], frequency=10)
-
-#     net.remove_path('b-c-d', frequency=3)
-#     assert net.paths.counter()['b-c|c-d'] == 7
-#     assert net.nodes.counter()['b'] == 17
-#     assert net.edges.counter()['b-c'] == 17
-
-#     net.remove_path('b-c|c-d')
-#     assert net.number_of_paths() == 1
-#     assert net.nodes.counter()['b'] == 10
-#     assert net.edges.counter()['b-c'] == 10
-
-#     net.remove_path('a-b-c-d')
-#     assert net.number_of_paths() == 0
-#     assert net.nodes.counter()['b'] == 0
-#     assert net.edges.counter()['b-c'] == 0
-
-#     net = Network()
-#     net.add_paths_from(['a-b-c-d', 'b-c-d'], frequency=10)
-
-#     net.remove_path('b-c-d', frequency=30)
-#     assert net.number_of_paths() == 1
-#     assert net.nodes.counter()['b'] == 10
-#     assert net.edges.counter()['b-c'] == 10
+    assert net.edges['a-b']['color'] == 'red'
 
 
 def test_remove_edge():
@@ -586,7 +390,8 @@ def test_remove_edge():
 
     assert net.number_of_edges() == 2
     assert isinstance(net.edges['e'], Edge)
-    assert len(net.edges['a', 'b']) == 1
+    assert g not in net.edges
+    assert net.edges['a', 'b'] in net.edges
     assert net.successors['a'] == {b}
     assert net.outgoing['a'] == {e}
     assert net.incident_edges['a'] == {e, f}
@@ -608,42 +413,23 @@ def test_remove_edge():
     f = Edge(a, b, uid='f')
     g = Edge(a, b, uid='g')
 
-    net = Network()
+    net = Network(multiedges=True)
     net.add_edges(e, f, g)
 
     assert net.number_of_edges() == 3
-    assert net.edges['a', 'b'] == {e, f, g}
+    assert e and f and g in net.edges['a', 'b']
 
     net.remove_edge('a', 'b', uid='g')
     assert net.number_of_edges() == 2
-    assert net.edges['a', 'b'] == {e, f}
+    assert g not in net.edges['a', 'b']
 
     net.remove_edge('a', 'b')
     assert net.number_of_edges() == 0
-    assert net.edges['a', 'b'] == set()
-
-    # net = Network()
-    # net.add_edges_from(['a-b', 'b-c', 'c-d'])
-    # net.add_path('a-b-c-d')
-
-    # net.remove_edge('b-c')
-    # assert net.number_of_paths() == 0
+    assert len(net.edges['a', 'b']) == 0
 
 
 def test_remove_node():
     """Test to remove a node from the network."""
-
-#     net = Network()
-#     net.add_edges_from(['a-b', 'b-c', 'c-d'])
-#     net.add_path('a-b-c-d')
-
-#     net.remove_node('b')
-#     assert net.shape == (3, 1, 0)
-#     assert net.nodes.counter()['a'] == 0
-#     assert net.nodes.counter()['c'] == 1
-#     assert net.nodes.counter()['d'] == 1
-#     assert net.nodes.adjacent_edges['a'] == {}
-#     assert list(net.nodes.adjacent_edges['c']) == ['c-d']
 
     net = Network(directed=True)
     net.add_edge('a', 'b')
@@ -654,95 +440,11 @@ def test_remove_node():
     net.add_edge('d', 'e')
     net.add_edge('e', 'd')
 
-    assert net.shape == (5, 7, 0)
+    assert net.shape == (5, 7)
 
     net.remove_node('b')
-    assert net.shape == (4, 3, 0)
+    assert net.shape == (4, 3)
 
-
-# def test_add_undirected_edge():
-#     """Test to add undirected path to the network."""
-#     e1 = Edge('a', 'b', directed=False)
-#     e2 = Edge('b', 'c', directed=True)
-
-#     net = Network()
-#     net.add_edge(e1)
-#     assert net.directed is False
-
-#     net = Network()
-#     net.add_edge(e2)
-#     assert net.directed is True
-
-#     with pytest.raises(Exception):
-#         net = Network()
-#         net.add_edge(e2)
-#         net.add_edge(e1)
-
-#     net = Network()
-#     net.add_edge('a', 'b')
-#     assert net.directed is True
-
-#     net = Network()
-#     net.add_edge('a', 'b', directed=False)
-#     assert net.directed is False
-
-#     with pytest.raises(Exception):
-#         net = Network()
-#         net.add_edge('a', 'b', directed=False)
-#         net.add_edge('b', 'c', directed=True)
-
-#     net = Network(directed=False)
-#     net.add_edge('a', 'b')
-#     net.add_edge('b', 'c')
-#     assert net.directed is False
-
-#     net = Network(directed=False)
-#     e = Edge('a', 'b')
-#     net.add_edge(e)
-#     assert net.directed is False
-
-#     net = Network()
-#     e = Edge('a', 'b', directed=False)
-#     net.add_edge(e)
-#     assert net.directed is False
-
-
-# def test_add_undirected_path():
-#     """Test to add undirected path to the network."""
-
-#     p1 = Path('a-b-c', directed=False)
-#     p2 = Path('c-d-e', directed=True)
-
-#     net = Network()
-#     net.add_path(p1)
-#     assert net.directed is False
-
-#     net = Network()
-#     net.add_path(p2)
-#     assert net.directed is True
-
-#     with pytest.raises(Exception):
-#         net = Network()
-#         net.add_path(p2)
-#         net.add_path(p1)
-
-#     net = Network()
-#     net.add_path('a-b-c')
-#     assert net.directed is True
-
-#     net = Network()
-#     net.add_path('a-b-c', directed=False)
-#     assert net.directed is False
-
-#     with pytest.raises(Exception):
-#         net = Network()
-#         net.add_path('a-b-c', directed=False)
-#         net.add_path('c-d-e', directed=True)
-
-#     net = Network(directed=False)
-#     net.add_path('a-b-c')
-#     net.add_path('b-c')
-#     assert net.directed is False
 
 def test_get_edge():
     """Test to get edges."""
@@ -761,6 +463,22 @@ def test_get_edge():
     assert (e in net.edges) is True
     assert (('a', b) in net.edges) is True
     assert ((b, a) in net.edges) is False
+
+
+def test_network_properties():
+    """Test network properties."""
+    net = Network()
+    net.add_edge('a', 'b', uid='a-b')
+    net.add_edge('b', 'c', uid='b-c')
+    net.add_edge('c', 'a', uid='c-a')
+
+    assert net.successors['c'] == {net.nodes['a']}
+    assert net.incoming['a'] == {net.edges['c-a']}
+
+    net.remove_edge('c-a')
+
+    assert net.successors['c'] == set()
+    assert net.incoming['a'] == set()
 
 
 # =============================================================================
