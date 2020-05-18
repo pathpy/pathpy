@@ -129,6 +129,19 @@ def mean_degree(network, weight: Weight = None) -> float:
     return degree_raw_moment(network, k=1, weight=weight)
 
 
+def mean_neighbor_degree(network, weight: Weight = None, exclude_neighbor = False) -> float:
+    """Calculates the mean (weighted degree of a network)
+    """
+    neighbor_degrees = []
+    for v in network.nodes.uids:
+        for w in network.successors[v]:
+            if exclude_neighbor:
+                neighbor_degrees.append(network.degrees(weight=weight)[w.uid] - 1)
+            else:
+                neighbor_degrees.append(network.degrees(weight=weight)[w.uid])
+    return np.mean(neighbor_degrees)
+
+
 def degree_raw_moment(network: Network, k: int = 1,
                       weight: Weight = None) -> float:
     """Calculates the k-th raw moment of the degree distribution of a network

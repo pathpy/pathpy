@@ -181,6 +181,8 @@ class Network(BaseModel):
     largest_connected_component = components.largest_connected_component  # type: ignore
     largest_component_size = components.largest_component_size  # type: ignore
 
+    mean_degree = degree_statistics.mean_degree
+    mean_neighbor_degree = degree_statistics.mean_neighbor_degree
     degree_sequence = degree_statistics.degree_sequence
     degree_assortativity = degree_statistics.degree_assortativity
     degree_central_moment = degree_statistics.degree_central_moment
