@@ -11,10 +11,12 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Union, Dict
 from collections import defaultdict
+from collections.abc import Iterable
 
 import numpy as np
 
 from pathpy import logger
+from pathpy.core.network import BaseModel
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
@@ -64,18 +66,20 @@ def degree_sequence(network: Network, weight: Weight = None) -> np.array:
     return _degrees
 
 
-def degree_distribution(network: Network,
+def degree_distribution(degrees: Union[Network, Iterable],
                         weight: Weight = None) -> Dict[float, float]:
     """Calculates the degree distribution of a network.
 
     Parameters
         ----------
-        network : Network
+        degrees : Network or Iterable
 
-            The :py:class:`Network` object that contains the network
+            :py:class:`Network` object that contains the network for which 
+            the degree distribution shall be calculated or a degree sequence 
+            of the network
 
         weights : bool
-
+    
             If True the weighted degree distribution will be calculated
 
         Examples
@@ -95,17 +99,33 @@ def degree_distribution(network: Network,
         >>> s = pp.algorithms.statistics.degree_distribution(net, weights = True)
         >>> s
         dict({ 3.1: 0.33333., 2.1: 0.33333., 1.: 0.333333. })
+
+        Return degree distribution for degree sequence
+
+        >>> s = pp.algorithms.statistics.degree_distribution([1,2,3])
+        >>> s
+        dict({ 1.: 0.33333., 2.: 0.33333., 3.: 0.333333. })
     """
 
+    assert isinstance(degrees, (BaseModel, Iterable)), \
+        "degrees can only be Network instance or Iterable that contains degree sequence"
+
     cnt: defaultdict = defaultdict(float)
-    n = network.number_of_nodes()
-    for v in network.nodes.uids:
-        cnt[network.degrees(weight=weight)[v]] += 1.0 / n
+    if isinstance(degrees, BaseModel):
+        n = degrees.number_of_nodes()
+        for v in degrees.nodes.uids:
+            cnt[degrees.degrees(weight=weight)[v]] += 1.0 / n
+    else:
+        n = len(degrees)
+        for d in degrees:            
+            cnt[d] += 1.0 / n
 
     return cnt
 
 
 def mean_degree(network, weight: Weight = None) -> float:
+    """Calculates the mean (weighted degree of a network)
+    """
     return degree_raw_moment(network, k=1, weight=weight)
 
 
@@ -121,7 +141,7 @@ def degree_raw_moment(network: Network, k: int = 1,
         The network in which to calculate the k-th raw moment
 
     """
-    p_k = degree_distribution(network, weight=weight)
+    p_k = degree_distribution(network, weight = weight)
     mom = 0.
     for x in p_k:
         mom += x**k * p_k[x]
@@ -148,9 +168,10 @@ def degree_central_moment(network: Network, k: int = 1,
     return m
 
 
-def degree_generating_function(network: Network, x: float,
+def degree_generating_function(degrees: Union[Network, Iterable], x: Union[float, list, np.ndarray],
                                weight: Weight = None) -> Union[float, np.ndarray]:
-    """Returns the degree generting function.
+    """Returns the generating function of the (weighted) degree distribution of a network, 
+        calculated for either a single value or an Iterable of values
 
 
     Returns f(x) where f is the probability generating function for the degree
@@ -169,6 +190,10 @@ def degree_generating_function(network: Network, x: float,
 
     Parameters
     ----------
+    degrees: Network, np.array
+        The Network or degree sequence for which the generating function
+        shall be computed
+
     x:  float, list, numpy.ndarray
         The argument(s) for which value(s) f(x) shall be computed.
 
@@ -199,19 +224,29 @@ def degree_generating_function(network: Network, x: float,
     >>> print(val)
     0.069
 
-    Plot generating function
+    Plot generating function of degree distribution
 
     >>> x = np.linspace(0, 1, 20)
     >>> y = pp.statistics.degrees.generating_func(n, x)
     >>> x = plt.plot(x, y)
     [Function plot]
 
+    Plot generating function based on degree sequence
+
+    >>> x = np.linspace(0, 1, 20)
+    >>> y = pp.statistics.degrees.generating_func([1,2,1,2], x)
+    >>> x = plt.plot(x, y)
+    [Function plot]
+
     """
 
     assert isinstance(x, (float, list, np.ndarray)), \
-        'Argument can only be float, list or numpy.array'
+        'x can only be float, list or numpy.array'
 
-    p_k = degree_distribution(network, weight=weight)
+    assert isinstance(degrees, (BaseModel, Iterable)), \
+        'degrees can only be Network or Iterable'
+    
+    p_k = degree_distribution(degrees, weight=weight)
 
     if isinstance(x, float):
         x_range = [x]

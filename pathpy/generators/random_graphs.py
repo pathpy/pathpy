@@ -21,6 +21,8 @@ from pathpy.core.edge import Edge
 from pathpy.core.node import Node
 from pathpy.core.network import Network
 
+import scipy
+
 # create logger
 LOG = logger(__name__)
 
@@ -368,16 +370,22 @@ def is_graphic_Erdos_Gallai(degrees):
 
     Examples
     --------
-    Test non-graphic degree sequence:
+    Test non-graphic degree sequence with uneven sum
 
     >>> import pathpy as pp
-    >>> pp.algorithms.random_graphs.is_graphic_Erdos_Gallai([1,0])
+    >>> pp.generators.is_graphic_Erdos_Gallai([1,0])
+    False
+
+    Test non-graphic degree sequence with even sum
+
+    >>> import pathpy as pp
+    >>> pp.generators.is_graphic_Erdos_Gallai([1,3])
     False
 
     Test graphic degree sequence:
 
     >>> import pathpy as pp
-    >>> pp.algorithms.random_graphs.is_graphic_Erdos_Gallai([1,1])
+    >>> pp.generators.is_graphic_Erdos_Gallai([1,1])
     True
 
     """
@@ -398,13 +406,31 @@ def is_graphic_Erdos_Gallai(degrees):
     return True
 
 
-def generate_degree_sequence(degree_dist: Dict[float, float], n) -> np.array:
-    """Generates a sequence of n degrees based on a given degree distribution"""
+def generate_degree_sequence(n, distribution: Union[Dict[float, float], scipy.stats.rv_continuous, scipy.stats.rv_discrete], **distribution_args) -> np.array:
+    """Generates a random graphic degree sequence drawn from a given degree distribution"""
 
-    degrees = [ k for k in degree_dist ]
-    probs = [ degree_dist[k] for k in degree_dist ]
-    
-    return np.random.choice(a=degrees, size=n, p=probs)
+    s = [ 1 ]
+
+    # create rv_discrete object with custum distribution
+    if isinstance(distribution, dict):
+        degrees = [ k for k in distribution ]
+        probs = [ distribution[k] for k in degrees ]
+
+        distribution = scipy.stats.rv_discrete(name='custom', values=(degrees, probs))
+
+    # use scipy rv objects to generate graphic degree sequence
+    if isinstance(distribution, scipy.stats.rv_discrete):
+        while not is_graphic_Erdos_Gallai(s):
+            s = distribution.rvs(size=n, **distribution_args)
+
+    elif isinstance(distribution, scipy.stats.rv_continuous):
+        while not is_graphic_Erdos_Gallai(s):
+            s = np.rint(distribution.rvs(size=n, **distribution_args))
+    else:
+        LOG.error('Distribution must be either dict, scipy.stats.rv_continuous or scipy.stats.rv_discrete')
+        return None
+
+    return s
 
 
 def Molloy_Reed(degrees: Union[np.array, Dict[str, float]], multiedge: bool = False, node_uids: Optional[list] = None) -> Network:
