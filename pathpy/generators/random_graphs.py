@@ -350,7 +350,7 @@ def Watts_Strogatz(n: int, s: int, p: float = 0.0, loops: bool = False,
             # result in an infinite loop depending on parameters.
             while new_target is None:
                 x = str(np.random.randint(n))
-                if (x != v or loops) and (x not in network.successors[v]):
+                if (x != v or loops) and (v, x) not in network.edges:
                     new_target = x
             network.add_edge(v, new_target)
     return network
