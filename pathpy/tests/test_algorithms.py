@@ -95,7 +95,7 @@ def test_avg_path_length():
     net = pp.Network(directed=False)
     net.add_edge('a', 'x')
     net.add_edge('x', 'c')
-    assert pp.algorithms.shortest_paths.avg_path_length(net) == 8/9
+    assert pp.algorithms.shortest_paths.avg_path_length(net) == 8/6
 
 
 def test_betweenness_centrality(net):
