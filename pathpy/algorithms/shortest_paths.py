@@ -346,8 +346,16 @@ def all_longest_paths(network: Network,
 
 
 def avg_path_length(network: Network,
-                    weight: Union[str, bool, None] = None) -> float:
-    """Calculates the average shortest path length
+                    weight: Union[str, bool, None] = None,
+                    exclude_zero: bool = True) -> float:
+    """Calculates the average shortest path length in directed or undirected
+    networks, according to the definition
+
+        <l> := \sum_{i \neq j} D[i,j]/(n (n-1))
+
+    where n is the number of nodes and D is a matrix containing shortest pair 
+    distances for all node pairs i,j. The above definition holds for the 
+    default case where paths between node pairs (i,i) are excluded.
 
     .. note::
 
@@ -362,17 +370,35 @@ def avg_path_length(network: Network,
 
     weighted : bool
 
-        If True cheapest paths will be calculated.
+        If True cheapest paths will be calculated based on the given weight property.
+
+    exclude_zero : bool
+
+        If True, (zero) diagonal entries in the distance matrix will be included in the average shortest path length.
 
     Examples
     --------
-    Generate simple network
+    Generate a simple network with two edges.
+    Shortest path distance matrix in this network is
+
+        [   a x c ]
+        [ a 0 1 2 ]
+    D = [ x 1 0 1 ]
+        [ c 2 1 0 ]    
+
+    yielding an average shortest path length of 8/6 = 1.33
 
     >>> import pathpy as pp
     >>> net = pp.Network(directed=False)
     >>> net.add_edge('a', 'x')
     >>> net.add_edge('x', 'c')
     >>> pp.algorithms.shortest_paths.avg_path_length(net)
-    0.6667 # TODO is this correct or shoudl it be 0.888888?
+    1.3333
+    >>> pp.algorithms.shortest_paths.avg_path_length(net, exclude_zero=False)
+    0.8888
     """
-    return np.mean(distance_matrix(network, weight=weight))
+    D = distance_matrix(network, weight=weight)
+
+    if exclude_zero:
+        D = D[np.nonzero(D)]
+    return np.sum(D)/np.size(D)
