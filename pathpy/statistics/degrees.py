@@ -9,7 +9,7 @@
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import TYPE_CHECKING, Union, Dict
+from typing import TYPE_CHECKING, Union, Dict, Tuple
 from collections import defaultdict
 from collections.abc import Iterable
 
@@ -298,7 +298,7 @@ def molloy_reed_fraction(network: Network, weight: Weight = False) -> float:
     return _mrf
 
 
-def degree_assortativity(network: Network, weight: Weight = None) -> float:
+def degree_assortativity(network: Network, mode: str = 'in', weight: Weight = None) -> float:
     """Calculates the degree assortativity coefficient of a network.
 
     Parameters
@@ -308,19 +308,25 @@ def degree_assortativity(network: Network, weight: Weight = None) -> float:
 
         The network in which to calculate the Molloy-Reed fraction
     """
-    m = network.number_of_edges()
-    A = network.adjacency_matrix()
-    d = network.degrees()
-    w = network.degrees(weight)
+    A = network.adjacency_matrix(weight=weight)
+    m = np.sum(A)
+    
+    d = network.degrees(weight)
+    if network.directed and mode == 'in':
+        d = network.indegrees(weight)
+    elif network.directed and mode == 'out':
+        d = network.outdegrees(weight)
+    elif not network.directed:
+        m = m/2.
     idx = network.nodes.index
 
     cov: float = 0.
     var: float = 0.
     for i in network.nodes.keys():
         for j in network.nodes.keys():
-            cov += (A[idx[i], idx[j]] - (w[i]*w[j])/(2*m)) * d[i] * d[j]
+            cov += (A[idx[i], idx[j]] - (d[i]*d[j])/(2*m)) * d[i] * d[j]
             if i != j:
-                var -= (w[i]*w[j])/(2*m) * w[i] * w[j]
+                var -= (d[i]*d[j])/(2*m) * d[i] * d[j]
             else:
-                var += (w[i] - (d[i]*d[j])/(2*m)) * d[i] * d[j]
+                var += (d[i] - (d[i]*d[j])/(2*m)) * d[i] * d[j]
     return cov/var
