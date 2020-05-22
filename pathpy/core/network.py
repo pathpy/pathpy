@@ -20,7 +20,7 @@ from pathpy.core.edge import Edge, EdgeCollection
 from pathpy.algorithms import (matrices,
                                centralities,
                                shortest_paths,
-                               components,)
+                               components)
 
 from pathpy.statistics import degrees as degree_statistics
 from pathpy.statistics import clustering
@@ -173,6 +173,7 @@ class Network(BaseModel):
     transition_matrix = matrices.transition_matrix  # type: ignore
     distance_matrix = shortest_paths.distance_matrix  # type: ignore
     diameter = shortest_paths.diameter  # type: ignore
+    avg_path_length = shortest_paths.avg_path_length
 
     betweenness_centrality = centralities.betweenness_centrality  # type: ignore
     closeness_centrality = centralities.closeness_centrality  # type: ignore
@@ -180,6 +181,7 @@ class Network(BaseModel):
     find_connected_components = components.find_connected_components  # type: ignore
     largest_connected_component = components.largest_connected_component  # type: ignore
     largest_component_size = components.largest_component_size  # type: ignore
+    is_connected = components.is_connected
 
     mean_degree = degree_statistics.mean_degree
     mean_neighbor_degree = degree_statistics.mean_neighbor_degree

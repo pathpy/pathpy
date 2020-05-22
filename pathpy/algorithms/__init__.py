@@ -29,7 +29,8 @@ from pathpy.algorithms.centralities import (betweenness_centrality,
 
 from pathpy.algorithms.components import (find_connected_components,
                                           largest_component_size,
-                                          largest_connected_component)
+                                          largest_connected_component,
+                                          is_connected)
 
 from pathpy.algorithms.trees import (tree_size, check_tree)
 

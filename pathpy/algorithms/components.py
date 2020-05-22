@@ -113,6 +113,11 @@ def largest_connected_component(network: Network) -> Network:
             lcc.remove_node(v)
     return lcc
 
+@property
+def is_connected(network: Network) -> bool:
+    """Returns whether the network is (strongly) connected
+    """
+    return largest_component_size(network)==network.number_of_nodes()
 
 def largest_component_size(network: Network) -> int:
     """Largest component size of the network."""

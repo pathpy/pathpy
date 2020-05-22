@@ -77,7 +77,7 @@ def distance_matrix(network: Network,
 
 def all_shortest_paths(network: Network,
                        weight: Union[str, bool, None] = None,
-                       return_distance_matrix: bool = True) -> Union[defaultdict, (defaultdict, np.ndarray)]:
+                       return_distance_matrix: bool = True) -> Union[defaultdict, Tuple[defaultdict, np.ndarray]]:
     """Calculates shortest paths between all pairs of nodes.
 
     .. note::
