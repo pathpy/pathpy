@@ -169,7 +169,7 @@ def read_sql(filename: Optional[str] = None, directed: bool = True, loops: bool 
     return from_dataframe(df, directed=directed, loops=loops, **kwargs)
 
 
-def to_dataframe(network: Network) -> pd.DataFrame:
+def to_dataframe(network: Network, exclude_edge_uid: bool = False, integer_node_uids: bool=False) -> pd.DataFrame:
     """Returns a pandas dataframe of the network.
 
     Returns a pandas dataframe data that contains all edges including all edge
@@ -177,15 +177,38 @@ def to_dataframe(network: Network) -> pd.DataFrame:
 
     """
     df = pd.DataFrame()
+
+    if integer_node_uids:
+        # create mapping between string and integer ids
+        mapping = {}
+        i = 1
+        for v in network.nodes:
+            mapping[v.uid] = i
+            i += 1
+
     for edge in network.edges:
-        edge_df = pd.DataFrame(columns=['v', 'w', 'uid'])
-        edge_df.loc[0] = [edge.v.uid, edge.w.uid, edge.uid]        
+        if exclude_edge_uid:
+            edge_df = pd.DataFrame(columns=['v', 'w'])
+            v = edge.v.uid
+            w = edge.w.uid
+            if integer_node_uids:
+                v = mapping[v]
+                w = mapping[w]
+            edge_df.loc[0] = [v, w]
+        else:
+            edge_df = pd.DataFrame(columns=['v', 'w', 'uid'])
+            v = edge.v.uid
+            w = edge.w.uid
+            if integer_node_uids:
+                v = mapping[v]
+                w = mapping[w]
+            edge_df.loc[0] = [v, w, edge.uid]            
         edge_df = pd.concat([edge_df, edge.attributes.to_frame()], axis=1)
         df = pd.concat([edge_df, df], ignore_index=True)
     return df
 
 
-def write_csv(network: Network, path_or_buf: Any = None, **pdargs: Any):
+def write_csv(network: Network, path_or_buf: Any = None, exclude_edge_uid: bool=False, integer_node_uids: bool=False, **pdargs: Any):
     """Stores all edges including edge attributes in a csv file.
 
     Node and network-level attributes are not included.
@@ -205,6 +228,21 @@ def write_csv(network: Network, path_or_buf: Any = None, **pdargs: Any):
         returned as a string. If a file buffer is given, the csv file will be
         saved to the file.
 
+    exclude_edge_uid: bool
+
+        Whether to exclude edge uids in the exported csv file or not (default). If this is set to 
+        True, each edge between nodes with uids v and w will be exported to a line w,v. If this is 
+        set to False (default), the uid of the edge will be additionally included, i.e. exporting 
+        v,w,e_uid. The latter ensures that both nodes and edges will retain their uids when writing 
+        and reading a network with pathpy. Excluding edge_uids can be necessary to export edge lists 
+        for use in third-party packages.
+
+    integer_node_uids: bool 
+
+        Whether or not to replace node uids by contiguous integer ids. If this is set to False (default), 
+        string node uids in the pp.Network instance will be used. Replacement by integer node ids may be 
+        necessary to export edge lists for use in third-party packages (e.g. node2vec).
+
     **pdargs:
 
         Keyword args that will be passed to pandas.DataFrame.to_csv. This
@@ -212,7 +250,7 @@ def write_csv(network: Network, path_or_buf: Any = None, **pdargs: Any):
 
     """
 
-    df = to_dataframe(network)
+    df = to_dataframe(network, exclude_edge_uid = exclude_edge_uid, integer_node_uids = integer_node_uids)
     return df.to_csv(path_or_buf=path_or_buf, index=False, **pdargs)
 
 
