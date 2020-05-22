@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : d3js.py -- Module to draw a d3js-network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-04-28 17:56 juergen>
+# Time-stamp: <Fri 2020-05-22 15:29 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -62,7 +62,11 @@ class D3js:
                 node['coordinates'] = (_x, _config['height']-_y)
 
         # load js template
-        with open(os.path.join(temp_dir, 'template.html')) as temp:
+        temp_name = 'template.html'
+        if config['environment']['IDE'] == 'vs code':
+            temp_name = 'template_vscode.html'
+
+        with open(os.path.join(temp_dir, temp_name)) as temp:
             js_template = temp.read()
 
         # load css template
@@ -79,8 +83,8 @@ class D3js:
         # generate html file with css styles
         html = '<style>\n' + css_template + '\n</style>\n'
 
-        if config['environment']['IDE'] != 'vs code':
-            html = html + '<script charset="utf-8" src="https://d3js.org/d3.v5.min.js"></script>\n <script charset="utf-8" src="https://requirejs.org/docs/release/2.3.6/minified/require.js"></script>'
+        # if config['environment']['IDE'] != 'vs code':
+        #     html = html + '<script charset="utf-8" src="https://d3js.org/d3.v5.min.js"></script>\n <script charset="utf-8" src="https://requirejs.org/docs/release/2.3.6/minified/require.js"></script>'
         # div environment for the widgets and network
         html = html + \
             '<div id="{}"></div>\n<div id="{}"></div>\n'.format(
