@@ -169,7 +169,7 @@ def read_sql(filename: Optional[str] = None, directed: bool = True, loops: bool 
     return from_dataframe(df, directed=directed, loops=loops, **kwargs)
 
 
-def to_dataframe(network: Network, exclude_edge_uid: bool = False, integer_node_uids: bool=False) -> pd.DataFrame:
+def to_dataframe(network: Network, exclude_edge_uid: bool = False, export_indices: bool=False) -> pd.DataFrame:
     """Returns a pandas dataframe of the network.
 
     Returns a pandas dataframe data that contains all edges including all edge
@@ -178,37 +178,24 @@ def to_dataframe(network: Network, exclude_edge_uid: bool = False, integer_node_
     """
     df = pd.DataFrame()
 
-    if integer_node_uids:
-        # create mapping between string and integer ids
-        mapping = {}
-        i = 1
-        for v in network.nodes:
-            mapping[v.uid] = i
-            i += 1
-
     for edge in network.edges:
+        v = edge.v.uid
+        w = edge.w.uid
+        if export_indices:
+            v = network.nodes.index[v]
+            w = network.nodes.index[w]
         if exclude_edge_uid:
-            edge_df = pd.DataFrame(columns=['v', 'w'])
-            v = edge.v.uid
-            w = edge.w.uid
-            if integer_node_uids:
-                v = mapping[v]
-                w = mapping[w]
+            edge_df = pd.DataFrame(columns=['v', 'w'])           
             edge_df.loc[0] = [v, w]
         else:
-            edge_df = pd.DataFrame(columns=['v', 'w', 'uid'])
-            v = edge.v.uid
-            w = edge.w.uid
-            if integer_node_uids:
-                v = mapping[v]
-                w = mapping[w]
+            edge_df = pd.DataFrame(columns=['v', 'w', 'uid'])            
             edge_df.loc[0] = [v, w, edge.uid]            
         edge_df = pd.concat([edge_df, edge.attributes.to_frame()], axis=1)
         df = pd.concat([edge_df, df], ignore_index=True)
     return df
 
 
-def write_csv(network: Network, path_or_buf: Any = None, exclude_edge_uid: bool=False, integer_node_uids: bool=False, **pdargs: Any):
+def write_csv(network: Network, path_or_buf: Any = None, exclude_edge_uid: bool=False, export_indices: bool=False, **pdargs: Any):
     """Stores all edges including edge attributes in a csv file.
 
     Node and network-level attributes are not included.
@@ -237,11 +224,11 @@ def write_csv(network: Network, path_or_buf: Any = None, exclude_edge_uid: bool=
         and reading a network with pathpy. Excluding edge_uids can be necessary to export edge lists 
         for use in third-party packages.
 
-    integer_node_uids: bool 
+    export_indices: bool 
 
-        Whether or not to replace node uids by contiguous integer ids. If this is set to False (default), 
-        string node uids in the pp.Network instance will be used. Replacement by integer node ids may be 
-        necessary to export edge lists for use in third-party packages (e.g. node2vec).
+        Whether or not to replace node uids by integer node indices. If False (default), string node uids 
+        in pp.Network instance will be used. If True, node integer indices are exported instead, which may be 
+        necessary to export edge lists that can be used by third-party packages such as node2vec.
 
     **pdargs:
 
@@ -250,7 +237,7 @@ def write_csv(network: Network, path_or_buf: Any = None, exclude_edge_uid: bool=
 
     """
 
-    df = to_dataframe(network, exclude_edge_uid = exclude_edge_uid, integer_node_uids = integer_node_uids)
+    df = to_dataframe(network, exclude_edge_uid = exclude_edge_uid, export_indices = export_indices)
     return df.to_csv(path_or_buf=path_or_buf, index=False, **pdargs)
 
 
@@ -341,6 +328,7 @@ def read_konect_file(file):
     for tarinfo in tar:
         if tarinfo.isfile():
             f = tarinfo.path.split('/')[-1]
+
             # read meta-data into attributes
             if f.startswith('meta.'):
                 with io.TextIOWrapper(tar.extractfile(tarinfo)) as buffer:
@@ -349,12 +337,14 @@ def read_konect_file(file):
                         # ignore empty lines
                         if len(s) == 2:
                             attributes[s[0].strip()] = s[1].strip()
+            
             # read network data
             elif f.startswith('out.'):
                 with io.TextIOWrapper(tar.extractfile(tarinfo)) as buffer:
                     directed = 'asym' in buffer.readline()
                     network_data = pd.read_csv(buffer, sep=' ', header=None, comment='%')
                     network_data = network_data.dropna(axis=1, how='all')
+                    
                     # print(network_data.head())                    
                     network_data.columns = [tsv_columns[i] for i in range(len(network_data.columns))]
                     duplicates = len(network_data[network_data.duplicated(['v', 'w'], keep=False)])
