@@ -18,7 +18,8 @@ from pathpy.io.io import (read_csv,
                           to_dataframe,
                           write_sql,
                           read_konect_file,
-                          read_konect_name)
+                          read_konect_name,
+                          read_graphml)
 
 # =============================================================================
 # eof
