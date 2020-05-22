@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : __init__.py -- pathpy init file
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-05-14 15:51 juergen>
+# Time-stamp: <Fri 2020-05-22 15:38 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -84,6 +84,31 @@ else:
 LOG.debug('pathpy version %s', __version__)
 LOG.debug('platform is %s', sys.platform)
 LOG.debug('pathpy runs in a %s environment', config['environment']['IDE'])
+
+if config['environment']['IDE'] == 'vs code':
+    html = """
+    <script charset="utf-8">
+    // Load via requireJS if available (jupyter notebook environment)
+    try {
+    require.config({
+    paths: {
+    d3: "https://d3js.org/d3.v5.min.js".replace(".js", "")
+    }
+    });
+    console.log("OKAY: requireJS was detected");
+    }
+    catch(err){
+    console.log(err);
+    console.log("ERROR: NO requireJS was detected");
+    };
+    require(['d3'], function(d3){
+    console.log("OKAY: d3js was detected");
+    });
+    </script>
+    """
+
+    from IPython.display import display, HTML
+    display(HTML(html))
 
 # =============================================================================
 # eof

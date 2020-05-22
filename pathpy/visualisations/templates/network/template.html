@@ -1,33 +1,23 @@
-<!-- <script charset="utf-8" src="https://d3js.org/d3.v5.min.js"></script> -->
+<script charset="utf-8" src="https://d3js.org/d3.v5.min.js"></script>
 
+<script charset="utf-8" src="https://requirejs.org/docs/release/2.3.6/minified/require.js"></script>
 
-<!-- <script charset="utf-8" src="https://requirejs.org/docs/release/2.3.6/minified/require.js"></script> -->
-
-<!--<script charset="utf-8" src="https://d3js.org/d3.v5.min.js"></script>
-     <script charset="utf-8" src="js/widgets.js"></script>
-     <script charset="utf-8" src="js/tooltip.js"></script>
-     <script charset="utf-8" src="js/network.js"></script> -->
 <script charset="utf-8">
  // Load via requireJS if available (jupyter notebook environment)
- require.config({
-   paths: {
-     d3: "https://d3js.org/d3.v5.min.js".replace(".js", "")
-   }
- });
+ try {
+   require.config({
+     paths: {
+       d3: "https://d3js.org/d3.v5.min.js".replace(".js", "")
+     }
+   });
+   console.log("OKAY: requireJS was detected");
+ }
+ catch(err){
+   console.log(err);
+   console.log("ERROR: NO requireJS was detected");
+ };
 
- /* Load d3 variable with require
-  * try {
-  *   var d3 = require("d3");
-  * }
-  * catch(err){
-  *   console.log(err);
-  *   // a reference error indicates that requireJS does not exist.
-  *   // other errors may occur due to multiple calls to config
-  *   if (err instanceof ReferenceError){
-  *     console.log("Detected no requireJS");
-  *   };
-  * }; */
- require(['d3'], function(d3){
+require(['d3'], function(d3){
    var config = $config
 
    var data = $data
@@ -691,9 +681,9 @@
 
        if(!labelEnabled){
          nodeLabels.style("opacity", 0);
-  };
+       };
 
-  nodeLabels.exit().remove();
+       nodeLabels.exit().remove();
        nodes.exit()
             .transition() // transition to shrink node
             .attr("r", 0)
@@ -1709,5 +1699,5 @@
 
    if (config.temporal === true){
      sliderMenu("#$divId",config,myNetwork);};
- });
+});
 </script>
