@@ -548,6 +548,12 @@ class Network(BaseModel):
             'Number of nodes:\t{}\n'.format(self.number_of_nodes()),
             'Number of edges:\t{}'.format(self.number_of_edges()),
         ]
+        attr = self.attributes.to_dict()
+        if len(attr)>0:
+            summary.append('\n\nNetwork attributes\n')
+            summary.append('------------------\n')
+        for k,v in attr.items():
+            summary.append('{}:\t{}\n'.format(k, v))            
 
         return ''.join(summary)
 
