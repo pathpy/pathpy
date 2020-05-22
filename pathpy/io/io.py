@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : io.py -- Module for data import/export
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Mon 2020-04-20 11:51 juergen>
+# Time-stamp: <Mon 2020-05-22 15:53 ingo>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -11,6 +11,11 @@ from __future__ import annotations
 from typing import Any, Optional, cast
 
 import sqlite3
+import bz2
+import tarfile
+import io
+import urllib
+
 import pandas as pd  # pylint: disable=import-error
 
 from pathpy import config, logger
@@ -34,7 +39,7 @@ def read_csv(filename: str, directed: bool = True, loops: bool = True, sep: str 
     return from_dataframe(df, directed=directed, loops=loops, **kwargs)
 
 
-def from_dataframe(df: pd.DataFrame, directed: bool = True, loops: bool = True,
+def from_dataframe(df: pd.DataFrame, directed: bool = True, loops: bool = True, multiedges: bool= False,
                    **kwargs: Any) -> Network:
     """Reads a network from a pandas dataframe.
 
@@ -85,7 +90,7 @@ def from_dataframe(df: pd.DataFrame, directed: bool = True, loops: bool = True,
 
             LOG.debug('Creating %s network', directed)
 
-    net = Network(directed=directed, **kwargs)
+    net = Network(directed=directed, multiedges=multiedges, **kwargs)
     for row in df.to_dict(orient='records'):
 
         # get edge
@@ -95,6 +100,9 @@ def from_dataframe(df: pd.DataFrame, directed: bool = True, loops: bool = True,
         if v is None or w is None:
             LOG.error('DataFrame minimally needs columns \'v\' and \'w\'')
             raise IOError
+        else:
+            v = str(v)
+            w = str(w)
         if v not in net.nodes.uids:
             net.add_node(v)
         if w not in net.nodes.uids:
@@ -259,6 +267,96 @@ def write_sql(network: Network,  table: str,
     if con_close:
         _con = cast(sqlite3.Connection, con)
         _con.close()
+
+
+def read_konect_file(file):
+    """Reads a KONECT data file and returns a pp.Network instance.
+
+    The unified KONECT data format is a compressed .tar.bz2 file containing 
+    two files meta.* and out.*. The key-value attributes in the meta file
+    (typically containing data descriptions and link to original data source)
+    are stored as attributes in the returned instance of pp.Network. 
+
+    Depending on the data file, the generated network will be a single -or multi-edge 
+    network with directed or undirected edges. The type of the network will be automatically 
+    determined based on the data file. Weight and Time attributes are stored as edge attributes.
+
+    Parameters
+    ----------
+
+    file: str, Bytes
+
+        Filename or byte stream from which data should be loaded
+
+    """
+
+    tsv_columns = ['v', 'w', 'weight', 'time']
+
+    if isinstance(file, str):
+        tar = tarfile.open(file, mode='r:bz2')
+    elif isinstance(file, bytes):
+        tar = tarfile.open(fileobj=io.BytesIO(file), mode='r:bz2')
+    attributes = {}
+    directed = False
+    multiedges = False
+    network_data = None
+    for tarinfo in tar:
+        if tarinfo.isfile():
+            f = tarinfo.path.split('/')[-1]
+            # read meta-data into attributes
+            if f.startswith('meta.'):
+                with io.TextIOWrapper(tar.extractfile(tarinfo)) as buffer:
+                    for line in buffer.readlines():                        
+                        s = line.split(': ', 1)
+                        # ignore empty lines
+                        if len(s) == 2:
+                            attributes[s[0].strip()] = s[1].strip()
+            # read network data
+            elif f.startswith('out.'):
+                with io.TextIOWrapper(tar.extractfile(tarinfo)) as buffer:
+                    directed = 'asym' in buffer.readline()
+                    network_data = pd.read_csv(buffer, sep=' ', header=None, comment='%')
+                    network_data = network_data.dropna(axis=1, how='all')
+                    # print(network_data.head())                    
+                    network_data.columns = [tsv_columns[i] for i in range(len(network_data.columns))]
+                    duplicates = len(network_data[network_data.duplicated(['v', 'w'], keep=False)])
+                    if duplicates>0:
+                        print('Found {} duplicate edges'.format(duplicates))
+                        multiedges = True
+                    print('Detected columns: ', [c for c in network_data.columns])
+    if 'timeiso' in attributes:
+        attributes['time'] = attributes['timeiso']
+    return pp.io.from_dataframe(network_data, directed=directed, multiedges=multiedges, **attributes)
+
+
+def read_konect_name(name, base_url="http://konect.uni-koblenz.de/downloads/tsv/"):
+    """Retrieves a KONECT data set with a given name and returns a corresponding 
+    instance of pp.Network.
+
+    The unified KONECT data format is a compressed .tar.bz2 file containing 
+    two files meta.* and out.*. The key-value attributes in the meta file
+    (typically containing data descriptions and link to original data source)
+    are stored as attributes in the returned instance of pp.Network. 
+
+    Depending on the data file, the generated network will be a single -or multi-edge 
+    network with directed or undirected edges. The type of the network will be automatically 
+    determined based on the data file. Weight and Time attributes are stored as edge attributes.
+
+    Parameters
+    ----------
+
+    name: str
+
+        Name of the data set to retrieve from the KONECT database, e.g. 'moreno_bison'
+
+    base_url: str
+
+        Base url of the KONECT service that will be used to retrieve data set. Default is 
+        "http://konect.uni-koblenz.de/downloads/tsv/". This method assumes that the KONECT data file 
+        with name X can be retrieved via HTTP under the URL "http://konect.uni-koblenz.de/downloads/tsv/X.tar.bz2"
+    """
+    f = urllib.request.urlopen(base_url + name + ".tar.bz2").read()
+    return read_konect_file(f)
 
 # =============================================================================
 # eof
