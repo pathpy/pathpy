@@ -1,4 +1,4 @@
-"""Module for inpout output data to pathpy"""
+"""Module for input output data to pathpy"""
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
