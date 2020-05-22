@@ -326,7 +326,7 @@ def read_konect_file(file):
                     print('Detected columns: ', [c for c in network_data.columns])
     if 'timeiso' in attributes:
         attributes['time'] = attributes['timeiso']
-    return pp.io.from_dataframe(network_data, directed=directed, multiedges=multiedges, **attributes)
+    return from_dataframe(network_data, directed=directed, multiedges=multiedges, **attributes)
 
 
 def read_konect_name(name, base_url="http://konect.uni-koblenz.de/downloads/tsv/"):
