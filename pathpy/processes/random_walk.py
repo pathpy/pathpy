@@ -14,6 +14,7 @@ from typing import Any, Optional, Union
 
 import numpy as np
 import scipy as sp  # pylint: disable=import-error
+from scipy.sparse import linalg as spl
 
 from pathpy import logger, tqdm
 # from pathpy.core.path import Path
@@ -82,7 +83,7 @@ class RandomWalk(BaseWalk):
         # self._path = Path()
 
         # eigenvectors and eigenvalues
-        _, eigenvectors = sp.sparse.linalg.eigs(
+        _, eigenvectors = spl.eigs(
             self._transition_matrix.transpose(), k=1, which='LM')
         pi = eigenvectors.reshape(eigenvectors.size, )
 
