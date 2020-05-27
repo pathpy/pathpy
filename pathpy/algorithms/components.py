@@ -91,6 +91,14 @@ def find_connected_components(network: Network) -> Dict:
     return dict(zip(range(len(components)), components.values()))
 
 
+def mean_component_size(network: Network) -> float:
+    """Returns the mean connected component size of the network.
+    """
+    components = find_connected_components(network)
+    component_sizes = [len(nodes) for comp, nodes in components.items() ]
+    return np.mean(component_sizes)
+
+
 def largest_connected_component(network: Network) -> Network:
     """Returns the largest connected component of the network.
     """
