@@ -143,7 +143,7 @@ def ER_nm(n: int, m: int,
     edges = 0
     while edges < m:
         v, w = np.random.choice(node_uids, size=2, replace=loops)
-        if multiedges or network.nodes[v] not in network.successors[w]:
+        if multiedges or network.nodes[w] not in network.successors[v]:
             network.add_edge(v,w)
             edges += 1
     return network
