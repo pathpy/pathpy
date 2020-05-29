@@ -351,9 +351,9 @@ def read_konect_file(file):
                     network_data.columns = [tsv_columns[i] for i in range(len(network_data.columns))]
                     duplicates = len(network_data[network_data.duplicated(['v', 'w'], keep=False)])
                     if duplicates>0:
-                        print('Found {} duplicate edges'.format(duplicates))
+                        LOG.info('Found {} duplicate edges'.format(duplicates))
                         multiedges = True
-                    print('Detected columns: ', [c for c in network_data.columns])
+                    LOG.info('Detected columns: ', [c for c in network_data.columns])
     if 'timeiso' in attributes:
         try:
             dt = pd.to_datetime(attributes['timeiso'])
@@ -460,7 +460,7 @@ def read_graphml(filename: str):
             key = a.attrib['key']
             val = a.text
             if key not in node_attributes:
-                print('Warning: Undeclared Node attribute "{}". Defaulting to string type.'.format(key))
+                LOG.warning('Undeclared Node attribute "{}". Defaulting to string type.'.format(key))
                 v.attributes[key] = val
             else:
                 v.attributes[key] = node_attributes[key]['type'](val)
@@ -484,7 +484,7 @@ def read_graphml(filename: str):
             key = a.attrib['key']
             val = a.text
             if key not in edge_attributes:
-                print('Warning: Undeclared Edge attribute "{}". Defaulting to string type.'.format(key))
+                LOG.warning('Warning: Undeclared Edge attribute "{}". Defaulting to string type.'.format(key))
                 e.attributes[key] = val
             else:
                 e.attributes[key] = edge_attributes[key]['type'](val)
