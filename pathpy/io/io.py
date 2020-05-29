@@ -344,7 +344,7 @@ def read_konect_file(file):
             elif f.startswith('out.'):
                 with io.TextIOWrapper(tar.extractfile(tarinfo)) as buffer:
                     directed = 'asym' in buffer.readline()
-                    network_data = pd.read_csv(buffer, sep=' ', header=None, comment='%')
+                    network_data = pd.read_csv(buffer, sep='\s+', header=None, comment='%')
                     network_data = network_data.dropna(axis=1, how='all')
                     
                     # print(network_data.head())                    
@@ -355,7 +355,11 @@ def read_konect_file(file):
                         multiedges = True
                     print('Detected columns: ', [c for c in network_data.columns])
     if 'timeiso' in attributes:
-        attributes['time'] = attributes['timeiso']
+        try:
+            dt = pd.to_datetime(attributes['timeiso'])
+            attributes['time'] = attributes['timeiso']
+        except ValueError:
+            LOG.warning('KONECT data contains invalid timeiso: {}'.format(attributes['timeiso']))
     return from_dataframe(network_data, directed=directed, multiedges=multiedges, **attributes)
 
 
