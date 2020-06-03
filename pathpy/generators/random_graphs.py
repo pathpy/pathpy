@@ -433,7 +433,7 @@ def generate_degree_sequence(n, distribution: Union[Dict[float, float], scipy.st
     return s
 
 
-def Molloy_Reed(degrees: Union[np.array, Dict[str, float]], multiedge: bool = False, node_uids: Optional[list] = None) -> Network:
+def Molloy_Reed(degrees: Union[np.array, Dict[str, float]], multiedge: bool = False, relax: bool=False, node_uids: Optional[list] = None) -> Network:
     """Generate Molloy-Reed graph.
 
     Generates a random undirected network with given degree sequence based on
@@ -483,7 +483,7 @@ def Molloy_Reed(degrees: Union[np.array, Dict[str, float]], multiedge: bool = Fa
 
     # create empty network with n nodes
     n = len(degrees)
-    network = Network(directed=False)
+    network = Network(directed=False, multiedges=multiedge)
 
     if node_uids is None or len(node_uids) != n:
         LOG.info('No valid node uids given, generating numeric node uids')
@@ -504,7 +504,7 @@ def Molloy_Reed(degrees: Union[np.array, Dict[str, float]], multiedge: bool = Fa
     while(len(stubs) > 0):
         v, w = np.random.choice(stubs, 2, replace=False)
 
-        if v == w or (multiedge == False and network.nodes[w] in network.successors[v]):
+        if v == w or (multiedge == False and relax == False and network.nodes[w] in network.successors[v]):
             # remove random edge and add stubs
             if network.number_of_edges()>0:
                 edge = np.random.choice(list(network.edges))
@@ -512,7 +512,8 @@ def Molloy_Reed(degrees: Union[np.array, Dict[str, float]], multiedge: bool = Fa
                 stubs.append(edge.w.uid)
                 network.remove_edge(edge)
         else:
-            network.add_edge(v, w)
+            if not network.nodes[w] in network.successors[v]:
+                network.add_edge(v, w)
             stubs.remove(v)
             stubs.remove(w)            
             
