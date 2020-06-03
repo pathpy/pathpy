@@ -40,6 +40,9 @@ def find_connected_components(network: Network) -> Dict:
 
     """
 
+    if network.number_of_nodes()==0 or network.number_of_edges()==0:
+        return dict()
+
     # these are used as nonlocal variables in tarjan
     index: int = 0
     S: list = []
@@ -131,4 +134,7 @@ def largest_component_size(network: Network) -> int:
     """Largest component size of the network."""
     LOG.debug('Computing connected components')
     components = find_connected_components(network)
-    return max(map(len, components.values()))
+    if len(components):
+        return max(map(len, components.values()))
+    else:
+        return 0
