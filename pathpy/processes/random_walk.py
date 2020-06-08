@@ -53,7 +53,7 @@ class RandomWalk(BaseWalk):
     """
 
     def __init__(self, network: Network, weight: Weight = None,
-                 start_node: Optional[str] = None) -> None:
+                 start_node: Optional[str] = None, restart_prob = 0) -> None:
         """Initialises a random walk process in a given start node.
 
         The initial time t of the random walk will be set to zero and the
@@ -61,22 +61,22 @@ class RandomWalk(BaseWalk):
         node will be chosen uniformly at random.
 
         """
-        # initialize varialbes
+        # initialize variables
 
-        # network wher the random walk is performed
+        # network in which the random walk is simulated
         self._network: Network = network
 
         # time of the random walk
         self._t: int = 0
 
-        # transition matrices for the random walker
-        self._transition_matrix = RandomWalk.transition_matrix(network, weight)
+        # transition matrix for the random walk
+        self._transition_matrix = RandomWalk.transition_matrix(network, weight, restart_prob)
 
         # uids of the nodes
         self._node_uids: list = list(network.nodes.keys())
 
         self._visitations = np.ravel(
-            np.zeros(shape=(1, network.number_of_nodes())))
+            np.zeros(shape=(1, network.number_of_nodes())))        
 
         # path of the random walker
         # TODO: implement new path class
@@ -160,7 +160,7 @@ class RandomWalk(BaseWalk):
 
     @staticmethod
     def transition_matrix(network: Network,
-                          weight: Weight = None) -> sp.sparse.csr_matrix:
+                          weight: Weight = None, restart_prob: float = 0) -> sp.sparse.csr_matrix:
         """Returns a transition matrix of the random walker.
 
         Returns a transition matrix that describes a random walk process in the
@@ -183,7 +183,16 @@ class RandomWalk(BaseWalk):
         n = network.number_of_nodes()
         T = sp.sparse.csr_matrix((n, n))
         for i in range(n):
-            T[i, :] = A[i, :]/D[i]
+            if D[i]>0:
+                LOG.warning('Computing transition matrix for node with zero out-degree')
+            for j in range(n):
+                if D[i]>0:
+                    T[i,j] = restart_prob*(1./n) + (1-restart_prob)*A[i,j]/D[i]
+                else:                    
+                    if restart_prob>0:
+                        T[i,j] = 1./n 
+                    else:     
+                        T[i,j] = 0.0
         return T
 
     @property
