@@ -24,7 +24,8 @@ from pathpy.algorithms.shortest_paths import(distance_matrix,
 
 from pathpy.algorithms.centralities import (betweenness_centrality,
                                             closeness_centrality,
-                                            degree_centrality,
+                                            degree_centrality,                                            
+                                            eigenvector_centrality,
                                             rank_centralities)
 
 from pathpy.algorithms.components import (find_connected_components,

@@ -9,13 +9,15 @@
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import TYPE_CHECKING, Dict, List, Tuple
+from typing import TYPE_CHECKING, Dict, List, Tuple, Union
 from collections import defaultdict
 import operator
 import numpy as np
+from scipy.sparse import linalg as spl
 
 from pathpy import logger
 from pathpy.algorithms import shortest_paths
+from pathpy.algorithms.matrices import adjacency_matrix
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
@@ -187,6 +189,40 @@ def degree_centrality(network: Network, mode: str = 'degree') -> dict:
             d[v] = network.degrees()[v]
 
     return d
+
+def eigenvector_centrality(network: Network, weight: Union[str, bool, None] = None, **kwargs: Any) -> dict:
+    """Calculates the eigenvector centrality of all nodes.
+
+    Parameters
+    ----------
+    network : Network
+
+        The :py:class:`Network` object that contains the network
+
+    Examples
+    --------
+    Compute eigenvector centrality in a simple network
+
+    >>> import pathpy as pp
+    >>> net = pp.Network(directed=True)
+    >>> net.add_edge('a', 'x')
+    >>> net.add_edge('x', 'b')
+    >>> c = pp.algorithms.centralities.eigenvector_centrality(net)
+    >>> c['a']
+    1
+    """
+    evcent: dict = dict()
+
+    A = adjacency_matrix(network, weight=weight).transpose()
+    if kwargs:
+        _, ev = spl.eigs(A, k=1, which='LM', **kwargs)
+    else:
+        _, ev = spl.eigs(A, k=1, which='LM')
+    ev = ev.reshape(ev.size, )
+    S = np.sum(ev)
+    for v in network.nodes:
+        evcent[v.uid] = np.real(ev[network.nodes.index[v.uid]]/S)
+    return evcent
 
 
 def rank_centralities(centralities: Dict[str, float]) -> List[Tuple[str, float]]:
