@@ -102,9 +102,9 @@ class PDF:
             # If compiler does not exist, try next in the list
             LOG.error('No latexmk compiler found')
             raise AttributeError
-
-        # change back to the current directory
-        os.chdir(current_dir)
+        finally:
+            # change back to the current directory
+            os.chdir(current_dir)
 
         # return the name of the folder and temp pdf file
         return (temp_dir, basename+'.pdf')
