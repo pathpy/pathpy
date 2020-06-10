@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-06-10 11:50 juergen>
+# Time-stamp: <Wed 2020-06-10 14:56 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -20,6 +20,59 @@ from pathpy.core.network import Network
 
 # create logger for the Network class
 LOG = logger(__name__)
+
+"""Questions about HONs
+
+How to deal with the 0-order start node?
+
+How is the order of a node determined?
+Can this be done on a node level or
+must it be done on the network level?
+
+How to get nodes and edges?
+
+Forced uids like in pathpy2 ? a and b -> ('a,b')
+
+Nodes
+hon.nodes[abc] # hon-node object
+hon.nodes['abc'] # hon-node uid
+hon.nodes[a,b,c] # node objects
+hon.nodes['a','b','c'] # node uids
+hon.nodes[ab,bc] # edge objects
+hon.nodes['a-b','b-c'] # edge uids
+
+Edges
+hon.edges[abcd] # hon-edge object
+hon.edges['abcd'] # hon-edge uid
+hon.edges[abc,bcd] # hon-node objects
+hon.edges['abc','bcd'] # hon-node uids
+hon.edges[('a','b','c'),('b','c','d')] # node uids
+hon.edges[('a-b','b-c'),('b-c','c-d')] # edge uids
+hon.edges['a','b','c','d'] # path node uids
+hon.edges['a-b','b-c','c-d'] # path edge uids
+hon.edges[a,b,c,d] # node objects
+hon.edges[ab,bc,cd] # edge objects
+
+Methods
+
+How to implement:
+
+estimator = estimator.fit(data, targets)
+estimator = estimator.fit(data)
+
+prediction = predictor.predict(data)
+probability = predictor.predict_proba(data)
+
+new_data = transformer.transform(data)
+new_data = transformer.fit_transform(data)
+
+score = model.score(data)
+
+
+
+Model.from_samples(data)
+
+"""
 
 
 class HigherOrderNetwork(Network):
