@@ -4,15 +4,18 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-06-10 09:48 juergen>
+# Time-stamp: <Wed 2020-06-10 11:50 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 
 from __future__ import annotations
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from pathpy import logger
+from pathpy.core.node import Node
+from pathpy.core.edge import Edge
+from pathpy.core.path import Path
 from pathpy.core.network import Network
 
 # create logger for the Network class
@@ -87,6 +90,58 @@ class HigherOrderNetwork(Network):
             summary.append('{}:\t{}\n'.format(k, v))
 
         return ''.join(summary)
+
+
+class HigherOrderNode(Node, Path):
+    """Base class of a higher order node."""
+
+    def __init__(self, *args: Union[Node, Edge], uid: Optional[str] = None,
+                 **kwargs: Any) -> None:
+
+        # initializing the parent classes
+        Node.__init__(self, uid, **kwargs)
+        Path.__init__(self, *args, uid=uid, **kwargs)
+
+    @property
+    def order(self) -> int:
+        """Returns the order of the higher-order node."""
+        return self.number_of_nodes(unique=False)
+
+    def summary(self) -> str:
+        """Returns a summary of the higher-order node.
+
+        The summary contains the name, the used node class, the order, the
+        number of nodes and the number of edges.
+
+        If logging is enabled(see config), the summary is written to the log
+        file and showed as information on in the terminal. If logging is not
+        enabled, the function will return a string with the information, which
+        can be printed to the console.
+
+        Returns
+        -------
+        str
+
+        Return a summary of the path.
+
+        """
+        summary = [
+            'Uid:\t\t\t{}\n'.format(self.uid),
+            'Type:\t\t\t{}\n'.format(self.__class__.__name__),
+            'Order:\t\t\t{}\n'.format(self.order),
+            'Number of unique nodes:\t{}\n'.format(self.number_of_nodes()),
+            'Number of unique edges:\t{}'.format(self.number_of_edges()),
+        ]
+        return ''.join(summary)
+
+
+class HigherOrderEdge(Edge):
+    """Base class of a higher order edge."""
+
+    def __init__(self, v: HigherOrderNode, w: HigherOrderNode,
+                 uid: Optional[str] = None, **kwargs: Any) -> None:
+        # initializing the parent classes
+        super().__init__(v=v, w=w, uid=uid, **kwargs)
 
 
 # =============================================================================
