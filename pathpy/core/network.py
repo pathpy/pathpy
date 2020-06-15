@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-06-15 13:47 juergen>
+# Time-stamp: <Mon 2020-06-15 13:56 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -295,6 +295,9 @@ class Network(BaseModel):
         network = Network(directed=self.directed, temporal=self.temporal,
                           multiedges=self.multiedges, **self.attributes.to_dict())
 
+        # TODO: add warnings if two networks have different properties
+        # TODO: update also netork properties
+
         # add nodes and edges of self to the new network
         network.add_edges(*self.edges)
 
@@ -311,6 +314,9 @@ class Network(BaseModel):
 
     def __iadd__(self, other: Network) -> Network:
         """Add a network to a network"""
+
+        # TODO: add warnings if two networks have different properties
+        # TODO: update also netork properties
 
         # add nodes and edges of the other to the network
         # iterate over all other edges
