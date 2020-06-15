@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-06-15 13:41 juergen>
+# Time-stamp: <Mon 2020-06-15 13:47 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -308,6 +308,19 @@ class Network(BaseModel):
 
         # return the new network
         return network
+
+    def __iadd__(self, other: Network) -> Network:
+        """Add a network to a network"""
+
+        # add nodes and edges of the other to the network
+        # iterate over all other edges
+        for edge in other.edges:
+            # check if the edge object already exists
+            if edge not in self.edges.values():
+                # add node to the network
+                self.add_edge(edge)
+
+        return self
 
     @property
     def shape(self) -> Tuple[int, int]:

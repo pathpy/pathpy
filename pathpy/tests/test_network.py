@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-06-15 13:39 juergen>
+# Time-stamp: <Mon 2020-06-15 13:49 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -566,6 +566,83 @@ def test_add_networks():
 
     # with pytest.raises(Exception):
     #     net_4 = net_1 + net_2 + net_3 + net_1
+
+
+def test_iadd_networks():
+    """Test to add networks together"""
+    net_1 = Network()
+    net_1.add_edges(('a', 'b'), ('b', 'c'))
+
+    net_2 = Network()
+    net_2.add_edges(('x', 'y'), ('y', 'z'))
+
+    net_1 += net_2
+
+    assert net_1.number_of_nodes() == 6
+    assert net_1.number_of_edges() == 4
+    assert net_2.number_of_nodes() == 3
+    assert net_2.number_of_edges() == 2
+
+    # test same node objects
+    a = Node('a')
+    b = Node('b')
+    c = Node('c')
+
+    net_1 = Network()
+    net_2 = Network()
+    net_1.add_edge(a, b)
+    net_2.add_edge(b, c)
+
+    net_1 += net_2
+    assert net_1.number_of_nodes() == 3
+    assert net_1.number_of_edges() == 2
+    assert net_2.number_of_nodes() == 2
+    assert net_2.number_of_edges() == 1
+
+    # nodes with same uids but different objects
+    net_1 = Network()
+    net_2 = Network()
+    net_1.add_edge(a, b)
+    net_2.add_edge('b', c)
+
+    with pytest.raises(Exception):
+        net_1 += net_2
+
+    # test same edge objects
+    a = Node('a')
+    b = Node('b')
+    c = Node('c')
+
+    net_1 = Network()
+    net_2 = Network()
+    net_1.add_edge(a, b, uid='e1')
+    net_2.add_edge(a, b, uid='e2')
+
+    net_1 += net_2
+    assert net_1.number_of_edges() == 2
+    assert net_1.number_of_nodes() == 2
+    assert 'e1' in net_1.edges and 'e2' in net_1.edges
+
+    # edges with same uids but different objects
+    net_1 = Network()
+    net_2 = Network()
+    net_1.add_edge(a, b, uid='e1')
+    net_2.add_edge(a, b, uid='e1')
+
+    with pytest.raises(Exception):
+        net_1 += net_2
+
+    # add multiple networks
+    net_1 = Network()
+    net_2 = Network()
+    net_3 = Network()
+    net_1.add_edge('a', 'b')
+    net_2.add_edge('c', 'd')
+    net_3.add_edge('e', 'f')
+    net_1 += net_2 + net_3
+
+    assert net_1.number_of_edges() == 3
+    assert net_1.number_of_nodes() == 6
 
 
 # =============================================================================
