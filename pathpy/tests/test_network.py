@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-06-15 13:49 juergen>
+# Time-stamp: <Mon 2020-06-15 14:34 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -643,6 +643,56 @@ def test_iadd_networks():
 
     assert net_1.number_of_edges() == 3
     assert net_1.number_of_nodes() == 6
+
+
+def test_sub_networks():
+    """Test to remove a network"""
+    net_1 = Network()
+    net_2 = Network()
+    net_1.add_edge('a', 'b', uid='a-b')
+    net_2.add_edge('c', 'd', uid='c-d')
+    net_1 += net_2
+    net_2.add_edge('d', 'e', uid='d-e')
+
+    net_3 = net_1 - net_2
+
+    assert net_3.number_of_nodes() == 2
+    assert net_3.number_of_edges() == 1
+    assert 'a' and 'b' in net_3.nodes
+    assert 'a-b' in net_3.edges
+    assert net_1.number_of_nodes() == 4
+    assert net_1.number_of_edges() == 2
+    assert net_2.number_of_nodes() == 3
+    assert net_2.number_of_edges() == 2
+
+    net_4 = Network()
+    net_4.add_edge('x', 'y', uid='x-y')
+
+    net_5 = net_3 - net_4
+
+    assert net_5.number_of_nodes() == 2
+    assert net_5.number_of_edges() == 1
+    assert 'a' and 'b' in net_5.nodes
+    assert 'a-b' in net_5.edges
+
+
+def test_isub_networks():
+    """Test to remove a network with isub"""
+    net_1 = Network()
+    net_2 = Network()
+    net_1.add_edge('a', 'b', uid='a-b')
+    net_2.add_edge('c', 'd', uid='c-d')
+    net_1 += net_2
+    net_2.add_edge('d', 'e', uid='d-e')
+
+    net_1 -= net_2
+
+    assert net_1.number_of_nodes() == 2
+    assert net_1.number_of_edges() == 1
+    assert 'a' and 'b' in net_1.nodes
+    assert 'a-b' in net_1.edges
+    assert net_2.number_of_nodes() == 3
+    assert net_2.number_of_edges() == 2
 
 
 # =============================================================================
