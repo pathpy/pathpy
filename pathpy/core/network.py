@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-06-15 13:56 juergen>
+# Time-stamp: <Mon 2020-06-15 14:01 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -291,7 +291,7 @@ class Network(BaseModel):
         return super().uid
 
     def __add__(self, other: Network) -> Network:
-        """Add a network to a network"""
+        """Add a network to a network."""
         network = Network(directed=self.directed, temporal=self.temporal,
                           multiedges=self.multiedges, **self.attributes.to_dict())
 
@@ -302,6 +302,13 @@ class Network(BaseModel):
         network.add_edges(*self.edges)
 
         # add nodes and edges of the other to the new network
+        # iterate over all other nodes
+        for node in other.nodes:
+            # check if the node object already exists
+            if node not in network.nodes.values():
+                # add node to the network
+                network.add_node(node)
+
         # iterate over all other edges
         for edge in other.edges:
             # check if the edge object already exists
@@ -313,12 +320,19 @@ class Network(BaseModel):
         return network
 
     def __iadd__(self, other: Network) -> Network:
-        """Add a network to a network"""
+        """Add a network to it self."""
 
         # TODO: add warnings if two networks have different properties
         # TODO: update also netork properties
 
         # add nodes and edges of the other to the network
+        # iterate over all other nodes
+        for node in other.nodes:
+            # check if the node object already exists
+            if node not in self.nodes.values():
+                # add node to the network
+                self.add_node(node)
+
         # iterate over all other edges
         for edge in other.edges:
             # check if the edge object already exists
