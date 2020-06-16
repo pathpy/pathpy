@@ -15,6 +15,7 @@ from typing import Any, Optional, Union
 import numpy as np
 import scipy as sp  # pylint: disable=import-error
 from scipy.sparse import linalg as spl
+from scipy import linalg as spla
 
 from pathpy import logger, tqdm
 # from pathpy.core.path import Path
@@ -83,9 +84,14 @@ class RandomWalk(BaseWalk):
         # self._path = Path()
 
         # eigenvectors and eigenvalues
-        _, eigenvectors = spl.eigs(
-            self._transition_matrix.transpose(), k=1, which='LM')
-        pi = eigenvectors.reshape(eigenvectors.size, )
+        if network.number_of_nodes()>2:
+            _, eigenvectors = spl.eigs(            
+                    self._transition_matrix.transpose(), k=1, which='LM')
+            pi = eigenvectors.reshape(eigenvectors.size, )
+        else:
+            eigenvals, eigenvectors = spla.eig(self._transition_matrix.transpose().toarray())
+            x = np.argsort(-eigenvals)
+            pi = eigenvectors[x][:,0]
 
         # stationary probabilities
         self._stationary_probabilities = np.real(pi/np.sum(pi))
@@ -183,12 +189,11 @@ class RandomWalk(BaseWalk):
         n = network.number_of_nodes()
         T = sp.sparse.csr_matrix((n, n))
         for i in range(n):
-            if D[i]>0:
-                LOG.warning('Computing transition matrix for node with zero out-degree')
             for j in range(n):
                 if D[i]>0:
                     T[i,j] = restart_prob*(1./n) + (1-restart_prob)*A[i,j]/D[i]
                 else:                    
+                    LOG.warning('Computing transition matrix for node with zero out-degree')
                     if restart_prob>0:
                         T[i,j] = 1./n 
                     else:     
