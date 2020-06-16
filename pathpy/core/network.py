@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-05-14 15:41 juergen>
+# Time-stamp: <Mon 2020-06-15 14:33 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -290,6 +290,85 @@ class Network(BaseModel):
         """
         return super().uid
 
+    def __add__(self, other: Network) -> Network:
+        """Add a network to a network."""
+        network = Network(directed=self.directed, temporal=self.temporal,
+                          multiedges=self.multiedges, **self.attributes.to_dict())
+
+        # TODO: add warnings if two networks have different properties
+        # TODO: update also netork properties
+
+        # add nodes and edges of self to the new network
+        network.add_nodes(*self.nodes)
+        network.add_edges(*self.edges)
+
+        # add nodes and edges of the other to the new network
+        # iterate over all other nodes
+        for node in other.nodes:
+            # check if the node object already exists
+            if node not in network.nodes.values():
+                # add node to the network
+                network.add_node(node)
+
+        # iterate over all other edges
+        for edge in other.edges:
+            # check if the edge object already exists
+            if edge not in network.edges.values():
+                # add node to the network
+                network.add_edge(edge)
+
+        # return the new network
+        return network
+
+    def __sub__(self, other: Network) -> Network:
+        """Remove a network from a network."""
+
+        network = Network(directed=self.directed, temporal=self.temporal,
+                          multiedges=self.multiedges, **self.attributes.to_dict())
+
+        # add nodes and edges of self to a new network
+        network.add_nodes(*self.nodes)
+        network.add_edges(*self.edges)
+
+        # remove nodes and edges of the other network
+        network.remove_edges(*other.edges)
+        network.remove_nodes(*other.nodes)
+
+        # return the new network
+        return network
+
+    def __iadd__(self, other: Network) -> Network:
+        """Add a network to it self."""
+
+        # TODO: add warnings if two networks have different properties
+        # TODO: update also netork properties
+
+        # add nodes and edges of the other to the network
+        # iterate over all other nodes
+        for node in other.nodes:
+            # check if the node object already exists
+            if node not in self.nodes.values():
+                # add node to the network
+                self.add_node(node)
+
+        # iterate over all other edges
+        for edge in other.edges:
+            # check if the edge object already exists
+            if edge not in self.edges.values():
+                # add node to the network
+                self.add_edge(edge)
+
+        return self
+
+    def __isub__(self, other: Network) -> Network:
+        """Remove a network."""
+
+        # remove nodes and edges of the other network
+        self.remove_edges(*other.edges)
+        self.remove_nodes(*other.nodes)
+
+        return self
+
     @property
     def shape(self) -> Tuple[int, int]:
         """Return the size of the Network as tuple of number of nodes, edges and paths.
@@ -551,11 +630,11 @@ class Network(BaseModel):
             'Number of edges:\t{}'.format(self.number_of_edges()),
         ]
         attr = self.attributes.to_dict()
-        if len(attr)>0:
+        if len(attr) > 0:
             summary.append('\n\nNetwork attributes\n')
             summary.append('------------------\n')
-        for k,v in attr.items():
-            summary.append('{}:\t{}\n'.format(k, v))            
+        for k, v in attr.items():
+            summary.append('{}:\t{}\n'.format(k, v))
 
         return ''.join(summary)
 
@@ -841,9 +920,14 @@ class Network(BaseModel):
         self._remove_properties()
 
     def remove_edges(self, *edges: Union[str, tuple, list, Node, Edge]) -> None:
-        """Remove a single edge from the network."""
+        """Remove multiple edges from the network."""
         self.edges.remove(*edges)
         self._remove_properties()
+
+    def remove_nodes(self, *nodes: Union[str, Node]) -> None:
+        """Remove multiple nodes from the network."""
+        for node in nodes:
+            self.remove_node(node)
 
     def _add_properties(self):
         """Helper function to update network properties."""
