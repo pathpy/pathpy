@@ -105,6 +105,9 @@ class RandomWalk(BaseWalk):
         else:
             self._current_node = start_node
 
+        self._visitations[network.nodes.index[self._current_node]] += 1
+        
+
         # TODO: implement new path class
         # self._path.add_node(self._network.nodes[self._current_node])
 
@@ -131,18 +134,32 @@ class RandomWalk(BaseWalk):
             _p = np.real(pi/np.sum(pi))
         return _p
 
-    def visitation_probabilities(self) -> np.array:
-        """Returns the visitation probabilities of nodes.
+    def visitation_frequencies(self) -> np.array:
+        """Returns the visitation frequencies of nodes in the sequence of visited nodes.
 
         Returns the visitation probabilities of nodes based on the history of
-        the random walk. Initially, all visitation probabilities are zero.
+        the random walk. Initially, all visitation probabilities are zero except for the start node.
 
         """
-        return np.nan_to_num(self._visitations/self._t)
+        return np.nan_to_num(self._visitations/(self._t+1))
+
+    def visitation_probabilities(self, t, start_node) -> np.array:
+        """Returns the visitation probabilities of nodes after t steps based on the start node
+
+        Returns the visitation probabilities of nodes based on the history of
+        the random walk. Initially, all visitation probabilities are zero except for the start node.
+
+        """
+        assert start_node in self._network.nodes.uids
+
+        initial_dist = np.zeros(self._network.number_of_nodes())
+        initial_dist[self._network.nodes.index[start_node]] = 1.0
+        return np.dot(initial_dist, (self._transition_matrix**t).todense())
 
     @property
     def total_variation_distance(self) -> float:
-        """Computes the total variation distance.
+        """Computes the total variation distance between stationary 
+        visitation probabilities and the current visitation frequencies
 
         Computes the total variation distance between the current visitation
         probabilities and the stationary probabilities. This quantity converges
@@ -150,8 +167,7 @@ class RandomWalk(BaseWalk):
         current relaxation of the random walk process.
 
         """
-        return np.abs(self._stationary_probabilities
-                      - self.visitation_probabilities()).sum()/2.0
+        return self.TVD(self._stationary_probabilities, self.visitation_frequencies())
 
     def transition_probabilities(self, node: str) -> np.array:
         """Returns a vector that contains transition probabilities.
@@ -163,6 +179,10 @@ class RandomWalk(BaseWalk):
         return np.nan_to_num(np.ravel(
             self._transition_matrix[
                 self._network.nodes.index[node], :].todense()))
+
+    @staticmethod
+    def TVD(a ,b) -> float:        
+        return np.abs(a - b).sum()/2.0
 
     @staticmethod
     def transition_matrix(network: Network,
