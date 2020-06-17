@@ -121,7 +121,7 @@ def _network(self, weight: Union[str, bool, None] = None,
 
 def _adjacency_matrix(self, weight: Union[str, bool, None] = None,
                       transposed: bool = False,
-                      directed: Optional[bool] = None) -> sparse.csr_matrix:
+                      directed: Optional[bool] = None, loops: int = 1) -> sparse.csr_matrix:
     """Function to generate the adjacency matrix."""
 
     # initializing variables
@@ -142,9 +142,10 @@ def _adjacency_matrix(self, weight: Union[str, bool, None] = None,
 
         # add additional nodes if not directed
         if directed is False or not self.directed:
-            rows.append(self.nodes.index[e.w.uid])
-            cols.append(self.nodes.index[e.v.uid])
-            entries.append(e.weight(weight))
+            if e.v.uid != e.w.uid or loops == 2:
+                rows.append(self.nodes.index[e.w.uid])
+                cols.append(self.nodes.index[e.v.uid])
+                entries.append(e.weight(weight))
 
     A = sparse.csr_matrix((entries, (rows, cols)), shape=(n, n))
     if transposed:
