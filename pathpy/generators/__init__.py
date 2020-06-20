@@ -22,6 +22,7 @@ from pathpy.generators.random_graphs import (ER_nm,
                                              max_edges,
                                              generate_degree_sequence,                                             
                                              )
+from pathpy.generators.lattice import (lattice_network)
 
 # =============================================================================
 # eof
