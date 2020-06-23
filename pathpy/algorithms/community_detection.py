@@ -75,7 +75,7 @@ def modularity_maximisation(network: Network,
         C[v] = c
         community_to_nodes[c] = set([v])
         c += 1
-    q = Q_merge(network, A, D, n, m, C)
+    q = _Q_merge(network, A, D, n, m, C)
     
     for i in tqdm(range(iterations), desc='maximising modularity'):
 
@@ -83,7 +83,7 @@ def modularity_maximisation(network: Network,
         x, y = random.sample(community_to_nodes.keys(), 2)
 
         # check Q of merged communities
-        q_new = Q_merge(network, A, D, n, m, C, merge=set([x, y]))
+        q_new = _Q_merge(network, A, D, n, m, C, merge=set([x, y]))
 
         if q_new > q:
             # merge communities
