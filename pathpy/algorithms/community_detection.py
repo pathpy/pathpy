@@ -10,7 +10,7 @@
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import TYPE_CHECKING, Dict, Tuple
+from typing import TYPE_CHECKING, Dict, Tuple, Iterable, Union
 import numpy as np
 import random
 
@@ -36,26 +36,35 @@ def _Q_merge(network: Network, A, D, n: int, m: int, C: Dict, merge: Set = set()
     return q
 
 
-def color_map(network: Network, cluster_mapping: Dict) -> Dict:
+def color_map(network: Network, cluster_mapping: Union[Dict, Iterable], colors: List = None) -> Dict:
     """Returns a dictionary that maps nodes to colors based on their communities.
 
     Currently, a maximum of 20 different communities is supported.
     """
-    colors = ['red', 'green', 'blue', 'orange', 'yellow', 'cyan', 'blueviolet',
+    if colors == None:
+        colors = ['red', 'blue', 'orange', 'yellow', 'cyan', 'blueviolet', 'red',
               'chocolate', 'magenta', 'navy', 'plum', 'thistle', 'wheat',
               'turquoise', 'steelblue', 'grey', 'powderblue', 'orchid',
               'mintcream', 'maroon']
     node_colors = {}
     community_color_map: Dict = {}
-    i = 0
-    for v in network.nodes.uids:
+    i = 0    
+    for x in network.nodes:
+        if isinstance(cluster_mapping, dict):
+            v = x.uid
+        else:
+            v = network.nodes.index[x.uid]
+        
         if cluster_mapping[v] not in community_color_map:
             community_color_map[cluster_mapping[v]] = i % len(colors)
             i += 1
             if i > 20:
                 LOG.warning('Exceeded 20 different communities, '
                             'some communities are assigned the same color.')
-        node_colors[v] = colors[community_color_map[cluster_mapping[v]]]
+        if isinstance(cluster_mapping, dict):
+            node_colors[v] = colors[community_color_map[cluster_mapping[v]]]   
+        else:
+            node_colors[x.uid] = colors[community_color_map[cluster_mapping[v]]]   
     return node_colors
 
 
