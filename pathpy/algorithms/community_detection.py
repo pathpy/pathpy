@@ -12,6 +12,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Dict, Tuple
 import numpy as np
+import random
 
 from pathpy import logger, tqdm
 
