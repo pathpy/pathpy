@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : classes.py -- Base classes for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-05-12 11:16 juergen>
+# Time-stamp: <Wed 2020-06-24 10:41 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -78,7 +78,7 @@ class BaseClass:
 
         # initialize attributes object
         # self.attributes: Attributes = Attributes()
-        self.attributes: TemporalAttributes = TemporalAttributes()
+        self.attributes: Attributes = Attributes()
 
         # check code
         self.check: bool = kwargs.get(

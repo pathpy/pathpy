@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an single edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-05-14 14:25 juergen>
+# Time-stamp: <Wed 2020-06-24 16:23 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -430,7 +430,7 @@ class EdgeCollection(BaseCollection):
             _contain = True
         return _contain
 
-    def __getitem__(self, key: Union[str, tuple, Edge]) -> Union[Edge, EdgeSet]:
+    def __getitem__(self, key: Union[str, tuple, Edge]) -> Union[Edge, EdgeSet, EdgeCollection]:
         """Returns a node object."""
         edge: Edge
         if isinstance(key, tuple):
@@ -502,8 +502,9 @@ class EdgeCollection(BaseCollection):
                 self._add(_edge)
             else:
                 # raise error if edge already exists
-                LOG.error('The edge "%s" already exists.', _edge.uid)
-                raise KeyError
+                self._if_edge_exists(_edge.uid, **kwargs)
+                # LOG.error('The edge "%s" already exists.', _edge.uid)
+                # raise KeyError
 
         elif len(edge) == 1 and isinstance(edge[0], (list, tuple)):
             self._add_edge(*edge[0], uid=uid, **kwargs)
@@ -536,8 +537,9 @@ class EdgeCollection(BaseCollection):
             self._add_edge(Edge(_nodes[0], _nodes[1], uid=uid, **kwargs))
         else:
             # raise error if node already exists
-            LOG.error('The edge "%s" already exists in the Network', _nodes)
-            raise KeyError
+            self._if_edge_exists(_nodes, **kwargs)
+            # LOG.error('The edge "%s" already exists in the Network', _nodes)
+            # raise KeyError
 
     def _add_edge_from_str(self, edge: str, **kwargs: Any) -> None:
         """Helper function to add an edge from nodes."""
@@ -547,8 +549,13 @@ class EdgeCollection(BaseCollection):
             self._add_edge(Edge(Node(), Node(), uid=edge, **kwargs))
         else:
             # raise error if node already exists
-            LOG.error('The node "%s" already exists in the Network', edge)
-            raise KeyError
+            self._if_edge_exists(edge, **kwargs)
+            # LOG.error('The node "%s" already exists in the Network', edge)
+            # raise KeyError
+
+    def _if_edge_exists(self, edge: Any, **kwargs: Any) -> None:
+        LOG.error('The node "%s" already exists in the Network', edge)
+        raise KeyError
 
     def _add(self, edge: Edge) -> None:
         """Add an edge to the set of edges."""
