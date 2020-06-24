@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-05-14 14:14 juergen>
+# Time-stamp: <Mon 2020-06-22 14:08 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -384,7 +384,7 @@ class PathCollection(BaseCollection):
         self._edge_map: defaultdict = defaultdict(set)
 
     def __contains__(self, item) -> bool:
-        """Returns if item is in edges."""
+        """Returns if item is in path."""
         _contain: bool = False
         if isinstance(item, Path) and item in self._map.values():
             _contain = True
