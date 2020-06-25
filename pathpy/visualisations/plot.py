@@ -4,15 +4,17 @@
 # =============================================================================
 # File      : plot.py -- Module to plot pathoy networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-05-11 12:23 juergen>
+# Time-stamp: <Thu 2020-06-25 21:13 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Union
 from collections import defaultdict
 from copy import deepcopy
 from singledispatchmethod import singledispatchmethod  # remove for python 3.8
+from datetime import datetime
+import numpy as np
 
 from pathpy import logger, config
 from pathpy.core.base import (BaseModel)
@@ -26,6 +28,8 @@ from pathpy.visualisations.fileformats import (HTML,
                                                TEX,
                                                PDF,
                                                PNG)
+
+from pathpy.models.models import (ABCTemporalNetwork)
 
 # create logger for the Plot class
 LOG = logger(__name__)
@@ -58,9 +62,9 @@ config['plot']['interactiv']['fileformat'] = ['html']
 # Animation config
 config['plot']['animation'] = {}
 config['plot']['animation']["enabled"] = False
-config['plot']['animation']["start"] = "1970-01-01T00:00:00+00:00"
-config['plot']['animation']["end"] = "1970-01-01T00:00:10+00:00"
-config['plot']['animation']["steps"] = 10
+config['plot']['animation']["begin"] = None
+config['plot']['animation']["end"] = None
+config['plot']['animation']["steps"] = 20
 config['plot']['animation']["speed"] = 100
 config['plot']['animation']["unit"] = "seconds"
 
@@ -75,7 +79,7 @@ config['plot']['label']['color'] = 'white'
 config['plot']['node'] = {}
 config['plot']['node']['size'] = 15
 config['plot']['node']['color'] = 'CornflowerBlue'
-config['plot']['node']['opacity'] = 1
+config['plot']['node']['opacity'] = .2
 config['plot']['node']['id_as_label'] = True
 
 config['plot']['curved'] = False
@@ -253,6 +257,19 @@ class Parser:
             'node': self.default_node,
             'edge': self.default_edge}
 
+        self.default_animation = {
+            "enabled": None,
+            "begin": None,
+            "end": None,
+            "steps": None,
+            "speed": None,
+            "unit": None,
+        }
+
+        self.default_config = {
+            'animation': self.default_animation
+        }
+
     def __call__(self, obj: Any, plot_config: defaultdict,
                  **kwargs: Any) -> defaultdict:
         """Call the parse function."""
@@ -264,10 +281,83 @@ class Parser:
         """Parses the pathpy network into a json like dict."""
         raise NotImplementedError
 
-    # @parse.register(BaseTemporalNetwork)
-    # def _parse_temporal():
-    #     LOG.debug('Parse a temporal network')
-    #     raise NotImplementedError
+    @parse.register(ABCTemporalNetwork)
+    def _parse_temporal(self, obj: Any, plot_config: defaultdict, **kwargs: Any) -> defaultdict:
+        LOG.debug('Parse a temporal network')
+
+        # get static network to start with
+        self._parse_static(obj=obj, plot_config=plot_config, **kwargs)
+
+        # TODO: Fix parse_config for temporal networks
+        for key, values in self.parse_config(
+                self.default_config, **kwargs).items():
+            for k, v in values.items():
+                self.config[key][k] = v
+
+        # set temporal networkt to true
+        self.config['temporal'] = True
+        self.figure['data']['changes'] = []
+
+        # get start and end time
+        begin = obj.edges.begin(finite=True)
+        end = obj.edges.end(finite=True)
+
+        # raise error if time frame is not finite
+        if begin == float('-inf') or end == float('inf'):
+            LOG.error('The begin/end time is not finite!')
+            raise ValueError
+
+        # begin and end of the animation
+        # TODO: make this more efficient
+        animation_begin = self.config['animation']['begin']
+        animation_end = self.config['animation']['end']
+        steps = self.config['animation']['steps']
+        # if no begin is given take the first observed temporal event
+        if animation_begin is None:
+            animation_begin = self._isotime(begin)
+        elif isinstance(animation_begin, (int, float)):
+            begin = animation_begin
+            animation_begin = self._isotime(animation_begin)
+        else:
+            raise NotImplementedError
+
+        if animation_end is None:
+            animation_end = self._isotime(end)
+        elif isinstance(animation_end, (int, float)):
+            end = animation_end
+            animation_end = self._isotime(animation_end)
+        else:
+            raise NotImplementedError
+
+        # set animation begin and end for d3js
+        self.config['animation']['begin'] = animation_begin
+        self.config['animation']['end'] = animation_end
+
+        # get static edges
+        edges = {e['uid']: e for e in self.figure['data']['edges']}
+
+        # get slice of edges in the given time frame
+        _edges = obj.edges[begin:end]
+
+        # generate temporal edges
+        temporal_edges = []
+        time = list(np.linspace(begin, end, num=steps))
+        for t in time:
+            for uid in _edges[t].keys():
+                _edge = edges[uid]
+                _edge['time'] = time.index(t)
+                temporal_edges.append(_edge.copy())
+
+        # add temporal edges to the data
+        self.figure['data']['edges'] = temporal_edges
+
+        # return the figure
+        return self.figure
+
+    @staticmethod
+    def _isotime(time: Union[int, float]) -> str:
+        """Convert float to ISO 8601 string."""
+        return datetime.utcfromtimestamp(time).strftime("%Y-%m-%dT%H:%M:%S")
 
     @parse.register(BaseModel)
     def _parse_static(self, obj: Any, plot_config: defaultdict,
@@ -306,7 +396,7 @@ class Parser:
                         self.default_properties[key][attr] = value
 
         # check kwargs and update config
-        self.config.update(self.parse_config(**kwargs))
+        self.config.update(self.parse_config(self.default_properties, **kwargs))
 
         # parse layout
         _layout = self.config.get('layout', None)
@@ -423,14 +513,14 @@ class Parser:
 
         return nodes
 
-    def parse_config(self, **kwargs: Any) -> defaultdict:
+    def parse_config(self, properties: dict, **kwargs: Any) -> defaultdict:
         """Parse the config file."""
 
         # initialize temporal dict
         _config: defaultdict = defaultdict(dict)
 
         # extend default dict
-        for key in self.default_properties:
+        for key in properties:
             _config[key] = defaultdict(dict)
 
         # iterate over kwargs
@@ -440,8 +530,8 @@ class Parser:
             _key = key.split("_", 1)
 
             # check if key is valid
-            if _key[0] in self.default_properties:
-                if _key[1] in self.default_properties[_key[0]]:
+            if _key[0] in properties:
+                if _key[1] in properties[_key[0]]:
 
                     # add value to dictionary
                     _config[_key[0]][_key[1]] = value

@@ -17,7 +17,7 @@
    console.log("ERROR: NO requireJS was detected");
  };
 
-require(['d3'], function(d3){
+ require(['d3'], function(d3){
    var config = $config
 
    var data = $data
@@ -177,12 +177,13 @@ require(['d3'], function(d3){
 
        nodeLabels.attr("transform", function(d) {
          return "translate(" + d.x + "," + d.y + ")";
-       })
-       nodes
-                 .attr('cx', function (d) { return d.x; })
-                 .attr('cy', function (d) { return d.y; });
+       });
+       /* nodes
+        *   .attr('cx', function (d) { return d.x; })
+        *   .attr('cy', function (d) { return d.y; }); */
 
 
+       nodes.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
        edges.attr("d", function(d) {
          var dx = d.target.x - d.source.x,
              dy = d.target.y - d.source.y,
@@ -454,6 +455,7 @@ require(['d3'], function(d3){
 
        // render nodes and edges
        renderNodes(consideredNodes);
+       renderNodeLabels(consideredNodes);
        renderEdges(considerdEdges);
 
        // render temporal edges if given
@@ -657,31 +659,35 @@ require(['d3'], function(d3){
                          .classed('node', true)
                          .classed('node_highlight',false)
        //.classed('node_search',false)
-                         .attr('cx', function (d) { return d.x; })
-                         .attr('cy', function (d) { return d.y; })
+                         .attr('x', function (d) { return d.x; })
+                         .attr('y', function (d) { return d.y; })
                          .on('mouseover', highlightNode)
                          .on('mouseout', unhighlightNode)
                          .call(drag);
 
 
-       nodeLabels = svg.selectAll('.labels').selectAll('.label')
-	               .data(nodesData)
-	               .enter()
-	               .append("text")
-                       .classed('nlabel', true)
-                       .attr("dy", ".35em")
-                       .style("fill",labelColor);
+       nodeLabels = svg.select('.labels').selectAll('.label')
+ 	               .data(nodesData);
 
-       if(labelCentered)
-         nodeLabels.text(function(d) { return getName(d); })
-	           .style("text-anchor", "middle");
-       else
-         nodeLabels.attr("dx", function(d) {return getSize(d);})
-                   .text(function(d) { return '\u2002'+getName(d); });
+       var labelsE = nodeLabels.enter().append("text")
+                               .classed('nlabel', true)
+                               .attr("dy", ".35em")
+                               .style("fill",labelColor);
 
-       if(!labelEnabled){
-         nodeLabels.style("opacity", 0);
-       };
+       labelsE.attr("dx", function(d) {return getSize(d);})
+              .text(function(d) { return '\u2002'+getName(d); });
+
+       /*
+        * if(labelCentered)
+        *   labelsE.text(function(d) { return getName(d); })
+ 	  .style("text-anchor", "middle");
+        * else
+        *   labelsE.attr("dx", function(d) {return getSize(d);})
+        *          .text(function(d) { return '\u2002'+getName(d); });
+
+        * if(!labelEnabled){
+        *   labelsE.style("opacity", 0);
+        * }; */
 
        nodeLabels.exit().remove();
        nodes.exit()
@@ -689,12 +695,40 @@ require(['d3'], function(d3){
             .attr("r", 0)
             .remove();
 
-
+       nodeLabels = nodeLabels.merge(labelsE);
        nodes = nodes.merge(nodesE);
        //nodes = nodes.merge(myText);
        nodes.transition() // transition to change size and color
             .attr('r', function (d) { return scaleRadius(d); })
-            .style('fill', function (d) { return getColor(d); });
+            .style('fill', function (d) { return getColor(d); })
+            .style("opacity", 1);
+     }
+
+
+     function renderNodeLabels(nodesData) {
+
+       nodeLabels = svg.select('.nodes').selectAll('.nlabel')
+ 	               .data(nodesData);
+
+       var labelsE = nodeLabels.enter().append("text")
+                               .classed('nlabel', true)
+                               .attr("dy", ".35em")
+                               .style("fill",labelColor);
+
+       if(labelCentered)
+         labelsE.text(function(d) { return getName(d); })
+ 	        .style("text-anchor", "middle");
+       else
+         labelsE.attr("dx", function(d) {return getSize(d);})
+                .text(function(d) { return '\u2002'+getName(d); });
+
+       if(!labelEnabled){
+         labelsE.style("opacity", 0);
+       };
+
+       nodeLabels.exit().remove();
+
+       nodeLabels = nodeLabels.merge(labelsE);
      }
 
      /*
@@ -1361,7 +1395,7 @@ require(['d3'], function(d3){
        formatDate = formatDateIntoYear;
      }
 
-     var startDate = new Date(config.animation.start),
+     var startDate = new Date(config.animation.begin),
          endDate = new Date(config.animation.end);
 
      // devine margin and width of the slider
@@ -1530,7 +1564,7 @@ require(['d3'], function(d3){
            moving = true;
            // wait some time e.g. 1000 = 1000 ms = 1 sec
            timer = d3.interval(function(){step()},
-                               config.widgets.animation.speed || 100);
+                               config.animation.speed || 100);
            button.text("Pause");
          }
          //console.log("Slider moving: " + moving);
@@ -1590,7 +1624,7 @@ require(['d3'], function(d3){
          currentValue = 0;
          // stop after time is max
          timer.stop()
-         //clearInterval(timer);
+         // clearInterval(timer);
          // timer = 0;
          playBtn.text("Play");
        }
@@ -1699,5 +1733,5 @@ require(['d3'], function(d3){
 
    if (config.temporal === true){
      sliderMenu("#$divId",config,myNetwork);};
-});
+ });
 </script>

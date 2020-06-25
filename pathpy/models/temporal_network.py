@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-06-24 18:39 juergen>
+# Time-stamp: <Thu 2020-06-25 11:48 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -90,10 +90,10 @@ class TemporalEdgeCollection(EdgeCollection):
         self._intervals: IntervalTree = IntervalTree()
 
         # map edges to intervals
-        self._temporal_map: defaultdict = defaultdict(set)
+        self._interval_map: defaultdict = defaultdict(set)
 
     def _if_edge_exists(self, edge: Any, **kwargs: Any) -> None:
-
+        """Helper function if edge already exists."""
         # get the edge
         if isinstance(edge, list):
             _edge = cast(Edge, self[edge[0], edge[1]])
@@ -105,7 +105,7 @@ class TemporalEdgeCollection(EdgeCollection):
         end = kwargs['end']
 
         self._intervals.addi(begin, end, _edge)
-        self._temporal_map[_edge].add((begin, end))
+        self._interval_map[_edge].add((begin, end))
 
     def _add(self, edge: Edge) -> None:
         """Add an edge to the set of edges."""
@@ -113,11 +113,12 @@ class TemporalEdgeCollection(EdgeCollection):
         end = edge.attributes['end']
 
         self._intervals.addi(begin, end, edge)
-        self._temporal_map[edge].add((begin, end))
+        self._interval_map[edge].add((begin, end))
 
         super()._add(edge)
 
     def items(self, temporal=False):
+        """Return a new view of the edge’s items ((key, value) pairs)."""
         if not temporal:
             return self._map.items()
         else:
@@ -126,7 +127,7 @@ class TemporalEdgeCollection(EdgeCollection):
 
     def __getitem__(self, key: Union[str, tuple, Edge]
                     ) -> Union[Edge, EdgeSet, TemporalEdgeCollection]:
-        """Returns a node object."""
+        """Returns a edge object."""
         _item: Any
         if isinstance(key, (int, float, slice)):
             _item = self._new_from_intervals(self._intervals[key])
@@ -135,6 +136,7 @@ class TemporalEdgeCollection(EdgeCollection):
         return _item
 
     def _new_from_intervals(self, intervals: IntervalTree) -> TemporalEdgeCollection:
+        """Helper function which creates a new collection from an interval."""
         new = TemporalEdgeCollection()
         for begin, end, edge in intervals:
             new.add(edge, begin=begin, end=end)
@@ -142,7 +144,7 @@ class TemporalEdgeCollection(EdgeCollection):
         return new
 
     def slice(self, begin, end) -> TemporalEdgeCollection:
-        """Return a temporal slice"""
+        """Return a temporal slice of the collection."""
 
         tree = self._intervals.copy()
         tree.slice(begin)
@@ -153,7 +155,7 @@ class TemporalEdgeCollection(EdgeCollection):
         return self._new_from_intervals(tree)
 
     def begin(self, finite=True) -> float:
-        """Begin of the time"""
+        """Begin time of the temporal edges."""
 
         _begin = self._intervals.begin()
         _end = float('inf')
@@ -168,8 +170,7 @@ class TemporalEdgeCollection(EdgeCollection):
         return min(_begin, _end)
 
     def end(self, finite=True) -> float:
-        """End of the time"""
-
+        """End time if the temporal edges."""
         _begin = float('-inf')
         _end = self._intervals.end()
         if finite:
