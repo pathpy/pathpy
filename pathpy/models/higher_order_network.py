@@ -4,19 +4,21 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-06-10 14:56 juergen>
+# Time-stamp: <Mon 2020-06-29 17:51 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 
 from __future__ import annotations
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, Generic
 
 from pathpy import logger
-from pathpy.core.node import Node
-from pathpy.core.edge import Edge
-from pathpy.core.path import Path
+from pathpy.core.node import Node, NodeCollection
+from pathpy.core.edge import Edge, EdgeCollection
+from pathpy.core.path import Path, PathCollection
 from pathpy.core.network import Network
+
+from pathpy.models.models import ABCHigherOrderNetwork
 
 # create logger for the Network class
 LOG = logger(__name__)
@@ -75,75 +77,87 @@ Model.from_samples(data)
 """
 
 
-class HigherOrderNetwork(Network):
-    """Base class for a Higher Order Network (HON)."""
+# class HigherOrderNetwork(ABCHigherOrderNetwork, Network):
+#     """Base class for a Higher Order Network (HON)."""
 
-    def __init__(self, uid: Optional[str] = None, order: int = 1,
-                 **kwargs: Any) -> None:
-        """Initialize the higer-order network object."""
+# def __init__(self, uid: Optional[str] = None, order: int = 1,
+#              **kwargs: Any) -> None:
+#     """Initialize the higer-order network object."""
 
-        # initialize the base class
-        super().__init__(uid=uid, directed=True, temporal=False,
-                         multiedges=False, **kwargs)
+#     # initialize the base class
+#     super().__init__(uid=uid, directed=True, temporal=False,
+#                      multiedges=False, **kwargs)
 
-        # order of the higher-order network
-        self._order: int = order
+#     # order of the higher-order network
+#     self._order: int = order
 
-    @property
-    def order(self) -> int:
-        """Return the order of the higher-order network."""
-        return self._order
+#     # a container for node objects
+#     self._nodes: HigherOrderNodeCollection = HigherOrderNodeCollection()
 
-    def degrees_of_freedom(self, mode: str = 'path') -> int:
-        """Returns the degrees of freedom of the higher-order network.
+#     # a container for edge objects
+#     self._edges: HigherOrderEdgeCollection = HigherOrderEdgeCollection(
+#         directed=True,
+#         multiedges=False,
+#         nodes=self._nodes)
 
-        Since probabilities must sum to one, the effective degree of freedom is
-        one less than the number of nodes
+# def add_node(self, *node: Union[str, Node, HigherOrderNode], **kwargs: Any) -> None:
+#     """Add a single higher-order node to the network."""
+#     self.nodes.add(*node, **kwargs)
 
-        .. math::
+# @property
+# def order(self) -> int:
+#     """Return the order of the higher-order network."""
+#     return self._order
 
-           \\text{dof} = \\sum_{n \\in N} \\max(0,\\text{outdeg}(n)-1)
+# def degrees_of_freedom(self, mode: str = 'path') -> int:
+#     """Returns the degrees of freedom of the higher-order network.
 
-        """
-        # initialize degree of freedom
-        degrees_of_freedom: int = 0
-        return degrees_of_freedom
+#     Since probabilities must sum to one, the effective degree of freedom is
+#     one less than the number of nodes
 
-    def summary(self) -> str:
-        """Returns a summary of the higher-order network.
+#     .. math::
 
-        The summary contains the name, the used network class, the order, the
-        number of nodes and edges.
+#        \\text{dof} = \\sum_{n \\in N} \\max(0,\\text{outdeg}(n)-1)
 
-        If logging is enabled (see config), the summary is written to the log
-        file and showed as information on in the terminal. If logging is not
-        enabled, the function will return a string with the information, which
-        can be printed to the console.
+#     """
+#     # initialize degree of freedom
+#     degrees_of_freedom: int = 0
+#     return degrees_of_freedom
 
-        Returns
-        -------
-        str
-            Returns a summary of important higher-order network properties.
+# def summary(self) -> str:
+#     """Returns a summary of the higher-order network.
 
-        """
-        summary = [
-            'Uid:\t\t\t{}\n'.format(self.uid),
-            'Type:\t\t\t{}\n'.format(self.__class__.__name__),
-            # 'Directed:\t\t{}\n'.format(str(self.directed)),
-            # 'Multi-Edges:\t\t{}\n'.format(str(self.multiedges)),
-            'Order:\t\t\t{}\n'.format(self.order),
-            'Number of nodes:\t{}\n'.format(self.number_of_nodes()),
-            'Number of edges:\t{}'.format(self.number_of_edges()),
-        ]
-        attr = self.attributes.to_dict()
-        if len(attr) > 0:
-            summary.append('\n\nNetwork attributes\n')
-            summary.append('------------------\n')
-        for k, v in attr.items():
-            summary.append('{}:\t{}\n'.format(k, v))
+#     The summary contains the name, the used network class, the order, the
+#     number of nodes and edges.
 
-        return ''.join(summary)
+#     If logging is enabled (see config), the summary is written to the log
+#     file and showed as information on in the terminal. If logging is not
+#     enabled, the function will return a string with the information, which
+#     can be printed to the console.
 
+#     Returns
+#     -------
+#     str
+#         Returns a summary of important higher-order network properties.
+
+#     """
+#     summary = [
+#         'Uid:\t\t\t{}\n'.format(self.uid),
+#         'Type:\t\t\t{}\n'.format(self.__class__.__name__),
+#         # 'Directed:\t\t{}\n'.format(str(self.directed)),
+#         # 'Multi-Edges:\t\t{}\n'.format(str(self.multiedges)),
+#         'Order:\t\t\t{}\n'.format(self.order),
+#         'Number of nodes:\t{}\n'.format(self.number_of_nodes()),
+#         'Number of edges:\t{}'.format(self.number_of_edges()),
+#     ]
+#     attr = self.attributes.to_dict()
+#     if len(attr) > 0:
+#         summary.append('\n\nNetwork attributes\n')
+#         summary.append('------------------\n')
+#     for k, v in attr.items():
+#         summary.append('{}:\t{}\n'.format(k, v))
+
+#     return ''.join(summary)
 
 class HigherOrderNode(Node, Path):
     """Base class of a higher order node."""
@@ -188,6 +202,19 @@ class HigherOrderNode(Node, Path):
         return ''.join(summary)
 
 
+class HigherOrderNodeCollection(PathCollection):
+    """Higher-order node collection."""
+
+    def __init__(self) -> None:
+        """Initialize the NodeCollection object."""
+
+        # initialize the base class
+        super().__init__()
+
+        # class of objects
+        self._path_class = HigherOrderNode
+
+
 class HigherOrderEdge(Edge):
     """Base class of a higher order edge."""
 
@@ -196,6 +223,9 @@ class HigherOrderEdge(Edge):
         # initializing the parent classes
         super().__init__(v=v, w=w, uid=uid, **kwargs)
 
+
+# class HigherOrderEdgeCollection(EdgeCollection):
+#     pass
 
 # =============================================================================
 # eof

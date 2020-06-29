@@ -3,16 +3,21 @@
 # =============================================================================
 # File      : test_higher_order_network.py -- Test environment for HONs
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-06-10 12:09 juergen>
+# Time-stamp: <Mon 2020-06-29 18:19 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 
 import pytest
 from pathpy import Node, Edge, Path
-from pathpy.models.higher_order_network import (HigherOrderNetwork,
-                                                HigherOrderNode,
-                                                HigherOrderEdge)
+from pathpy.models.higher_order_network import (
+    HigherOrderNode,
+    HigherOrderEdge,
+    HigherOrderNodeCollection,
+)
+# #                                                 # HigherOrderEdge
+# #                                                 )
+# from pathpy.core.path import HigherOrderNode
 
 
 def test_higher_order_node():
@@ -21,13 +26,20 @@ def test_higher_order_node():
     b = Node('b', color='blue')
     c = Node('c', color='cyan')
 
-    ab = Edge(a, b, uid='ab')
-    bc = Edge(b, c, uid='bc')
+    ab = Edge(a, b, uid='a-b')
+    bc = Edge(b, c, uid='b-c')
 
     abc = HigherOrderNode(ab, bc, uid='abc')
 
-    # print(abc.uid)
-    # print(abc)
+    nodes = HigherOrderNodeCollection()
+    nodes.add(abc)
+
+    assert nodes[abc] == abc
+    assert nodes['abc'] == abc
+    assert nodes[a, b, c] == abc
+    assert nodes['a', 'b', 'c'] == abc
+    assert nodes[ab, bc] == abc
+    assert nodes['a-b', 'b-c'] == abc
 
 
 def test_higher_order_edge():
@@ -47,18 +59,19 @@ def test_higher_order_edge():
 
     abc_bcd = HigherOrderEdge(abc, bcd, uid='abc-bcd')
     # print(abc_bcd)
-    # pass
 
 
-def test_higher_order_network():
-    """Default test for development"""
-    hon = HigherOrderNetwork()
-    hon.add_node('a')
-    hon.add_node('b')
-    hon.add_edge('a', 'b', uid='e1')
-    # print(hon)
-    # print(hon.nodes)
-    # print(hon.edges)
+# def test_higher_order_network():
+#     """Default test for development"""
+#     hon = HigherOrderNetwork()
+#     hon.add_node('a', uid='a')
+#     hon.add_node('b', uid='b')
+#     hon.add_edge('a', 'b', uid='a-b')
+#     print(hon.nodes)
+#     #hon.add_edge('a', 'b', uid='e1')
+#     # print(hon)
+#     # print(hon.nodes)
+#     # print(hon.edges)
 
 
 # =============================================================================

@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-06-22 14:08 juergen>
+# Time-stamp: <Mon 2020-06-29 17:59 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -383,10 +383,13 @@ class PathCollection(BaseCollection):
         # map single node to paths
         self._edge_map: defaultdict = defaultdict(set)
 
+        # class of objects
+        self._path_class: Any = Path
+
     def __contains__(self, item) -> bool:
         """Returns if item is in path."""
         _contain: bool = False
-        if isinstance(item, Path) and item in self._map.values():
+        if isinstance(item, self._path_class) and item in self._map.values():
             _contain = True
         elif isinstance(item, str) and item in self._map:
             _contain = True
@@ -433,7 +436,7 @@ class PathCollection(BaseCollection):
             else:
                 path = paths[-1]
 
-        elif isinstance(key, Path) and key in self:
+        elif isinstance(key, self._path_class) and key in self:
             path = key
         else:
             path = self._map[key]
@@ -485,7 +488,7 @@ class PathCollection(BaseCollection):
                   **kwargs: Any) -> None:
         """Add a single path."""
 
-        if len(path) == 1 and isinstance(path[0], Path):
+        if len(path) == 1 and isinstance(path[0], self._path_class):
             _path = path[0]
             # check if path exists already
             if not self.contain(_path):
@@ -546,7 +549,7 @@ class PathCollection(BaseCollection):
             _path = _edges
 
         if _path not in self or self.multipaths:
-            self._add_path(Path(*_path, uid=uid, **kwargs))
+            self._add_path(self._path_class(*_path, uid=uid, **kwargs))
         else:
             # raise error if node already exists
             LOG.error('The path "%s" already exists.', _path)
@@ -566,7 +569,7 @@ class PathCollection(BaseCollection):
 
         _path = _edges
         if _path not in self or self.multipaths:
-            self._add_path(Path(*_path, uid=uid, **kwargs))
+            self._add_path(self._path_class(*_path, uid=uid, **kwargs))
         else:
             # raise error if node already exists
             LOG.error('The path "%s" already exists.', _path)
@@ -597,7 +600,7 @@ class PathCollection(BaseCollection):
                      uid: Optional[str] = None, nodes: bool = True) -> None:
         """Add a single path."""
 
-        if len(path) == 1 and isinstance(path[0], Path) and path[0] in self:
+        if len(path) == 1 and isinstance(path[0], self._path_class) and path[0] in self:
             self._remove(path[0])
 
         elif len(path) == 1 and isinstance(path[0], str) and path[0] in self:
@@ -610,7 +613,8 @@ class PathCollection(BaseCollection):
         elif all(isinstance(arg, (str, Node, Edge)) for arg in path):
 
             if all(arg in self for arg in path):
-                _paths = [cast(Path, self[cast(str, _path)]) for _path in path]
+                _paths = [cast(Path, self[cast(str, _path)])
+                          for _path in path]
             elif self.multipaths:
                 _paths = [cast(Path, _path) for _path in cast(
                     PathSet, self[path]).values()]
@@ -640,6 +644,7 @@ class PathCollection(BaseCollection):
 
         if len(self._edges_map[_edges]) == 0:
             self._edges_map.pop(_edges, None)
+
 
 # =============================================================================
 # eof

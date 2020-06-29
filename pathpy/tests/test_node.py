@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_node.py -- Test environment for the Node class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-05-13 14:40 juergen>
+# Time-stamp: <Mon 2020-06-29 17:31 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================

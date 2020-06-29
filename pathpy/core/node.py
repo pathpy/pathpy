@@ -4,13 +4,12 @@
 # =============================================================================
 # File      : node.py -- Base class for a single node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-05-14 11:13 juergen>
+# Time-stamp: <Mon 2020-06-29 17:49 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
 from typing import Any, Optional, Union
-
 from pathpy import logger
 from pathpy.core.base import BaseNode, BaseCollection
 
@@ -180,12 +179,20 @@ class Node(BaseNode):
 class NodeCollection(BaseCollection):
     """A collection of nodes"""
 
+    def __init__(self) -> None:
+        """Initialize the NodeCollection object."""
+
+        # initialize the base class
+        super().__init__()
+
+        # class of objects
+        self._node_class: Any = Node
+
     def __getitem__(self, key: Union[str, Node]) -> Node:
         """Returns a node object."""
-        _node: Node
         if isinstance(key, str):
             _node = self._map[key]
-        elif isinstance(key, Node) and key in self:
+        elif isinstance(key, self._node_class) and key in self:
             _node = key
         else:
             raise KeyError
@@ -204,7 +211,7 @@ class NodeCollection(BaseCollection):
         """Add a single node to the network."""
 
         # check if the right object is provided.
-        if isinstance(node, Node):
+        if isinstance(node, self._node_class):
             # check if node exists already
             if not self.contain(node):
                 # if not add new node
@@ -229,7 +236,7 @@ class NodeCollection(BaseCollection):
         # check if node with given uid str exists already
         if node not in self:
             # if not add new node with provided uid str
-            self[node] = Node(uid=node, **kwargs)
+            self[node] = self._node_class(uid=node, **kwargs)
         else:
             # raise error if node already exists
             LOG.error('The node "%s" already exists in the Network', node)
