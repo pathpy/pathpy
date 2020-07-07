@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_temporal_network.py -- Test environment for temp networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-06-25 21:13 juergen>
+# Time-stamp: <Tue 2020-07-07 13:16 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -23,13 +23,18 @@ def test_temporal_network():
 
     tn.add_edge('a', 'b', uid='a-b', begin=1, end=5, duration=3)
     tn.add_edge('a', 'b', uid='a-b', begin=15, end=20, duration=3)
+
+    tn.add_edge('a', 'b', uid='a-b', timestamp=7)
+    tn.add_edge('a', 'b', uid='a-b', timestamp=10)
+
     style = {}
     style['animation_begin'] = 3
     style['animation_end'] = 16
     style['animation_steps'] = 100
     style['animation_speed'] = 20
-    # tn.plot('temp_net.html', **style)
-    # tn.add_edge('b', 'c', uid='b-c', begin=10, end=15, duration=3)
+
+    tn.plot('temp_net.html', **style)
+    tn.add_edge('b', 'c', uid='b-c', begin=10, end=15, duration=3)
 
     # print(tn.edges['a-b'].attributes)
 

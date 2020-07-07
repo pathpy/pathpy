@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-06-25 11:48 juergen>
+# Time-stamp: <Tue 2020-07-07 13:24 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any, Optional, Union, cast
 from intervaltree import IntervalTree, Interval
 from collections import defaultdict
 
-from pathpy import logger
+from pathpy import logger, config
 from pathpy.core.node import Node, NodeCollection
 from pathpy.core.edge import Edge, EdgeCollection
 from pathpy.core.path import Path
@@ -58,10 +58,27 @@ class TemporalNetwork(ABCTemporalNetwork, Network):
             nodes=self._nodes)
 
     def add_edge(self, *edge: Union[str, tuple, list, Node, Edge],
-                 uid: Optional[str] = None,
-                 begin: Union[str, float] = float('-inf'),
-                 end: Union[str, float] = float('inf'), **kwargs: Any) -> None:
-        kwargs.update({'begin': begin, 'end': end})
+                 uid: Optional[str] = None, **kwargs: Any) -> None:
+        """Add an temporal edge."""
+
+        # get keywords defined in the config file
+        _begin = kwargs.pop(config['temporal']['begin'], float('-inf'))
+        _end = kwargs.pop(config['temporal']['end'], float('inf'))
+        _timestamp = kwargs.pop(config['temporal']['timestamp'], None)
+        _duration = kwargs.pop(config['temporal']['duration'], None)
+
+        # check if timestamp is given
+        if isinstance(_timestamp, (int, float)):
+            if isinstance(_duration, (int, float)):
+                _begin = _timestamp
+                _end = _timestamp + _duration
+            else:
+                _begin = _timestamp
+                _end = _timestamp + config['temporal']['duration_value']
+
+        # TODO: Add other checks eg begin and duration
+
+        kwargs.update({'begin': _begin, 'end': _end})
 
         super().add_edge(*edge, uid=uid, **kwargs)
 
@@ -91,6 +108,16 @@ class TemporalEdgeCollection(EdgeCollection):
 
         # map edges to intervals
         self._interval_map: defaultdict = defaultdict(set)
+
+    @property
+    def intervals(self):
+        """Return an interval tree of the temporal edges."""
+        return self._intervals
+
+    def temporal(self):
+        """Return a list of temporal edges."""
+        return [(i.data.uid, i.data, i.begin, i.end)
+                for i in sorted(self._intervals)]
 
     def _if_edge_exists(self, edge: Any, **kwargs: Any) -> None:
         """Helper function if edge already exists."""
@@ -122,8 +149,7 @@ class TemporalEdgeCollection(EdgeCollection):
         if not temporal:
             return self._map.items()
         else:
-            return [(i.data.uid, i.data, i.begin, i.end)
-                    for i in sorted(self._intervals)]
+            return self.temporal()
 
     def __getitem__(self, key: Union[str, tuple, Edge]
                     ) -> Union[Edge, EdgeSet, TemporalEdgeCollection]:
