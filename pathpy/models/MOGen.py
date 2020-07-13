@@ -244,7 +244,7 @@ class MOGen:
 
         return counter  
     
-    def _get_multi_order_transitions(self, order, no_of_processes=multiprocessing.cpu_count(), mute=False):
+    def _get_multi_order_transitions(self, order, no_of_processes=multiprocessing.cpu_count(), verbose=True):
         n = min(int(np.ceil(len(self.paths)/config['MOGen']['paths_per_chunk'])), no_of_processes)
         
         args = [{'paths': path_chunk, 'order': order} for path_chunk in self._chunks(self.paths, n)]
@@ -253,7 +253,7 @@ class MOGen:
         with multiprocessing.Pool(no_of_processes) as p:
             with tqdm(total=len(args),
                       desc='order:{1:>3}; T     ({0} prcs)'.format(no_of_processes, order),
-                      disable=mute) as pbar:
+                      disable=not verbose) as pbar:
                 for c in p.imap_unordered(unwrap_self_count_transitions, args, chunksize=1):
                     counter += c
                     pbar.update(1)
@@ -261,10 +261,10 @@ class MOGen:
         return counter
 
     
-    def _get_multi_order_adjacency_matrix(self, order, no_of_processes=multiprocessing.cpu_count(), mute=False):
+    def _get_multi_order_adjacency_matrix(self, order, no_of_processes=multiprocessing.cpu_count(), verbose=True):
         multi_order_transitions = self._get_multi_order_transitions(order,
                                                                     no_of_processes=no_of_processes,
-                                                                    mute=mute)
+                                                                    verbose=verbose)
 
         nodes = list(set(n for transition in multi_order_transitions.keys() for n in transition))
         nodes.sort(key=lambda x: (x[-1] == '#', len(x), x[-1]))
@@ -284,11 +284,11 @@ class MOGen:
     
     
     def _get_multi_order_transition_matrix(self, order, no_of_processes=multiprocessing.cpu_count(),
-                                           A=None, mute=False):
+                                           A=None, verbose=True):
         if not A:
             A = self._get_multi_order_adjacency_matrix(order,
                                                        no_of_processes=multiprocessing.cpu_count(),
-                                                       mute=mute)
+                                                       verbose=verbose)
         
         T = copy(A)
         T.matrix = normalize(T.matrix, norm='l1', axis=1)
@@ -311,7 +311,7 @@ class MOGen:
                     log_L += -np.inf
         return log_L
     
-    def _compute_log_likelihood(self, order, T, no_of_processes=multiprocessing.cpu_count(), mute=False):      
+    def _compute_log_likelihood(self, order, T, no_of_processes=multiprocessing.cpu_count(), verbose=True):      
         n = min(int(np.ceil(len(self.paths)/config['MOGen']['paths_per_chunk'])), no_of_processes)
         
         args = [{'paths': path_chunk,
@@ -323,7 +323,7 @@ class MOGen:
         with multiprocessing.Pool(no_of_processes) as p:
             with tqdm(total=len(args),
                       desc='order:{1:>3}; log_L ({0} prcs)'.format(no_of_processes, order),
-                      disable=mute) as pbar:
+                      disable=not verbose) as pbar:
                 for log_likelihood_path in p.imap_unordered(unwrap_self_get_log_likelihood_path, args, chunksize=1):
                     log_L += log_likelihood_path
                     pbar.update(1)
@@ -342,9 +342,9 @@ class MOGen:
             dof += P.sum()
         return int(dof)
     
-    def _compute_AIC(self, order, T, no_of_processes=multiprocessing.cpu_count(), mute=False):
+    def _compute_AIC(self, order, T, no_of_processes=multiprocessing.cpu_count(), verbose=True):
         
-        log_L = self._compute_log_likelihood(order, T, no_of_processes=no_of_processes, mute=mute) + \
+        log_L = self._compute_log_likelihood(order, T, no_of_processes=no_of_processes, verbose=verbose) + \
                 self.log_L_offset
         dof = self._compute_degrees_of_freedom(order)
         
@@ -352,10 +352,10 @@ class MOGen:
 
         return AIC, log_L, dof
     
-    def _compute_order(self, order, no_of_processes=multiprocessing.cpu_count(), mute=False):
-        A = self._get_multi_order_adjacency_matrix(order, no_of_processes=no_of_processes, mute=mute)
-        T = self._get_multi_order_transition_matrix(order, no_of_processes=no_of_processes, A=A, mute=mute)
-        AIC, log_L, dof  = self._compute_AIC(order, T, no_of_processes=no_of_processes, mute=mute)
+    def _compute_order(self, order, no_of_processes=multiprocessing.cpu_count(), verbose=True):
+        A = self._get_multi_order_adjacency_matrix(order, no_of_processes=no_of_processes, verbose=verbose)
+        T = self._get_multi_order_transition_matrix(order, no_of_processes=no_of_processes, A=A, verbose=verbose)
+        AIC, log_L, dof  = self._compute_AIC(order, T, no_of_processes=no_of_processes, verbose=verbose)
 
         self.models[order]['A'] = A
         self.models[order]['T'] = T
@@ -431,7 +431,7 @@ class MOGen:
     def __repr__(self):
         return self.summary(print_summary=False)
     
-    def fit(self, no_of_processes=multiprocessing.cpu_count(), mute=False):
+    def fit(self, no_of_processes=multiprocessing.cpu_count(), verbose=True):
         """Estimate the optimal MOGen from all models up to max_order."""
         
         LOG.debug('start estimate optimal order')
@@ -450,14 +450,14 @@ class MOGen:
             
         # compute orders not yet computed
         for order in req_orders.difference(cur_orders):
-            self._compute_order(order, no_of_processes=no_of_processes, mute=mute)
+            self._compute_order(order, no_of_processes=no_of_processes, verbose=verbose)
             
         AICs = collections.defaultdict(lambda: list())
         for order in req_orders:
             AICs[self.models[order]['AIC']].append(order)
             
         self.optimal_maximum_order = min(AICs[min(AICs.keys())])
-        if not mute:
+        if verbose:
             print('Selected optimal maximum order K={} from candidates.'
                   .format(self.optimal_maximum_order))
             self.summary()
