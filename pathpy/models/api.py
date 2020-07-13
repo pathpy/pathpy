@@ -11,8 +11,9 @@
 # flake8: noqa
 # pylint: disable=unused-import
 
-from pathpy.models.null_model import NullModel
-from pathpy.models.multi_order_model import MultiOrderModel
+# from pathpy.models.null_model import NullModel
+# from pathpy.models.multi_order_model import MultiOrderModel
+from pathpy.models.MOGen import MOGen, MultiOrderMatrix
 
 # =============================================================================
 # eof

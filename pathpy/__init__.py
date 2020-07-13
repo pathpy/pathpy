@@ -37,6 +37,8 @@ from pathpy.visualisations.api import (plot,
 # import models
 # from pathpy.models.api import (NullModel,
 #                                MultiOrderModel)
+from pathpy.models.api import (MOGen)
+
 
 # import submodules
 from pathpy import io
