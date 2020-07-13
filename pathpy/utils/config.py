@@ -72,6 +72,7 @@ config['temporal']['active'] = parser.get('temporal', 'active')
 config['temporal']['is_active'] = parser.getboolean('temporal', 'is_active')
 config['temporal']['unit'] = parser.get('temporal', 'unit')
 
+config['MOGen']['paths_per_chunk'] = parser.getint('MOGen', 'paths_per_chunk')
 
 # =============================================================================
 # eof
