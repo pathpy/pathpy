@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : setup.py -- Setup script for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-02-28 12:39 juergen>
+# Time-stamp: <Tue 2020-07-14 08:03 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -78,6 +78,7 @@ INSTALL_REQUIRES = [
     'tqdm>=4.36.1',  # TODO: Get rid of this dependency!
     'pandas>=0.25.2',
     'singledispatchmethod>=1.0',  # TODO: this is not needed for python 3.8 remove late
+    'intervaltree>=3.0.2',
 ]
 
 PACKAGES = find_packages()
