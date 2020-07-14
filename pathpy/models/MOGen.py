@@ -17,7 +17,6 @@ import multiprocessing
 from tqdm import tqdm
 import math
 from copy import copy
-from sklearn.preprocessing import normalize
 from scipy.sparse import dok_matrix, csr_matrix, eye, issparse
 from scipy.linalg import toeplitz
 from scipy.special import binom
@@ -154,8 +153,8 @@ class MultiOrderMatrix:
         fon = np.matrix([fon_id_dict[n] for n in self.nodes])
         N = csr_matrix(np.equal(hon.T,fon))
         
-        matrix = normalize(N.T, norm='l1', axis=1) @ self.matrix @ N
-        
+        matrix = N.T / N.T.sum(axis=1)[:, None] @ self.matrix @ N
+                
         return MultiOrderMatrix(matrix, fon_id_dict)
 
 ###############################################################################
@@ -291,7 +290,8 @@ class MOGen:
                                                        verbose=verbose)
         
         T = copy(A)
-        T.matrix = normalize(T.matrix, norm='l1', axis=1)
+        T.matrix = T.matrix / T.matrix.sum(axis=1)[:, None]
+        
         return T
     
     
