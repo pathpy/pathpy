@@ -42,7 +42,7 @@ def color_map(network: Network, cluster_mapping: Union[Dict, Iterable], colors: 
     Currently, a maximum of 20 different communities is supported.
     """
     if colors == None:
-        colors = ['red', 'blue', 'orange', 'yellow', 'cyan', 'blueviolet', 'red',
+        colors = ['CornflowerBlue', 'orange', 'yellow', 'cyan', 'blueviolet', 'red', 'blue',
               'chocolate', 'magenta', 'navy', 'plum', 'thistle', 'wheat',
               'turquoise', 'steelblue', 'grey', 'powderblue', 'orchid',
               'mintcream', 'maroon']
