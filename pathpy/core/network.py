@@ -4,12 +4,12 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-06-15 14:33 juergen>
+# Time-stamp: <Tue 2020-07-14 16:04 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, Tuple, Optional, Union, Dict, Set
+from typing import Any, Tuple, Optional, Union, Dict, Set, cast
 from collections import defaultdict
 
 from pathpy import logger
@@ -809,7 +809,8 @@ class Network(BaseModel):
         3
 
         """
-        self.nodes.add(*nodes, **kwargs)
+        for node in nodes:
+            self.nodes.add(node, **kwargs)
 
     def add_edges(self, *edges: Union[str, tuple, list, Node, Edge],
                   **kwargs: Any) -> None:
@@ -840,8 +841,22 @@ class Network(BaseModel):
         2
 
         """
-        self.edges.add(*edges, **kwargs)
-        self._add_properties()
+
+        uid: Optional[str] = kwargs.pop('uid', None)
+        nodes: bool = kwargs.pop('nodes', True)
+
+        if all(isinstance(arg, (str, Node)) for arg in edges) and nodes:
+            edges = tuple(cast(Union[str, Node], edge)
+                          for edge in zip(edges[:-1], edges[1:]))
+
+        if isinstance(edges[0], list) and len(edges) == 1:
+            edges = tuple(edges[0])
+
+        if not edges:
+            LOG.warning('No edge was added!')
+
+        for edge in edges:
+            self.add_edge(edge, uid=uid, nodes=nodes, **kwargs)
 
     def remove_node(self, node: Union[str, Node]) -> None:
         """Remove a single node from the network.

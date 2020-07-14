@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : __init__.py -- pathpy init file
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-07-14 07:59 juergen>
+# Time-stamp: <Tue 2020-07-14 16:22 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -24,6 +24,7 @@ from pathpy.utils.progress import tqdm  # noqa: F401
 # import symbols into root namespace
 from pathpy.core.api import (Node,
                              Edge,
+                             HyperEdge,
                              Path,
                              Network,
                              # HigherOrderNode,
@@ -115,7 +116,7 @@ if config['environment']['IDE'] == 'vs code':
     try:
         from IPython.display import display, HTML
         display(HTML(html))
-    except:
+    except ImportError:
         pass
 # =============================================================================
 # eof

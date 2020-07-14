@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-06-15 14:34 juergen>
+# Time-stamp: <Tue 2020-07-14 16:05 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -160,9 +160,10 @@ def test_add_edge():
     net = Network()
     net.add_edge(e)
     net.add_edge(f)
-    net.add_edge(g)
+    with pytest.raises(Exception):
+        net.add_edge(g)
 
-    assert len(net.edges) == 3
+    assert len(net.edges) == 2
     assert len(net.nodes) == 3
 
     with pytest.raises(Exception):
@@ -180,9 +181,11 @@ def test_add_edge():
     net = Network()
     net.add_edge(e)
     net.add_edge(f)
-    net.add_edge(h)
 
-    assert len(net.edges) == 3
+    with pytest.raises(Exception):
+        net.add_edge(h)
+
+    assert len(net.edges) == 2
     assert len(net.nodes) == 3
 
     with pytest.raises(Exception):
@@ -383,8 +386,8 @@ def test_remove_edge():
     e = Edge(a, b, uid='e')
     f = Edge(b, a, uid='f')
     g = Edge(b, c, uid='g')
-    net.add_edges(e)
-    net.add_edges(f)
+    net.add_edge(e)
+    net.add_edge(f)
 
     net.remove_edge(g)
 
@@ -538,10 +541,11 @@ def test_add_networks():
     net_1.add_edge(a, b, uid='e1')
     net_2.add_edge(a, b, uid='e2')
 
-    net_3 = net_1+net_2
-    assert net_3.number_of_edges() == 2
-    assert net_3.number_of_nodes() == 2
-    assert 'e1' in net_3.edges and 'e2' in net_3.edges
+    with pytest.raises(Exception):
+        net_3 = net_1+net_2
+    # assert net_3.number_of_edges() == 2
+    # assert net_3.number_of_nodes() == 2
+    # assert 'e1' in net_3.edges and 'e2' in net_3.edges
 
     # edges with same uids but different objects
     net_1 = Network()
@@ -618,10 +622,11 @@ def test_iadd_networks():
     net_1.add_edge(a, b, uid='e1')
     net_2.add_edge(a, b, uid='e2')
 
-    net_1 += net_2
-    assert net_1.number_of_edges() == 2
-    assert net_1.number_of_nodes() == 2
-    assert 'e1' in net_1.edges and 'e2' in net_1.edges
+    with pytest.raises(Exception):
+        net_1 += net_2
+    # assert net_1.number_of_edges() == 2
+    # assert net_1.number_of_nodes() == 2
+    # assert 'e1' in net_1.edges and 'e2' in net_1.edges
 
     # edges with same uids but different objects
     net_1 = Network()

@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_edge.py -- Test environment for the Edge class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-05-14 14:17 juergen>
+# Time-stamp: <Tue 2020-07-14 14:49 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -217,7 +217,8 @@ def test_EdgeCollection():
     assert len(edges) == 3
     assert 'e' and 'f' in edges.nodes
 
-    edges.add(('f', 'g'), ('g', 'h'))
+    for _e in [('f', 'g'), ('g', 'h')]:
+        edges.add(_e)
 
     assert len(edges) == 5
 
@@ -236,10 +237,9 @@ def test_EdgeCollection():
     assert len(edges) == 5
     assert 'e' not in edges
 
-    edges._remove_node(_v)
-    edges._remove_node(_w)
-
-    assert len(edges.nodes) == 8
+    # edges._remove_node(_v)
+    # edges._remove_node(_w)
+    # assert len(edges.nodes) == 8
 
     edges.remove('g', 'h')
     edges.remove(('f', 'g'))
@@ -247,8 +247,8 @@ def test_EdgeCollection():
     assert len(edges) == 3
 
     edges.remove(ab, 'c-d')
-    assert len(edges) == 1
-    assert len(edges.nodes) == 8
+    assert len(edges) == 2
+    assert len(edges.nodes) == 10
 
     edges = EdgeCollection()
     edges.add('a', 'b')
@@ -266,7 +266,9 @@ def test_EdgeCollection():
     edges.remove('e1')
     assert len(edges) == 3
 
-    edges.remove('e2', 'e3')
+    for _e in ['e2', 'e3']:
+        edges.remove(_e)
+
     assert len(edges) == 1
 
 
@@ -327,6 +329,30 @@ def test_EdgeCollection_multiedges():
     assert len(edges[a, b]) == 2
     assert edges[a, 'b'][-1].uid == 'new'
     assert edges[a, 'b']['new'].uid == 'new'
+
+
+def test_dasdfasdf():
+    a = Node('a')
+    b = Node('b')
+    c = Node('c')
+    d = Node('d')
+
+    e1 = Edge(a, b, uid='a-b')
+    e2 = Edge(a, b, uid='e2')
+    e3 = Edge(c, d, uid='a-b')
+
+    edges = EdgeCollection()
+    edges.add(e1)
+    with pytest.raises(Exception):
+        edges.add(e2)
+    with pytest.raises(Exception):
+        edges.add(e3)
+
+    edges = EdgeCollection(multiedges=True)
+    edges.add(e1)
+    edges.add(e2)
+    with pytest.raises(Exception):
+        edges.add(e3)
 
 
 # =============================================================================

@@ -4,12 +4,12 @@
 # =============================================================================
 # File      : node.py -- Base class for a single node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-06-29 17:49 juergen>
+# Time-stamp: <Tue 2020-07-14 14:12 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, Set
 from pathpy import logger
 from pathpy.core.base import BaseNode, BaseCollection
 
@@ -174,6 +174,43 @@ class Node(BaseNode):
         ]
 
         return ''.join(summary)
+
+
+class NodeSet(BaseCollection):
+    """A set of nodes."""
+
+    def add(self, node: Node) -> None:
+        """Add a node to the set of nodes."""
+        self._map[node.uid] = node
+
+    def discard(self, node: Node) -> None:
+        """Removes the specified item from the set."""
+        self.pop(node.uid, None)
+
+    def __getitem__(self, key: Union[int, str, Node]) -> Node:
+        """Returns a node object."""
+        node: Node
+        if isinstance(key, Node) and key in self:
+            node = key
+        elif isinstance(key, (int, slice)):
+            node = list(self._map.values())[key]
+        else:
+            node = self._map[key]
+        return node
+
+    def __setitem__(self, key: Any, value: Any) -> None:
+        """Set an node object."""
+        for node in self.values():
+            node[key] = value
+
+    def __repr__(self) -> str:
+        """Description of the object."""
+        return set(self.values()).__repr__()
+
+    @property
+    def uid(self) -> Set[str]:
+        """return a set of uids"""
+        return set(self.keys())
 
 
 class NodeCollection(BaseCollection):
