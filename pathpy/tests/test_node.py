@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_node.py -- Test environment for the Node class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-06-29 17:31 juergen>
+# Time-stamp: <Tue 2020-07-14 18:08 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -124,7 +124,7 @@ def test_NodeCollection():
     assert ('a', a) in nodes.items()
     assert {'a': a} == nodes.dict
 
-    nodes.add('b', 'c')
+    nodes.add(('b', 'c'))
 
     print(nodes)
     assert len(nodes) == 3
@@ -143,13 +143,23 @@ def test_NodeCollection():
     d['color'] = 'red'
     assert nodes['d']['color'] == 'red'
 
-    nodes.add('e', ('f', 'g'), ['h', 'i'])
+    nodes.add(['e', ('f', 'g'), ['h', 'i']])
 
     assert len(nodes) == 9
 
-    nodes.remove(('e', 'f', 'g'), 'h', ['i'])
+    nodes.remove(a)
 
-    assert len(nodes) == 4
+    assert len(nodes) == 8
+    assert a not in nodes
+
+    nodes.remove('b')
+
+    assert len(nodes) == 7
+    assert 'b' not in nodes
+
+    nodes.remove([('e', 'f', 'g'), 'h', ['i']])
+
+    assert len(nodes) == 2
 
 # =============================================================================
 # eof

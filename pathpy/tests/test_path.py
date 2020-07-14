@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_path.py -- Test environment for the Path class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-05-14 12:09 juergen>
+# Time-stamp: <Tue 2020-07-14 16:10 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -82,10 +82,11 @@ def test_PathCollection():
 
     g = Edge(b, c, uid='a')
     p4 = Path(g, uid='p4')
-    paths.add(p4)
+    with pytest.raises(Exception):
+        paths.add(p4)
 
-    # issue warning
-    assert ['a'] in paths
+    # # issue warning
+    # assert ['a'] in paths
 
     paths = PathCollection()
     paths.add(a, b)
