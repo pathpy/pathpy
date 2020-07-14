@@ -4,12 +4,14 @@
 # =============================================================================
 # File      : node.py -- Base class for a single node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-07-14 14:12 juergen>
+# Time-stamp: <Tue 2020-07-14 18:09 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
 from typing import Any, Optional, Union, Set
+from singledispatchmethod import singledispatchmethod
+
 from pathpy import logger
 from pathpy.core.base import BaseNode, BaseCollection
 
@@ -235,65 +237,74 @@ class NodeCollection(BaseCollection):
             raise KeyError
         return _node
 
-    def add(self, *nodes: Union[str, Node, tuple, list], **kwargs: Any) -> None:
+    @singledispatchmethod
+    def add(self, *node, **kwargs: Any) -> None:
         """Add multiple nodes. """
-        # iterate over a list of nodes
-        for node in nodes:
-            if isinstance(node, (tuple, list)):
-                self.add(*node, **kwargs)
-            else:
-                self._add_node(node, **kwargs)
 
-    def _add_node(self, node: Union[str, Node], **kwargs: Any) -> None:
-        """Add a single node to the network."""
+        raise NotImplementedError
 
-        # check if the right object is provided.
-        if isinstance(node, self._node_class):
-            # check if node exists already
-            if not self.contain(node):
-                # if not add new node
-                self[node.uid] = node
-            else:
-                # raise error if node already exists
-                LOG.error('The node "%s" already exists in the Network', node.uid)
-                raise KeyError
+    @add.register(Node)  # type: ignore
+    def _(self, *node: Node, **kwargs: Any) -> None:
+        # check if more then one edge is given raise an AttributeError
+        if len(node) != 1:
+            LOG.error('More then one node was given.')
+            raise AttributeError
 
-        # if string is given
-        elif isinstance(node, str):
-            self._add_node_from_str(node, **kwargs)
+        # get node object
+        _node: Node = node[0]
 
-        # otherwise raise error
+        # update node attributes
+        _node.update(**kwargs)
+
+        # check if node exists already
+        if _node not in self and _node.uid not in self.keys():
+            # if not add new node
+            self[_node.uid] = _node
         else:
-            LOG.error('The provided node "%s" is of the wrong type!', node)
-            raise TypeError
-
-    def _add_node_from_str(self, node: str, **kwargs):
-        """Helper function to add a node from a str."""
-
-        # check if node with given uid str exists already
-        if node not in self:
-            # if not add new node with provided uid str
-            self[node] = self._node_class(uid=node, **kwargs)
-        else:
-            # raise error if node already exists
-            LOG.error('The node "%s" already exists in the Network', node)
+            # raise error if edge already exists
+            LOG.error('The node "%s" already exists!', _node.uid)
             raise KeyError
 
+    @add.register(str)  # type: ignore
+    def _(self, *node: str, **kwargs: Any) -> None:
+
+        # get node uid
+        _uid: str = node[0]
+
+        # check if node with given uid str exists already
+        if _uid not in self:
+            # if not add new node with provided uid str
+            self[_uid] = self._node_class(uid=_uid, **kwargs)
+        else:
+            # raise error if node already exists
+            LOG.error('The node "%s" already exists!', _uid)
+            raise KeyError
+
+    @add.register(tuple)  # type: ignore
+    @add.register(list)  # type: ignore
+    def _(self, *node: tuple, **kwargs: Any) -> None:
+        for _n in node[0]:
+            self.add(_n, **kwargs)
+
+    @singledispatchmethod
     def remove(self, *nodes: Union[str, Node, tuple, list], **kwargs) -> None:
         """Remove multiple nodes. """
         # pylint: disable=unused-argument
-        # iterate over a list of nodes
-        for node in nodes:
-            if isinstance(node, (tuple, list)):
-                self.remove(*node)
-            else:
-                self._remove_node(node)
 
-    def _remove_node(self, node: Union[str, Node]) -> None:
-        """Remove a single node."""
-        # if node obect is given
-        if node in self:
-            self.pop(self[node].uid, None)
+        raise NotImplementedError
+
+    @remove.register(Node)  # type: ignore
+    @remove.register(str)  # type: ignore
+    def _(self, *node: Union[str, Node], **kwargs: Any) -> None:
+        # pylint: disable=unused-argument
+        if node[0] in self:
+            self.pop(self[node[0]].uid, None)
+
+    @remove.register(tuple)  # type: ignore
+    @remove.register(list)  # type: ignore
+    def _(self, *node: Union[tuple, list], **kwargs: Any) -> None:
+        for _n in node[0]:
+            self.remove(_n, **kwargs)
 
 # =============================================================================
 # eof

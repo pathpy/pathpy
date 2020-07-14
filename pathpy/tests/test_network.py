@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-07-14 16:05 juergen>
+# Time-stamp: <Tue 2020-07-14 18:13 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -140,7 +140,7 @@ def test_add_nodes():
     net.add_nodes(u, 'v', 'w', color='green')
 
     assert net.number_of_nodes() == 3
-    assert net.nodes['u']['color'] == 'blue'
+    assert net.nodes['u']['color'] == 'green'
     assert net.nodes['v']['color'] == 'green'
     assert net.nodes['w']['color'] == 'green'
 
