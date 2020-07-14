@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_hyperedge.py -- Test environment for the HyperEdge class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-07-07 19:27 juergen>
+# Time-stamp: <Thu 2020-07-09 11:50 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -11,8 +11,8 @@
 import pytest
 
 from pathpy import Node
-#from pathpy.core.edge import EdgeCollection, EdgeSet
-from pathpy.core.hyperedge import Edge, EdgeCollection, EdgeSet
+#from pathpy.core.edge import EdgeCollection, EdgeSet, Edge
+from pathpy.core.hyperedge import Edge, EdgeCollection, EdgeSet, HyperEdge
 
 
 @pytest.fixture(params=[True, False])
@@ -202,6 +202,9 @@ def test_EdgeCollection():
     assert ('a', a) in edges.nodes.items()
     assert {'a': a, 'b': b} == edges.nodes.dict
 
+    assert (a, b) in edges
+    assert [a, b] in edges
+
     with pytest.raises(Exception):
         edges.add((a))
 
@@ -331,6 +334,38 @@ def test_EdgeCollection_multiedges():
     assert edges[a, 'b']['new'].uid == 'new'
 
 
+def test_hyperedge():
+    """Test an hyper-edge."""
+    a = Node('a')
+    b = Node('b')
+    c = Node('c')
+    d = Node('d')
+
+    f = Edge(a, b)
+    e = HyperEdge({a, b}, {a, b}, uid='ab')
+    es = EdgeSet()
+    es.add(e)
+    print(es)
+
+    edges = EdgeCollection()
+    edges.__test__(f)
+
+    d = {'a': 1, 'b': 2, 'c': 3, 'd': 4}
+
+    s = ({'a', 'b'}, {'c', 'd'})
+
+    # _nodes: list = []
+    # for i, nodes in enumerate(s):
+    #     _nodes.append(set())
+    #     for node in nodes:
+    #         _nodes[i].add(d[node])
+
+    # print(_nodes)
+
+    # print(tuple(map(lambda x: frozenset({d[i] for i in x}), s)))
+    #print(tuple(map(tuple, s)))
+
+
 def test_EdgeCollection_hyperedges():
     """Test the EdgeCollection with hyperedges."""
     edges = EdgeCollection(hyperedges=True)
@@ -340,25 +375,25 @@ def test_EdgeCollection_hyperedges():
     c = Node('c')
     d = Node('d')
 
-    e = Edge({a, b}, {c, d}, uid='ab-cd', hyperedge=True)
+    e = HyperEdge({a, b}, {c, d}, uid='ab-cd')
 
     edges = EdgeCollection(hyperedges=True)
-    edges.add(e)
+    # edges.add(e)
 
-    with pytest.raises(Exception):
-        edges.add(e)
+#     with pytest.raises(Exception):
+#         edges.add(e)
 
-    with pytest.raises(Exception):
-        edges.add({a, b}, {c, d})
+#     with pytest.raises(Exception):
+#         edges.add({a, b}, {c, d})
 
-    assert edges[{a, 'b'}, {c, 'd'}] == e
-    assert edges[{'b', a}, {'d', c}] == e
+#     assert edges[{a, 'b'}, {c, 'd'}] == e
+#     assert edges[{'b', a}, {'d', c}] == e
 
-    with pytest.raises(Exception):
-        print(edges[{a, b}, {c, 'x'}])
+#     with pytest.raises(Exception):
+#         print(edges[{a, b}, {c, 'x'}])
 
-    with pytest.raises(Exception):
-        print(edges[{c, d}, {a, b}])
+#     with pytest.raises(Exception):
+#         print(edges[{c, d}, {a, b}])
 
 
 # =============================================================================

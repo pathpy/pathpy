@@ -4,11 +4,12 @@
 # =============================================================================
 # File      : edge.py -- Base class for an single edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-07-07 19:24 juergen>
+# Time-stamp: <Thu 2020-07-09 12:20 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
+from functools import singledispatchmethod
 from typing import overload, Any, Optional, Union, cast, Set, Tuple
 from collections import defaultdict
 
@@ -237,8 +238,7 @@ class Edge(BaseEdge):
 
     """
 
-    def __init__(self, v: Union[Node, Set[Node]], w: Union[Node, Set[Node]],
-                 uid: Optional[str] = None, hyperedge: bool = False,
+    def __init__(self, v: Node, w: Node, uid: Optional[str] = None,
                  **kwargs: Any) -> None:
         """Initialize the edge object."""
 
@@ -247,30 +247,21 @@ class Edge(BaseEdge):
 
         # a set containing node objects
         self._nodes: set = set()
-        self._vw: dict = {'v': NodeSet(), 'w': NodeSet()}
-        self._hyperedge = hyperedge
 
         # add attributes to the edge
         self.attributes.update(**kwargs)
 
         # check nodes
-        if not isinstance(v, (set, Node)) or not isinstance(w, (set, Node)):
-            LOG.error('Nodes must be Node objects or a set of Node objects!')
+        if not isinstance(v, Node) or not isinstance(w, Node):
+            LOG.error('v and w have to be Node objects!')
             raise TypeError
 
-        # add node to the node set
-        for key, node in [('v', v), ('w', w)]:
-            if isinstance(node, Node):
-                self._vw[key].add(node)
-                self.nodes.add(node)
-            else:
-                for n in node:
-                    if isinstance(n, Node):
-                        self._vw[key].add(n)
-                        self.nodes.add(n)
-                    else:
-                        LOG.error('All nodes must be Node objects!')
-                        raise TypeError
+        # add nodes
+        self._v: Node = v
+        self._w: Node = w
+
+        self._nodes.add(v)
+        self._nodes.add(w)
 
     def __str__(self) -> str:
         """Print a summary of the edge.
@@ -309,7 +300,7 @@ class Edge(BaseEdge):
         return super().uid
 
     @property
-    def nodes(self) -> Set[Node]:
+    def nodes(self) -> set:
         """Return the associated nodes of the edge.
 
         Returns
@@ -335,7 +326,7 @@ class Edge(BaseEdge):
         return self._nodes
 
     @property
-    def v(self) -> Union[Node, NodeSet]:
+    def v(self) -> Node:
         """Return the source node v of the edge.
 
         Returns
@@ -354,14 +345,10 @@ class Edge(BaseEdge):
         Node v
 
         """
-        if self._hyperedge:
-            _v = self._vw['v']
-        else:
-            _v = self._vw['v'][-1]
-        return _v
+        return self._v
 
     @property
-    def w(self) -> Union[Node, NodeSet]:
+    def w(self) -> Node:
         """Return the target node w of the edge.
 
         Returns
@@ -380,11 +367,7 @@ class Edge(BaseEdge):
         Node w
 
         """
-        if self._hyperedge:
-            _w = self._vw['w']
-        else:
-            _w = self._vw['w'][-1]
-        return _w
+        return self._w
 
     def summary(self) -> str:
         """Returns a summary of the edge.
@@ -410,6 +393,112 @@ class Edge(BaseEdge):
             'Source node:\t{}\n'.format(self.v.__repr__()),
             'Target node:\t{}'.format(self.w.__repr__()),
         ]
+
+        return ''.join(summary)
+
+
+class HyperEdge(BaseEdge):
+    """Base class for an single edge.
+
+
+    See Also
+    --------
+    Node
+
+    """
+
+    def __init__(self, v: Set[Node], w: Set[Node], uid: Optional[str] = None,
+                 **kwargs: Any) -> None:
+        """Initialize the edge object."""
+
+        # initialize the base class
+        super().__init__(uid=uid, **kwargs)
+
+        # a set containing node objects
+        self._nodes: set = set()
+
+        # add attributes to the edge
+        self.attributes.update(**kwargs)
+
+        # check nodes
+        if not isinstance(v, set) or not isinstance(w, set):
+            LOG.error('Nodes must be a set of Node objects!')
+            raise TypeError
+
+        if not all([isinstance(n, Node) for n in v | w]):
+            LOG.error('All nodes must be Node objects!')
+            raise TypeError
+
+        # add nodes
+        self._v: NodeSet = NodeSet()
+        self._w: NodeSet = NodeSet()
+
+        for node in v:
+            self._v.add(node)
+        for node in w:
+            self._w.add(node)
+
+        self._nodes.union(v)
+        self._nodes.union(w)
+
+    def __str__(self) -> str:
+        """Print a summary of the edge.
+        """
+        return self.summary()
+
+    @property
+    def uid(self) -> str:
+        """Return the unique identifier (uid) of the edge.
+        """
+        return super().uid
+
+    @property
+    def nodes(self) -> Set[Node]:
+        """Return the associated nodes of the edge.
+        """
+        return self._nodes
+
+    @property
+    def v(self) -> NodeSet:
+        """Return the source node v of the edge.
+        """
+        return self._v
+
+    @property
+    def w(self) -> NodeSet:
+        """Return the target node w of the edge.
+        """
+        return self._w
+
+    def summary(self) -> str:
+        """Returns a summary of the edge.
+
+        The summary contains the uid, the associated nodes, and if it is
+        directed or not.
+
+        If logging is enabled (see config), the summary is written to the log
+        file and showed as information on in the terminal. If logging is not
+        enabled, the function will return a string with the information, which
+        can be printed to the console.
+
+        Returns
+        -------
+        str
+
+            Return a summary of the edge.
+
+        """
+        summary = [
+            'Uid:\t\t{}\n'.format(self.uid),
+            'Type:\t\t{}\n'.format(self.__class__.__name__),
+        ]
+
+        if self.v == self.w:
+            summary += ['Nodes: \t\t{}'.format(self.v.__repr__())]
+        else:
+            summary += [
+                'Source node:\t{}\n'.format(self.v.__repr__()),
+                'Target node:\t{}'.format(self.w.__repr__())]
 
         return ''.join(summary)
 
@@ -475,59 +564,87 @@ class EdgeCollection(BaseCollection):
         # map single node to edges
         self._node_map: defaultdict = defaultdict(set)
 
+        # class of objects
+        self._edge_class: Any = Edge
+
+    @singledispatchmethod
+    def __test__(self, edge):
+        print('none')
+
+    @__test__.register(HyperEdge)
+    @__test__.register(Edge)
+    def _(self, edge: Union[HyperEdge, Edge]):
+        print("im a hyper edge or edge")
+
+    @singledispatchmethod
     def __contains__(self, item) -> bool:
         """Returns if item is in edges."""
         _contain: bool = False
 
-        if isinstance(item, Edge) and item in self._map.values():
-            _contain = True
-        elif isinstance(item, tuple) and all([isinstance(i, set) for i in item]):
-            _nodes: list = []
-            try:
-                for i, nodes in enumerate(item):
-                    _nodes.append(set())
-                    for node in nodes:
-                        _nodes[i].add(self.nodes[node])
+        return _contain
 
-                if (frozenset(_nodes[0]), frozenset(_nodes[1])) in self._nodes_map:
+    @__contains__.register(Edge)  # type: ignore
+    def _(self, item: Edge) -> bool:
+        """Returns if item is in edges."""
+        _contain: bool = False
+        if item in self.values():
+            _contain = True
+        return _contain
+
+    @__contains__.register(str)  # type: ignore
+    def _(self, item: str) -> bool:
+        """Returns if item is in edges."""
+        _contain: bool = False
+        if item in self.keys():
+            _contain = True
+        return _contain
+
+    @__contains__.register(tuple)  # type: ignore
+    @__contains__.register(list)
+    def _(self, item: Union[tuple, list]) -> bool:
+        """Returns if item is in edges."""
+        _contain: bool = False
+
+        if all([isinstance(i, set) for i in item]):
+            try:
+                if tuple(map(lambda x: frozenset({self.nodes[i] for i in x}),
+                             item)) in self._nodes_map:
                     _contain = True
             except KeyError:
                 pass
-
-        elif isinstance(item, (tuple, list)):
+        elif all([isinstance(i, (str, Node)) for i in item]):
             try:
                 if tuple(self.nodes[i] for i in item) in self._nodes_map:
                     _contain = True
             except KeyError:
                 pass
 
-        elif isinstance(item, str) and item in self._map:
-            _contain = True
         return _contain
 
     def __getitem__(self, key: Union[str, tuple, Edge]) -> Union[Edge, EdgeSet, EdgeCollection]:
         """Returns a node object."""
         edge: Edge
 
-        if isinstance(key, tuple) and all([isinstance(i, set) for i in key]):
-            _nodes: list = []
-            for i, nodes in enumerate(key):
-                _nodes.append(set())
-                for node in nodes:
-                    _nodes[i].add(self.nodes[node])
-            _node = (frozenset(_nodes[0]), frozenset(_nodes[1]))
-
-            if self.multiedges:
-                edge = self._nodes_map[_node]
-            else:
-                edge = self._nodes_map[_node][-1]
-
-        elif isinstance(key, tuple):
+        if isinstance(key, tuple) and all([isinstance(i, (str, Node)) for i in key]):
             _node = tuple(self.nodes[i] for i in key)
             if self.multiedges:
                 edge = self._nodes_map[_node]
             else:
                 edge = self._nodes_map[_node][-1]
+
+        elif isinstance(key, tuple) and all([isinstance(i, set) for i in key]):
+            _nodes: list = []
+            for i, nodes in enumerate(key):
+                _nodes.append(set())
+                for node in nodes:
+                    _nodes[i].add(self.nodes[node])
+            _nodes = (frozenset(_nodes[0]), frozenset(_nodes[1]))
+
+            if self.multiedges:
+                edge = self._nodes_map[_nodes]
+            else:
+                edge = self._nodes_map[_nodes][-1]
+
         elif isinstance(key, Edge) and key in self:
             edge = key
         else:
@@ -560,19 +677,20 @@ class EdgeCollection(BaseCollection):
             edges = tuple(cast(Union[str, Node], edge)
                           for edge in zip(edges[:-1], edges[1:]))
 
-        if isinstance(edges[0], list) and len(edges) == 1:
+        elif isinstance(edges[0], list) and len(edges) == 1:
             edges = tuple(edges[0])
 
-        if isinstance(edges[0], set) and len(edges) == 1:
+        elif isinstance(edges[0], set) and len(edges) == 1:
             edges = ((edges[0], edges[0]),)
 
-        if all(isinstance(arg, set) for arg in edges) and nodes:
+        elif all(isinstance(arg, set) for arg in edges) and nodes:
             edges = tuple(cast(Tuple[Any], edge)
                           for edge in zip(edges[:-1], edges[1:]))
 
         if not edges:
             LOG.warning('No edge was added!')
 
+        print(edges)
         for edge in edges:
             self._add_edge(edge, uid=uid, nodes=nodes, **kwargs)
 
@@ -593,11 +711,11 @@ class EdgeCollection(BaseCollection):
                     if node not in self.nodes:
                         self.nodes.add(node)
 
-                # check if edge is hyperedge:
-                if self._hyperedges and not _edge._hyperedge:
-                    _edge._hyperedge = True
-                elif not self._hyperedges and _edge._hyperedge:
-                    _edge._hyperedge = False
+                # # check if edge is hyperedge:
+                # if self._hyperedges and not _edge._hyperedge:
+                #     _edge._hyperedge = True
+                # elif not self._hyperedges and _edge._hyperedge:
+                #     _edge._hyperedge = False
 
                 # add edge to the network
                 self._add(_edge)
