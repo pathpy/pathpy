@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an single edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-07-15 11:40 juergen>
+# Time-stamp: <Wed 2020-07-15 11:45 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -751,7 +751,7 @@ class EdgeCollection(BaseCollection):
             self._if_exist(_nodes, **kwargs)
 
     def _if_exist(self, edge: Any, **kwargs: Any) -> None:
-        """Helper function if the edge does not exsist."""
+        """Helper function if the edge does already exsist."""
         # pylint: disable=no-self-use
         # pylint: disable=unused-argument
         LOG.error('The edge "%s" already exists in the Network', edge)

@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-07-14 09:01 juergen>
+# Time-stamp: <Wed 2020-07-15 11:47 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -507,8 +507,7 @@ class PathCollection(BaseCollection):
 
             else:
                 # raise error if path already exists
-                LOG.error('The path "%s" already exists.', _path.uid)
-                raise KeyError
+                self._if_exist(_path, **kwargs)
 
         elif len(path) == 1 and isinstance(path[0], (tuple, list)):
             self._add_path(*path[0], uid=uid, nodes=nodes, **kwargs)
@@ -552,8 +551,7 @@ class PathCollection(BaseCollection):
             self._add_path(self._path_class(*_path, uid=uid, **kwargs))
         else:
             # raise error if node already exists
-            LOG.error('The path "%s" already exists.', _path)
-            raise KeyError
+            self._if_exist(_path, **kwargs)
 
     def _add_path_from_edges(self, *edges: Union[str, Edge],
                              uid: Optional[str] = None, **kwargs: Any) -> None:
@@ -572,8 +570,7 @@ class PathCollection(BaseCollection):
             self._add_path(self._path_class(*_path, uid=uid, **kwargs))
         else:
             # raise error if node already exists
-            LOG.error('The path "%s" already exists.', _path)
-            raise KeyError
+            self._if_exist(_path, **kwargs)
 
     def _add(self, path: Path) -> None:
         """Add a node to the set of nodes."""
@@ -582,6 +579,13 @@ class PathCollection(BaseCollection):
         _edges = tuple(_e.uid for _e in path.edges)
         self._nodes_map[_nodes].add(path)
         self._edges_map[_edges].add(path)
+
+    def _if_exist(self, path: Any, **kwargs: Any) -> None:
+        """Helper function if the path does already exsist."""
+        # pylint: disable=no-self-use
+        # pylint: disable=unused-argument
+        LOG.error('The path "%s" already exists in the Network', path)
+        raise KeyError
 
     def remove(self, *paths: Union[str, tuple, list, Node, Edge, Path],
                **kwargs: Any) -> None:
