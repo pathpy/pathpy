@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an single edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-07-14 16:34 juergen>
+# Time-stamp: <Wed 2020-07-15 11:40 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -522,7 +522,7 @@ class EdgeCollection(BaseCollection):
         self._hyperedges: bool = hyperedges
 
         # collection of nodes
-        self._nodes: NodeCollection = NodeCollection()
+        self._nodes: Any = NodeCollection()
         if nodes is not None:
             self._nodes = nodes
 
@@ -670,10 +670,10 @@ class EdgeCollection(BaseCollection):
                 # add edge to the network
                 self._add(_edge)
             else:
-                self._if_edge_exists(_edge.uid, **kwargs)
+                self._if_exist(_edge.uid, **kwargs)
         else:
             # raise error if edge already exists
-            self._if_edge_exists(_edge.uid, **kwargs)
+            self._if_exist(_edge.uid, **kwargs)
 
     @add.register(str)  # type: ignore
     @add.register(Node)  # type: ignore
@@ -701,7 +701,7 @@ class EdgeCollection(BaseCollection):
                 self.add(self._edge_class(*_nodes, uid=uid, **kwargs))
             # raise error if edge already exists
             else:
-                self._if_edge_exists(_nodes, **kwargs)
+                self._if_exist(_nodes, **kwargs)
 
         # add edge with unknown nodes
         else:
@@ -748,9 +748,9 @@ class EdgeCollection(BaseCollection):
 
         else:
             # raise error if node already exists
-            self._if_edge_exists(_nodes, **kwargs)
+            self._if_exist(_nodes, **kwargs)
 
-    def _if_edge_exists(self, edge: Any, **kwargs: Any) -> None:
+    def _if_exist(self, edge: Any, **kwargs: Any) -> None:
         """Helper function if the edge does not exsist."""
         # pylint: disable=no-self-use
         # pylint: disable=unused-argument
