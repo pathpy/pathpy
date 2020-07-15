@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-07-14 16:16 juergen>
+# Time-stamp: <Wed 2020-07-15 11:42 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -119,7 +119,7 @@ class TemporalEdgeCollection(EdgeCollection):
         return [(i.data.uid, i.data, i.begin, i.end)
                 for i in sorted(self._intervals)]
 
-    def _if_edge_exists(self, edge: Any, **kwargs: Any) -> None:
+    def _if_exist(self, edge: Any, **kwargs: Any) -> None:
         """Helper function if edge already exists."""
         # get the edge
         if isinstance(edge, (tuple, list)):
