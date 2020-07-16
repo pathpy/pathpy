@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : d3js.py -- Module to draw a d3js-network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-05-22 15:29 juergen>
+# Time-stamp: <Thu 2020-07-16 09:59 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -24,11 +24,11 @@ LOG = logger(__name__)
 class D3js:
     """Class to draw d3js objects."""
 
-    def __init__(self) -> None:
+    def __init__(self, filename: bool = True) -> None:
         """Initialize d3js drawer"""
+        self._filename = filename  # This is only a fix for vs code
 
-    @staticmethod
-    def to_html(figure) -> str:
+    def to_html(self, figure) -> str:
         """Convert figure to a single html document."""
         LOG.debug('Generate single html document.')
 
@@ -63,7 +63,7 @@ class D3js:
 
         # load js template
         temp_name = 'template.html'
-        if config['environment']['IDE'] == 'vs code':
+        if config['environment']['IDE'] == 'vs code' and not self._filename:
             temp_name = 'template_vscode.html'
 
         with open(os.path.join(temp_dir, temp_name)) as temp:

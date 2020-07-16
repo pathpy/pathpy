@@ -4,12 +4,12 @@
 # =============================================================================
 # File      : plot.py -- Module to plot pathoy networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-06-25 21:13 juergen>
+# Time-stamp: <Thu 2020-07-16 09:56 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional, Union, Dict
 from collections import defaultdict
 from copy import deepcopy
 from singledispatchmethod import singledispatchmethod  # remove for python 3.8
@@ -155,14 +155,14 @@ def plot(obj, filename: Optional[str] = None,
     figure: Any
 
     # supported backends
-    backends = {
+    backends: Dict[str, object] = {
         'd3js': D3js,
         'tikz': Tikz,
         'matplotlib': Matplotlib
     }
 
     # supported file fileformats and corresponding default backends
-    figures = {
+    figures: Dict[str, Dict[str, object]] = {
         'html': {'fileformat': HTML, 'backend': D3js},
         'tex': {'fileformat': TEX, 'backend': Tikz},
         # 'csv': {'fileformat': CSV, 'backend': Tikz},
@@ -183,7 +183,7 @@ def plot(obj, filename: Optional[str] = None,
     if filename is None:
         # generate default html figure with d3js
         figure = HTML()
-        figure.draw(D3js(), data)
+        figure.draw(D3js(filename=False), data)
         figure.show()
 
         # if file name is given
@@ -197,15 +197,18 @@ def plot(obj, filename: Optional[str] = None,
             figure = figures[extension]['fileformat']()
 
             # check if an other backend is provided
-            if backend is not None and backend in backends:
-                _backend = backends[backend]()
+            if backend is not None:
+                if backend in backends:
+                    _backend = backends[backend]
+                else:
+                    _backend = figures[extension]['backend']
+                    LOG.warning('The backend "%s" is not available.'
+                                'The standard backend was used!', backend)
             else:
-                _backend = figures[extension]['backend']()
-                LOG.warning('The backend "%s" is not available.'
-                            'The standard backend was used!', backend)
+                _backend = figures[extension]['backend']
 
             # draw the figure
-            figure.draw(_backend, data)
+            figure.draw(_backend(), data)
 
             # save the figure
             figure.save(filename)
