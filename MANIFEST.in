@@ -1,6 +1,7 @@
 include pathpy/config.cfg
-include pathpy/visualizations/network/*
-include pathpy/visualizations/network/js/*
-include pathpy/visualizations/network/lib/*
-include pathpy/visualizations/network/data/*
-include pathpy/visualizations/network/css/*
+include pathpy/visualisations/template/*
+include pathpy/visualisations/template/network/*
+include pathpy/visualisations/template/network/css/*
+include pathpy/visualisations/template/network/js/*
+include pathpy/visualisations/template/network/lib/*
+include pathpy/visualisations/template/network/data/*
