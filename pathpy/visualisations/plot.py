@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : plot.py -- Module to plot pathoy networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-07-16 09:56 juergen>
+# Time-stamp: <Thu 2020-07-16 10:15 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -50,6 +50,9 @@ config['plot']['euclidean'] = False
 config['plot']['min_max_node_size'] = None
 config['plot']['min_max_edge_size'] = None
 config['plot']['keep_aspect_ratio'] = True
+
+config['plot']['template'] = None
+config['plot']['css'] = None
 
 config['plot']['backend'] = ['tikz']
 config['plot']['fileformat'] = ['tex']

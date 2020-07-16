@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : d3js.py -- Module to draw a d3js-network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-07-16 09:59 juergen>
+# Time-stamp: <Thu 2020-07-16 11:01 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -66,12 +66,20 @@ class D3js:
         if config['environment']['IDE'] == 'vs code' and not self._filename:
             temp_name = 'template_vscode.html'
 
-        with open(os.path.join(temp_dir, temp_name)) as temp:
+        temp_file = os.path.join(temp_dir, temp_name)
+        if _config['template'] is not None:
+            temp_file = os.path.join(_config['template'])
+
+        with open(temp_file) as temp:
             js_template = temp.read()
 
         # load css template
+        css_file = os.path.join(temp_dir, 'css/style.css')
+        if _config['css'] is not None:
+            css_file = os.path.join(_config['css'])
+
         # TODO: Load user css template if given
-        with open(os.path.join(temp_dir, 'css/style.css')) as temp:
+        with open(css_file) as temp:
             css_template = temp.read()
 
         # Substitute parameters in the template
