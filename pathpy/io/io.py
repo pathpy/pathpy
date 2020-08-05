@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : io.py -- Module for data import/export
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Mon 2020-05-22 15:53 ingo>
+# Time-stamp: <Mon 2020-08-05 11:10 ingo>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -11,7 +11,6 @@ from __future__ import annotations
 from typing import Any, Optional, cast
 
 import sqlite3
-import bz2
 import tarfile
 import io
 import urllib
@@ -20,12 +19,88 @@ import xml.etree.ElementTree as ET
 import pandas as pd  # pylint: disable=import-error
 
 from pathpy import config, logger
-from pathpy.core.edge import Edge
-from pathpy.core.node import Node
+from pathpy.core.edge import Edge, EdgeCollection
+from pathpy.core.node import Node, NodeCollection
 from pathpy.core.network import Network
 
 # create logger
 LOG = logger(__name__)
+
+
+def read_pathcollection_csv(filename: str, separator: str = ',',
+                  frequency: bool = False, directed: bool = True,
+                  maxlines: int = None) -> PathCollection:
+        from pathpy.core.path import Path, PathCollection
+        """
+        Read path in edgelist format
+
+        Reads data from a file containing multiple lines of *edges* of the
+        form "v,w,frequency,X" (where frequency is optional and X are
+        arbitrary additional columns). The default separating character ','
+        can be changed.
+
+        Parameters
+        ----------
+        filename : str
+            path to edgelist file
+        separator : str
+            character separating the nodes
+        frequency : bool
+            is a frequency given? if ``True`` it is the last element in the
+            edge (i.e. ``a,b,2``)
+        directed : bool
+            are the edges directed or undirected
+        maxlines : int
+            number of lines to read (useful to test large files).
+            None means the entire file is read
+        """
+        nodes = {}
+        edges = {}
+        paths = {}
+
+        with open(filename, 'r') as f:
+            for n, line in enumerate(f):
+                fields = line.rstrip().split(separator)
+                assert len(
+                    fields) >= 1, 'Error: empty line: {0}'.format(line)
+
+                if frequency:
+                    path = tuple(fields[:-1])
+                    f = int(fields[-1])
+                else:
+                    path = tuple(fields)
+                    f = 1
+
+                for node in path:
+                    if node not in nodes:
+                        nodes[node] = Node(node)
+
+                edge_list = []
+                for u, v in zip(path[:-1], path[1:]):
+                    if (u, v) not in edges:
+                        edges[(u, v)] = Edge(nodes[u], nodes[v])
+                    edge_list.append(edges[(u, v)])
+
+                if path not in paths:
+                    paths[path] = Path(*edge_list, frequency=f)
+
+                if maxlines is not None and n >= maxlines:
+                    break
+
+        nc = NodeCollection()
+        for node in nodes.values():
+            nc.add(node)
+
+        ec = EdgeCollection(nodes=nc)
+        for edge in edges.values():
+            ec._add(edge)
+
+        p = PathCollection(nodes=nc, edges=ec)
+
+        for path in paths.values():
+            p._add(path)
+            
+        return p
 
 
 def read_csv(filename: str, directed: bool = True, loops: bool = True, sep: str = ',',

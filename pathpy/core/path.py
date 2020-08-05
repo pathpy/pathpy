@@ -16,6 +16,7 @@ from pathpy import logger
 from pathpy.core.base import BasePath, BaseCollection
 from pathpy.core.node import Node, NodeCollection
 from pathpy.core.edge import Edge, EdgeCollection
+import pathpy.io
 
 # create logger for the Path class
 LOG = logger(__name__)
@@ -339,6 +340,8 @@ class PathCollection(BaseCollection):
     """A collection of paths"""
     # pylint: disable=too-many-instance-attributes
 
+    read_csv = pathpy.io.read_pathcollection_csv
+
     def __init__(self, directed: bool = True,
                  multiedges: bool = False,
                  multipaths: bool = False,
@@ -648,79 +651,6 @@ class PathCollection(BaseCollection):
 
         if len(self._edges_map[_edges]) == 0:
             self._edges_map.pop(_edges, None)
-            
-    def read_file(cls, filename: str, separator: str = ',',
-                  frequency: bool = False, directed: bool = True,
-                  maxlines: int = None) -> None:
-        """
-        Read path in edgelist format
-
-        Reads data from a file containing multiple lines of *edges* of the
-        form "v,w,frequency,X" (where frequency is optional and X are
-        arbitrary additional columns). The default separating character ','
-        can be changed.
-
-        Parameters
-        ----------
-        filename : str
-            path to edgelist file
-        separator : str
-            character separating the nodes
-        frequency : bool
-            is a frequency given? if ``True`` it is the last element in the
-            edge (i.e. ``a,b,2``)
-        directed : bool
-            are the edges directed or undirected
-        maxlines : int
-            number of lines to read (useful to test large files).
-            None means the entire file is read
-        """
-        nodes = {}
-        edges = {}
-        paths = {}
-
-        with open(filename, 'r') as f:
-            for n, line in enumerate(f):
-                fields = line.rstrip().split(separator)
-                assert len(
-                    fields) >= 2, 'Error: malformed line: {0}'.format(line)
-
-                if frequency:
-                    path = tuple(fields[:-1])
-                    f = int(fields[-1])
-                else:
-                    path = tuple(fields)
-                    f = 1
-
-                for node in path:
-                    if node not in nodes:
-                        nodes[node] = Node(node)
-
-                edge_list = []
-                for u, v in zip(path[:-1], path[1:]):
-                    if (u, v) not in edges:
-                        edges[(u, v)] = Edge(nodes[u], nodes[v], uid=u+'-'+v)
-                    edge_list.append(edges[(u, v)])
-
-                if path not in paths:
-                    paths[path] = Path(*edge_list, frequency=f)
-
-                if maxlines is not None and n >= maxlines:
-                    break
-
-        nc = NodeCollection()
-        nc.add(*nodes.values())
-
-        ec = EdgeCollection(nodes=nc)
-        for edge in edges.values():
-            ec._add(edge)
-
-        p = PathCollection(nodes=nc, edges=ec)
-
-        for path in paths.values():
-            p._add(path)
-            
-        return p
 
 # =============================================================================
 # eof

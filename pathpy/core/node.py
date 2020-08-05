@@ -245,7 +245,7 @@ class NodeCollection(BaseCollection):
 
     @add.register(Node)  # type: ignore
     def _(self, *node: Node, **kwargs: Any) -> None:
-        # check if more then one edge is given raise an AttributeError
+        # check if more then one node is given raise an AttributeError
         if len(node) != 1:
             LOG.error('More then one node was given.')
             raise AttributeError
