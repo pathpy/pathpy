@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-07-15 11:42 juergen>
+# Time-stamp: <Fri 2020-08-21 17:20 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -40,12 +40,12 @@ class TemporalNetwork(ABCTemporalNetwork, Network):
     """Base class for a temporal networks."""
 
     def __init__(self, uid: Optional[str] = None,
-                 directed: bool = True, temporal: bool = False,
-                 multiedges: bool = False, **kwargs: Any) -> None:
+                 directed: bool = True, multiedges: bool = False,
+                 **kwargs: Any) -> None:
         """Initialize the temporal network object."""
 
         # initialize the base class
-        super().__init__(uid=uid, directed=directed, temporal=True,
+        super().__init__(uid=uid, directed=directed,
                          multiedges=multiedges, **kwargs)
 
         # a container for node objects

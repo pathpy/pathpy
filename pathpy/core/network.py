@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-07-14 16:04 juergen>
+# Time-stamp: <Fri 2020-08-21 17:22 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -198,8 +198,7 @@ class Network(BaseModel):
 
     plot = network_plot
 
-    def __init__(self, uid: Optional[str] = None,
-                 directed: bool = True, temporal: bool = False,
+    def __init__(self, uid: Optional[str] = None, directed: bool = True,
                  multiedges: bool = False, **kwargs: Any) -> None:
         """Initialize the network object."""
 
@@ -208,9 +207,6 @@ class Network(BaseModel):
 
         # inidcator whether the network is directed or undirected
         self._directed: bool = directed
-
-        # indicator whether the network is temporal or static
-        self._temporal: bool = temporal
 
         # indicator whether the network has multi-edges
         self._multiedges: bool = multiedges
@@ -292,8 +288,8 @@ class Network(BaseModel):
 
     def __add__(self, other: Network) -> Network:
         """Add a network to a network."""
-        network = Network(directed=self.directed, temporal=self.temporal,
-                          multiedges=self.multiedges, **self.attributes.to_dict())
+        network = Network(directed=self.directed, multiedges=self.multiedges,
+                          **self.attributes.to_dict())
 
         # TODO: add warnings if two networks have different properties
         # TODO: update also netork properties
@@ -323,8 +319,8 @@ class Network(BaseModel):
     def __sub__(self, other: Network) -> Network:
         """Remove a network from a network."""
 
-        network = Network(directed=self.directed, temporal=self.temporal,
-                          multiedges=self.multiedges, **self.attributes.to_dict())
+        network = Network(directed=self.directed, multiedges=self.multiedges,
+                          **self.attributes.to_dict())
 
         # add nodes and edges of self to a new network
         network.add_nodes(*self.nodes)
@@ -421,20 +417,6 @@ class Network(BaseModel):
     def multiedges(self) -> bool:
         """Return if edges are directed. """
         return self._multiedges
-
-    @property
-    def temporal(self) -> bool:
-        """Return if the network is temproal (True) or static (False).
-
-        Returns
-        -------
-        bool
-
-            Return ``True`` if the network is temporal or ``False`` if the
-            network is static.
-
-        """
-        return self._temporal
 
     @property
     def nodes(self) -> NodeCollection:
