@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_io.py -- Test environment for input/output files
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sat 2020-08-22 18:37 juergen>
+# Time-stamp: <Sat 2020-08-22 18:43 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -13,26 +13,26 @@ from pathpy import Network,  TemporalNetwork
 import pathpy as pp
 
 
-def test_sql_read_network():
-    """Read a static network from a sql database."""
-    net = pp.io.sql.read_network(filename='networks.db',
-                                 table='gentoo', directed=True, multiedges=False)
+# def test_sql_read_network():
+#     """Read a static network from a sql database."""
+#     net = pp.io.sql.read_network(filename='networks.db',
+#                                  table='gentoo', directed=True, multiedges=False)
 
-    assert isinstance(net, Network)
-    assert net.number_of_nodes() == 403
-    assert net.number_of_edges() == 513
+#     assert isinstance(net, Network)
+#     assert net.number_of_nodes() == 403
+#     assert net.number_of_edges() == 513
 
 
-def test_sql_read_temporal_network():
-    """Read a temporal network from a sql database."""
-    net = pp.io.sql.read_temporal_network(filename='networks.db',
-                                          table='lotr',
-                                          directed=True,
-                                          multiedges=False)
+# def test_sql_read_temporal_network():
+#     """Read a temporal network from a sql database."""
+#     net = pp.io.sql.read_temporal_network(filename='networks.db',
+#                                           table='lotr',
+#                                           directed=True,
+#                                           multiedges=False)
 
-    assert isinstance(net, TemporalNetwork)
-    assert net.number_of_nodes() == 139
-    assert net.number_of_edges() == 701
+#     assert isinstance(net, TemporalNetwork)
+#     assert net.number_of_nodes() == 139
+#     assert net.number_of_edges() == 701
 
 
 def test_sql_write_network():
