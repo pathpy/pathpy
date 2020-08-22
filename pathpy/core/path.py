@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-07-15 11:47 juergen>
+# Time-stamp: <Sat 2020-08-22 15:48 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -340,7 +340,7 @@ class PathCollection(BaseCollection):
     """A collection of paths"""
     # pylint: disable=too-many-instance-attributes
 
-    read_csv = pathpy.io.read_pathcollection_csv
+    # read_csv = pathpy.io.read_pathcollection_csv
 
     def __init__(self, directed: bool = True,
                  multiedges: bool = False,

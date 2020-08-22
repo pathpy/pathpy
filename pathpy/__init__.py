@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : __init__.py -- pathpy init file
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-07-14 16:22 juergen>
+# Time-stamp: <Sat 2020-08-22 15:25 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -28,10 +28,16 @@ from pathpy.core.api import (Node,
                              Path,
                              PathCollection,
                              Network,
-                             # HigherOrderNode,
-                             # HigherOrderEdge,
-                             # HigherOrderNetwork,
                              )
+
+
+from pathpy.models.api import (TemporalNetwork,
+                               # HigherOrderNode,
+                               # HigherOrderEdge,
+                               HigherOrderNetwork,
+                               # NullModel,
+                               # MultiOrderModel
+                               )
 
 from pathpy.visualisations.api import (plot,
                                        layout)

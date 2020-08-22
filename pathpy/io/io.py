@@ -3,257 +3,158 @@
 # =============================================================================
 # File      : io.py -- Module for data import/export
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Mon 2020-08-05 11:10 ingo>
+# Time-stamp: <Sat 2020-08-22 18:24 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, Optional, cast
-
-import sqlite3
-import tarfile
-import io
-import urllib
-import xml.etree.ElementTree as ET
+from typing import Any, Union
 
 import pandas as pd  # pylint: disable=import-error
 
 from pathpy import config, logger
-from pathpy.core.edge import Edge, EdgeCollection
-from pathpy.core.node import Node, NodeCollection
+
+from pathpy.core.node import Node
+from pathpy.core.edge import Edge
 from pathpy.core.network import Network
+from pathpy.models.temporal_network import TemporalNetwork
 
 # create logger
 LOG = logger(__name__)
 
 
-def read_pathcollection_csv(filename: str, separator: str = ',',
-                  frequency: bool = False, directed: bool = True,
-                  maxlines: int = None) -> PathCollection:
-        from pathpy.core.path import Path, PathCollection
-        """
-        Read path in edgelist format
+def _check_column_name(frame: pd.DataFrame, name: str,
+                       synonyms: list) -> pd.DataFrame:
+    """Helper function to check column names and change them if needed."""
+    if name not in frame.columns:
+        LOG.info('No column %s, searching for synonyms', name)
+        for col in frame.columns:
+            if col in synonyms:
+                LOG.info('Remapping column "%s" to "%s"', col, name)
+                frame.rename(columns={col: name}, inplace=True)
+                continue
 
-        Reads data from a file containing multiple lines of *edges* of the
-        form "v,w,frequency,X" (where frequency is optional and X are
-        arbitrary additional columns). The default separating character ','
-        can be changed.
-
-        Parameters
-        ----------
-        filename : str
-            path to edgelist file
-        separator : str
-            character separating the nodes
-        frequency : bool
-            is a frequency given? if ``True`` it is the last element in the
-            edge (i.e. ``a,b,2``)
-        directed : bool
-            are the edges directed or undirected
-        maxlines : int
-            number of lines to read (useful to test large files).
-            None means the entire file is read
-        """
-        nodes = {}
-        edges = {}
-        paths = {}
-
-        with open(filename, 'r') as f:
-            for n, line in enumerate(f):
-                fields = line.rstrip().split(separator)
-                assert len(
-                    fields) >= 1, 'Error: empty line: {0}'.format(line)
-
-                if frequency:
-                    path = tuple(fields[:-1])
-                    f = int(fields[-1])
-                else:
-                    path = tuple(fields)
-                    f = 1
-
-                for node in path:
-                    if node not in nodes:
-                        nodes[node] = Node(node)
-
-                edge_list = []
-                for u, v in zip(path[:-1], path[1:]):
-                    if (u, v) not in edges:
-                        edges[(u, v)] = Edge(nodes[u], nodes[v])
-                    edge_list.append(edges[(u, v)])
-
-                if path not in paths:
-                    paths[path] = Path(*edge_list, frequency=f)
-
-                if maxlines is not None and n >= maxlines:
-                    break
-
-        nc = NodeCollection()
-        for node in nodes.values():
-            nc.add(node)
-
-        ec = EdgeCollection(nodes=nc)
-        for edge in edges.values():
-            ec._add(edge)
-
-        p = PathCollection(nodes=nc, edges=ec)
-
-        for path in paths.values():
-            p._add(path)
-            
-        return p
+    return frame
 
 
-def read_csv(filename: str, directed: bool = True, loops: bool = True, sep: str = ',',
-             header: bool = True, names: Optional[list] = None,
-             **kwargs: Any) -> Network:
-    """Read network from a csv file,"""
-
-    if header:
-        df = pd.read_csv(filename, sep=sep)
-    else:
-        df = pd.read_csv(filename, header=0, names=names, sep=sep)
-
-    return from_dataframe(df, directed=directed, loops=loops, **kwargs)
-
-
-def from_dataframe(df: pd.DataFrame, directed: bool = True, loops: bool = True, multiedges: bool= False,
-                   **kwargs: Any) -> Network:
-    """Reads a network from a pandas dataframe.
-
-    By default, columns `v` and `w` will be used as source and target of
-    edges. If no column 'v' or 'w' exists, the list of synonyms for `v` and
-    `w`` in the config file will be used to remap columns, choosing the first
-    matching entries. Any columns not used to create edges will be used as edge
-    attributes, e.g. if a column 'v' is present and an additional column
-    `source`is given, `source` will be assigned as an edge property.
-
-    In addition, an optional column `uid` will be used to assign node uids. If
-    this column is not present, default edge uids will be created.  Any other
-    columns (e.g. weight, type, time, etc.) will be assigned as edge
-    attributes. kwargs will be assigned as network attributes.
-
-    Parameters
-    ----------
-
-    directed: bool
-
-        Whether to generate a directed or undirected network.
-
-    **kwargs: Any
-
-        List of key-value pairs that will be assigned as network attributes
-
-    Examples
-    --------
-
-    """
+def to_network(frame: pd.DataFrame, loops: bool = True, directed: bool = True,
+               multiedges: bool = False, **kwargs: Any) -> Network:
+    """Read network from a pandas data frame."""
 
     # if no v/w columns are included, pick first synonym
-    if 'v' not in df.columns:
-        LOG.info('No column v, searching for synonyms')
-        for col in df.columns:
-            if col in config['edge']['v_synonyms']:
-                LOG.info('Remapping column \'%s\' to \'v\'', col)
-                df.rename(columns={col: "v"}, inplace=True)
-                continue
+    frame = _check_column_name(frame, 'v', config['edge']['v_synonyms'])
+    frame = _check_column_name(frame, 'w', config['edge']['w_synonyms'])
 
-    if 'w' not in df.columns:
-        LOG.info('No column w, searching for synonyms')
-        for col in df.columns:
-            if col in config['edge']['w_synonyms']:
-                LOG.info('Remapping column \'%s\' to \'w\'', col)
-                df.rename(columns={col: "w"}, inplace=True)
-                continue
+    LOG.debug('Creating %s network', directed)
 
-            LOG.debug('Creating %s network', directed)
+    node_set = set(frame['v']).union(set(frame['w']))
+
+    if None in node_set:
+        LOG.error('DataFrame minimally needs columns \'v\' and \'w\'')
+        raise IOError
+
+    nodes = {n: Node(n) for n in node_set}
+
+    edges: list = []
+    edge_set: set = set()
+
+    # TODO: Make this for loop faster!
+    for row in frame.to_dict(orient='records'):
+        v = row.pop('v')
+        w = row.pop('w')
+        uid = row.pop('uid', None)
+
+        if (v, w) in edge_set and not multiedges:
+            LOG.warning('The edge (%s,%s) exist already '
+                        'and will not be considered. '
+                        'To capture this edge, please '
+                        'enalbe multiedges and/or directed!', v, w)
+        elif loops or v != w:
+            edges.append(Edge(nodes[v], nodes[w], uid=uid, **row))
+            edge_set.add((v, w))
+            if not directed:
+                edge_set.add((w, v))
+        else:
+            continue
 
     net = Network(directed=directed, multiedges=multiedges, **kwargs)
-    for row in df.to_dict(orient='records'):
+    for node in nodes.values():
+        net.nodes.add(node)
 
-        # get edge
-        v = row.get('v', None)
-        w = row.get('w', None)
-        uid = row.get('uid', None)
-        if v is None or w is None:
-            LOG.error('DataFrame minimally needs columns \'v\' and \'w\'')
-            raise IOError
-        else:
-            v = str(v)
-            w = str(w)
-        if v not in net.nodes.uids:
-            net.add_node(v)
-        if w not in net.nodes.uids:
-            net.add_node(w)
-        if uid is None:
-            edge = Edge(net.nodes[v], net.nodes[w])
-        else:
-            edge = Edge(net.nodes[v], net.nodes[w], uid=uid)
-        if loops or edge.v != edge.w:
-            net.add_edge(edge)
+    for edge in edges:
+        net.edges._add(edge)
 
-        reserved_columns = set(['v', 'w', 'uid'])
-        for k in row:
-            if k not in reserved_columns:
-                edge[k] = row[k]
     return net
 
 
-def read_sql(filename: Optional[str] = None, directed: bool = True, loops: bool = True,
-                con: Optional[sqlite3.Connection] = None,
-                sql: Optional[str] = None, table: Optional[str] = None,
-                **kwargs: Any) -> Network:
-    """Read network from an sqlite database."""
+def to_temporal_network(frame: pd.DataFrame, loops: bool = True,
+                        directed: bool = True, multiedges: bool = False,
+                        **kwargs: Any) -> TemporalNetwork:
+    """Read temporal network from a pandas data frame."""
 
-    LOG.debug('Load sql file as pandas data frame.')
+    # if no v/w columns are included, pick first synonym
+    frame = _check_column_name(frame, 'v', config['edge']['v_synonyms'])
+    frame = _check_column_name(frame, 'w', config['edge']['w_synonyms'])
 
-    if con is None and filename is None:
-        LOG.error('Either an SQL connection or a filename is required')
+    _begin = config['temporal']['begin']
+    _end = config['temporal']['end']
+    _timestamp = config['temporal']['timestamp']
+    _duration = config['temporal']['duration']
+
+    _key_words = {'begin': _begin, 'end': _end,
+                  'timestamp': _timestamp, 'duration': _duration}
+
+    for key, name in _key_words.items():
+        frame = _check_column_name(
+            frame, name, config['temporal'][key+'_synonyms'])
+
+    if _timestamp in frame.columns:
+        frame[_begin] = frame[_timestamp]
+        if _duration in frame.columns:
+            frame[_end] = frame[_timestamp] + frame[_duration]
+        else:
+            frame[_end] = frame[_timestamp] + \
+                config['temporal']['duration_value']
+
+    if _begin and _end not in frame.columns:
+        LOG.error('A TemporalNetwork needs "%s" and "%s" (or "%s" and "%s") '
+                  'attributes!', _begin, _end, _timestamp, _duration)
         raise IOError
 
-    con_close = False
-    # connect to database if not given
-    if con is None and filename is not None:
-        con_close = True
-        con = sqlite3.connect(filename)
+    LOG.debug('Creating %s network', directed)
 
-    # if sql query is not given check availabe tables
-    if sql is None:
+    node_set = set(frame['v']).union(set(frame['w']))
 
-        # create cursor and get all tables availabe
-        cursor = cast(sqlite3.Connection, con).cursor()
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-        tables = list(sum(cursor.fetchall(), ()))
+    if None in node_set:
+        LOG.error('DataFrame minimally needs columns \'v\' and \'w\'')
+        raise IOError
 
-        # check if table is given
-        if table is None:
-            table = tables[0]
-        elif table not in tables:
-            LOG.error('Given table "%s" not in database!', table)
-            raise IOError
+    nodes = {n: Node(n) for n in node_set}
 
-        # generate sql query
-        sql = 'SELECT * from {}'.format(table)
+    net = TemporalNetwork(directed=directed, multiedges=multiedges, **kwargs)
+    for node in nodes.values():
+        net.nodes.add(node)
 
-    # read to pandas data frame
-    df = pd.read_sql(sql, con)
+    # TODO: Make this for loop faster!
+    for row in frame.to_dict(orient='records'):
+        v = row.pop('v')
+        w = row.pop('w')
+        uid = row.pop('uid', None)
 
-    # close connection to the database
-    if con_close:
-        _con = cast(sqlite3.Connection, con)
-        _con.close()
+        net.add_edge(nodes[v], nodes[w], uid=uid, **row)
 
-    # construct network from pandas data frame
-    return from_dataframe(df, directed=directed, loops=loops, **kwargs)
+    return net
 
 
-def to_dataframe(network: Network, exclude_edge_uid: bool = False, export_indices: bool=False) -> pd.DataFrame:
+def from_network(network: Network, exclude_edge_uid: bool = False,
+                 export_indices: bool = False) -> pd.DataFrame:
     """Returns a pandas dataframe of the network.
 
     Returns a pandas dataframe data that contains all edges including all edge
     attributes. Node and network-level attributes are not included.
 
     """
-    df = pd.DataFrame()
+    frame = pd.DataFrame()
 
     for edge in network.edges:
         v = edge.v.uid
@@ -262,313 +163,60 @@ def to_dataframe(network: Network, exclude_edge_uid: bool = False, export_indice
             v = network.nodes.index[v]
             w = network.nodes.index[w]
         if exclude_edge_uid:
-            edge_df = pd.DataFrame(columns=['v', 'w'])           
-            edge_df.loc[0] = [v, w]
+            edge_frame = pd.DataFrame(columns=['v', 'w'])
+            edge_frame.loc[0] = [v, w]
         else:
-            edge_df = pd.DataFrame(columns=['v', 'w', 'uid'])            
-            edge_df.loc[0] = [v, w, edge.uid]            
-        edge_df = pd.concat([edge_df, edge.attributes.to_frame()], axis=1)
-        df = pd.concat([edge_df, df], ignore_index=True)
-    return df
+            edge_frame = pd.DataFrame(columns=['v', 'w', 'uid'])
+            edge_frame.loc[0] = [v, w, edge.uid]
+        edge_frame = pd.concat([edge_frame, edge.attributes.to_frame()], axis=1)
+        frame = pd.concat([edge_frame, frame], ignore_index=True, sort=False)
+    return frame
 
 
-def write_csv(network: Network, path_or_buf: Any = None, exclude_edge_uid: bool=False, export_indices: bool=False, **pdargs: Any):
-    """Stores all edges including edge attributes in a csv file.
+def from_temporal_network(network: TemporalNetwork,
+                          exclude_edge_uid: bool = False,
+                          export_indices: bool = False) -> pd.DataFrame:
+    """Returns a pandas dataframe of the temporal network.
 
-    Node and network-level attributes are not included.
-
-    Parameters
-    ----------
-
-    network: Network
-
-        The network to save as csv file
-
-    path_or_buf: Any
-
-        This can be a string, a file buffer, or None (default). Follows
-        pandas.DataFrame.to_csv semantics.  If a string filename is given, the
-        network will be saved in a file. If None, the csv file contents is
-        returned as a string. If a file buffer is given, the csv file will be
-        saved to the file.
-
-    exclude_edge_uid: bool
-
-        Whether to exclude edge uids in the exported csv file or not (default). If this is set to 
-        True, each edge between nodes with uids v and w will be exported to a line w,v. If this is 
-        set to False (default), the uid of the edge will be additionally included, i.e. exporting 
-        v,w,e_uid. The latter ensures that both nodes and edges will retain their uids when writing 
-        and reading a network with pathpy. Excluding edge_uids can be necessary to export edge lists 
-        for use in third-party packages.
-
-    export_indices: bool 
-
-        Whether or not to replace node uids by integer node indices. If False (default), string node uids 
-        in pp.Network instance will be used. If True, node integer indices are exported instead, which may be 
-        necessary to export edge lists that can be used by third-party packages such as node2vec.
-
-    **pdargs:
-
-        Keyword args that will be passed to pandas.DataFrame.to_csv. This
-        allows full control of the csv export.
+    Returns a pandas dataframe data that contains all edges including all edge
+    attributes. Node and network-level attributes are not included.
 
     """
+    frame = pd.DataFrame()
 
-    df = to_dataframe(network, exclude_edge_uid = exclude_edge_uid, export_indices = export_indices)
-    return df.to_csv(path_or_buf=path_or_buf, index=False, **pdargs)
-
-
-def write_sql(network: Network,  table: str,
-              filename: Optional[str] = None,
-              con: Optional[sqlite3.Connection] = None, **pdargs: Any) -> None:
-    """Stores all edges including edge attributes in an sqlite database table.
-
-    Node and network-level attributes are not included.
-
-    Parameters
-    ----------
-
-    network: Network
-
-        The network to store in the sqlite database
-
-    filename: str
-
-        The name of the SQLite database in which the network will be stored
-
-    con: sqlite3.Connection
-
-        The SQLite3 connection in which the network will be stored
-
-    table: str
-
-        Name of the table in the database in which the network will be stored.
-
-    **pdargs:
-
-        Keyword args that will be passed to pandas.DataFrame.to_sql.
-
-    """
-
-    df = to_dataframe(network)
-
-    LOG.debug('Store network as sql database.')
-
-    if con is None and filename is None:
-        LOG.error('Either an SQL connection or a filename is required')
-        raise IOError
-
-    con_close = False
-    # connect to database if not given
-    if con is None:
-        con = sqlite3.connect(cast(str, filename))
-        con_close = True
-
-    df.to_sql(table, con, **pdargs)
-
-    if con_close:
-        _con = cast(sqlite3.Connection, con)
-        _con.close()
-
-
-def read_konect_file(file):
-    """Reads a KONECT data file and returns a pp.Network instance.
-
-    The unified KONECT data format is a compressed .tar.bz2 file containing 
-    two files meta.* and out.*. The key-value attributes in the meta file
-    (typically containing data descriptions and link to original data source)
-    are stored as attributes in the returned instance of pp.Network. 
-
-    Depending on the data file, the generated network will be a single -or multi-edge 
-    network with directed or undirected edges. The type of the network will be automatically 
-    determined based on the data file. Weight and Time attributes are stored as edge attributes.
-
-    Parameters
-    ----------
-
-    file: str, Bytes
-
-        Filename or byte stream from which data should be loaded
-
-    """
-
-    tsv_columns = ['v', 'w', 'weight', 'time']
-
-    if isinstance(file, str):
-        tar = tarfile.open(file, mode='r:bz2')
-    elif isinstance(file, bytes):
-        tar = tarfile.open(fileobj=io.BytesIO(file), mode='r:bz2')
-    attributes = {}
-    directed = False
-    multiedges = False
-    network_data = None
-    for tarinfo in tar:
-        if tarinfo.isfile():
-            f = tarinfo.path.split('/')[-1]
-
-            # read meta-data into attributes
-            if f.startswith('meta.'):
-                with io.TextIOWrapper(tar.extractfile(tarinfo)) as buffer:
-                    for line in buffer.readlines():                        
-                        s = line.split(': ', 1)
-                        # ignore empty lines
-                        if len(s) == 2:
-                            attributes[s[0].strip()] = s[1].strip()
-            
-            # read network data
-            elif f.startswith('out.'):
-                with io.TextIOWrapper(tar.extractfile(tarinfo)) as buffer:
-                    directed = 'asym' in buffer.readline()
-                    network_data = pd.read_csv(buffer, sep='\s+', header=None, comment='%')
-                    network_data = network_data.dropna(axis=1, how='all')
-                    
-                    # print(network_data.head())                    
-                    network_data.columns = [tsv_columns[i] for i in range(len(network_data.columns))]
-                    duplicates = len(network_data[network_data.duplicated(['v', 'w'], keep=False)])
-                    if duplicates>0:
-                        LOG.info('Found {} duplicate edges'.format(duplicates))
-                        multiedges = True
-                    LOG.info('Detected columns: ', [c for c in network_data.columns])
-    if 'timeiso' in attributes:
-        try:
-            dt = pd.to_datetime(attributes['timeiso'])
-            attributes['time'] = attributes['timeiso']
-        except ValueError:
-            LOG.warning('KONECT data contains invalid timeiso: {}'.format(attributes['timeiso']))
-    return from_dataframe(network_data, directed=directed, multiedges=multiedges, **attributes)
-
-
-def read_konect_name(name, base_url="http://konect.uni-koblenz.de/downloads/tsv/"):
-    """Retrieves a KONECT data set with a given name and returns a corresponding 
-    instance of pp.Network.
-
-    The unified KONECT data format is a compressed .tar.bz2 file containing 
-    two files meta.* and out.*. The key-value attributes in the meta file
-    (typically containing data descriptions and link to original data source)
-    are stored as attributes in the returned instance of pp.Network. 
-
-    Depending on the data file, the generated network will be a single -or multi-edge 
-    network with directed or undirected edges. The type of the network will be automatically 
-    determined based on the data file. Weight and Time attributes are stored as edge attributes.
-
-    Parameters
-    ----------
-
-    name: str
-
-        Name of the data set to retrieve from the KONECT database, e.g. 'moreno_bison'
-
-    base_url: str
-
-        Base url of the KONECT service that will be used to retrieve data set. Default is 
-        "http://konect.uni-koblenz.de/downloads/tsv/". This method assumes that the KONECT data file 
-        with name X can be retrieved via HTTP under the URL "http://konect.uni-koblenz.de/downloads/tsv/X.tar.bz2"
-    """
-    f = urllib.request.urlopen(base_url + name + ".tar.bz2").read()
-    return read_konect_file(f)
-
-
-def read_graphml(filename: str):
-    """Reads a pathyp.Network from a graphml file. This function supports typed Node and Edge attributes 
-    including default values. 
-    
-    Warnings are issued if the type of Node or Edge attributes are undeclared,  in which case the attribute type will fall back to string.
-
-    Parameters
-    ----------
-
-    filename: str
-        The graphml file to read the graph from
-    
-    """
-    root = ET.parse(filename).getroot()
-
-    graph = root.find('{http://graphml.graphdrawing.org/xmlns}graph')
-    directed = graph.attrib['edgedefault'] != 'undirected'
-    uid = graph.attrib['id']    
-    n = Network(directed=directed, uid=uid)
-
-    node_attributes = {}
-    edge_attributes = {}
-
-    # read attribute types and default values
-    for a in root.findall('{http://graphml.graphdrawing.org/xmlns}key'):
-        a_id = a.attrib['id']
-        a_name = a.attrib['attr.name']
-        a_type = a.attrib['attr.type']
-        a_for = a.attrib['for']
-
-        # store attribute info and assign data types
-        a_data = {'name': a_name}
-        if a_type == 'string':
-            a_data['type'] = str
-        elif a_type == 'float': 
-            a_data['type'] = float
-        elif a_type == 'double': 
-            a_data['type'] = float
-        elif a_type == 'int': 
-            a_data['type'] = int
-        elif a_type == 'long': 
-            a_data['type'] = int
-        elif a_type == 'boolean': 
-            a_data['type'] = bool
+    for uid, edge, begin, end in network.edges.temporal():
+        v = edge.v.uid
+        w = edge.w.uid
+        if export_indices:
+            v = network.nodes.index[v]
+            w = network.nodes.index[w]
+        if exclude_edge_uid:
+            edge_frame = pd.DataFrame(columns=['v', 'w', 'begin', 'end'])
+            edge_frame.loc[0] = [v, w, begin, end]
         else:
-            a_data['type'] = str
-        
-        d = a.find('{http://graphml.graphdrawing.org/xmlns}default')
-        if d is not None:
-            a_data['default'] = a_data['type'](d.text)
-        
-        if a_for == 'node':
-            node_attributes[a_name] = a_data
-        if a_for == 'edge':
-            edge_attributes[a_name] = a_data
+            edge_frame = pd.DataFrame(columns=['v', 'w', 'uid', 'begin', 'end'])
+            edge_frame.loc[0] = [v, w, uid, begin, end]
+        edge_frame = pd.concat([edge_frame, edge.attributes.to_frame()], axis=1)
+        frame = pd.concat([edge_frame, frame], ignore_index=True)
+    return frame
 
-    # add nodes with uids and attributes
-    for node in graph.findall('{http://graphml.graphdrawing.org/xmlns}node'):
-        # create node
-        uid = node.attrib['id']
-        v = Node(uid=uid)        
 
-        # set attribute values
-        for a in node.findall('{http://graphml.graphdrawing.org/xmlns}data'):
-            key = a.attrib['key']
-            val = a.text
-            if key not in node_attributes:
-                LOG.warning('Undeclared Node attribute "{}". Defaulting to string type.'.format(key))
-                v.attributes[key] = val
-            else:
-                v.attributes[key] = node_attributes[key]['type'](val)
+def to_dataframe(network: Union[Network, TemporalNetwork],
+                 exclude_edge_uid: bool = False,
+                 export_indices: bool = False) -> pd.DataFrame:
+    """Stores all edges including edge attributes in a csv file."""
 
-        # set default values
-        for a_name in node_attributes:
-            if 'default' in node_attributes[a_name] and v.attributes[a_name] is None:
-                v.attributes[a_name] = node_attributes[a_name]['default']
-        n.add_node(v)
+    if isinstance(network, Network):
+        frame = from_network(network, exclude_edge_uid=exclude_edge_uid,
+                             export_indices=export_indices)
+    elif isinstance(network, TemporalNetwork):
+        frame = from_temporal_network(network,
+                                      exclude_edge_uid=exclude_edge_uid,
+                                      export_indices=export_indices)
+    else:
+        raise NotImplementedError
 
-    # add edges with uids and attributes
-    for edge in graph.findall('{http://graphml.graphdrawing.org/xmlns}edge'):
-        # create edge
-        source = edge.attrib['source']
-        target = edge.attrib['target']
-        uid = edge.attrib['id']
-        e = Edge(n.nodes[source], n.nodes[target], uid=uid)
-
-        # set attribute values
-        for a in edge.findall('{http://graphml.graphdrawing.org/xmlns}data'):
-            key = a.attrib['key']
-            val = a.text
-            if key not in edge_attributes:
-                LOG.warning('Warning: Undeclared Edge attribute "{}". Defaulting to string type.'.format(key))
-                e.attributes[key] = val
-            else:
-                e.attributes[key] = edge_attributes[key]['type'](val)
-        # set default values
-        for a_name in edge_attributes:
-            if 'default' in edge_attributes[a_name] and e.attributes[a_name] is None:
-                e.attributes[a_name] = edge_attributes[a_name]['default']
-        n.add_edge(e)
-    return n
+    return frame
 
 # =============================================================================
 # eof

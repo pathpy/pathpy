@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : plot.py -- Module to plot pathoy networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-07-16 10:15 juergen>
+# Time-stamp: <Fri 2020-08-21 18:34 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -38,8 +38,8 @@ LOG = logger(__name__)
 # config['environment']['interactive'] = False
 
 # General config
-config['plot']['width'] = 800
-config['plot']['height'] = 550
+config['plot']['width'] = 1200  # 800
+config['plot']['height'] = 1000  # 550
 config['plot']['unit'] = 'px'
 config['plot']['dpi'] = 96
 config['plot']['margin'] = None
