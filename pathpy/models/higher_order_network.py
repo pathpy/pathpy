@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-07-15 17:54 juergen>
+# Time-stamp: <Tue 2020-08-25 12:15 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -21,7 +21,7 @@ from pathpy.core.path import Path, PathCollection
 from pathpy.core.network import Network
 
 from pathpy.models.models import ABCHigherOrderNetwork
-
+from pathpy.models.subpaths import SubPathCollection
 # create logger for the Network class
 LOG = logger(__name__)
 
@@ -34,8 +34,7 @@ class HigherOrderNetwork(ABCHigherOrderNetwork, Network):
         """Initialize the higer-order network object."""
 
         # initialize the base class
-        super().__init__(uid=uid, directed=True, temporal=False,
-                         multiedges=False, **kwargs)
+        super().__init__(uid=uid, directed=True, multiedges=False, **kwargs)
 
         # order of the higher-order network
         self._order: int = order
@@ -45,6 +44,9 @@ class HigherOrderNetwork(ABCHigherOrderNetwork, Network):
 
         # a container for edge objects
         self._edges: Any = HigherOrderEdgeCollection(nodes=self._nodes)
+
+        # a container for for subpaths
+        self._subpaths: SubPathCollection = SubPathCollection()
 
     @property
     def order(self) -> int:
@@ -99,17 +101,25 @@ class HigherOrderNetwork(ABCHigherOrderNetwork, Network):
         for k, v in attr.items():
             summary.append('{}:\t{}\n'.format(k, v))
 
-        return ''.join(summary)
+        text = ''.join(summary)
+        if self._subpaths:
+            text = text + '\n' + self._subpaths.summary()
+        return text
 
     @singledispatchmethod
-    def fit(self, data, order: int = 1, subpaths: bool = True) -> None:
+    def fit(self, data, order: Optional[int] = None,
+            subpaths: bool = True) -> None:
         """Fit data to a HigherOrderNetwork"""
         raise NotImplementedError
 
     @fit.register(PathCollection)
-    def _(self, data: PathCollection, order: int = 1, subpaths: bool = True) -> None:
-        print("I'm a PathCollection object")
+    def _(self, data: PathCollection, order: Optional[int] = None,
+          subpaths: bool = True) -> None:
 
+        if order is not None:
+            self._order = order
+
+        order = self.order
         # TODO: create function to transfer base data from PathCollection object
         # --- START ---
         nc = NodeCollection()
@@ -169,6 +179,9 @@ class HigherOrderNetwork(ABCHigherOrderNetwork, Network):
                 if order == len(path):
                     edge['observed'] += frequency
 
+        if subpaths:
+            self._subpaths = SubPathCollection.from_paths(data, order=order)
+
     @staticmethod
     def window(iterable, size=2):
         """Sliding window for path length"""
@@ -179,6 +192,14 @@ class HigherOrderNetwork(ABCHigherOrderNetwork, Network):
         for elem in ite:
             result = result[1:] + (elem,)
             yield result
+
+    @classmethod
+    def from_paths(cls, paths: PathCollection, order: int = 1,
+                   subpaths: bool = True) -> HigherOrderNetwork:
+
+        hon = cls(order=order)
+        hon.fit(paths, subpaths=subpaths)
+        return hon
 
 
 class HigherOrderNode(Node, Path):

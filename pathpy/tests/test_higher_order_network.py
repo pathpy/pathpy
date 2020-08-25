@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_higher_order_network.py -- Test environment for HONs
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-07-15 17:46 juergen>
+# Time-stamp: <Tue 2020-08-25 12:20 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -137,24 +137,35 @@ def test_higher_order_network():
 def test_fit_path_collection():
     """Fit PathCollection to a HON"""
     paths = PathCollection()
-    paths.add('a', 'c', 'd', uid='acd')
-    paths.add('b', 'c', 'e', uid='bce', frequency=5)
-    # paths.add('a', 'c', 'x', 'f', uid='acdf', frequency=7)
-    # paths.add('a', 'c', uid='ac', frequency=10)
+    paths.add('a', 'c', 'd', uid='acd', frequency=10)
+    paths.add('b', 'c', 'e', uid='bce', frequency=10)
+
+    hon = HigherOrderNetwork()
+    hon.fit(paths, order=0)
+
+    assert hon.order == 0
+    assert hon.number_of_nodes() == 5
+    assert hon.number_of_edges() == 0
+
+    hon = HigherOrderNetwork()
+    hon.fit(paths, order=1)
+
+    assert hon.order == 1
+    assert hon.number_of_nodes() == 5
+    assert hon.number_of_edges() == 4
 
     hon = HigherOrderNetwork()
     hon.fit(paths, order=2)
 
-    # print(len(hon.edges))
-    # for e in hon.edges:
-    #     print(e.uid, e['frequency'], e['observed'])
-    # # print(len(hon.nodes))
-    # print('nodes')
-    # for n in hon.nodes:
-    #     print(n.uid, n.nodes)
+    assert hon.order == 2
+    assert hon.number_of_nodes() == 4
+    assert hon.number_of_edges() == 2
 
-    # hon.plot(filename='hontest.html')
+    hon = HigherOrderNetwork.from_paths(paths, order=2)
 
+    assert hon.order == 2
+    assert hon.number_of_nodes() == 4
+    assert hon.number_of_edges() == 2
 
 # =============================================================================
 # eof
