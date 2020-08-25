@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : sql.py -- Read and write sql database tables
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sat 2020-08-22 17:50 juergen>
+# Time-stamp: <Tue 2020-08-25 10:11 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -125,10 +125,10 @@ def read_pathcollection(filename: str, separator: str = ',',
 
             if frequency:
                 path = tuple(fields[:-1])
-                freq = int(fields[-1])
+                freq = float(fields[-1])
             else:
                 path = tuple(fields)
-                freq = 1
+                freq = 1.0
 
             for node in path:
                 if node not in nodes:
