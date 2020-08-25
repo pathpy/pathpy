@@ -3,148 +3,204 @@
 # =============================================================================
 # File      : null_models.py -- Null models for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-04-02 16:50 juergen>
+# Time-stamp: <Tue 2020-08-25 20:11 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import List
+from typing import Optional, Any
+from singledispatchmethod import singledispatchmethod
+
 import datetime
-from pathpy import logger, tqdm, config
-from pathpy.core.edge import Edge
-from pathpy.core.path import Path
-from pathpy.core.higher_order_network import (
-    HigherOrderNetwork, HigherOrderNode)
+
+from pathpy import logger, tqdm
+
+from pathpy.core.node import NodeCollection
+from pathpy.core.edge import EdgeCollection
+from pathpy.core.path import Path, PathCollection
+from pathpy.core.network import Network
+
+from pathpy.models.higher_order_network import (HigherOrderNetwork,
+                                                HigherOrderNodeCollection)
+from pathpy.models.subpaths import SubPathCollection
 
 # create logger
-log = logger(__name__)
+LOG = logger(__name__)
 
 
-class NullModel:
+class NullModel(HigherOrderNetwork):
     """A null model for higher order networks."""
 
-    def __init__(self, network):
+    def __init__(self, uid: Optional[str] = None, order: int = 2,
+                 **kwargs: Any) -> None:
         """Initialize the null model"""
-        self.network = network
-        self.order = 0
-        self.hon = HigherOrderNetwork()
 
-    def __call__(self, order: int = 1) -> HigherOrderNetwork:
-        """Returns a null model of given order."""
+        # initialize the base class
+        super().__init__(uid=uid, order=order, **kwargs)
 
-        # check if null model was already calculated
-        if order == self.order and self.hon.number_of_nodes() > 0:
+    @singledispatchmethod
+    def fit(self, data, order: Optional[int] = None) -> None:
+        """Fit data to a NullModel"""
+        raise NotImplementedError
 
-            # if so return pre calculated model
-            return self.hon
-        else:
+    @fit.register(PathCollection)
+    def _(self, data: PathCollection, order: Optional[int] = None) -> None:
 
-            # if not generate new model and return
-            return self.generate(order)
+        # Check order
+        if order is not None:
+            self._order = order
 
-    def generate(self, order: int = 1) -> HigherOrderNetwork:
-        """Generate a null model."""
+        if self.order < 2:
+            LOG.warning('No NullModel is possible with order <= 1!')
 
-        # TODO: Add null model for order 1
+        # TODO: create function to transfer base data from PathCollection object
+        # --- START ---
+        nc = NodeCollection()
+        for node in data.nodes.values():
+            nc.add(node)
 
-        if order == 0:
-            return HigherOrderNetwork(self.network, order=0)
+        ec = EdgeCollection(nodes=nc)
+        for edge in data.edges.values():
+            ec.add(edge)
 
-        if order == 1:
-            return HigherOrderNetwork(self.network, order=1)
+        self._nodes = HigherOrderNodeCollection(nodes=nc, edges=ec)
+        # --- END ---
 
-        # some information for debugging
-        log.debug('start generate null model')
-        a = datetime.datetime.now()
+        # get path data
+        paths = data
 
-        # generate all possible paths
-        possible_paths = self.possible_paths(order=order)
+        # generate first order representation of data
+        network = Network.from_paths(paths, frequencies=True)
 
-        # get observed paths
-        observed = self.network.subpaths.counter(min_length=order-1,
-                                                 max_length=order-1)
+        self.calculate(network, paths)
+
+    @fit.register(Network)
+    def _(self, data: Network, order: Optional[int] = None) -> None:
+
+        # Check order
+        if order is not None:
+            self._order = order
+
+        if self.order < 2:
+            LOG.warning('No NullModel is possible with order <= 1!')
+
+        # TODO: create function to transfer base data from PathCollection object
+        # --- START ---
+        nc = NodeCollection()
+        for node in data.nodes.values():
+            nc.add(node)
+
+        ec = EdgeCollection(nodes=nc)
+        for edge in data.edges.values():
+            ec.add(edge)
+
+        self._nodes = HigherOrderNodeCollection(nodes=nc, edges=ec)
+        # --- END ---
+
+        # get network data
+        network = data
+
+        # generate a path representation of the data
+        paths = PathCollection(directed=network.directed,
+                               nodes=network.nodes, edges=network.edges)
+        for edge in data.edges:
+            paths.add(edge, frequency=edge.attributes.get('frequency', 1))
+
+        self.calculate(network, paths)
+
+    def calculate(self, network: Network, paths: PathCollection) -> None:
+        """Calculate the null modell"""
 
         # get transition matrix of the underlying network
-        transition_matrix = self.network.transition_matrix(
-            weight=config['attributes']['frequency'])
+        transition_matrix = network.transition_matrix(weight='frequency')
 
-        # get the ordered node uids of the underlying network as a list
-        nodes = list(self.network.nodes)
+        # generate all possible paths
+        possible_paths = self.possible_paths(paths.edges, self.order)
 
-        # generate hon with possible paths
-        hon = HigherOrderNetwork(order=order)
+        # Get all sub-paths of order-1
+        subpaths = SubPathCollection.from_paths(paths,
+                                                min_length=self.order-1,
+                                                max_length=self.order-1,
+                                                include_path=True)
 
+        # add paths to the higer-order network
         for path in possible_paths:
+            nodes: list = []
+            for subpath in self.window(path, size=self.order-1):
+                nodes.append(subpath)
 
-            # generate "empty" higher order nodes
-            v = HigherOrderNode()
-            w = HigherOrderNode()
+            for _v, _w in zip(nodes[:-1], nodes[1:]):
 
-            # add first order edges to the higher oder nodes
-            for v_uid, w_uid in zip(path[:-1], path[1:]):
-                v.add_edge(self.network.edges[v_uid])
-                w.add_edge(self.network.edges[w_uid])
+                if _v not in self.nodes:
+                    self.nodes.add(_v)
 
-            # generate the expected frequencies of all possible paths
-            uid = self.network.separator['path'].join(path[:-1])
-            frequency = 0
-            if uid in observed:
-                frequency = observed[uid] * transition_matrix[
-                    nodes.index(w.as_nodes[-2]), nodes.index(w.as_nodes[-1])]
+                if _w not in self.nodes:
+                    self.nodes.add(_w)
 
-            # add higher order nodes to the hon
-            # TODO: use automatically hon separator
-            e = Edge(v, w, separator=hon.separator['hon'])
-            hon.add_path(Path.from_edges([e], frequency=frequency))
-            # hon.add_edge(Edge(v, w, separator=hon.separator['hon']),
-            #              frequency=frequency)
+                _nodes = (self.nodes[_v], self.nodes[_w])
 
-        # some information for debugging
-        b = datetime.datetime.now()
-        log.debug('end generate null model:' +
-                  ' {} seconds'.format((b-a).total_seconds()))
+                # generate the expected frequencies of all possible paths
+                if _v in subpaths:
+                    frequency = subpaths.counter[subpaths[_v]] * \
+                        transition_matrix[network.nodes.index[_w[-1].v.uid],
+                                          network.nodes.index[_w[-1].w.uid]]
 
-        # safe hon in class and order
-        hon.network = self.network
-        self.hon = hon
-        self.order = order
+                else:
+                    frequency = 0.0
 
-        # return null model
-        return hon
+                if _nodes not in self.edges:
+                    self.edges.add(*_nodes, possible=0, observed=frequency)
 
-    def possible_paths(self, order: int = 1) -> List[List[str]]:
+    @ staticmethod
+    def possible_paths(edges, order) -> list:
         """Returns a dictionary of all paths with a given length
            that can possible exists.
         """
         # some information for debugging
-        log.debug('start generate possible paths')
-        a = datetime.datetime.now()
-
-        # generate mapping between edges and nodes
-        e2n = {e.uid: (e.v.uid, e.w.uid)for e in self.network.edges.values()}
+        LOG.debug('start generate possible paths')
+        _start = datetime.datetime.now()
 
         # start with edges, i.e. paths of length one
-        possible_paths = [[k] for k in e2n.keys()]
-
-        # generate a sequence of edges
-        edges = [(e, v, w) for e, (v, w) in e2n.items()]
+        paths = [[k] for k in edges.values()]
 
         # extend all of those paths by an edge k-1 times
         # TODO: speed up this function !!!
-        for i in tqdm(range(order - 1), desc='possilbe paths'):
+        for _ in tqdm(range(order - 1), desc='possilbe paths'):
             _new = list()
-            for e1 in tqdm(possible_paths):
-                for (e2, v, w) in edges:
-                    if e2n[e1[-1]][1] == v:
-                        p = e1 + [e2]
-                        _new.append(p)
-            possible_paths = _new
+            for e_1 in paths:
+                for e_2 in edges.values():
+                    if e_1[-1].w == e_2.v:
+                        _new.append(e_1 + [e_2])
+            paths = _new
 
         # some information for debugging
-        b = datetime.datetime.now()
-        log.debug('end generate possible paths:' +
-                  ' {} seconds'.format((b-a).total_seconds()))
-        return possible_paths
+        _end = datetime.datetime.now()
+        LOG.debug('end generate possible paths: %s seconds',
+                  (_end-_start).total_seconds())
+        return paths
+
+    @ classmethod
+    def from_paths(cls, paths: PathCollection, **kwargs: Any):
+        """Create higher oder network from paths."""
+
+        order: int = kwargs.get('order', 2)
+
+        null = cls(order=order)
+        null.fit(paths)
+
+        return null
+
+    @ classmethod
+    def from_network(cls, network: Network, **kwargs: Any):
+        """Create higher oder network from networks."""
+
+        order: int = kwargs.get('order', 2)
+
+        null = cls(order=order)
+        null.fit(network)
+
+        return null
+
 
 # =============================================================================
 # eof

@@ -4,12 +4,12 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-08-21 17:22 juergen>
+# Time-stamp: <Tue 2020-08-25 18:14 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, Tuple, Optional, Union, Dict, Set, cast
+from typing import TYPE_CHECKING, Any, Tuple, Optional, Union, Dict, Set, cast
 from collections import defaultdict
 
 from pathpy import logger
@@ -28,6 +28,10 @@ from pathpy.visualisations.plot import plot as network_plot
 
 # create custom types
 Weight = Union[str, bool, None]
+
+# pseudo load class for type checking
+if TYPE_CHECKING:
+    from pathpy.core.path import PathCollection
 
 # create logger for the Network class
 LOG = logger(__name__)
@@ -986,7 +990,27 @@ class Network(BaseModel):
 
             self._properties['edges'].discard(edge)
 
+    @classmethod
+    def from_paths(cls, paths: PathCollection, **kwargs: Any):
+        """Create network from a collection of paths"""
 
+        uid: Optional[str] = kwargs.pop('uid', None)
+        frequencies: bool = kwargs.pop('frequencies', False)
+
+        network = cls(uid=uid, directed=paths.directed,
+                      multiedges=paths.multiedges, **kwargs)
+        network._nodes = paths.nodes
+        network._edges = paths.edges
+        network._add_properties()
+
+        if frequencies:
+            for edge in network.edges:
+                edge['frequency'] = 0
+            for path in paths:
+                frequency = path.attributes.get('frequency', 1)
+                for edge in set(path.edges):
+                    edge['frequency'] += frequency
+        return network
 # =============================================================================
 # eof
 #

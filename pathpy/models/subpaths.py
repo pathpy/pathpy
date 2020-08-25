@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : subpaths.py • models -- Module for sub-path statistics
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-08-25 12:01 juergen>
+# Time-stamp: <Tue 2020-08-25 20:12 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -41,6 +41,7 @@ class SubPathCollection(PathCollection):
                          edges=self._paths.edges)
 
         # initialize counters
+        self._counter: Counter = Counter()
         self._observed: defaultdict = defaultdict(Counter)
         self._possible: defaultdict = defaultdict(Counter)
 
@@ -66,6 +67,11 @@ class SubPathCollection(PathCollection):
     def possible(self) -> defaultdict:
         """Returns possible paths as a dict of counters."""
         return self._possible
+
+    @property
+    def counter(self) -> Counter:
+        """Returns a subpath counter"""
+        return self._counter
 
     def calculate(self, min_length: int = 0, max_length: int = sys.maxsize,
                   include_path: bool = False) -> None:
@@ -93,7 +99,7 @@ class SubPathCollection(PathCollection):
 
             # get min and max length
             min_length = max(_min_length, 1)
-            max_length = min(len(path), _max_length)
+            max_length = min(len(path)-1, _max_length)
 
             # get subpaths
             for i in range(min_length-1, max_length):
@@ -106,12 +112,14 @@ class SubPathCollection(PathCollection):
 
             # include the path
             if include_path:
-                if path not in self and min_length <= len(path) <= max_length:
+                if path not in self and _min_length <= len(path) <= _max_length:
                     self._add(path)
 
         for path in self:
             self._observed[len(path)][path] += path['frequency'] or 0
             self._possible[len(path)][path] += path['possible'] or 0
+            self._counter[path] += path['frequency'] or 0
+            self._counter[path] += path['possible'] or 0
 
     def summary(self) -> str:
         """Returns a summary of the sub path statistic.
@@ -227,10 +235,13 @@ class SubPathCollection(PathCollection):
 
     @classmethod
     def from_paths(cls, paths: PathCollection,
-                   order: int = sys.maxsize) -> SubPathCollection:
+                   min_length: int = 0,
+                   max_length: int = sys.maxsize,
+                   include_path: bool = False) -> SubPathCollection:
         """Create sub-paths statistic from a path collection object."""
         subpaths = cls(paths)
-        subpaths.calculate(max_length=order, include_path=True)
+        subpaths.calculate(min_length=min_length, max_length=max_length,
+                           include_path=include_path)
         return subpaths
 
 # =============================================================================

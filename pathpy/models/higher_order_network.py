@@ -4,13 +4,12 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-08-25 12:15 juergen>
+# Time-stamp: <Tue 2020-08-25 19:51 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
-
 from __future__ import annotations
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, cast
 from itertools import islice
 from singledispatchmethod import singledispatchmethod
 
@@ -22,6 +21,7 @@ from pathpy.core.network import Network
 
 from pathpy.models.models import ABCHigherOrderNetwork
 from pathpy.models.subpaths import SubPathCollection
+
 # create logger for the Network class
 LOG = logger(__name__)
 
@@ -170,17 +170,21 @@ class HigherOrderNetwork(ABCHigherOrderNetwork, Network):
 
                 _nodes = (self.nodes[_v], self.nodes[_w])
                 if _nodes not in self.edges:
-                    self.edges.add(*_nodes, frequency=0, observed=0)
+                    self.edges.add(*_nodes, possible=0, observed=0, frequency=0)
 
                 _edges.add(self.edges[_nodes])
 
             for edge in _edges:
-                edge['frequency'] += frequency
+                edge['possible'] += frequency
                 if order == len(path):
                     edge['observed'] += frequency
+                else:
+                    edge['possible'] += frequency
 
         if subpaths:
-            self._subpaths = SubPathCollection.from_paths(data, order=order)
+            self._subpaths = SubPathCollection.from_paths(data,
+                                                          max_length=order,
+                                                          include_path=True)
 
     @staticmethod
     def window(iterable, size=2):
@@ -194,9 +198,11 @@ class HigherOrderNetwork(ABCHigherOrderNetwork, Network):
             yield result
 
     @classmethod
-    def from_paths(cls, paths: PathCollection, order: int = 1,
-                   subpaths: bool = True) -> HigherOrderNetwork:
+    def from_paths(cls, paths: PathCollection, **kwargs: Any):
+        """Create higher oder network from paths."""
 
+        order: int = kwargs.get('order', 1)
+        subpaths: bool = kwargs.get('subpath', True)
         hon = cls(order=order)
         hon.fit(paths, subpaths=subpaths)
         return hon
@@ -261,7 +267,7 @@ class HigherOrderNodeCollection(PathCollection):
 
     def _if_exist(self, path: Any, **kwargs: Any) -> None:
         """If the node already exists"""
-        print('dddddddddd')
+        pass
 
 
 class HigherOrderEdge(Edge):
