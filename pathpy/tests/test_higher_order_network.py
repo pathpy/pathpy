@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_higher_order_network.py -- Test environment for HONs
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-08-25 19:52 juergen>
+# Time-stamp: <Mon 2020-08-31 11:23 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -163,11 +163,21 @@ def test_fit_path_collection():
 
     hon = HigherOrderNetwork.from_paths(paths, order=2)
 
-    # assert hon.order == 2
-    # assert hon.number_of_nodes() == 4
-    # assert hon.number_of_edges() == 2
+    assert hon.order == 2
+    assert hon.number_of_nodes() == 4
+    assert hon.number_of_edges() == 2
 
-    print(hon)
+
+def test_outdegrees():
+    """Fit PathCollection to a HON"""
+    paths = PathCollection()
+    paths.add('a', 'c', 'd', uid='acd', frequency=10)
+    paths.add('b', 'c', 'e', uid='bce', frequency=10)
+
+    hon = HigherOrderNetwork()
+    hon.fit(paths, order=2)
+
+    assert sum(hon.outdegrees().values()) == 2
 
 # =============================================================================
 # eof

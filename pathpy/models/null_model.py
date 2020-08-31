@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : null_models.py -- Null models for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-08-31 09:48 juergen>
+# Time-stamp: <Mon 2020-08-31 11:20 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -50,29 +50,33 @@ class NullModel(HigherOrderNetwork):
         if order is not None:
             self._order = order
 
-        if self.order < 2:
-            LOG.warning('No NullModel is possible with order <= 1!')
+        if 0 <= self.order <= 1:
+            super().fit(data, order=self.order)
 
-        # TODO: create function to transfer base data from PathCollection object
-        # --- START ---
-        nc = NodeCollection()
-        for node in data.nodes.values():
-            nc.add(node)
+        elif self.order > 1:
+            # --- START ---
+            nc = NodeCollection()
+            for node in data.nodes.values():
+                nc.add(node)
 
-        ec = EdgeCollection(nodes=nc)
-        for edge in data.edges.values():
-            ec.add(edge)
+            ec = EdgeCollection(nodes=nc)
+            for edge in data.edges.values():
+                ec.add(edge)
 
-        self._nodes = HigherOrderNodeCollection(nodes=nc, edges=ec)
-        # --- END ---
+            self._nodes = HigherOrderNodeCollection(nodes=nc, edges=ec)
+            # --- END ---
 
-        # get path data
-        paths = data
+            # get path data
+            paths = data
 
-        # generate first order representation of data
-        network = Network.from_paths(paths, frequencies=True)
+            # generate first order representation of data
+            network = Network.from_paths(paths, frequencies=True)
 
-        self.calculate(network, paths)
+            self.calculate(network, paths)
+
+        else:
+            LOG.error('A Null Model with order %s is not supported', self.order)
+            raise AttributeError
 
     @fit.register(Network)
     def _(self, data: Network, order: Optional[int] = None) -> None:
@@ -81,32 +85,38 @@ class NullModel(HigherOrderNetwork):
         if order is not None:
             self._order = order
 
-        if self.order < 2:
-            LOG.warning('No NullModel is possible with order <= 1!')
+        if 0 <= self.order <= 1:
+            super().fit(data, order=self.order)
 
-        # TODO: create function to transfer base data from PathCollection object
-        # --- START ---
-        nc = NodeCollection()
-        for node in data.nodes.values():
-            nc.add(node)
+        elif self.order > 1:
 
-        ec = EdgeCollection(nodes=nc)
-        for edge in data.edges.values():
-            ec.add(edge)
+            # TODO: create function to transfer base data from PathCollection object
+            # --- START ---
+            nc = NodeCollection()
+            for node in data.nodes.values():
+                nc.add(node)
 
-        self._nodes = HigherOrderNodeCollection(nodes=nc, edges=ec)
-        # --- END ---
+            ec = EdgeCollection(nodes=nc)
+            for edge in data.edges.values():
+                ec.add(edge)
 
-        # get network data
-        network = data
+            self._nodes = HigherOrderNodeCollection(nodes=nc, edges=ec)
+            # --- END ---
 
-        # generate a path representation of the data
-        paths = PathCollection(directed=network.directed,
-                               nodes=network.nodes, edges=network.edges)
-        for edge in data.edges:
-            paths.add(edge, frequency=edge.attributes.get('frequency', 1))
+            # get network data
+            network = data
 
-        self.calculate(network, paths)
+            # generate a path representation of the data
+            paths = PathCollection(directed=network.directed,
+                                   nodes=network.nodes, edges=network.edges)
+            for edge in data.edges:
+                paths.add(edge, frequency=edge.attributes.get('frequency', 1))
+
+            self.calculate(network, paths)
+
+        else:
+            LOG.error('A Null Model with order %s is not supported', self.order)
+            raise AttributeError
 
     def calculate(self, network: Network, paths: PathCollection) -> None:
         """Calculate the null modell"""
@@ -149,9 +159,47 @@ class NullModel(HigherOrderNetwork):
                     frequency = 0.0
 
                 if _nodes not in self.edges:
-                    self.edges.add(*_nodes, possible=0, frequency=frequency)
+                    self.add_edge(*_nodes, possible=0, frequency=frequency)
 
-    @ staticmethod
+    def degrees_of_freedom(self, mode: str = 'path') -> int:
+        """Returns the degrees of freedom of the higher order network.
+
+        Since probabilities must sum to one, the effective degree of freedom is
+        one less than the number of nodes
+
+        .. math::
+
+           \\text{dof} = \\sum_{n \\in N} \\max(0,\\text{outdeg}(n)-1)
+
+        """
+        # initialize degree of freedom
+        degrees_of_freedom: int = 0
+
+        if self.order == 0:
+            degrees_of_freedom = max(0, self.number_of_nodes()-1)
+
+        # elif mode == 'old':
+        #     # TODO : Remove this part after proper testing
+        #     A = self.network.adjacency_matrix()
+
+        #     degrees_of_freedom = int(
+        #         (A ** self.order).sum()
+        #         - np.count_nonzero((A ** self.order).sum(axis=0)))
+
+        elif mode == 'ngram':
+            degrees_of_freedom = (self.number_of_nodes() ** self.order) * \
+                (self.number_of_nodes() - 1)
+
+        elif mode == 'path':
+
+            # iterate over all nodes and count outdegree
+            for outdegree in self.outdegrees().values():
+                degrees_of_freedom += max(0, int(outdegree)-1)
+
+        # return degree of freedom
+        return degrees_of_freedom
+
+    @staticmethod
     def possible_paths(edges, order) -> list:
         """Returns a dictionary of all paths with a given length
            that can possible exists.
@@ -179,7 +227,7 @@ class NullModel(HigherOrderNetwork):
                   (_end-_start).total_seconds())
         return paths
 
-    @ classmethod
+    @classmethod
     def from_paths(cls, paths: PathCollection, **kwargs: Any):
         """Create higher oder network from paths."""
 
@@ -190,7 +238,7 @@ class NullModel(HigherOrderNetwork):
 
         return null
 
-    @ classmethod
+    @classmethod
     def from_network(cls, network: Network, **kwargs: Any):
         """Create higher oder network from networks."""
 

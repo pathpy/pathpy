@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-08-31 09:58 juergen>
+# Time-stamp: <Mon 2020-08-31 11:03 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -53,21 +53,6 @@ class HigherOrderNetwork(ABCHigherOrderNetwork, Network):
     def order(self) -> int:
         """Return the order of the higher-order network."""
         return self._order
-
-    def degrees_of_freedom(self, mode: str = 'path') -> int:
-        """Returns the degrees of freedom of the higher-order network.
-
-        Since probabilities must sum to one, the effective degree of freedom is
-        one less than the number of nodes
-
-        .. math::
-
-           \\text{dof} = \\sum_{n \\in N} \\max(0,\\text{outdeg}(n)-1)
-
-        """
-        # initialize degree of freedom
-        degrees_of_freedom: int = 0
-        return degrees_of_freedom
 
     def summary(self) -> str:
         """Returns a summary of the higher-order network.
@@ -171,7 +156,7 @@ class HigherOrderNetwork(ABCHigherOrderNetwork, Network):
 
                 _nodes = (self.nodes[_v], self.nodes[_w])
                 if _nodes not in self.edges:
-                    self.edges.add(*_nodes, possible=0, observed=0, frequency=0)
+                    self.add_edge(*_nodes, possible=0, observed=0, frequency=0)
 
                 _edges.append(self.edges[_nodes])
 

@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_null_model.py -- Test environment for null models
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-08-31 10:03 juergen>
+# Time-stamp: <Mon 2020-08-31 11:22 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -59,6 +59,24 @@ def test_from_network():
     for e in null.edges:
         assert e['frequency'] == 5.0
 
+
+def test_degrees_of_reedom():
+    """Tets degrees of freedom"""
+    paths = PathCollection()
+    paths.add('a', 'c', 'd', frequency=2)
+    paths.add('b', 'c', 'e', frequency=2)
+
+    null = NullModel.from_paths(paths, order=0)
+    assert null.degrees_of_freedom() == 4
+
+    null = NullModel.from_paths(paths, order=1)
+    assert null.degrees_of_freedom() == 1
+
+    null = NullModel.from_paths(paths, order=2)
+    assert null.degrees_of_freedom() == 2
+
+    null = NullModel.from_paths(paths, order=3)
+    assert null.degrees_of_freedom() == 0
 
 # =============================================================================
 # eof
