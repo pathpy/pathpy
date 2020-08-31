@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : null_models.py -- Null models for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-08-25 20:11 juergen>
+# Time-stamp: <Mon 2020-08-31 09:48 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -22,7 +22,7 @@ from pathpy.core.network import Network
 
 from pathpy.models.higher_order_network import (HigherOrderNetwork,
                                                 HigherOrderNodeCollection)
-from pathpy.models.subpaths import SubPathCollection
+from pathpy.statistics.subpaths import SubPathCollection
 
 # create logger
 LOG = logger(__name__)
@@ -149,7 +149,7 @@ class NullModel(HigherOrderNetwork):
                     frequency = 0.0
 
                 if _nodes not in self.edges:
-                    self.edges.add(*_nodes, possible=0, observed=frequency)
+                    self.edges.add(*_nodes, possible=0, frequency=frequency)
 
     @ staticmethod
     def possible_paths(edges, order) -> list:

@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : __init__.py -- pathpy init file
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sat 2020-08-22 15:25 juergen>
+# Time-stamp: <Mon 2020-08-31 07:21 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -35,7 +35,7 @@ from pathpy.models.api import (TemporalNetwork,
                                # HigherOrderNode,
                                # HigherOrderEdge,
                                HigherOrderNetwork,
-                               # NullModel,
+                               NullModel,
                                # MultiOrderModel
                                )
 

@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-08-25 19:51 juergen>
+# Time-stamp: <Mon 2020-08-31 09:58 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -12,6 +12,7 @@ from __future__ import annotations
 from typing import Any, Optional, Union, cast
 from itertools import islice
 from singledispatchmethod import singledispatchmethod
+import numpy as np
 
 from pathpy import logger
 from pathpy.core.node import Node, NodeCollection
@@ -20,7 +21,7 @@ from pathpy.core.path import Path, PathCollection
 from pathpy.core.network import Network
 
 from pathpy.models.models import ABCHigherOrderNetwork
-from pathpy.models.subpaths import SubPathCollection
+from pathpy.statistics.subpaths import SubPathCollection
 
 # create logger for the Network class
 LOG = logger(__name__)
@@ -159,7 +160,7 @@ class HigherOrderNetwork(ABCHigherOrderNetwork, Network):
             else:
                 pass
 
-            _edges = set()
+            _edges = []
             for _v, _w in zip(nodes[:-1], nodes[1:]):
 
                 if _v not in self.nodes:
@@ -172,19 +173,80 @@ class HigherOrderNetwork(ABCHigherOrderNetwork, Network):
                 if _nodes not in self.edges:
                     self.edges.add(*_nodes, possible=0, observed=0, frequency=0)
 
-                _edges.add(self.edges[_nodes])
+                _edges.append(self.edges[_nodes])
 
             for edge in _edges:
-                edge['possible'] += frequency
+                #edge['possible'] += frequency
                 if order == len(path):
                     edge['observed'] += frequency
                 else:
-                    edge['possible'] += frequency
+                    edge['frequency'] += frequency
 
         if subpaths:
             self._subpaths = SubPathCollection.from_paths(data,
                                                           max_length=order,
                                                           include_path=True)
+
+    def likelihood(self, data: PathCollection, log: bool = False) -> float:
+        """Returns the likelihood given some observation data."""
+
+        # some information for debugging
+        LOG.debug('I\'m a likelihood of a HigherOrderNetwork')
+
+        # get a list of nodes for the matrix indices
+        n = self.nodes.index
+
+        # get the transition matrix
+        T = self.transition_matrix(weight='frequency', transposed=True)
+
+        # # generate hon network for the observed paths
+        # hon = self.from_paths(data, order=self.order)
+
+        # initialize likelihood
+        if log:
+            likelihood = 0.0
+            _path_likelihood = 0.0
+        else:
+            likelihood = 1.0
+            _path_likelihood = 1.0
+
+        # iterate over observed hon paths
+        for path in data:
+
+            # get frequency of the observed path
+            # TODO: define keyword in config file
+            frequency = path.attributes.get('frequency', 1)
+
+            # initial path likelihood
+            path_likelihood = _path_likelihood
+
+            nodes: list = []
+
+            if self.order == 1:
+                nodes.extend([tuple([n]) for n in path.nodes])
+
+            elif 1 < self.order <= len(path):
+
+                for subpath in self.window(path.edges, size=self.order-1):
+                    nodes.append(subpath)
+
+            for _v, _w in zip(nodes[:-1], nodes[1:]):
+
+                # calculate path likelihood
+                if log:
+                    path_likelihood += np.log(T[n[self.nodes[_w].uid],
+                                                n[self.nodes[_v].uid]])
+                else:
+                    path_likelihood *= T[n[self.nodes[_w].uid],
+                                         n[self.nodes[_v].uid]]
+
+            # calculate likelihood
+            if log:
+                likelihood += path_likelihood * frequency
+            else:
+                likelihood *= path_likelihood ** frequency
+
+        return likelihood
 
     @staticmethod
     def window(iterable, size=2):

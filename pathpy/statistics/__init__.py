@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : __init__.py -- Initialize statistics methods for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-04-20 10:14 juergen>
+# Time-stamp: <Mon 2020-08-31 07:16 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -29,7 +29,7 @@ from pathpy.statistics.clustering import (local_clustering_coefficient,
 from pathpy.statistics.modularity import (Q_modularity,
                                           Q_max_modularity,
                                           Q_assortativity_coefficient,
-                                          )                                          
+                                          )
 
 # =============================================================================
 # eof

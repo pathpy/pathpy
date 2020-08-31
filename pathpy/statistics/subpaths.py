@@ -1,234 +1,101 @@
-#!/usr/bin/python -tt
+"""Module to analyze sub-paths"""
+# !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
-# File      : subpaths.py -- Modules for subpath analysis
+# File      : subpaths.py • models -- Module for sub-path statistics
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-04-02 16:46 juergen>
+# Time-stamp: <Tue 2020-08-25 20:12 juergen>
 #
-# Copyright (c) 2016-2019 Pathpy Developers
+# Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
-
 from __future__ import annotations
-from typing import Tuple, Optional, Dict, List
-from collections import Counter, defaultdict
-import datetime
+from typing import Optional
 import sys
+from collections import Counter, defaultdict
 import numpy as np
 
-from pathpy import logger, config, tqdm
-from pathpy.core.path import Path
-from pathpy.core.base.containers import PathDict
+from pathpy import logger, tqdm
+from pathpy.core.path import PathCollection, Path
 
-# create logger for the class
+# create logger for the Network class
 LOG = logger(__name__)
 
 
-def window(iterable, size=2):
-    i = iter(iterable)
-    win = []
-    for e in range(0, size):
-        win.append(next(i))
-    yield win
-    for e in i:
-        win = win[1:] + [e]
-        yield win
+class SubPathCollection(PathCollection):
+    """Class for sub-path statistics."""
 
+    def __init__(self, paths: Optional[PathCollection] = None) -> None:
+        """Initialize sub-paths object."""
 
-class SubPaths:
-    """Class to analyze sub-paths"""
+        # check if inital paths are given
+        if isinstance(paths, PathCollection):
+            self._paths = paths
+        else:
+            self._paths = PathCollection()
 
-    def __init__(self, network):
-        """Initialize the sub-paths object"""
+        # initialize the base class
+        super().__init__(directed=self._paths.directed,
+                         multiedges=self._paths.multiedges,
+                         multipaths=self._paths.multipaths,
+                         nodes=self._paths.nodes,
+                         edges=self._paths.edges)
 
-        # get information from the network
-        self.nodes = network.nodes
-        self.edges = network.edges
-        self.paths = network.paths
-        self.separator = network.separator
+        # initialize counters
+        self._counter: Counter = Counter()
+        self._observed: defaultdict = defaultdict(Counter)
+        self._possible: defaultdict = defaultdict(Counter)
 
-        # initialize variables
-        self._subpaths: Counter = Counter()
-        self._observed = defaultdict(Counter)
-        self._possible = defaultdict(Counter)
+    def __call__(self, min_length: int = 0, max_length: int = sys.maxsize,
+                 include_path: bool = False,
+                 recalculate: bool = False) -> SubPathCollection:
+        """Returns a sub-pahts"""
+        if len(self) == 0 or recalculate:
+            self.calculate(min_length=min_length, max_length=max_length,
+                           include_path=include_path)
+        return self
 
-    def __call__(self, min_length: int = 0,
-                 max_length: int = sys.maxsize,
-                 include_path: bool = False) -> PathDict:
-        """Returns a dictionary of sub-pahts"""
-
-        # initialize empty dict
-        subpaths = PathDict(dict)
-
-        # iterate through the given paths
-        for path in self.paths.values():
-
-            # get the subpaths
-            paths = path.subpaths(min_length=min_length,
-                                  max_length=max_length,
-                                  include_path=include_path)
-
-            # update the list of the subpaths
-            # TODO: update also the frequency
-            subpaths.update(paths)
-
-        # return dict of sub-paths
-        return subpaths
+    def __str__(self) -> str:
+        """Print a summary of the sub-paths."""
+        return self.summary()
 
     @property
     def observed(self) -> defaultdict:
         """Returns observed paths as a dict of counters."""
-        if not self._observed:
-            self.statistics()
         return self._observed
 
     @property
     def possible(self) -> defaultdict:
         """Returns possible paths as a dict of counters."""
-        if not self._possible:
-            self.statistics()
         return self._possible
 
-    def expand(self, order=0, include_path: bool = False) -> List[Path]:
-        """Converts the path in subpaths of length oder."""
+    @property
+    def counter(self) -> Counter:
+        """Returns a subpath counter"""
+        return self._counter
 
-        paths = []
-        for path in self.paths.values():
-            expanded = []
-            if order == 0:
-                for uid in path.as_nodes:
-                    expanded.append(Path.from_nodes(
-                        [path.nodes[uid]], **path.attributes.to_dict()))
+    def calculate(self, min_length: int = 0, max_length: int = sys.maxsize,
+                  include_path: bool = False) -> None:
+        """Helper function to calculate subpaths."""
 
-            elif 0 < order < len(path):
-                for subpath in window(path.as_edges, size=order):
-                    edges = [path.edges[uid] for uid in subpath]
-                    expanded.append(Path.from_edges(
-                        edges, **path.attributes.to_dict()))
-
-            elif order == len(path) and include_path:
-                expanded.append(path)
-            else:
-                pass
-
-            # add sub path if exist
-            if expanded:
-                paths.append(expanded)
-
-        return paths
-
-    def xsubpaths(self, min_length: int = 0,
-                  max_length: int = sys.maxsize,
-                  include_path: bool = False) -> Dict[str, Path]:
-        """Returns a list of subpaths.
-
-        Parameters
-        ----------
-
-        min_length : int, optional (default = 0)
-            Parameter which defines the minimum length of the sub-paths. This
-            parameter has to be smaller then the maximum length parameter.
-
-        max_length : int, optional (default = sys.maxsize)
-            Parameter which defines the maximum length of the sub-paths. This
-            parameter has to be greater then the minimum length parameter. If
-            the parameter is also greater then the maximum length of the path,
-            the maximum path length is used instead.
-
-        include_path : bool, optional (default = Flase)
-            If this option is enabled also the current path is added as a
-            sub-path of it self.
-
-        Returns
-        -------
-        Dict[str, Paths]
-            Return a dictionary with the :py:class:`Paht` uids as key and the
-            :py:class:`Path` objects as values.
-
-        Examples
-        --------
-        >>> from pathpy import Path
-        >>> p = Path('a','b','c','d','e')
-        >>> for k in p.subpaths():
-        ...     print(k)
-        a
-        b
-        c
-        d
-        e
-        a-b
-        b-c
-        c-d
-        d-e
-        a-b|b-c
-        b-c|c-d
-        c-d|d-e
-        a-b|b-c|c-d
-        b-c|c-d|d-e
-
-        >>> for k in p.subpaths(min_length = 2, max_length = 2)
-        ...     print(k)
-        a-b|b-c
-        b-c|c-d
-        c-d|d-e
-
-        """
-
-        # initializing the subpaths dictionary
-        subpaths: dict = PathDict(dict)
-
+        if len(self) > 0:
+            LOG.warning('Recalculating sub-paths!')
         # get the default max and min path lengths
         _min_length: int = min_length
         _max_length: int = max_length
 
-        # TODO: FIX DICT -> LIST
-        # if min_length is zero, account also for nodes
-        if _min_length <= 0:
-            for node in self.as_nodes:
-                # generate empty path with one node
-                subpaths[node] = Path.from_nodes(
-                    [self.nodes[node]], **self.attributes.to_dict())
-
-        # find the right path lengths
-        min_length = max(_min_length, 1)
-        max_length = min(len(self)-1, _max_length)
-
-        # get subpaths
-        for i in range(min_length-1, max_length):
-            for j in range(len(self)-i):
-                # get the edge uids
-                edges = [self.edges[edge] for edge in self.as_edges[j:j+i+1]]
-                # assign a new path based  on the given edges
-                subpaths[self.separator['path'].join(
-                    self.as_edges[j:j+i+1])] = Path(
-                        *edges, **self.attributes.to_dict())
-
-        # include the path
-        if include_path and _min_length <= len(self) <= _max_length:
-            subpaths[self.uid] = self
-
-        # return the dict of subpaths
-        return subpaths
-
-    def counter(self, min_length: int = 0,
-                max_length: int = sys.maxsize,
-                include_path: bool = False, leave: bool = False) -> Counter:
-        """Returns a counter of all sub-paths"""
-
-        # initializing the counter object
-        subpaths: Counter = Counter()
-        _min_length = min_length
-        _max_length = max_length
-
-        # iterrate over all paths in the network
-        for uid, path in tqdm(self.paths.items(), desc='subpath counter'):
+        # iterrate over all paths
+        for path in tqdm(self._paths.values(), desc='sub-path calculation'):
 
             # number of counted paths
-            frequency = path.attributes.frequency
+            frequency = path.attributes.get('frequency', 1)
 
             # if min_length is zero, account also for nodes
             if _min_length <= 0:
-                for node in path.as_nodes:
-                    subpaths[node] += frequency
+                for node in path.nodes:
+                    if (node,) not in self:
+                        self._add(Path(node, possible=frequency))
+                    else:
+                        self[(node,)]['possible'] += frequency
 
             # get min and max length
             min_length = max(_min_length, 1)
@@ -237,73 +104,24 @@ class SubPaths:
             # get subpaths
             for i in range(min_length-1, max_length):
                 for j in range(len(path)-i):
-                    subpaths['|'.join(path.as_edges[j:j+i+1])] += frequency
+                    edges = tuple(path.edges[j:j+i+1])
+                    if edges not in self:
+                        self._add(Path(*edges, possible=frequency))
+                    else:
+                        self[edges]['possible'] += frequency
 
             # include the path
             if include_path:
-                subpaths[uid] += frequency
+                if path not in self and _min_length <= len(path) <= _max_length:
+                    self._add(path)
 
-        # store result as a class variable
-        self._subpaths = subpaths
+        for path in self:
+            self._observed[len(path)][path] += path['frequency'] or 0
+            self._possible[len(path)][path] += path['possible'] or 0
+            self._counter[path] += path['frequency'] or 0
+            self._counter[path] += path['possible'] or 0
 
-        # return the subpath counter
-        return subpaths
-
-    def statistics(self) -> Tuple:
-        """Calculates the sub-path statistics based on path length."""
-
-        LOG.debug('start generate subpath statistics')
-        a = datetime.datetime.now()
-
-        # initialize variables
-        observed: defaultdict = defaultdict(Counter)
-        possible: defaultdict = defaultdict(Counter)
-
-        # counter of the path frequencies
-        counter = self.paths.counter()
-
-        # get subpath uids with count
-        # NOTE: Very time consuming method!
-        subpaths = self.counter(include_path=False)
-
-        # iterate over all subpaths
-        for uid, count in subpaths.items():
-            # get order of the elements
-
-            # check if object is a path
-            if uid in self.paths:
-                order = len(self.paths[uid])
-
-            # check if object is an edge
-            elif uid in self.edges:
-                order = 1
-
-            # check if object is a node
-            elif uid in self.nodes:
-                order = 0
-
-            # if object not in the network observe length from the uid
-            else:
-                order = len(uid.split(self.separator['path']))
-
-            # assigne path
-            possible[order][uid] += count
-
-        # iterate over all observed paths
-        for uid, path in self.paths.items():
-            observed[len(path)][uid] += counter[uid]
-
-        # store results as class variables
-        self._observed = observed
-        self._possible = possible
-
-        b = datetime.datetime.now()
-        LOG.debug('end generate subpath statistics:' +
-                  ' {} seconds'.format((b-a).total_seconds()))
-
-        return observed, possible
-
-    def summary(self) -> Optional[str]:
+    def summary(self) -> str:
         """Returns a summary of the sub path statistic.
 
         Returns
@@ -314,14 +132,19 @@ class SubPaths:
         """
 
         # check if sub path statistic is already calculated
-        if not self.observed:
-            self.statistics()
+        if len(self) == 0:
+            return super().__str__()
 
         # initialize a data storage
         counter: Counter = Counter()
 
+        # get max order
+        max_order_obs = max(self.observed.keys())
+        max_order_pos = max(self.possible.keys())
+        max_order = max(max_order_obs, max_order_pos)
+
         # get data of observed paths
-        for order in range(max(self.observed.keys())+1):
+        for order in range(max_order_obs+1):
             counter[order] = int(sum(self.observed[order].values()))
 
         data: list = list(counter.elements())
@@ -344,28 +167,29 @@ class SubPaths:
             'Sub path statistics',
         ]
 
-        # add general statistics
-        lines: list = [
-            ['- General '],
-            ['Number of unique nodes:', len(self.nodes)],
-            ['Number of unique edges:', len(self.edges)],
-            ['Number of unique paths:', len(self.paths)],
-            ['- Path statistics '],
-            ['Mean path length:', np.mean(data)],
-            ['Standard derivation:', np.std(data)],
-            ['Min. path length:', np.min(data)],
-            ['25% quantile:', np.quantile(data, 0.25)],
-            ['50% quantile:', np.quantile(data, 0.50)],
-            ['75% quantile:', np.quantile(data, 0.75)],
-            ['Max. path length:', np.max(data)],
-            ['- Sub path statistics ']
-        ]
+        if data:
+            # add general statistics
+            lines: list = [
+                ['- General '],
+                ['Number of unique nodes:', len(self.nodes)],
+                ['Number of unique edges:', len(self.edges)],
+                ['Number of unique paths:', len(self._paths)],
+                ['- Path statistics '],
+                ['Mean path length:', np.mean(data)],
+                ['Standard derivation:', np.std(data)],
+                ['Min. path length:', np.min(data)],
+                ['25% quantile:', np.quantile(data, 0.25)],
+                ['50% quantile:', np.quantile(data, 0.50)],
+                ['75% quantile:', np.quantile(data, 0.75)],
+                ['Max. path length:', np.max(data)],
+                ['- Sub path statistics ']
+            ]
 
-        for line in lines:
-            if len(line) == 1:
-                summary.append('{}'.format(line[0]).ljust(line_length, '-'))
-            else:
-                summary.append(row['sf'].format(line[0], line[1]))
+            for line in lines:
+                if len(line) == 1:
+                    summary.append('{}'.format(line[0]).ljust(line_length, '-'))
+                else:
+                    summary.append(row['sf'].format(line[0], line[1]))
 
         # add sub path statistics
         # add headings
@@ -377,14 +201,16 @@ class SubPaths:
         summary.append(row['-|---|--'].format('', '', '', '', '', ''))
 
         # add row for each order
-        data = [[], [], [], [], []]
-        for order in range(max(self.observed.keys())+1):
+        data: list = [[], [], [], [], []]
+        for order in range(max_order+1):
 
             data[0].append(sum(self.observed[order].values()))
             data[1].append(sum(self.possible[order].values()))
             data[2].append(data[0][-1]+data[1][-1])
-            data[3].append(len(self.observed[order]))
-            data[4].append(len(self.possible[order]))
+            data[3].append(np.count_nonzero(
+                list(self.observed[order].values())))
+            data[4].append(np.count_nonzero(
+                list(self.possible[order].values())))
 
             summary.append(row['f|fff|ff'].format(
                 order, *[v[-1] for v in data]))
@@ -403,14 +229,20 @@ class SubPaths:
         # add double line
         summary.append('='*line_length,)
 
-        # if logging is enabled print summary as INFO log
-        # TODO: Move this code to a helper function
-        if config['logging']['verbose']:
-            for line in summary:
-                LOG.info(line.rstrip())
-            return ''
-        else:
-            return ''.join(summary)
+        # # if logging is enabled print summary as INFO log
+        # # TODO: Move this code to a helper function
+        return '\n'.join(summary)
+
+    @classmethod
+    def from_paths(cls, paths: PathCollection,
+                   min_length: int = 0,
+                   max_length: int = sys.maxsize,
+                   include_path: bool = False) -> SubPathCollection:
+        """Create sub-paths statistic from a path collection object."""
+        subpaths = cls(paths)
+        subpaths.calculate(min_length=min_length, max_length=max_length,
+                           include_path=include_path)
+        return subpaths
 
 # =============================================================================
 # eof

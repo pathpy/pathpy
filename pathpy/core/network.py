@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-08-25 18:14 juergen>
+# Time-stamp: <Mon 2020-08-31 09:45 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -1008,7 +1008,7 @@ class Network(BaseModel):
                 edge['frequency'] = 0
             for path in paths:
                 frequency = path.attributes.get('frequency', 1)
-                for edge in set(path.edges):
+                for edge in path.edges:
                     edge['frequency'] += frequency
         return network
 # =============================================================================
