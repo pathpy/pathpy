@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_null_model.py -- Test environment for null models
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-08-25 20:12 juergen>
+# Time-stamp: <Mon 2020-08-31 10:03 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -32,7 +32,7 @@ def test_basic():
     assert null.number_of_nodes() == 4
 
     for e in null.edges:
-        assert e['observed'] == 5.0
+        assert e['frequency'] == 5.0
 
 
 def test_possible_paths():
@@ -57,7 +57,7 @@ def test_from_network():
     assert null.number_of_nodes() == 4
 
     for e in null.edges:
-        assert e['observed'] == 5.0
+        assert e['frequency'] == 5.0
 
 
 # =============================================================================
