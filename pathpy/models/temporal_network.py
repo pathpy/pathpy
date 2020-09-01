@@ -4,12 +4,10 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-08-21 18:23 juergen>
+# Time-stamp: <Tue 2020-09-01 12:50 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
-
-
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Optional, Union, cast
 from intervaltree import IntervalTree, Interval
