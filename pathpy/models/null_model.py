@@ -1,23 +1,23 @@
-#!/usr/bin/python -tt
+""" Null Model class """
+# !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
 # File      : null_models.py -- Null models for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-08-31 11:20 juergen>
+# Time-stamp: <Mon 2020-08-31 13:23 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
 from typing import Optional, Any
-from singledispatchmethod import singledispatchmethod
-
 import datetime
 
-from pathpy import logger, tqdm
+from singledispatchmethod import singledispatchmethod
 
+from pathpy import logger, tqdm
 from pathpy.core.node import NodeCollection
 from pathpy.core.edge import EdgeCollection
-from pathpy.core.path import Path, PathCollection
+from pathpy.core.path import PathCollection
 from pathpy.core.network import Network
 
 from pathpy.models.higher_order_network import (HigherOrderNetwork,
@@ -187,8 +187,9 @@ class NullModel(HigherOrderNetwork):
         #         - np.count_nonzero((A ** self.order).sum(axis=0)))
 
         elif mode == 'ngram':
-            degrees_of_freedom = (self.number_of_nodes() ** self.order) * \
-                (self.number_of_nodes() - 1)
+            number_of_nodes = len(self.nodes.nodes)
+            degrees_of_freedom = (number_of_nodes ** self.order) * \
+                (number_of_nodes-1)
 
         elif mode == 'path':
 

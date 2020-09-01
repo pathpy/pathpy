@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-08-31 11:03 juergen>
+# Time-stamp: <Mon 2020-08-31 19:11 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -130,7 +130,11 @@ class HigherOrderNetwork(ABCHigherOrderNetwork, Network):
             if order == 0:
                 for node in path.nodes:
                     if (node,) not in self.nodes:
-                        self.nodes.add(node)
+                        self.add_node(node, frequency=0.0)
+                    #self.nodes[(node,)]['frequency'] += frequency
+
+                for node in path.nodes:
+                    self.nodes[(node,)]['frequency'] += frequency
             elif order == 1:
                 nodes.extend([tuple([n]) for n in path.nodes])
 
@@ -161,11 +165,16 @@ class HigherOrderNetwork(ABCHigherOrderNetwork, Network):
                 _edges.append(self.edges[_nodes])
 
             for edge in _edges:
-                #edge['possible'] += frequency
+                edge['frequency'] += frequency
                 if order == len(path):
                     edge['observed'] += frequency
                 else:
-                    edge['frequency'] += frequency
+                    edge['possible'] += frequency
+
+        if order == 0:
+            frequencies = [n['frequency'] for n in self.nodes]
+            for node in self.nodes:
+                node['frequency'] = node['frequency']/sum(frequencies)
 
         if subpaths:
             self._subpaths = SubPathCollection.from_paths(data,

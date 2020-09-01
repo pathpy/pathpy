@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : __init__.py -- pathpy init file
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-08-31 07:21 juergen>
+# Time-stamp: <Tue 2020-09-01 09:40 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -36,7 +36,7 @@ from pathpy.models.api import (TemporalNetwork,
                                # HigherOrderEdge,
                                HigherOrderNetwork,
                                NullModel,
-                               # MultiOrderModel
+                               MultiOrderModel
                                )
 
 from pathpy.visualisations.api import (plot,
@@ -99,7 +99,7 @@ LOG.debug('platform is %s', sys.platform)
 LOG.debug('pathpy runs in a %s environment', config['environment']['IDE'])
 
 if config['environment']['IDE'] == 'vs code':
-    html = """
+    _html = """
     <script charset="utf-8">
     // Load via requireJS if available (jupyter notebook environment)
     try {
@@ -122,7 +122,7 @@ if config['environment']['IDE'] == 'vs code':
 
     try:
         from IPython.display import display, HTML
-        display(HTML(html))
+        display(HTML(_html))
     except ImportError:
         pass
 # =============================================================================

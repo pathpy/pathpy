@@ -1,39 +1,58 @@
-#!/usr/bin/python -tt
+"""Multi-Order Model"""
+# !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
 # File      : multi_order_models.py -- Multi order models for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-04-02 16:51 juergen>
+# Time-stamp: <Tue 2020-09-01 09:36 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
-
+from __future__ import annotations
+from typing import Optional, Any
 import datetime
+from itertools import islice
 import numpy as np
 from scipy.stats import chi2
-from pathpy import logger, config
-from pathpy.core.higher_order_network import HigherOrderNetwork
-from pathpy.utils import window
+from collections import defaultdict
+
+# from singledispatchmethod import singledispatchmethod
+
+from pathpy import logger
+from pathpy.core.base import BaseModel
+from pathpy.models.higher_order_network import HigherOrderNetwork
 from pathpy.models.null_model import NullModel
+from pathpy.core.path import PathCollection
 
 # create logger
 LOG = logger(__name__)
 
 
-class MultiOrderModel:
+class MultiOrderModel(BaseModel):
     """A mulit-order model for higher order networks."""
 
-    def __init__(self, network, max_order=1):
+    def __init__(self, uid: Optional[str] = None, max_order: int = 1,
+                 **kwargs: Any) -> None:
         """Initialize multi-oder model."""
-        self.network = network
-        self.null = NullModel(self.network)
-        self.max_order = max_order
 
-        # initialize variables
+        # initialize the base class
+        super().__init__(uid=uid, **kwargs)
 
-        self.layers = {}
-        self.null_models = {}
-        self.transition_matrices = {}
+        # initialize max order
+        self._max_order = max_order
+
+        # initialize layers
+        self.layers: defaultdict = defaultdict(dict)
+        self.data: PathCollection
+
+    def __str__(self) -> str:
+        """Print the summary of the MultiOrderModel"""
+        return self.summary()
+
+    @property
+    def max_order(self):
+        """Return the max order."""
+        return self._max_order
 
     def _current_max_order(self):
         """The current maximum order of the multi-order model"""
@@ -43,123 +62,100 @@ class MultiOrderModel:
         else:
             return max(orders)
 
-    def add_layer(self, order):
-        """Add layer to the multi-order model."""
+    def degrees_of_freedom(self, order: int = 1, mode: str = 'path') -> int:
 
-        LOG.debug('Generating {}-th order layer ...'.format(order))
-        # generate higher order network
-        _hon = HigherOrderNetwork(self.network, order=order)
+        # TODO add checks for the max order
+        max_order = order
 
-        # assign higher-order network to the model
-        self.layers[order] = _hon
+        # initialize degrees of freedom
+        dof = 0
 
-        # calculate transition matrices for the higher-order networks
-        self.transition_matrices[order] = _hon.transition_matrix(
-            transposed=True)
+        for order in range(0, max_order + 1):
 
-    def add_layers(self, max_order):
-        """Add higher-order layers up to the given maximum order."""
-        orders_to_add = list(range(self._current_max_order()+1, max_order+1))
+            # check if the null model for the given order is
+            # already calculated if not calculate new null model
+            if self.layers[order].get('null', None) is None:
+                self.layers[order]['null'] = NullModel.from_paths(
+                    self.data, order=order)
 
-        for order in sorted(orders_to_add):
-            self.add_layer(order)
+            dof += self.layers[order]['null'].degrees_of_freedom(mode=mode)
 
-    def generate(self, max_order=1):
-        """Generate a multi-order model."""
+        return dof
 
-        self.add_layers(max_order)
+    def fit(self, data: PathCollection, max_order: Optional[int] = None,
+            null_models: bool = True) -> None:
+        """Fit data to a MultiOrderModel"""
 
-    def summary(self):
-        """Returns a summary of the multi-order model."""
+        # Check max order
+        if max_order is not None:
+            self._max_order = max_order
 
-        # TODO: Find better solution for printing
-        # TODO: Move to util
-        line_length = 54
-        row = {}
-        row['==='] = '='*line_length
-        row['s| s | s'] = '{:^6s} | {:^29s} | {:^13s}'
-        row['s|sss|ss'] = '{:^6s} | {:^9s} {:^9s} {:^9s} | {:^6s} {:^6s}'
-        row['d|ddd|dd'] = '{:>6d} | {:>9d} {:>9d} {:>9d} | {:>6d} {:>6d}'
+        # store data
+        self.data = data
 
-        # initialize summary text
-        summary: list = [
-            row['==='],
-            'Multi-order model',
-            '- General '.ljust(line_length, '-')
-        ]
+        for order in list(range(self._current_max_order()+1, self.max_order+1)):
 
-        # add general information
-        summary.append(row['s| s | s'].format('layer', 'network', 'DoF'))
-        summary.append(row['s|sss|ss'].format(
-            'order', 'nodes', 'edges', 'paths', 'paths', 'ngrams'))
+            LOG.debug('Generating %s-th order layer ...', order)
 
-        # add row for each order
-        data = [[], [], [], [], []]
+            # generate higher order network
+            _hon = HigherOrderNetwork.from_paths(data, order=order,
+                                                 subpaths=True)
 
-        for order, hon in self.layers.items():
-            data[0].append(hon.number_of_nodes(unique=True))
-            data[1].append(hon.number_of_edges(unique=True))
-            data[2].append(hon.number_of_paths(unique=True))
-            # TODO : Use the better method to estimate the DoF
-            data[3].append(hon.degrees_of_freedom(mode='path'))
-            data[4].append(hon.degrees_of_freedom(mode='ngram'))
+            # calculate transition matrices for the higher-order networks
+            _T = _hon.transition_matrix(weight='frequency', transposed=True)
 
-            summary.append(row['d|ddd|dd'].format(
-                order, *[v[-1] for v in data]))
+            _null = None
+            if null_models:
+                # generate null model
+                _null = NullModel.from_paths(data, order=order)
+                print('ddd dof', _null.degrees_of_freedom())
 
-        # add double line
-        summary.append('='*line_length,)
+            self.layers[order]['hon'] = _hon
+            self.layers[order]['T'] = _T
+            self.layers[order]['null'] = _null
 
-        # if logging is enabled print summary as INFO log
-        # TODO: Move this code to a helper function
-        if config['logging']['verbose']:
-            for line in summary:
-                LOG.info(line.rstrip())
-            return ''
-        else:
-            return ''.join(summary)
-
-    def estimate(self, observations=None, stop=None, threshold=0.01):
-        """Estimate the optimal order for a multi-order network."""
+    def predict(self, data: Optional[PathCollection] = None, threshold=0.01):
+        """Predict the optimal order for a multi-order model."""
 
         LOG.debug('start estimate optimal order')
-        a = datetime.datetime.now()
+        start = datetime.datetime.now()
+
+        if data is None:
+            data = self.data
 
         # initialize variables
-        if stop is None:
-            max_considerd_order = self._current_max_order()
-
         max_accepted_order = 1
+        max_considerd_order = self._current_max_order()
 
         for order in range(2, max_considerd_order+1):
             LOG.debug('---')
-            LOG.debug('> estimating order {}'.format(order))
-            accept, p_value = self.likelihood_ratio_test(
-                observations, null=order-1, order=order, threshold=threshold)
+            LOG.debug('> estimating order %s', order)
+
+            accept, p_value = self.likelihood_ratio_test(data, null=order-1,
+                                                         order=order,
+                                                         threshold=threshold)
 
             if accept:
                 max_accepted_order = order
 
-        print(max_accepted_order)
-
-        b = datetime.datetime.now()
+        end = datetime.datetime.now()
         LOG.debug('end estimate optiomal order:' +
-                  ' {} seconds'.format((b-a).total_seconds()))
+                  ' {} seconds'.format((end-start).total_seconds()))
+        return max_accepted_order
 
-    def likelihood_ratio_test(self, observations=None, null=0, order=1,
-                              threshold=0.01):
+    def likelihood_ratio_test(self, data, null=0, order=1, threshold=0.01):
 
         LOG.debug('start likelihood ratio test')
-        a = datetime.datetime.now()
+        start = datetime.datetime.now()
 
         # calculate likelihoods
-        likelihood_0 = self.likelihood(observations, order=null, log=True)
-        likelihood_1 = self.likelihood(observations, order=order, log=True)
+        likelihood_0 = self.likelihood(data, order=null, log=True)
+        likelihood_1 = self.likelihood(data, order=order, log=True)
 
         # calculate test statistics x = -2 * (log L0 - log L1)
         x = -2*(likelihood_0 - likelihood_1)
 
-        # # calculate degrees of freedom
+        # calculate degrees of freedom
         dof_0 = self.degrees_of_freedom(order=null)
         dof_1 = self.degrees_of_freedom(order=order)
 
@@ -173,38 +169,19 @@ class MultiOrderModel:
         accept = p_value < threshold
 
         # some information
-        LOG.debug('Likelihood ratio test for order = {}'.format(order))
-        LOG.debug('test statistics x = {}'.format(x))
-        LOG.debug('additional degrees of freedom = {}'.format(delta_dof))
-        LOG.debug('p-value = {}'.format(p_value))
-        LOG.debug('reject the null hypothesis = {}'.format(accept))
+        LOG.debug('Likelihood ratio test for order = %s', order)
+        LOG.debug('test statistics x = %s', x)
+        LOG.debug('additional degrees of freedom = %s', delta_dof)
+        LOG.debug('p-value = %s', p_value)
+        LOG.debug('reject the null hypothesis = %s', accept)
 
-        b = datetime.datetime.now()
+        end = datetime.datetime.now()
         LOG.debug('end likelihood ratio test:' +
-                  ' {} seconds'.format((b-a).total_seconds()))
+                  ' {} seconds'.format((end-start).total_seconds()))
 
         return accept, p_value
 
-    def degrees_of_freedom(self, order=1, mode='path'):
-
-        # TODO add checks for the max order
-        max_order = order
-
-        # initialize degrees of freedom
-        dof = 0
-
-        for order in range(0, max_order + 1):
-
-            # check if the null model for the given order is
-            # already calculated if not calculate new null model
-            if self.null_models.get(order, None) is None:
-                self.null_models[order] = self.null(order)
-
-            dof += self.null_models[order].degrees_of_freedom(mode=mode)
-
-        return dof
-
-    def likelihood(self, observations=None, order=1, log=True):
+    def likelihood(self, data, order=1, log=True):
         # add log-likelihoods of multiple model layers,
         # assuming that paths are independent
 
@@ -216,7 +193,7 @@ class MultiOrderModel:
 
         for order in range(0, max_order + 1):
             likelihood += self.layer_likelihood(
-                observations=observations, order=order,
+                data=data, order=order,
                 longer_paths=(order == max_order), log=True)
 
         if not log:
@@ -224,14 +201,11 @@ class MultiOrderModel:
 
         return likelihood
 
-    def layer_likelihood(self, observations=None, order=1,
+    def layer_likelihood(self, data, order=1,
                          longer_paths=True, log=True,
                          min_length=None):
 
-        if observations is None:
-            observations = self.network.paths
-
-        path_lengths = observations.lengths()
+        path_lengths = [len(p) for p in data]
 
         if min_length is None:
             min_length = order
@@ -247,7 +221,7 @@ class MultiOrderModel:
         # initialize likelihood
         likelihood = 0
 
-        for uid, path in observations.items():
+        for path in data.values():
             if min_length <= len(path) <= max_length:
                 likelihood += self.path_likelihood(path, order=order, log=True)
 
@@ -256,17 +230,17 @@ class MultiOrderModel:
 
         return likelihood
 
-    def path_likelihood(self, observation, order=1, log=True):
+    def path_likelihood(self, path, order=1, log=True):
 
         # initialize likelihood
         likelihood = 0
 
         # get path frequency
-        frequency = observation.attributes.frequency
+        frequency = path.attributes.get('frequency', 1)
 
         # 1.) transform the path into a sequence of (two or more)
         # l-th-order edges
-        edges = self.path_to_higher_order_edge_uids(observation, order)
+        edges = self._path_to_hon(path, order=order)
 
         # 2.) nodes[0] is the prefix of the k-th order transitions, which
         # we can transform into multiple transitions in lower order
@@ -282,8 +256,7 @@ class MultiOrderModel:
 
         # iterate through all orders and add prefix
         for _order in range(order):
-            transitions[_order] = self.path_to_higher_order_edge_uids(
-                observation, _order)[0]
+            transitions[_order] = self._path_to_hon(path, _order)[0]
 
         # 4.) Using Bayes theorem, we calculate the likelihood of a path
         # a-b-c-d-e of length four for l=4 as a single transition in a
@@ -297,46 +270,127 @@ class MultiOrderModel:
         # P(e|c-d) * P( d|b-c) * P(c|a-b) * [ P(b|a) * P(a) ]
 
         # get a list of nodes for the matrix indices
-        n = list(self.layers[order].nodes.keys())
+        n = self.layers[order]['hon'].nodes.index
 
-        for e in edges:
-            # calculate the log-likelihood
-            likelihood += np.log(self.transition_matrices[order][
-                n.index(self.layers[order].edges[e].w.uid),
-                n.index(self.layers[order].edges[e].v.uid)])*frequency
+        if order == 0:
+            for _n in edges:
+                likelihood += np.log(self.layers[order]['hon']
+                                     .nodes[(_n,)]['frequency']) * frequency
+        else:
+            for _v, _w in edges:
+                # calculate the log-likelihood
+                likelihood += np.log(self.layers[order]['T'][
+                    n[self.layers[order]['hon'].nodes[_w].uid],
+                    n[self.layers[order]['hon'].nodes[_v].uid]])*frequency
 
-        for _order, e in transitions.items():
-
-            # get a list of nodes for the matrix indices
-            n = list(self.layers[_order].nodes.keys())
-
-            # calculate the log-likelihood
-            likelihood += np.log(self.transition_matrices[_order][
-                n.index(self.layers[_order].edges[e].w.uid),
-                n.index(self.layers[_order].edges[e].v.uid)])*frequency
+        for _order, _e in transitions.items():
+            if _order == 0:
+                likelihood += np.log(self.layers[_order]['hon']
+                                     .nodes[(_e,)]['frequency']) * frequency
+            else:
+                # get a list of nodes for the matrix indices
+                n = self.layers[_order]['hon'].nodes.index
+                _v = _e[0]
+                _w = _e[1]
+                # calculate the log-likelihood
+                likelihood += np.log(self.layers[_order]['T'][
+                    n[self.layers[_order]['hon'].nodes[_w].uid],
+                    n[self.layers[_order]['hon'].nodes[_v].uid]])*frequency
 
         if not log:
             likelihood = np.exp(likelihood)
 
         return likelihood
 
-    def path_to_higher_order_edge_uids(self, path, order):
-        separator = path.separator
+    def _path_to_hon(self, path, order):
+        """Helper function to convert path to hon node tuples."""
+
+        nodes: list = []
 
         if order == 0:
-            edges = ['start'+separator['hon']+w for w in path.as_nodes]
+            return list(path.nodes)
 
         elif order == 1:
-            edges = [path.edges[e].v.uid +
-                     separator['hon'] +
-                     path.edges[e].w.uid for e in path.as_edges]
-        else:
-            nodes = [separator['path'].join(
-                e) for e in window(path.as_edges, size=order-1)]
-            edges = [v+separator['hon']+w for v,
-                     w in zip(nodes[:-1], nodes[1:])]
+            nodes.extend([tuple([n]) for n in path.nodes])
 
-        return edges
+        elif 1 < order <= len(path):
+
+            for subpath in self.window(path.edges, size=order-1):
+                nodes.append(subpath)
+
+        return list(zip(nodes[:-1], nodes[1:]))
+
+    @staticmethod
+    def window(iterable, size=2):
+        """Sliding window for path length"""
+        ite = iter(iterable)
+        result = tuple(islice(ite, size))
+        if len(result) == size:
+            yield result
+        for elem in ite:
+            result = result[1:] + (elem,)
+            yield result
+
+    def summary(self):
+        """Returns a summary of the multi-order model."""
+
+        # TODO: Find better solution for printing
+        # TODO: Move to util
+        line_length = 54
+        row = {}
+        row['==='] = '='*line_length
+        row['s| s| s'] = '{:^6s} | {:^21s} | {:^20s}'
+        row['s|ss|ss'] = '{:^6s} | {:^10s} {:^10s} | {:^10s} {:^10s}'
+        row['d|dd|dd'] = '{:>6d} | {:>10d} {:>10d} | {:>10d} {:>10d}'
+
+        # initialize summary text
+        summary: list = [
+            row['==='],
+            'Multi-order model',
+            '- General '.ljust(line_length, '-')
+        ]
+
+        # add general information
+        summary.append(row['s| s| s'].format('layer', 'network', 'DoF'))
+        summary.append(row['s|ss|ss'].format(
+            'order', 'nodes', 'edges', 'paths', 'ngrams'))
+
+        # add row for each order
+        data = [[], [], [], []]
+
+        for order, models in self.layers.items():
+            hon = models['hon']
+            null = models['null']
+            data[0].append(hon.number_of_nodes())
+            data[1].append(hon.number_of_edges())
+            # data[2].append(1)
+            if null is not None:
+                # TODO : Use the better method to estimate the DoF
+                data[2].append(null.degrees_of_freedom(mode='path'))
+                data[3].append(null.degrees_of_freedom(mode='ngram'))
+            else:
+                data[2].append(-1)
+                data[3].append(-1)
+
+            summary.append(row['d|dd|dd'].format(
+                order, *[v[-1] for v in data]))
+
+        # add double line
+        summary.append('='*line_length,)
+
+        return '\n'.join(summary)
+
+    @classmethod
+    def from_paths(cls, paths: PathCollection, **kwargs: Any):
+        """Create multi-oder network from paths."""
+
+        max_order: int = kwargs.get('max_order', 1)
+
+        mom = cls(max_order=max_order)
+        mom.fit(paths)
+
+        return mom
+
 
 # =============================================================================
 # eof

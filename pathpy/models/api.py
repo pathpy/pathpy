@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : api.py -- API for public functions of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-08-31 06:20 juergen>
+# Time-stamp: <Tue 2020-09-01 09:39 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -16,7 +16,7 @@ from pathpy.models.higher_order_network import (HigherOrderNode,
                                                 HigherOrderEdge,
                                                 HigherOrderNetwork)
 from pathpy.models.null_model import NullModel
-# from pathpy.models.multi_order_model import MultiOrderModel
+from pathpy.models.multi_order_model import MultiOrderModel
 
 # =============================================================================
 # eof
