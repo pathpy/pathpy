@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-09-01 13:28 juergen>
+# Time-stamp: <Tue 2020-09-01 13:58 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -730,6 +730,7 @@ class Network(BaseModel):
 
         """
         self.nodes.add(*node, **kwargs)
+        self._add_node_properties()
 
     def add_edge(self, *edge: Union[str, tuple, list, Node, Edge],
                  uid: Optional[str] = None, **kwargs: Any) -> None:
@@ -797,6 +798,7 @@ class Network(BaseModel):
         """
         for node in nodes:
             self.nodes.add(node, **kwargs)
+        self._add_node_properties()
 
     def add_edges(self, *edges: Union[str, tuple, list, Node, Edge],
                   **kwargs: Any) -> None:
@@ -880,6 +882,7 @@ class Network(BaseModel):
             for _edge in list(self.incident_edges[self.nodes[node].uid]):
                 self.remove_edge(_edge)
         self.nodes.remove(node)
+        self._remove_node_properties()
 
     def remove_edge(self, *edge: Union[str, tuple, Node, Edge],
                     uid: Optional[str] = None) -> None:
@@ -929,6 +932,12 @@ class Network(BaseModel):
         """Remove multiple nodes from the network."""
         for node in nodes:
             self.remove_node(node)
+
+    def _add_node_properties(self):
+        """Helper function to update node properties."""
+
+    def _remove_node_properties(self):
+        """Helper function to update node properties."""
 
     def _add_edge_properties(self):
         """Helper function to update network properties."""
