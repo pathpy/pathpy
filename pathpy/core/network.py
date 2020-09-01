@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-08-31 10:56 juergen>
+# Time-stamp: <Tue 2020-09-01 13:28 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -764,7 +764,7 @@ class Network(BaseModel):
 
         """
         self.edges.add(*edge, uid=uid, **kwargs)
-        self._add_properties()
+        self._add_edge_properties()
 
     def add_nodes(self, *nodes: Union[str, Node],
                   **kwargs: Any) -> None:
@@ -918,19 +918,19 @@ class Network(BaseModel):
         # check if the right object is provided.
         # if edge obect is given
         self.edges.remove(*edge, uid=uid)
-        self._remove_properties()
+        self._remove_edge_properties()
 
     def remove_edges(self, *edges: Union[str, tuple, list, Node, Edge]) -> None:
         """Remove multiple edges from the network."""
         self.edges.remove(*edges)
-        self._remove_properties()
+        self._remove_edge_properties()
 
     def remove_nodes(self, *nodes: Union[str, Node]) -> None:
         """Remove multiple nodes from the network."""
         for node in nodes:
             self.remove_node(node)
 
-    def _add_properties(self):
+    def _add_edge_properties(self):
         """Helper function to update network properties."""
 
         edges = set(self.edges).difference(self._properties['edges'])
@@ -960,7 +960,7 @@ class Network(BaseModel):
 
             self._properties['edges'].add(edge)
 
-    def _remove_properties(self):
+    def _remove_edge_properties(self):
         """Helper function to update network properties."""
 
         edges = self._properties['edges'].difference(set(self.edges))
@@ -1001,7 +1001,7 @@ class Network(BaseModel):
                       multiedges=paths.multiedges, **kwargs)
         network._nodes = paths.nodes
         network._edges = paths.edges
-        network._add_properties()
+        network._add_edge_properties()
 
         if frequencies:
             for edge in network.edges:
