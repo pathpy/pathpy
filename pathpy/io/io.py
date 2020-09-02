@@ -3,12 +3,12 @@
 # =============================================================================
 # File      : io.py -- Module for data import/export
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Sat 2020-08-22 18:24 juergen>
+# Time-stamp: <Wed 2020-09-02 14:44 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, Union
+from typing import TYPE_CHECKING, Any, Union
 
 import pandas as pd  # pylint: disable=import-error
 
@@ -17,7 +17,11 @@ from pathpy import config, logger
 from pathpy.core.node import Node
 from pathpy.core.edge import Edge
 from pathpy.core.network import Network
-from pathpy.models.temporal_network import TemporalNetwork
+
+# pseudo load class for type checking
+if TYPE_CHECKING:
+    from pathpy.models.temporal_network import TemporalNetwork
+
 
 # create logger
 LOG = logger(__name__)
@@ -91,6 +95,8 @@ def to_temporal_network(frame: pd.DataFrame, loops: bool = True,
                         directed: bool = True, multiedges: bool = False,
                         **kwargs: Any) -> TemporalNetwork:
     """Read temporal network from a pandas data frame."""
+
+    from pathpy.models.temporal_network import TemporalNetwork
 
     # if no v/w columns are included, pick first synonym
     frame = _check_column_name(frame, 'v', config['edge']['v_synonyms'])

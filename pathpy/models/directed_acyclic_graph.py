@@ -4,21 +4,33 @@
 # =============================================================================
 # File      : directed_acyclic_graph.py -- Network model for a DAG
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-09-01 16:38 juergen>
+# Time-stamp: <Wed 2020-09-02 15:08 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, Optional, Union, cast, Set
+from typing import Any, Optional, Set
+from collections import defaultdict
 
-from pathpy import logger, config
-from pathpy.core.node import Node, NodeCollection
-from pathpy.core.edge import Edge, EdgeCollection
+from pathpy import logger
+from pathpy.core.node import NodeCollection
+from pathpy.core.edge import EdgeCollection
+from pathpy.core.path import PathCollection
 from pathpy.core.network import Network
 
+from pathpy.converters import to_paths
 
-class DirectedAcyclicGraph(Network):
+from pathpy.models.models import ABCDirectedAcyclicGraph
+
+# create logger
+LOG = logger(__name__)
+
+
+class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
     """Base class for a directed acyclic graph."""
+
+    # load external functions to the network
+    to_paths = to_paths.to_path_collection
 
     def __init__(self, uid: Optional[str] = None, multiedges: bool = False,
                  **kwargs: Any) -> None:
@@ -232,6 +244,74 @@ class DirectedAcyclicGraph(Network):
         self._topsort['count'] += 1
         self._topsort['end'][_v] = self._topsort['count']
         self._topsort['sorting'].append(_v)
+
+    def routes_from(self, node, paths):
+        """Constructs all paths from node v to any leaf nodes."""
+
+        # TODO: allow also multiedges
+        if self.multiedges:
+            raise NotImplementedError
+
+        # Collect temporary paths, indexed by the target node
+        _paths = defaultdict(list)
+        _paths[node] = [[node]]
+
+        # set of unprocessed nodes
+        queue = {node}
+
+        while queue:
+            # take one unprocessed node
+            x = queue.pop()
+
+            # successors of x expand all temporary
+            # paths, currently ending in x
+            if self.successors[x.uid]:
+                for w in self.successors[x.uid]:
+                    for p in _paths[x]:
+                        _paths[w].append(p + [w])
+                    queue.add(w)
+                del _paths[x]
+
+        for _p in _paths.values():
+            for nodes in _p:
+                if len(nodes) == 1:
+                    paths.add(nodes[0], frequency=1)
+                else:
+                    edges = [self.edges[(v, w)]
+                             for v, w in zip(nodes[:-1], nodes[1:])]
+                    paths.add(*edges, frequency=1)
+
+        return paths
+
+    @classmethod
+    def from_temporal_network(cls, temporal_network, **kwargs: Any):
+        """Creates a time-unfolded directed acyclic graph."""
+
+        delta: int = kwargs.get('delta', 1)
+
+        dag = cls()
+
+        # dictionary that maps time-unfolded nodes to actual nodes
+        node_map = {}
+
+        for uid, edge, begin, end in temporal_network.edges.temporal():
+            # create time-unfolded nodes v_t and w_{t+1}
+            v_t = "{0}_{1}".format(edge.v.uid, begin)
+            node_map[v_t] = edge.v
+
+            # create one time-unfolded link for all delta in [1, delta]
+            # this implies that for delta = 2 and an edge (a,b,1) two
+            # time-unfolded links (a_1, b_2) and (a_1, b_3) will be created
+            for x in range(1, int(delta)+1):
+                w_t = "{0}_{1}".format(edge.w.uid, begin+x)
+                node_map[w_t] = edge.w.uid
+                if v_t not in dag.nodes:
+                    dag.add_node(v_t, original=edge.v)
+                if w_t not in dag.nodes:
+                    dag.add_node(w_t, original=edge.w)
+                dag.add_edge(v_t, w_t, original=edge)
+
+        return dag
 
 
 # =============================================================================

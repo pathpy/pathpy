@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-09-01 12:50 juergen>
+# Time-stamp: <Wed 2020-09-02 14:41 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -17,6 +17,8 @@ from pathpy import logger, config
 from pathpy.core.node import Node, NodeCollection
 from pathpy.core.edge import Edge, EdgeCollection
 from pathpy.core.network import Network
+
+from pathpy.converters import to_paths
 
 from pathpy.models.models import ABCTemporalNetwork
 
@@ -35,6 +37,9 @@ class Timestamp:
 
 class TemporalNetwork(ABCTemporalNetwork, Network):
     """Base class for a temporal networks."""
+
+    # load external functions to the network
+    to_paths = to_paths.to_path_collection
 
     def __init__(self, uid: Optional[str] = None,
                  directed: bool = True, multiedges: bool = False,

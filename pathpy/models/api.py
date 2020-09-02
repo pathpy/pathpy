@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : api.py -- API for public functions of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-09-01 09:39 juergen>
+# Time-stamp: <Wed 2020-09-02 14:31 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -12,6 +12,9 @@
 # pylint: disable=unused-import
 
 from pathpy.models.temporal_network import TemporalNetwork
+
+from pathpy.models.directed_acyclic_graph import DirectedAcyclicGraph
+
 from pathpy.models.higher_order_network import (HigherOrderNode,
                                                 HigherOrderEdge,
                                                 HigherOrderNetwork)

@@ -1,23 +1,18 @@
-#!/usr/bin/python -tt
+"""Module for class converters."""
+# !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
-# File      : models.py -- ABC constructures for the models
+# File      : __init__.py -- Initialize converters
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-09-02 13:16 juergen>
+# Time-stamp: <Wed 2020-09-02 14:35 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
+# flake8: noqa
+# pylint: disable=unused-import
 
-class ABCTemporalNetwork():
-    """Abstract class for a temporal netork."""
+from pathpy.converters.to_paths import to_path_collection
 
-
-class ABCHigherOrderNetwork():
-    """Abstract class for a higher-order network"""
-
-
-class ABCDirectedAcyclicGraph():
-    """Abstract class for a higher-order network"""
 
 # =============================================================================
 # eof
