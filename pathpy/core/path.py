@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sat 2020-08-22 15:48 juergen>
+# Time-stamp: <Wed 2020-09-02 13:42 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -364,8 +364,11 @@ class PathCollection(BaseCollection):
 
         # collection of nodes
         self._nodes: NodeCollection = NodeCollection()
+
         if nodes is not None:
             self._nodes = nodes
+        elif nodes is None and edges is not None:
+            self._nodes = edges.nodes
 
         # collection of edges
         self._edges: EdgeCollection = EdgeCollection(directed=directed,

@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an single edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-07-15 11:45 juergen>
+# Time-stamp: <Wed 2020-09-02 13:38 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -877,6 +877,22 @@ class EdgeCollection(BaseCollection):
 
             if len(self._node_map[_a]) == 0:
                 self._node_map.pop(_a, None)
+
+    def copy(self, nodes: Optional[NodeCollection] = None) -> EdgeCollection:
+        """Return a new copy of the edge collection."""
+
+        if nodes is None:
+            nodes = self.nodes.copy()
+
+        edges = EdgeCollection(directed=self.directed,
+                               multiedges=self.multiedges,
+                               hyperedges=self.hyperedges,
+                               nodes=nodes)
+
+        for edge in self.values():
+            edges.add(edge)
+
+        return edges
 
 
 # =============================================================================

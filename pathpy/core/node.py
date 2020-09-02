@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : node.py -- Base class for a single node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-07-14 18:09 juergen>
+# Time-stamp: <Wed 2020-09-02 13:32 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -305,6 +305,14 @@ class NodeCollection(BaseCollection):
     def _(self, *node: Union[tuple, list], **kwargs: Any) -> None:
         for _n in node[0]:
             self.remove(_n, **kwargs)
+
+    def copy(self) -> NodeCollection:
+        """Return a new copy of the node collection."""
+        nodes = NodeCollection()
+        for node in self.values():
+            nodes.add(node)
+        return nodes
+
 
 # =============================================================================
 # eof
