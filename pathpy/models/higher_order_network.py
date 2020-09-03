@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-08-31 19:11 juergen>
+# Time-stamp: <Thu 2020-09-03 14:44 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================

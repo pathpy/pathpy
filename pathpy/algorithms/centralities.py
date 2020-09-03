@@ -4,13 +4,15 @@
 # =============================================================================
 # File      : centralities.py -- Module to calculate node centrality measures
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Sun 2020-04-19 09:21 juergen>
+# Time-stamp: <Thu 2020-09-03 14:52 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import TYPE_CHECKING, Dict, List, Tuple, Union
+from typing import TYPE_CHECKING, Dict, List, Tuple, Union, Any
+from functools import singledispatch
 from collections import defaultdict
+
 import operator
 import numpy as np
 from scipy.sparse import linalg as spl
@@ -19,15 +21,20 @@ from pathpy import logger
 from pathpy.algorithms import shortest_paths
 from pathpy.algorithms.matrices import adjacency_matrix
 
+from pathpy.core.base import BaseModel
+from pathpy.models.models import ABCHigherOrderNetwork
+
 # pseudo load class for type checking
 if TYPE_CHECKING:
     from pathpy.core.network import Network
+    from pathpy.models.higher_order_network import HigherOrderNetwork
 
 # create logger
 LOG = logger(__name__)
 
 
-def betweenness_centrality(network: Network, normalized: bool = False) -> Dict:
+@singledispatch
+def betweenness_centrality(self, normalized: bool = False) -> Dict:
     """Calculates the betweenness centrality of all nodes.
     .. note::
 
@@ -61,7 +68,17 @@ def betweenness_centrality(network: Network, normalized: bool = False) -> Dict:
     2.0
 
     """
-    all_paths = shortest_paths.all_shortest_paths(network, weight=False, return_distance_matrix=False)
+
+    raise NotImplementedError
+
+
+@betweenness_centrality.register(BaseModel)
+def _bw_network(self: Network, normalized: bool = False) -> Dict:
+    """Betweenness Centrality for Networks."""
+
+    all_paths = shortest_paths.all_shortest_paths(
+        self, weight=False, return_distance_matrix=False)
+
     bw: defaultdict = defaultdict(float)
 
     for s in all_paths:
@@ -72,7 +89,72 @@ def betweenness_centrality(network: Network, normalized: bool = False) -> Dict:
                         bw[x] += 1.0 / len(all_paths[s][t])
 
     # assign zero values to nodes not occurring on shortest paths
-    for v in network.nodes.uids:
+    for v in self.nodes.uids:
+        bw[v] += 0
+
+    if normalized:
+        max_centr = max(bw.values())
+        min_centr = min(bw.values())
+        for v in bw:
+            bw[v] = (bw[v] - min_centr) / (max_centr - min_centr)
+
+    return bw
+
+
+@betweenness_centrality.register(ABCHigherOrderNetwork)
+def _bw_hon(self: HigherOrderNetwork, normalized: bool = False) -> Dict:
+    """Betweenness Centrality for Networks."""
+
+    from pathpy.core.edge import Edge
+    from pathpy.core.path import Path
+
+    LOG.debug('Calculating betweenness (order k = %s) ...', self.order)
+
+    all_paths = shortest_paths.all_shortest_paths(
+        self, weight=False, return_distance_matrix=False)
+
+    bw: defaultdict = defaultdict(float)
+
+    lengths: defaultdict = defaultdict(
+        lambda: defaultdict(lambda: float('inf')))
+    paths: defaultdict = defaultdict(lambda: defaultdict(set))
+
+    for path_1_order_k in all_paths:
+        for path_2_order_k in all_paths:
+            for path_order_k in all_paths[path_1_order_k][path_2_order_k]:
+                nodes = []
+                for node in path_order_k:
+                    nodes.append(self.nodes[node].nodes)
+
+                path = nodes[0]
+                for node in nodes[1:]:
+                    path.append(node[-1])
+
+                edges = []
+                for _v, _w in zip(path[:-1], path[1:]):
+                    edges.append(Edge(_v, _w))
+
+                if edges:
+                    path = Path(*edges)
+                    s1 = path.start
+                    t1 = path.end
+
+                    if len(path) < lengths[s1][t1]:
+                        lengths[s1][t1] = len(path)
+                        paths[s1][t1] = set()
+                        paths[s1][t1].add(path)
+                    elif len(path) == lengths[s1][t1]:
+                        paths[s1][t1].add(path)
+
+    for s_order_1 in paths:
+        for t_order_1 in paths[s_order_1]:
+            for path_order_1 in paths[s_order_1][t_order_1]:
+                for node in path_order_1.nodes[1:-1]:
+                    if s_order_1 != node != t_order_1:
+                        bw[node.uid] += 1.0 / len(paths[s_order_1][t_order_1])
+
+    # assign zero values to nodes not occurring on shortest paths
+    for v in self.nodes.nodes.keys():
         bw[v] += 0
 
     if normalized:
@@ -190,7 +272,10 @@ def degree_centrality(network: Network, mode: str = 'degree') -> dict:
 
     return d
 
-def eigenvector_centrality(network: Network, weight: Union[str, bool, None] = None, **kwargs: Any) -> dict:
+
+def eigenvector_centrality(network: Network,
+                           weight: Union[str, bool, None] = None,
+                           **kwargs: Any) -> dict:
     """Calculates the eigenvector centrality of all nodes.
 
     Parameters

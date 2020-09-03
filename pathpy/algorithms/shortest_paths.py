@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : shortest_paths.py -- Module to calculate shortest paths and diameter
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Sun 2020-04-19 07:38 juergen>
+# Time-stamp: <Thu 2020-09-03 14:30 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -120,10 +120,10 @@ def all_shortest_paths(network: Network,
 
     for e in network.edges:
         cost = 1
-            
+
         if weight == True:
             cost = e.attributes['weight']
-        elif weight != False and weight !=None:
+        elif weight != False and weight != None:
             cost = e.attributes[weight]
 
         dist[e.v.uid][e.w.uid] = cost
@@ -154,12 +154,14 @@ def all_shortest_paths(network: Network,
         s_p[v][v].add((v,))
 
     if return_distance_matrix:
-        dist_arr = np.ndarray(shape=(network.number_of_nodes(), network.number_of_nodes()))
+        dist_arr = np.ndarray(
+            shape=(network.number_of_nodes(), network.number_of_nodes()))
         for v in network.nodes:
             for w in network.nodes:
-                dist_arr[network.nodes.index[v.uid], network.nodes.index[w.uid]] = dist[v.uid][w.uid]
+                dist_arr[network.nodes.index[v.uid],
+                         network.nodes.index[w.uid]] = dist[v.uid][w.uid]
         return s_p, dist_arr
-    else :
+    else:
         return s_p
 
 
@@ -179,32 +181,33 @@ def single_source_shortest_paths(network: Network, source: str, weight: Union[bo
         Q[v] = dist[v]
 
     while Q:
-        u = min(Q.keys(), key=(lambda k: Q[k])) # TODO: Do this more efficiently with a proper priority queue
+        # TODO: Do this more efficiently with a proper priority queue
+        u = min(Q.keys(), key=(lambda k: Q[k]))
         del Q[u]
         for v in network.successors[u]:
-            
+
             # for networks with no edge costs, edges have constant cost
             cost = 1
-            
+
             if weight == True:
-                cost = list(network.edges[u,v])[0].attributes['weight']
-            elif weight != False and weight !=None:
-                cost = list(network.edges[u,v])[0].attributes[weight]
+                cost = list(network.edges[u, v])[0].attributes['weight']
+            elif weight != False and weight != None:
+                cost = list(network.edges[u, v])[0].attributes[weight]
 
             new_dist = dist[u] + cost
 
-            if new_dist < dist[v.uid]:                
+            if new_dist < dist[v.uid]:
                 dist[v.uid] = new_dist
                 prev[v.uid] = u
                 if v.uid in Q:
                     Q[v.uid] = new_dist
-    
+
     # calculate distance vector
     dist_arr = np.zeros(network.number_of_nodes())
     for v in network.nodes:
         dist_arr[network.nodes.index[v.uid]] = dist[v.uid]
 
-    # construct shortest paths 
+    # construct shortest paths
     s_p: dict = dict()
     for dest in network.nodes:
         if dest.uid != source:
@@ -225,7 +228,7 @@ def shortest_path_tree(network: Network, source: str, weight: Union[bool, str, N
     """Computes a shortest path tree rooted at the node with the
     given source uid."""
 
-    n_tree = net.Network(directed = True)
+    n_tree = net.Network(directed=True)
 
     Q: dict = dict()
     dist = dict()
@@ -239,20 +242,21 @@ def shortest_path_tree(network: Network, source: str, weight: Union[bool, str, N
         Q[v] = dist[v]
 
     while Q:
-        u = min(Q.keys(), key=(lambda k: Q[k])) # TODO: Do this more efficiently with a proper priority queue
+        # TODO: Do this more efficiently with a proper priority queue
+        u = min(Q.keys(), key=(lambda k: Q[k]))
         del Q[u]
         for v in network.successors[u]:
             # for networks with no edge costs, edges have constant cost
             cost = 1
-            
+
             if weight == True:
-                cost = list(network.edges[u,v])[0].attributes['weight']
-            elif weight != False and weight !=None:
-                cost = list(network.edges[u,v])[0].attributes[weight]
+                cost = list(network.edges[u, v])[0].attributes['weight']
+            elif weight != False and weight != None:
+                cost = list(network.edges[u, v])[0].attributes[weight]
 
             new_dist = dist[u] + cost
-            
-            if new_dist < dist[v.uid]:                
+
+            if new_dist < dist[v.uid]:
                 dist[v.uid] = new_dist
                 prev[v.uid] = u
                 if v.uid in Q:
@@ -305,7 +309,7 @@ def diameter(network: Network,
 
 
 def all_longest_paths(network: Network,
-                       weight: Union[str, bool, None] = None) -> defaultdict:
+                      weight: Union[str, bool, None] = None) -> defaultdict:
     """Returns a dictionary containing all longest shortest paths, i.e. shortest paths
     that correspond to the diameter of the network, between all pairs of nodes
 
@@ -339,10 +343,9 @@ def all_longest_paths(network: Network,
 
     for v in network.nodes.uids:
         for w in network.nodes.uids:
-            if dist[network.nodes.index[v], network.nodes.index[w]]==diameter:
+            if dist[network.nodes.index[v], network.nodes.index[w]] == diameter:
                 l_p[v][w] = s_p[v][w]
     return l_p
-    
 
 
 def avg_path_length(network: Network,

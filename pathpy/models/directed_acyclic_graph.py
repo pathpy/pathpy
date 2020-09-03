@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : directed_acyclic_graph.py -- Network model for a DAG
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-09-02 15:08 juergen>
+# Time-stamp: <Thu 2020-09-03 07:02 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -30,7 +30,7 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
     """Base class for a directed acyclic graph."""
 
     # load external functions to the network
-    to_paths = to_paths.to_path_collection
+    to_paths = to_paths.to_path_collection  # type: ignore
 
     def __init__(self, uid: Optional[str] = None, multiedges: bool = False,
                  **kwargs: Any) -> None:
