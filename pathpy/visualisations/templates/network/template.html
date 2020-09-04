@@ -589,8 +589,8 @@
                                    .distanceMax(repelDistance));
 
        // kill x and y forces used in radial layout
-       // simulation.force('x', null);
-       // simulation.force('y', null);
+       simulation.force('x', null);
+       simulation.force('y', null);
 
        // setting taken from pathpy2
        // TODO fix theses setting
@@ -620,7 +620,7 @@
        // use many-body force to reduce node overlap
        // in node clusters.
        chargePower = 1.00;
-       simulation.force('charge', d3.forceManyBody().strength(charge));
+       simulation.force('charge', d3.forceManyBody().strength(chargePower));
 
        // generate a list for all x and y coordinates
        var xs = [];
