@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : io.py -- Module for data import/export
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Wed 2020-09-02 14:44 juergen>
+# Time-stamp: <Fri 2020-09-04 09:29 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -88,6 +88,7 @@ def to_network(frame: pd.DataFrame, loops: bool = True, directed: bool = True,
     for edge in edges:
         net.edges._add(edge)
 
+    net._add_edge_properties()
     return net
 
 
@@ -149,6 +150,7 @@ def to_temporal_network(frame: pd.DataFrame, loops: bool = True,
 
         net.add_edge(nodes[v], nodes[w], uid=uid, **row)
 
+    net._add_edge_properties()
     return net
 
 
