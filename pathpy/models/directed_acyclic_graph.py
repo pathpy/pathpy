@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : directed_acyclic_graph.py -- Network model for a DAG
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-09-03 07:02 juergen>
+# Time-stamp: <Fri 2020-09-04 16:41 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -14,7 +14,7 @@ from collections import defaultdict
 
 from pathpy import logger
 from pathpy.core.node import NodeCollection
-from pathpy.core.edge import EdgeCollection
+from pathpy.core.edge import EdgeCollection, Edge
 from pathpy.core.path import PathCollection
 from pathpy.core.network import Network
 
@@ -294,7 +294,12 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
         # dictionary that maps time-unfolded nodes to actual nodes
         node_map = {}
 
+        i = 0
         for uid, edge, begin, end in temporal_network.edges.temporal():
+            # i += 1
+
+            # if i == 300:
+            #     break
             # create time-unfolded nodes v_t and w_{t+1}
             v_t = "{0}_{1}".format(edge.v.uid, begin)
             node_map[v_t] = edge.v

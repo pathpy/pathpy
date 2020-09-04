@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : plot.py -- Module to plot pathoy networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-08-21 18:34 juergen>
+# Time-stamp: <Fri 2020-09-04 17:07 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -15,6 +15,7 @@ from copy import deepcopy
 from singledispatchmethod import singledispatchmethod  # remove for python 3.8
 from datetime import datetime
 import numpy as np
+import pandas as pd
 
 from pathpy import logger, config
 from pathpy.core.base import (BaseModel)
@@ -33,13 +34,14 @@ from pathpy.models.models import (ABCTemporalNetwork)
 
 # create logger for the Plot class
 LOG = logger(__name__)
+TIMESTAMP = config['temporal']['timestamp']
 
 # config: defaultdict = defaultdict(dict)
 # config['environment']['interactive'] = False
 
 # General config
-config['plot']['width'] = 1200  # 800
-config['plot']['height'] = 1000  # 550
+config['plot']['width'] = 800
+config['plot']['height'] = 550
 config['plot']['unit'] = 'px'
 config['plot']['dpi'] = 96
 config['plot']['margin'] = None
@@ -50,6 +52,22 @@ config['plot']['euclidean'] = False
 config['plot']['min_max_node_size'] = None
 config['plot']['min_max_edge_size'] = None
 config['plot']['keep_aspect_ratio'] = True
+
+config['plot']['forceCharge'] = -10  # -30
+config['plot']['forceRepel'] = -300  # -100
+config['plot']['forceAlpha'] = 0.1
+config['plot']['chargeDistance'] = 200
+config['plot']['repelDistance'] = 200
+config['plot']['velocityDecay'] = .2
+config['plot']['alphaMin'] = 0.1
+config['plot']['lookoutStrokeWidth'] = 1
+config['plot']['lookoutOpacity'] = .5
+config['plot']['lookoutWeight'] = 0.
+config['plot']['radiusMinSize'] = 4
+config['plot']['radiusMaxSize'] = 16
+config['plot']['nodeTransitionDuration'] = 100
+config['plot']['nodeTransitionDuration'] = 100
+config['plot']['defaultEdgeWeight'] = 1
 
 config['plot']['template'] = None
 config['plot']['css'] = None
@@ -77,6 +95,10 @@ config['plot']['label']['centered'] = True
 config['plot']['label']['enabled'] = True
 config['plot']['label']['color'] = 'white'
 
+config['plot']['label_centered'] = True
+config['plot']['label_enabled'] = True
+config['plot']['label_color'] = 'white'
+
 
 # Node config
 config['plot']['node'] = {}
@@ -93,7 +115,7 @@ config['plot']['edge'] = {}
 config['plot']['edge']['size'] = 2
 config['plot']['edge']['color'] = 'black'
 config['plot']['edge']['opacity'] = 1
-config['plot']['edge']['directed'] = True
+config['plot']['edge']['directed'] = False
 config['plot']['edge']['curved'] = .5
 
 # Widges config
@@ -297,8 +319,9 @@ class Parser:
         # TODO: Fix parse_config for temporal networks
         for key, values in self.parse_config(
                 self.default_config, **kwargs).items():
-            for k, v in values.items():
-                self.config[key][k] = v
+            if isinstance(values, dict):
+                for k, v in values.items():
+                    self.config[key][k] = v
 
         # set temporal networkt to true
         self.config['temporal'] = True
@@ -342,20 +365,91 @@ class Parser:
         # get static edges
         edges = {e['uid']: e for e in self.figure['data']['edges']}
 
-        # get slice of edges in the given time frame
-        _edges = obj.edges[begin:end]
+        _intervals = obj.edges.intervals
+
+        tree = _intervals.copy()
+        tree.slice(begin)
+        tree.slice(end)
+        tree.remove_envelop(_intervals.begin(), begin)
+        tree.remove_envelop(end, _intervals.end())
+
+        edge_temp_attr: defaultdict = defaultdict(lambda: defaultdict(dict))
+        for edge in obj.edges.values():
+            df = edge.attributes.to_frame(history=True)
+            df = df.where(pd.notnull(df), None)
+            attr = list(df.to_dict('index').values())
+            for values in attr:
+                time = values.pop(TIMESTAMP, None)
+                edge_temp_attr[edge.uid][time].update(**values)
 
         # generate temporal edges
         temporal_edges = []
         time = list(np.linspace(begin, end, num=steps))
         for t in time:
-            for uid in _edges[t].keys():
-                _edge = edges[uid]
+            for _, _, edge in tree[t]:
+
+                # get default object
+                _edge = edges[edge.uid]
+                # get temporal attributes
+                _attr = edge_temp_attr[edge.uid][int(round(t, 0))]
+                # if temporal attributes given update old attributes:
+                if _attr:
+                    for key, value in _attr.items():
+                        if key in _edge:
+                            _edge[key] = value
+
                 _edge['time'] = time.index(t)
                 temporal_edges.append(_edge.copy())
 
         # add temporal edges to the data
         self.figure['data']['edges'] = temporal_edges
+
+        # get static nodes
+        nodes = {n['uid']: n for n in self.figure['data']['nodes']}
+
+        node_temp_attr: defaultdict = defaultdict(lambda: defaultdict(dict))
+        for node in obj.nodes.values():
+            df = node.attributes.to_frame(history=True)
+            df = df.where(pd.notnull(df), None)
+            attr = list(df.to_dict('index').values())
+            for values in attr:
+                time = values.pop(TIMESTAMP, None)
+                node_temp_attr[node.uid][time].update(**values)
+
+        # generating initial nodes
+        initial_nodes = []
+        for node in obj.nodes.keys():
+            _node = nodes[node]
+            _attr = node_temp_attr[node][float('-inf')]
+            if _attr:
+                for key, value in _attr.items():
+                    if key in _node:
+                        _node[key] = value
+            initial_nodes.append(_node.copy())
+
+        # add initial nodes to the data
+        self.figure['data']['nodes'] = initial_nodes
+
+        temporal_nodes = []
+        for initial_node in initial_nodes:
+            _node = initial_node.copy()
+            _node['time'] = 0
+            temporal_nodes.append(_node)
+
+        time = list(np.linspace(begin, end, num=steps))
+        for t in time:
+            for node in obj.nodes.keys():
+                _node = nodes[node]
+                _attr = node_temp_attr[node][int(round(t, 0))]
+                if _attr:
+                    for key, value in _attr.items():
+                        if key in _edge:
+                            _node[key] = value
+
+                    _node['time'] = time.index(t)
+                    temporal_nodes.append(_node.copy())
+
+        self.figure['data']['changes'] = temporal_nodes
 
         # return the figure
         return self.figure

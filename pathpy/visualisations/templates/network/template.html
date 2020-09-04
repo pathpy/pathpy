@@ -118,13 +118,33 @@
      var temporal = config.temporal || false;
      var tooltipSize = config.widgets.tooltip.size || '100px';
 
+     var forceCharge = config.forceCharge || -30;//-20; // -30
+     var forceRepel = config.forceRepel || -100;//-200; // -100
+     var forceAlpha = config.forceAlpha || 0.1;//0.0; // 0.1
+     var chargeDistance = config.chargeDistance || 200;//400; //200
+     var repelDistance = config.repelDistance || 200;//100; //200
+     var velocityDecay = config.velocityDecay || .2;
+     var alphaMin = config.alphaMin || 0.1;
 
-     var labelCentered = config.label.centered || false;
-     var labelEnabled = config.label.enabled || false;
-     var labelColor = config.label.color || '#fff';
+     var defaultEdgeWeight = config.defaultEdgeWeight || 1;
+
+     var nodeTransitionDuration= config.nodeTransitionDuration || 100;
+
+     /* var labelCentered = config.label.centered || false;
+      * var labelEnabled = config.label.enabled || false;
+      * var labelColor = config.label.color || '#fff'; */
+
+     var labelCentered = config.label_centered || false;
+     var labelEnabled = config.label_enabled || false;
+     var labelColor = config.label_color || '#fff';
 
      var curved = config.curved || false;
      var directed = config.directed || false;
+
+     var lookoutStrokeWidth = config.lookoutStrokeWidth || 1;
+     var lookoutOpacity = config.lookoutOpacity || .5;
+     var lookoutWeight = config.lookoutWeight || 0.0;
+     var lookoutColor = config.lookoutColor || 'gray';
 
      var radiusMinSize = config.radiusMinSize || 4;
      var radiusMaxSize = config.radiusMaxSize || 16;
@@ -299,11 +319,16 @@
      // Function which returns the object weight if defined
      // otherwise a default value
      function getWeight(d){
-       if (typeof d.weight === "undefined"){
-         return 1
-       } else {
-         return d.weight
-       }
+       if ((d.time >= time.past && d.time < time.time)||
+           (d.time > time.aggregated && d.time <= time.future)){
+         return lookoutWeight;
+       }else{
+         if (typeof d.weight === "undefined"){
+           return defaultEdgeWeight;
+         } else {
+           return d.weight
+       };
+       };
      }
 
      // Function which returns the object weight if defined
@@ -313,6 +338,27 @@
          return 6
        } else {
          return d.size
+       }
+     }
+
+
+     // Function which returns the object weight if defined
+     // otherwise a default value
+     function getStrokeWidth(d){
+       if (typeof d.size === "undefined"){
+         return 1.5
+       } else {
+         return d.size
+       }
+     }
+
+     // Function which returns the object weight if defined
+     // otherwise a default value
+     function getOpacity(d){
+       if (typeof d.opacity === "undefined"){
+         return 1.
+       } else {
+         return d.opacity
        }
      }
 
@@ -326,12 +372,53 @@
        }
      }
 
+     /* function marker (color) {
+      *   var val;
+      *   svg.append("svg:defs").selectAll("marker")
+      *      .data([val])
+      *      .enter().append("svg:marker")
+      *      .attr("id", String)
+      *      .attr("viewBox", "0 -5 10 10")
+      *      .attr("refX", 20)
+      *      .attr("refY", 0)
+      *      .attr("markerWidth", 6)
+      *      .attr("markerHeight", 6)
+      *      .attr("orient", "auto")
+      *      .style("fill", color)
+      *      .append("svg:path")
+      *      .attr("d", "M0,-5L10,0L0,5");
+      *   return "url(#" +val+ ")";
+      * };
+
+      */
+     function marker (color) {
+       var reference;
+       svg.append("svg:defs").selectAll("marker")
+          .data([reference])
+          .enter().append("svg:marker")
+          .attr("id", String)
+          .attr("viewBox", "0 -5 10 10")
+          .attr("refX", 10)  // This sets how far back it sits, kinda
+          .attr("refY", -0)
+          .attr("markerWidth", 6)
+          .attr("markerHeight", 6)
+          .attr("orient", "auto")
+          .append("svg:path")
+          .attr('class','arrow')
+          .attr("d", "M0,-5L10,0L0,5")
+          .style('opacity',.7)
+          .style("fill", 'gray');
+       return "url(#" + reference + ")";
+     };
+
+
+
      // Here we create a force layout
      // It is just the 'simulation' and will have
      // forces added to it later
      var simulation = d3.forceSimulation()
-                        .velocityDecay(0.2)
-                        .alphaMin(0.1)
+                        .velocityDecay(velocityDecay)
+                        .alphaMin(alphaMin)
                         .on('tick', ticked)
                         .on('end', ended);
 
@@ -387,27 +474,26 @@
         *    .attr('fill', '#999')
         *    .style('stroke','none'); */
 
-       // build the arrow.
-       svg.append("svg:defs").selectAll("marker")
-          .data(["end"])      // Different link/path types can be defined here
-          .enter().append("svg:marker")    // This section adds in the arrows
-          .attr("id", String)
-          .attr("viewBox", "0 -5 10 10")
-          .attr("refX", 10)
-          .attr("refY", -0)
-          .attr("markerWidth", 6)
-          .attr("markerHeight", 6)
-          .attr("orient", "auto")
-          .append("svg:path")
-          .attr('class','arrow')
-          .attr("d", "M0,-5L10,0L0,5");
-
-
+       /* build the arrow.
+        *         svg.append("svg:defs").selectAll("marker")
+        *    .data(["end"])      // Different link/path types can be defined here
+        *    .enter().append("svg:marker")    // This section adds in the arrows
+        *    .attr("id", String)
+        *    .attr("viewBox", "0 -5 10 10")
+        *    .attr("refX", 10)
+        *    .attr("refY", -0)
+        *    .attr("markerWidth", 6)
+        *    .attr("markerHeight", 6)
+        *    .attr("orient", "auto")
+        *    .append("svg:path")
+        *    .attr('class','arrow')
+        *    .attr("d", "M0,-5L10,0L0,5"); */
 
 
        // render the network
        render();
      };
+
 
      /*
       * This function is executed any time the
@@ -465,7 +551,7 @@
 
        // Now we need to set the alpha
        // of the simulation when we restart.
-       simulation.alpha(1).restart();
+       simulation.alpha(forceAlpha).restart();
      }
 
      /*
@@ -481,7 +567,7 @@
        // the layout of the network is all
        // handled in a link force
        var linkForce = d3.forceLink()
-                         .distance(50)
+                         //.distance(10)
                          .strength(function(d){return getWeight(d);})
                          .links(edgesData);
 
@@ -494,10 +580,17 @@
        // setup many body force to have nodes repel one another
        // increasing the chargePower here to make nodes stand about
        chargePower = 1.0;
-       simulation.force('charge', d3.forceManyBody().strength(charge));
+       simulation.force('charge', d3.forceManyBody()
+                                    .strength(forceCharge)
+                                    .distanceMax(chargeDistance));
+
+       simulation.force("repel", d3.forceManyBody()
+                                   .strength(forceRepel)
+                                   .distanceMax(repelDistance));
+
        // kill x and y forces used in radial layout
-       simulation.force('x', null);
-       simulation.force('y', null);
+       // simulation.force('x', null);
+       // simulation.force('y', null);
 
        // setting taken from pathpy2
        // TODO fix theses setting
@@ -505,7 +598,7 @@
        // ingos setting
        // simulation.force("charge", d3.forceManyBody().strength(-20).distanceMax(400));
        // simulation.force("repelForce", d3.forceManyBody().strength(-200).distanceMax(100));
-       // simulation.alphaTarget(0.0);
+       simulation.alphaTarget(forceAlpha);
 
      }
 
@@ -699,6 +792,7 @@
        nodes = nodes.merge(nodesE);
        //nodes = nodes.merge(myText);
        nodes.transition() // transition to change size and color
+            .duration(nodeTransitionDuration)
             .attr('r', function (d) { return scaleRadius(d); })
             .style('fill', function (d) { return getColor(d); })
             .style("opacity", 1);
@@ -744,24 +838,40 @@
                          .classed('edge', true)
                          .classed('edge_active', true)
                          .classed('edge_highlight', false)
-
+                         .style('opacity', function (d) { return getOpacity(d); })
+                         .style('stroke-width', function (d) { return getStrokeWidth(d); })
+                         .style('stroke', function (d) { return getColor(d); })
        if (directed){
-         edgesE.attr("marker-end", "url(#end)");};
+         edgesE.attr("marker-end", function (d) { return marker(getColor(d)); });
+       };
 
        edges.exit().remove();
 
        edges = edges.merge(edgesE);
-     }
 
-     /*
-      * Disable observed but not active edges
-      */
-     function renderTemporalEdges() {
+       edges.transition() // transition to change size and color
+            .style('opacity', function (d) { return getOpacity(d); })
+            .style('stroke-width', function (d) { return getStrokeWidth(d); })
+            .style('stroke', function (d) { return getColor(d); });
+              }
+
+       /*
+        * Disable observed but not active edges
+        */
+       function renderTemporalEdges() {
        edges.classed('edge_active',function(d){
          if ((d.time >= time.past && d.time < time.time)||
              (d.time > time.aggregated && d.time <= time.future)){
+           d3.select(this)
+             .style('stroke-width',lookoutStrokeWidth)
+             //.style('stroke',lookoutColor)
+             .style('opacity',lookoutOpacity);
            return false;
          }else{
+           d3.select(this)
+             .style('opacity', function (d) { return getOpacity(d); })
+             .style('stroke-width', function (d) { return getStrokeWidth(d); })
+             .style('stroke', function (d) { return getColor(d); });
            return true;
          }
        });

@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-09-01 13:58 juergen>
+# Time-stamp: <Fri 2020-09-04 12:26 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -32,6 +32,7 @@ Weight = Union[str, bool, None]
 # pseudo load class for type checking
 if TYPE_CHECKING:
     from pathpy.core.path import PathCollection
+    from pathpy.models.temporal_network import TemporalNetwork
 
 # create logger for the Network class
 LOG = logger(__name__)
@@ -1020,6 +1021,24 @@ class Network(BaseModel):
                 for edge in path.edges:
                     edge['frequency'] += frequency
         return network
+
+    @classmethod
+    def from_temporal_network(cls, temporal_network: TemporalNetwork,
+                              **kwargs: Any):
+        uid: Optional[str] = kwargs.pop('uid', None)
+        directed: bool = kwargs.pop('directed', temporal_network.directed)
+        multiedges: bool = kwargs.pop('multiedges',  temporal_network.directed)
+
+        network = cls(uid=uid, directed=directed,
+                      multiedges=multiedges, **kwargs)
+
+        for node in temporal_network.nodes.values():
+            network.nodes.add(node)
+        for edge in temporal_network.edges.values():
+            network.edges._add(edge)
+        network._add_edge_properties()
+        return network
+
 # =============================================================================
 # eof
 #
