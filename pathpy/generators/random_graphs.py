@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : random_graphs.py -- Module to generate random graphs
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Mon 2020-04-20 12:46 juergen>
+# Time-stamp: <Sat 2020-09-05 11:35 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -30,7 +30,7 @@ LOG = logger(__name__)
 def max_edges(n: int, directed: bool = False, multiedges: bool = False, loops: bool = False) -> Union[int, float]:
     """Returns the maximum number of edges that a directed or undirected network with n nodes can
     possible have (with or without loops).
-    
+
     Parameters
     ----------
     n : int 
@@ -48,7 +48,7 @@ def max_edges(n: int, directed: bool = False, multiedges: bool = False, loops: b
     loops : bool 
 
         If True, include self-loops.
-    
+
     Examples
     --------
     Compute maximum number of edges in directed/undirected network with/without self-loops and 100 nodes
@@ -76,11 +76,11 @@ def max_edges(n: int, directed: bool = False, multiedges: bool = False, loops: b
         return int(n*(n-1))
 
 
-def ER_nm(n: int, m: int, 
-        directed: bool = False, 
-        loops: bool = False,
-        multiedges: bool = False,
-        node_uids: Optional[list] = None) -> Union[Network, None]:
+def ER_nm(n: int, m: int,
+          directed: bool = False,
+          loops: bool = False,
+          multiedges: bool = False,
+          node_uids: Optional[list] = None) -> Union[Network, None]:
     """(n, m) Erdös-Renyi model.
 
     Generates a random graph with a fixed number of n nodes and m edges based on
@@ -336,7 +336,7 @@ def Watts_Strogatz(n: int, s: int, p: float = 0.0, loops: bool = False,
         return network
 
     # Rewire each link with probability p
-    for edge in tqdm(network.edges, 'generating WS network'):
+    for edge in tqdm(list(network.edges.values()), 'generating WS network'):
         if np.random.rand() < p:
             # Delete original link and remember source node
             v = edge.v.uid
