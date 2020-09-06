@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : subpaths.py • models -- Module for sub-path statistics
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-08-25 20:12 juergen>
+# Time-stamp: <Sat 2020-09-05 13:03 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -93,7 +93,7 @@ class SubPathCollection(PathCollection):
             if _min_length <= 0:
                 for node in path.nodes:
                     if (node,) not in self:
-                        self._add(Path(node, possible=frequency))
+                        self._add(Path(node, possible=frequency, frequency=0))
                     else:
                         self[(node,)]['possible'] += frequency
 
@@ -106,13 +106,17 @@ class SubPathCollection(PathCollection):
                 for j in range(len(path)-i):
                     edges = tuple(path.edges[j:j+i+1])
                     if edges not in self:
-                        self._add(Path(*edges, possible=frequency))
+                        self._add(Path(*edges, possible=frequency, frequency=0))
                     else:
+                        # TODO: fix the frequency assignment
+                        if self[edges]['possible'] is None:
+                            self[edges]['possible'] = 0
                         self[edges]['possible'] += frequency
 
             # include the path
             if include_path:
                 if path not in self and _min_length <= len(path) <= _max_length:
+                    path['possible'] = 0
                     self._add(path)
 
         for path in self:

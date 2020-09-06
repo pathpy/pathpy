@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_algorithms.py -- Test environment for basic algorithms
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-09-03 14:51 juergen>
+# Time-stamp: <Sun 2020-09-06 12:52 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -122,6 +122,18 @@ def test_betweenness_centrality_hon():
 
     bc = hon.betweenness_centrality()
     assert bc['c'] == 4
+
+
+def test_betweenness_centrality_paths():
+    """Test the betweenness centrality of paths."""
+
+    paths = PathCollection()
+    paths.add('a', 'c', 'd', 'b', uid='acd', frequency=10)
+    paths.add('b', 'c', 'e', 'b', uid='bce', frequency=10)
+
+    bc = pp.algorithms.betweenness_centrality(paths)
+
+    assert bc['c'] == 3
 
 
 def test_closeness_centrality():

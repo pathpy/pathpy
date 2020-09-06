@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : plot.py -- Module to plot pathoy networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-09-04 17:34 juergen>
+# Time-stamp: <Sat 2020-09-05 19:14 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -53,13 +53,15 @@ config['plot']['min_max_node_size'] = None
 config['plot']['min_max_edge_size'] = None
 config['plot']['keep_aspect_ratio'] = True
 
-config['plot']['forceCharge'] = -10  # -30
+config['plot']['forceCharge'] = -20  # -30
 config['plot']['forceRepel'] = -300  # -100
 config['plot']['forceAlpha'] = 0.1
-config['plot']['chargeDistance'] = 200
+config['plot']['restartAlpha'] = 1
+config['plot']['alphaMin'] = 0.001  # 0.1
+config['plot']['targetAlpha'] = 0  # 0.2
+config['plot']['chargeDistance'] = config['plot']['width']
 config['plot']['repelDistance'] = 200
-config['plot']['velocityDecay'] = .2
-config['plot']['alphaMin'] = 0.1
+config['plot']['velocityDecay'] = 0.4  # .2
 config['plot']['lookoutStrokeWidth'] = 1
 config['plot']['lookoutOpacity'] = .5
 config['plot']['lookoutWeight'] = 0.
@@ -68,6 +70,14 @@ config['plot']['radiusMaxSize'] = 16
 config['plot']['nodeTransitionDuration'] = 100
 config['plot']['nodeTransitionDuration'] = 100
 config['plot']['defaultEdgeWeight'] = 1
+
+config['plot']['targetAlphaDragStarted'] = 0.3
+config['plot']['targetAlphaDragEnd'] = 0.0
+
+
+config['plot']['linkStrengthMin'] = 0.0
+config['plot']['linkStrengthMax'] = .45
+
 
 config['plot']['template'] = None
 config['plot']['css'] = None

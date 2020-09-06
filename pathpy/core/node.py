@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : node.py -- Base class for a single node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-09-02 13:32 juergen>
+# Time-stamp: <Sun 2020-09-06 10:44 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -237,6 +237,10 @@ class NodeCollection(BaseCollection):
             raise KeyError
         return _node
 
+    def __lshift__(self, node: Node) -> None:
+        """Quick assigment of the node"""
+        self[node.uid] = node
+
     @singledispatchmethod
     def add(self, *node, **kwargs: Any) -> None:
         """Add multiple nodes. """
@@ -285,6 +289,9 @@ class NodeCollection(BaseCollection):
     def _(self, *node: tuple, **kwargs: Any) -> None:
         for _n in node[0]:
             self.add(_n, **kwargs)
+
+    def _add(self, node: Node) -> None:
+        self[node.uid] = node
 
     @singledispatchmethod
     def remove(self, *nodes: Union[str, Node, tuple, list], **kwargs) -> None:

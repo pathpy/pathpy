@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : centralities.py -- Module to calculate node centrality measures
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Thu 2020-09-03 14:52 juergen>
+# Time-stamp: <Sun 2020-09-06 12:51 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -21,11 +21,13 @@ from pathpy import logger
 from pathpy.algorithms import shortest_paths
 from pathpy.algorithms.matrices import adjacency_matrix
 
-from pathpy.core.base import BaseModel
+from pathpy.core.base import BaseModel, BaseCollection
 from pathpy.models.models import ABCHigherOrderNetwork
+
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
+    from pathpy.core.path import PathCollection
     from pathpy.core.network import Network
     from pathpy.models.higher_order_network import HigherOrderNetwork
 
@@ -70,6 +72,50 @@ def betweenness_centrality(self, normalized: bool = False) -> Dict:
     """
 
     raise NotImplementedError
+
+
+@betweenness_centrality.register(BaseCollection)
+def _bw_paths(self: PathCollection, normalized: bool = False) -> Dict:
+    """Betweenness Centrality for Paths."""
+
+    # TODO: Move sp calculation to shortest_paths
+    from pathpy.statistics.subpaths import SubPathCollection
+
+    s_p: defaultdict = defaultdict(lambda: defaultdict(set))
+    s_p_lengths: defaultdict = defaultdict(lambda: defaultdict(lambda: np.inf))
+
+    bw: defaultdict = defaultdict(float)
+
+    paths = SubPathCollection(self)
+
+    for path in paths(include_path=True):
+        s = path.start
+        d = path.end
+        if len(path) < s_p_lengths[s][d]:
+            s_p_lengths[s][d] = len(path)
+            s_p[s][d] = set()
+            s_p[s][d].add(tuple(path.nodes))
+        elif len(path) == s_p_lengths[s][d]:
+            s_p[s][d].add(tuple(path.nodes))
+
+    for s in s_p:
+        for d in s_p[s]:
+            for p in s_p[s][d]:
+                for x in p[1:-1]:
+                    if s != d != x:
+                        bw[x.uid] += 1.0 / len(s_p[s][d])
+
+    # assign zero values to nodes not occurring on shortest paths
+    for v in self.nodes.uids:
+        bw[v] += 0
+
+    if normalized:
+        max_centr = max(bw.values())
+        min_centr = min(bw.values())
+        for v in bw:
+            bw[v] = (bw[v] - min_centr) / (max_centr - min_centr)
+
+    return bw
 
 
 @betweenness_centrality.register(BaseModel)

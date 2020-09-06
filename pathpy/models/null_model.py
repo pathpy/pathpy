@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : null_models.py -- Null models for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-08-31 13:23 juergen>
+# Time-stamp: <Sun 2020-09-06 11:07 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -159,7 +159,8 @@ class NullModel(HigherOrderNetwork):
                     frequency = 0.0
 
                 if _nodes not in self.edges:
-                    self.add_edge(*_nodes, possible=0, frequency=frequency)
+                    self.add_edge(*_nodes, possible=0,
+                                  observed=frequency, frequency=frequency)
 
     def degrees_of_freedom(self, mode: str = 'path') -> int:
         """Returns the degrees of freedom of the higher order network.

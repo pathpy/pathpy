@@ -121,11 +121,17 @@
      var forceCharge = config.forceCharge || -30;//-20; // -30
      var forceRepel = config.forceRepel || -100;//-200; // -100
      var forceAlpha = config.forceAlpha || 0.1;//0.0; // 0.1
+     var restartAlpha = config.restartAlpha || 1
      var chargeDistance = config.chargeDistance || 200;//400; //200
      var repelDistance = config.repelDistance || 200;//100; //200
      var velocityDecay = config.velocityDecay || .2;
-     var alphaMin = config.alphaMin || 0.1;
+     var alphaMin = config.alphaMin || 0.001;
+     var targetAlpha = config.targetAlpha || 0.2;
+     var targetAlphaDragStarted = config.targetAlphaDragStarted || 0.3;
+     var targetAlphaDragEnd = config.targetAlphaDragEnd || 0.0;
 
+     var linkStrengthMin = config.linkStrengthMin || 0.0;
+     var linkStrengthMax = config.linkStrengthMax || .45;
      var defaultEdgeWeight = config.defaultEdgeWeight || 1;
 
      var nodeTransitionDuration= config.nodeTransitionDuration || 100;
@@ -248,7 +254,7 @@
      // Functions to enable draging of the nodes
      // see https://observablehq.com/@d3/force-directed-graph
      function dragstarted(d) {
-       if (!d3.event.active) simulation.alphaTarget(0.2).restart();
+       if (!d3.event.active) simulation.alphaTarget(targetAlphaDragStarted).restart();
        d.fx = d.x;
        d.fy = d.y;
      }
@@ -259,7 +265,7 @@
      }
 
      function dragended(d) {
-       if (!d3.event.active) simulation.alphaTarget(0.2);
+       if (!d3.event.active) simulation.alphaTarget(targetAlphaDragEnd);
        d.fx = null;
        d.fy = null;
      }
@@ -330,6 +336,10 @@
        };
        };
      }
+
+     var linkStrengthScale = d3.scaleLinear()
+                               .range([linkStrengthMin, linkStrengthMax]);
+
 
      // Function which returns the object weight if defined
      // otherwise a default value
@@ -551,7 +561,7 @@
 
        // Now we need to set the alpha
        // of the simulation when we restart.
-       simulation.alpha(forceAlpha).restart();
+       simulation.alpha(restartAlpha).restart();
      }
 
      /*
@@ -567,7 +577,9 @@
        // the layout of the network is all
        // handled in a link force
        var linkForce = d3.forceLink()
-                         //.distance(10)
+                         //.id(function(d) { return d.uid; })
+                         .distance(50)
+                         //.strength(function(d){return linkStrengthScale(getWeight(d));})
                          .strength(function(d){return getWeight(d);})
                          .links(edgesData);
 
@@ -589,8 +601,8 @@
                                    .distanceMax(repelDistance));
 
        // kill x and y forces used in radial layout
-       simulation.force('x', null);
-       simulation.force('y', null);
+       //simulation.force('x', null);
+       //simulation.force('y', null);
 
        // setting taken from pathpy2
        // TODO fix theses setting
@@ -620,7 +632,7 @@
        // use many-body force to reduce node overlap
        // in node clusters.
        chargePower = 1.00;
-       simulation.force('charge', d3.forceManyBody().strength(chargePower));
+       simulation.force('charge', d3.forceManyBody().strength(forceCharge));
 
        // generate a list for all x and y coordinates
        var xs = [];

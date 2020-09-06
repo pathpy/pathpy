@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : multi_order_models.py -- Multi order models for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-09-01 09:36 juergen>
+# Time-stamp: <Sun 2020-09-06 12:02 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -108,7 +108,6 @@ class MultiOrderModel(BaseModel):
             if null_models:
                 # generate null model
                 _null = NullModel.from_paths(data, order=order)
-                print('ddd dof', _null.degrees_of_freedom())
 
             self.layers[order]['hon'] = _hon
             self.layers[order]['T'] = _T

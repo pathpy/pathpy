@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-09-04 12:26 juergen>
+# Time-stamp: <Sat 2020-09-05 13:19 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -1013,13 +1013,19 @@ class Network(BaseModel):
         network._edges = paths.edges
         network._add_edge_properties()
 
+        # TODO: fix frequency assignment
         if frequencies:
             for edge in network.edges:
                 edge['frequency'] = 0
+                edge['possible'] = 0
             for path in paths:
-                frequency = path.attributes.get('frequency', 1)
+                frequency = path.attributes.get('frequency', 0)
+                possible = path.attributes.get('possible', 0)
+
                 for edge in path.edges:
                     edge['frequency'] += frequency
+                    edge['possible'] += possible
+
         return network
 
     @classmethod

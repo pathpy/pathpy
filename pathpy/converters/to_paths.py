@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : to_paths.py -- Converte classes to paths
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-09-02 16:09 juergen>
+# Time-stamp: <Sat 2020-09-05 20:51 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -57,7 +57,8 @@ def _temp(self, **kwargs):
     """Convert a temproal netwok to paths."""
     from pathpy.models.directed_acyclic_graph import DirectedAcyclicGraph
 
-    paths = PathCollection(edges=self.edges.copy())
+    #paths = PathCollection(edges=self.edges.copy())
+    paths = PathCollection()
 
     delta = kwargs.get('delta', 1)
     # generate a single time-unfolded DAG

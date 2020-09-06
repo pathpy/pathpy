@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-09-03 14:44 juergen>
+# Time-stamp: <Sun 2020-09-06 11:33 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -333,6 +333,23 @@ class HigherOrderEdge(Edge):
                  uid: Optional[str] = None, **kwargs: Any) -> None:
         # initializing the parent classes
         super().__init__(v=v, w=w, uid=uid, **kwargs)
+
+    def summary(self) -> str:
+        """Returns a summary of the higher-order edge.
+        """
+        s = [self.v.nodes[0].uid]
+        for n in self.w.nodes:
+            s.append(n.uid)
+
+        return '(' + ', '.join(s) + ')'
+        # summary = [
+        #     'Uid:\t\t{}\n'.format(self.uid),
+        #     'Type:\t\t{}\n'.format(self.__class__.__name__),
+        #     'Source node:\t{}\n'.format(self.v.__repr__()),
+        #     'Target node:\t{}'.format(self.w.__repr__()),
+        # ]
+
+        # return ''.join(summary)
 
 
 class HigherOrderEdgeCollection(EdgeCollection):

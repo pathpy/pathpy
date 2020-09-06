@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : directed_acyclic_graph.py -- Network model for a DAG
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-09-04 16:41 juergen>
+# Time-stamp: <Sat 2020-09-05 21:08 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -15,7 +15,7 @@ from collections import defaultdict
 from pathpy import logger
 from pathpy.core.node import NodeCollection
 from pathpy.core.edge import EdgeCollection, Edge
-from pathpy.core.path import PathCollection
+from pathpy.core.path import PathCollection, Node
 from pathpy.core.network import Network
 
 from pathpy.converters import to_paths
@@ -302,19 +302,25 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
             #     break
             # create time-unfolded nodes v_t and w_{t+1}
             v_t = "{0}_{1}".format(edge.v.uid, begin)
-            node_map[v_t] = edge.v
+            #node_map[v_t] = edge.v.uid
 
             # create one time-unfolded link for all delta in [1, delta]
             # this implies that for delta = 2 and an edge (a,b,1) two
             # time-unfolded links (a_1, b_2) and (a_1, b_3) will be created
             for x in range(1, int(delta)+1):
                 w_t = "{0}_{1}".format(edge.w.uid, begin+x)
-                node_map[w_t] = edge.w.uid
+                #node_map[w_t] = edge.w.uid
                 if v_t not in dag.nodes:
-                    dag.add_node(v_t, original=edge.v)
+                    dag.nodes._add(Node(v_t, original=edge.v))
+                    #dag.add_node(v_t, original=edge.v)
                 if w_t not in dag.nodes:
-                    dag.add_node(w_t, original=edge.w)
-                dag.add_edge(v_t, w_t, original=edge)
+                    dag.nodes._add(Node(w_t, original=edge.w))
+                    #dag.add_node(w_t, original=edge.w)
+
+                e = Edge(dag.nodes[v_t], dag.nodes[w_t], original=edge)
+                dag.edges._add(e)
+        dag._add_edge_properties()
+        #dag.add_edge(v_t, w_t , original=edge)
 
         return dag
 
