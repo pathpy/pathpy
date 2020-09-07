@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-09-02 13:42 juergen>
+# Time-stamp: <Mon 2020-09-07 14:04 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================

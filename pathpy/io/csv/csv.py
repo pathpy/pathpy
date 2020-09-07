@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : sql.py -- Read and write sql database tables
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-08-25 10:11 juergen>
+# Time-stamp: <Mon 2020-09-07 14:03 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -134,14 +134,18 @@ def read_pathcollection(filename: str, separator: str = ',',
                 if node not in nodes:
                     nodes[node] = Node(node)
 
-            edge_list = []
-            for u, v in zip(path[:-1], path[1:]):
-                if (u, v) not in edges:
-                    edges[(u, v)] = Edge(nodes[u], nodes[v])
-                edge_list.append(edges[(u, v)])
+            if len(path) == 1 and path not in paths:
+                paths[path] = Path(nodes[path[0]], frequency=freq)
 
-            if path not in paths:
-                paths[path] = Path(*edge_list, frequency=freq)
+            else:
+                edge_list = []
+                for u, v in zip(path[:-1], path[1:]):
+                    if (u, v) not in edges:
+                        edges[(u, v)] = Edge(nodes[u], nodes[v])
+                    edge_list.append(edges[(u, v)])
+
+                if path not in paths:
+                    paths[path] = Path(*edge_list, frequency=freq)
 
             if maxlines is not None and n >= maxlines:
                 break
