@@ -4,13 +4,13 @@
 # =============================================================================
 # File      : __init__.py -- pathpy init file
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-09-04 17:06 juergen>
+# Time-stamp: <Thu 2020-09-17 08:33 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 # flake8: noqa
 # pylint: disable=unused-import
-__version__ = '3.0.0a1'
+__version__ = '3.0.0a2'
 
 # import os
 import sys
