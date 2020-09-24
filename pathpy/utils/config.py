@@ -71,7 +71,6 @@ config['temporal']['duration_value'] = parser.getfloat(
 config['temporal']['active'] = parser.get('temporal', 'active')
 config['temporal']['is_active'] = parser.getboolean('temporal', 'is_active')
 config['temporal']['unit'] = parser.get('temporal', 'unit')
-
 config['temporal']['begin_synonyms'] = parser.get(
     'temporal', 'begin_synonyms').split(", ")
 config['temporal']['end_synonyms'] = parser.get(
@@ -81,6 +80,7 @@ config['temporal']['timestamp_synonyms'] = parser.get(
 config['temporal']['duration_synonyms'] = parser.get(
     'temporal', 'duration_synonyms').split(", ")
 
+config['MOGen']['paths_per_chunk'] = parser.getint('MOGen', 'paths_per_chunk')
 
 # =============================================================================
 # eof

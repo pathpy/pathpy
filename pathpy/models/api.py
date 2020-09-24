@@ -12,6 +12,7 @@
 # pylint: disable=unused-import
 
 from pathpy.models.temporal_network import TemporalNetwork
+from pathpy.models.MOGen import MOGen, MultiOrderMatrix
 
 from pathpy.models.directed_acyclic_graph import DirectedAcyclicGraph
 
