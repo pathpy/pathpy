@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : attributes.py -- Class for pathpy attributes
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-04-16 08:06 juergen>
+# Time-stamp: <Thu 2020-09-03 20:44 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -205,7 +205,7 @@ class TemporalAttributes(Attributes):
 
         # check if how the time variable is called
         if time is None:
-            self.time = config['temporal']['time']
+            self.time = config['temporal']['timestamp']
         else:
             self.time = time
 
@@ -229,10 +229,10 @@ class TemporalAttributes(Attributes):
 
         self.temporal = False
 
-        self.keys = {'start': 'start',
-                     'end': 'end',
-                     'duration': 'duration',
-                     'time': 'time',
+        self.keys = {'start': 'xxxbegin',
+                     'end': 'xxxend',
+                     'duration': 'xxxduration',
+                     'time': config['temporal']['timestamp'],
                      'active': 'active',
                      'status': 'status'}
 
@@ -348,24 +348,24 @@ class TemporalAttributes(Attributes):
     def _check_time(self, time):
         """Check the time format and return pd datetime."""
 
-        # check if time is given in a numeric format
-        if isinstance(time, (int, float)):
-            _time = pd.to_datetime(time, unit=self.unit)
+        # # check if time is given in a numeric format
+        # if isinstance(time, (int, float)):
+        #     _time = pd.to_datetime(time, unit=self.unit)
 
-        # check if time is given as a string
-        elif isinstance(time, str):
-            _time = pd.to_datetime(time)
+        # # check if time is given as a string
+        # elif isinstance(time, str):
+        #     _time = pd.to_datetime(time)
 
-        # check if time is given as a pandas datetime
-        elif isinstance(time, pd.Timestamp):
-            _time = time
+        # # check if time is given as a pandas datetime
+        # elif isinstance(time, pd.Timestamp):
+        #     _time = time
 
-        # otherwise raise error
-        else:
-            log.error('Time "{}" is not in a correct format'.format(time))
-            raise ValueError
+        # # otherwise raise error
+        # else:
+        #     log.error('Time "{}" is not in a correct format'.format(time))
+        #     raise ValueError
 
-        return _time
+        return time
 
     def to_frame(self, history: bool = False):
         """Convert the attributes to a pandas DataFrame"""

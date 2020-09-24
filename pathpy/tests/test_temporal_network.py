@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_temporal_network.py -- Test environment for temp networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-07-07 13:16 juergen>
+# Time-stamp: <Tue 2020-07-14 08:20 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -33,25 +33,25 @@ def test_temporal_network():
     style['animation_steps'] = 100
     style['animation_speed'] = 20
 
-    tn.plot('temp_net.html', **style)
-    tn.add_edge('b', 'c', uid='b-c', begin=10, end=15, duration=3)
+# tn.plot('temp_net.html', **style)
+# tn.add_edge('b', 'c', uid='b-c', begin=10, end=15, duration=3)
 
-    # print(tn.edges['a-b'].attributes)
+# print(tn.edges['a-b'].attributes)
 
-    # print(tn.edges._intervals)
-    # print(tn.edges._temporal_map)
-    # for k, d, b, e in tn.edges.items(temporal=True):
-    #     print(e)
+# print(tn.edges._intervals)
+# print(tn.edges._temporal_map)
+# for k, d, b, e in tn.edges.items(temporal=True):
+#     print(e)
 
-    # print(tn.edges[0:30]._intervals)
+# print(tn.edges[0:30]._intervals)
 
-    # print(tn.edges.slice(3, 7))
-    # print(tn.edges.begin(finite=True))
-    # print(tn.edges.end(finite=True))
-    # tn.edges['a-b',1]
-    # tn.edges[]
-    # print(tn.edges.items(temporal=False))
-    # print(tn.edges)
+# print(tn.edges.slice(3, 7))
+# print(tn.edges.begin(finite=True))
+# print(tn.edges.end(finite=True))
+# tn.edges['a-b',1]
+# tn.edges[]
+# print(tn.edges.items(temporal=False))
+# print(tn.edges)
 
 
 # =============================================================================

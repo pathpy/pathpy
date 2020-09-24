@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : models.py -- ABC constructures for the models
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-06-29 15:28 juergen>
+# Time-stamp: <Wed 2020-09-02 13:16 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -13,6 +13,10 @@ class ABCTemporalNetwork():
 
 
 class ABCHigherOrderNetwork():
+    """Abstract class for a higher-order network"""
+
+
+class ABCDirectedAcyclicGraph():
     """Abstract class for a higher-order network"""
 
 # =============================================================================

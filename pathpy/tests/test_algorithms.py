@@ -3,13 +3,13 @@
 # =============================================================================
 # File      : test_algorithms.py -- Test environment for basic algorithms
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-05-14 15:44 juergen>
+# Time-stamp: <Sun 2020-09-06 12:52 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 
 import pytest
-from pathpy import Network
+from pathpy import Network, PathCollection, HigherOrderNetwork, NullModel
 import pathpy as pp
 
 
@@ -98,7 +98,7 @@ def test_avg_path_length():
     assert pp.algorithms.shortest_paths.avg_path_length(net) == 8/6
 
 
-def test_betweenness_centrality(net):
+def test_betweenness_centrality_network(net):
     """Test the betweenness centrality of a network."""
     net = pp.Network(directed=False)
     net.add_edge('a', 'x')
@@ -109,6 +109,31 @@ def test_betweenness_centrality(net):
     # print(net.adjacency_matrix().todense())
     # c = pp.algorithms.centralities.betweenness_centrality(net)
     # print(c['b'])
+
+
+def test_betweenness_centrality_hon():
+    """Test the betweenness centrality of a hon."""
+
+    paths = PathCollection()
+    paths.add('a', 'c', 'd', 'b', uid='acd', frequency=10)
+    paths.add('b', 'c', 'e', 'b', uid='bce', frequency=10)
+
+    hon = HigherOrderNetwork.from_paths(paths, order=2)
+
+    bc = hon.betweenness_centrality()
+    assert bc['c'] == 4
+
+
+def test_betweenness_centrality_paths():
+    """Test the betweenness centrality of paths."""
+
+    paths = PathCollection()
+    paths.add('a', 'c', 'd', 'b', uid='acd', frequency=10)
+    paths.add('b', 'c', 'e', 'b', uid='bce', frequency=10)
+
+    bc = pp.algorithms.betweenness_centrality(paths)
+
+    assert bc['c'] == 3
 
 
 def test_closeness_centrality():

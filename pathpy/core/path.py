@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-06-29 17:59 juergen>
+# Time-stamp: <Mon 2020-09-07 14:04 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -16,6 +16,7 @@ from pathpy import logger
 from pathpy.core.base import BasePath, BaseCollection
 from pathpy.core.node import Node, NodeCollection
 from pathpy.core.edge import Edge, EdgeCollection
+import pathpy.io
 
 # create logger for the Path class
 LOG = logger(__name__)
@@ -339,6 +340,8 @@ class PathCollection(BaseCollection):
     """A collection of paths"""
     # pylint: disable=too-many-instance-attributes
 
+    # read_csv = pathpy.io.read_pathcollection_csv
+
     def __init__(self, directed: bool = True,
                  multiedges: bool = False,
                  multipaths: bool = False,
@@ -361,8 +364,11 @@ class PathCollection(BaseCollection):
 
         # collection of nodes
         self._nodes: NodeCollection = NodeCollection()
+
         if nodes is not None:
             self._nodes = nodes
+        elif nodes is None and edges is not None:
+            self._nodes = edges.nodes
 
         # collection of edges
         self._edges: EdgeCollection = EdgeCollection(directed=directed,
@@ -507,8 +513,7 @@ class PathCollection(BaseCollection):
 
             else:
                 # raise error if path already exists
-                LOG.error('The path "%s" already exists.', _path.uid)
-                raise KeyError
+                self._if_exist(_path, **kwargs)
 
         elif len(path) == 1 and isinstance(path[0], (tuple, list)):
             self._add_path(*path[0], uid=uid, nodes=nodes, **kwargs)
@@ -552,8 +557,7 @@ class PathCollection(BaseCollection):
             self._add_path(self._path_class(*_path, uid=uid, **kwargs))
         else:
             # raise error if node already exists
-            LOG.error('The path "%s" already exists.', _path)
-            raise KeyError
+            self._if_exist(_path, **kwargs)
 
     def _add_path_from_edges(self, *edges: Union[str, Edge],
                              uid: Optional[str] = None, **kwargs: Any) -> None:
@@ -572,8 +576,7 @@ class PathCollection(BaseCollection):
             self._add_path(self._path_class(*_path, uid=uid, **kwargs))
         else:
             # raise error if node already exists
-            LOG.error('The path "%s" already exists.', _path)
-            raise KeyError
+            self._if_exist(_path, **kwargs)
 
     def _add(self, path: Path) -> None:
         """Add a node to the set of nodes."""
@@ -582,6 +585,13 @@ class PathCollection(BaseCollection):
         _edges = tuple(_e.uid for _e in path.edges)
         self._nodes_map[_nodes].add(path)
         self._edges_map[_edges].add(path)
+
+    def _if_exist(self, path: Any, **kwargs: Any) -> None:
+        """Helper function if the path does already exsist."""
+        # pylint: disable=no-self-use
+        # pylint: disable=unused-argument
+        LOG.error('The path "%s" already exists in the Network', path)
+        raise KeyError
 
     def remove(self, *paths: Union[str, tuple, list, Node, Edge, Path],
                **kwargs: Any) -> None:
@@ -644,7 +654,6 @@ class PathCollection(BaseCollection):
 
         if len(self._edges_map[_edges]) == 0:
             self._edges_map.pop(_edges, None)
-
 
 # =============================================================================
 # eof

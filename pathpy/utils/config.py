@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : config.py -- Module to read and parse configuration files
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-07-07 13:08 juergen>
+# Time-stamp: <Fri 2020-08-21 18:01 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -71,6 +71,14 @@ config['temporal']['duration_value'] = parser.getfloat(
 config['temporal']['active'] = parser.get('temporal', 'active')
 config['temporal']['is_active'] = parser.getboolean('temporal', 'is_active')
 config['temporal']['unit'] = parser.get('temporal', 'unit')
+config['temporal']['begin_synonyms'] = parser.get(
+    'temporal', 'begin_synonyms').split(", ")
+config['temporal']['end_synonyms'] = parser.get(
+    'temporal', 'end_synonyms').split(", ")
+config['temporal']['timestamp_synonyms'] = parser.get(
+    'temporal', 'timestamp_synonyms').split(", ")
+config['temporal']['duration_synonyms'] = parser.get(
+    'temporal', 'duration_synonyms').split(", ")
 
 config['MOGen']['paths_per_chunk'] = parser.getint('MOGen', 'paths_per_chunk')
 

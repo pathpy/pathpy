@@ -4,13 +4,13 @@
 # =============================================================================
 # File      : __init__.py -- pathpy init file
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-05-22 15:38 juergen>
+# Time-stamp: <Thu 2020-09-17 08:33 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 # flake8: noqa
 # pylint: disable=unused-import
-__version__ = '3.0.0a1'
+__version__ = '3.0.0a2'
 
 # import os
 import sys
@@ -24,12 +24,19 @@ from pathpy.utils.progress import tqdm  # noqa: F401
 # import symbols into root namespace
 from pathpy.core.api import (Node,
                              Edge,
+                             HyperEdge,
                              Path,
+                             PathCollection,
                              Network,
-                             # HigherOrderNode,
-                             # HigherOrderEdge,
-                             # HigherOrderNetwork,
                              )
+
+
+from pathpy.models.api import (TemporalNetwork,
+                               DirectedAcyclicGraph,
+                               HigherOrderNetwork,
+                               NullModel,
+                               MultiOrderModel
+                               )
 
 from pathpy.visualisations.api import (plot,
                                        layout)
@@ -42,6 +49,7 @@ from pathpy.models.api import (MOGen)
 
 # import submodules
 from pathpy import io
+from pathpy import converters
 from pathpy import algorithms
 from pathpy import statistics
 from pathpy import processes
@@ -65,13 +73,18 @@ LOG = logger(__name__)
 # check in which environment pathpy is running
 try:
     from IPython import get_ipython  # noqa: F401
-    if 'IPKernelApp' not in get_ipython().config:  # pragma: no cover
-        ImportError("console")
-except AttributeError:
+except ModuleNotFoundError:
     config['environment']['IDE'] = 'console'
     config['environment']['interactive'] = False
 else:
-    config['environment']['interactive'] = True
+    try:
+        if 'IPKernelApp' not in get_ipython().config:  # pragma: no cover
+            ImportError("console")
+    except AttributeError:
+        config['environment']['IDE'] = 'console'
+        config['environment']['interactive'] = False
+    else:
+        config['environment']['interactive'] = True
 
     # NOTE: Currently this is not working
     # https://github.com/tqdm/tqdm/issues/747
@@ -88,7 +101,7 @@ LOG.debug('platform is %s', sys.platform)
 LOG.debug('pathpy runs in a %s environment', config['environment']['IDE'])
 
 if config['environment']['IDE'] == 'vs code':
-    html = """
+    _html = """
     <script charset="utf-8">
     // Load via requireJS if available (jupyter notebook environment)
     try {
@@ -109,9 +122,11 @@ if config['environment']['IDE'] == 'vs code':
     </script>
     """
 
-    from IPython.display import display, HTML
-    display(HTML(html))
-
+    try:
+        from IPython.display import display, HTML
+        display(HTML(_html))
+    except ImportError:
+        pass
 # =============================================================================
 # eof
 #

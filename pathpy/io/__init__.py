@@ -4,22 +4,21 @@
 # =============================================================================
 # File      : __init__.py -- Initialize the basic classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-04-20 11:46 juergen>
+# Time-stamp: <Sat 2020-08-22 17:55 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 # flake8: noqa
 # pylint: disable=unused-import
 
-from pathpy.io.io import (read_csv,
-                          from_dataframe,
-                          read_sql,
-                          write_csv,
-                          to_dataframe,
-                          write_sql,
-                          read_konect_file,
-                          read_konect_name,
-                          read_graphml)
+
+from pathpy.io import sql
+from pathpy.io import csv
+from pathpy.io import konect
+from pathpy.io import graphml
+from pathpy.io.io import (to_dataframe,
+                          to_network,
+                          to_temporal_network)
 
 # =============================================================================
 # eof

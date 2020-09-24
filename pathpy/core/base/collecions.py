@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : containers.py -- Base containers for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-05-14 15:00 juergen>
+# Time-stamp: <Wed 2020-07-08 04:22 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -31,6 +31,10 @@ class BaseCollection:
     def __str__(self) -> str:
         """Print the BaseContainer object"""
         return set(self._map.values()).__str__()
+
+    def __eq__(self, other) -> bool:
+        """Return if two collections are equal"""
+        return self._map == other._map
 
     def __contains__(self, item: Any) -> bool:
         """Returns if item is in nodes."""
