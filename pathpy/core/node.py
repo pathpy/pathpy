@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : node.py -- Base class for a single node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sun 2020-09-06 10:44 juergen>
+# Time-stamp: <Sun 2020-10-04 12:46 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -13,7 +13,8 @@ from typing import Any, Optional, Union, Set
 from singledispatchmethod import singledispatchmethod
 
 from pathpy import logger
-from pathpy.core.base import BaseNode, BaseCollection
+from pathpy.core.classes import BaseNode
+from pathpy.core.collecions import BaseCollection
 
 # create logger for the Node class
 LOG = logger(__name__)
@@ -114,9 +115,6 @@ class Node(BaseNode):
 
         # initialize the base class
         super().__init__(uid=uid, **kwargs)
-
-        # add attributes to the node
-        self.attributes.update(uid=self.uid, **kwargs)
 
     @property
     def uid(self) -> str:

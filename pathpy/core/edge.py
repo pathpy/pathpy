@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an single edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-09-02 13:38 juergen>
+# Time-stamp: <Sun 2020-10-04 15:01 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -14,7 +14,8 @@ from collections import defaultdict
 from singledispatchmethod import singledispatchmethod
 
 from pathpy import logger
-from pathpy.core.base import BaseEdge, BaseCollection
+from pathpy.core.classes import BaseEdge
+from pathpy.core.collecions import BaseCollection
 from pathpy.core.node import Node, NodeSet, NodeCollection
 
 # create logger for the Edge class
@@ -209,9 +210,6 @@ class Edge(BaseEdge):
 
         # a set containing node objects
         self._nodes: set = set()
-
-        # add attributes to the edge
-        self.attributes.update(**kwargs)
 
         # check nodes
         if not isinstance(v, Node) or not isinstance(w, Node):
@@ -537,6 +535,9 @@ class EdgeCollection(BaseCollection):
         if self._hyperedges:
             self._edge_class = HyperEdge
 
+        self._added: set = set()
+        self._removed: set = set()
+
     @singledispatchmethod
     def __contains__(self, item) -> bool:
         """Returns if item is in edges."""
@@ -612,6 +613,11 @@ class EdgeCollection(BaseCollection):
         else:
             edge = self._map[key]
         return edge
+
+    def __lshift__(self, edge: Edge) -> None:
+        """Quick assigment of the edge"""
+        self[edge.uid] = edge
+        self._added.add(edge)
 
     @property
     def nodes(self) -> NodeCollection:
@@ -756,6 +762,51 @@ class EdgeCollection(BaseCollection):
         # pylint: disable=unused-argument
         LOG.error('The edge "%s" already exists in the Network', edge)
         raise KeyError
+
+    def update_index(self):
+        """Update the index structure of the EdgeCollection."""
+        for edge in list(self._added):
+            _v: Any = edge.v
+            _w: Any = edge.w
+
+            if isinstance(edge, HyperEdge):
+                _v = frozenset(edge.v.values())
+                _w = frozenset(edge.w.values())
+
+            self._nodes_map[(_v, _w)].add(edge)
+            if not self.directed:
+                self._nodes_map[(_w, _v)].add(edge)
+
+            self._node_map[_v].add(edge)
+            self._node_map[_w].add(edge)
+
+            self._added.discard(edge)
+
+        for edge in list(self._removed):
+
+            _v = edge.v
+            _w = edge.w
+
+            if isinstance(edge, HyperEdge):
+                _v = frozenset(edge.v.values())
+                _w = frozenset(edge.w.values())
+
+            self._nodes_map[(_v, _w)].discard(edge)
+
+            if not self.directed:
+                self._nodes_map[(_w, _v)].discard(edge)
+
+            self._node_map[_v].discard(edge)
+            self._node_map[_w].discard(edge)
+
+            for _a, _b in [(_v, _w), (_w, _v)]:
+                if len(self._nodes_map[(_a, _b)]) == 0:
+                    self._nodes_map.pop((_a, _b), None)
+
+                if len(self._node_map[_a]) == 0:
+                    self._node_map.pop(_a, None)
+
+            self._removed.discard(edge)
 
     def _add(self, edge: Edge) -> None:
         """Add an edge to the set of edges."""

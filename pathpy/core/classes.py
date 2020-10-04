@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : classes.py -- Base classes for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-09-25 11:01 juergen>
+# Time-stamp: <Sun 2020-10-04 12:55 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -17,14 +17,11 @@ class BaseClass:
 
     def __init__(self, uid: Optional[str] = None, **kwargs: Any) -> None:
         """Initialize the base class."""
-        # pylint: disable=unused-argument
-
-        # initialize attributes
-        self.attributes: dict = {}
 
         # declare variable
         self._uid: str
         self._is_python_uid: bool
+        self.attributes: dict
 
         # assign node identifier
         if uid is not None:
@@ -33,6 +30,14 @@ class BaseClass:
         else:
             self._uid = hex(id(self))
             self._is_python_uid = True
+
+        # update attributes if given
+        if kwargs:
+            self.attributes = kwargs  # .update(**kwargs)
+
+        else:
+            # initialize attributes
+            self.attributes = {}
 
     def __setitem__(self, key: Any, value: Any) -> None:
         """Add a specific attribute to the object.
@@ -97,7 +102,7 @@ class BaseClass:
         'blue'
 
         """
-        return self.attributes[key]
+        return self.attributes.get(key, None)
 
     def __eq__(self, other: object) -> bool:
         """Returns True if two objects are equal, otherwise False."""
@@ -296,10 +301,6 @@ class BaseClass:
         else:
             value = float(self.attributes.get('weight', default))
         return value
-
-
-class BaseCollection(BaseClass):
-    """Base class for collecting objects"""
 
 
 class BaseNode(BaseClass):
