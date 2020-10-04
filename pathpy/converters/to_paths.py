@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : to_paths.py -- Converte classes to paths
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sat 2020-09-05 20:51 juergen>
+# Time-stamp: <Sun 2020-10-04 09:26 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -53,11 +53,24 @@ def _dag(self, **kwargs):
 
 
 @to_path_collection.register(ABCTemporalNetwork)
-def _temp(self, **kwargs):
+def _temp(self, mode='dag', **kwargs):
     """Convert a temproal netwok to paths."""
+    if mode == 'dag':
+        paths = _temp_dag(self, **kwargs)
+    elif mode == 'paco':
+        # paths = _temp_paco(self,**kwargs)
+        raise NotImplementedError
+    else:
+        raise NotImplementedError
+
+    return paths
+
+
+def _temp_dag(self, **kwargs):
+    """Helper function to generate paths from TempNets via DAGs."""
     from pathpy.models.directed_acyclic_graph import DirectedAcyclicGraph
 
-    #paths = PathCollection(edges=self.edges.copy())
+    # paths = PathCollection(edges=self.edges.copy())
     paths = PathCollection()
 
     delta = kwargs.get('delta', 1)
