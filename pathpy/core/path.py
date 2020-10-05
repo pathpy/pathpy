@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-09-07 14:04 juergen>
+# Time-stamp: <Mon 2020-10-05 08:45 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -13,10 +13,10 @@ from typing import Any, Optional, Union, cast
 from collections import defaultdict
 
 from pathpy import logger
-from pathpy.core.base import BasePath, BaseCollection
+from pathpy.core.classes import BasePath
+from pathpy.core.collecions import BaseCollection
 from pathpy.core.node import Node, NodeCollection
 from pathpy.core.edge import Edge, EdgeCollection
-import pathpy.io
 
 # create logger for the Path class
 LOG = logger(__name__)
@@ -37,9 +37,6 @@ class Path(BasePath):
 
         # start node of the path
         self._start: Node
-
-        # add attributes to the path
-        self.attributes.update(**kwargs)
 
         # only the start node is given
         if len(args) == 1 and isinstance(args[0], Node):
@@ -392,6 +389,9 @@ class PathCollection(BaseCollection):
         # class of objects
         self._path_class: Any = Path
 
+        self._added: set = set()
+        self._removed: set = set()
+
     def __contains__(self, item) -> bool:
         """Returns if item is in path."""
         _contain: bool = False
@@ -433,9 +433,9 @@ class PathCollection(BaseCollection):
                 try:
                     paths = self._edges_map[
                         tuple(cast(Edge, self.edges[i]).uid for i in key)]
-                except KeyError:
+                except KeyError as edges_not_exist:
                     LOG.error('No path with the given sequence available!')
-                    raise KeyError
+                    raise KeyError from edges_not_exist
 
             if self.multipaths:
                 path = paths
@@ -447,6 +447,16 @@ class PathCollection(BaseCollection):
         else:
             path = self._map[key]
         return path
+
+    def __lshift__(self, path: Path) -> None:
+        """Quick assigment of a path"""
+        self[path.uid] = path
+        self._added.add(path)
+
+    def __rshift__(self, path: Path) -> None:
+        """Quick removal of an edge"""
+        self.pop(path.uid, None)
+        self._removed.add(path)
 
     @property
     def nodes(self) -> NodeCollection:

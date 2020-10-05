@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : __init__.py -- pathpy init file
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sun 2020-10-04 13:33 juergen>
+# Time-stamp: <Mon 2020-10-05 08:48 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -23,9 +23,9 @@ from pathpy.utils.progress import tqdm  # noqa: F401
 
 # import symbols into root namespace
 from pathpy.core.api import (Node,
-                             Edge,)
+                             Edge,
+                             Path,)
 #                              HyperEdge,
-#                              Path,
 #                              PathCollection,
 #                              Network,
 #                              )
