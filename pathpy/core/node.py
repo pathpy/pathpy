@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : node.py -- Base class for a single node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sun 2020-10-04 12:46 juergen>
+# Time-stamp: <Mon 2020-10-05 08:15 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -236,8 +236,12 @@ class NodeCollection(BaseCollection):
         return _node
 
     def __lshift__(self, node: Node) -> None:
-        """Quick assigment of the node"""
+        """Quick assigment of a node"""
         self[node.uid] = node
+
+    def __rshift__(self, node: Node) -> None:
+        """Quick removal of a node"""
+        self.pop(node.uid, None)
 
     @singledispatchmethod
     def add(self, *node, **kwargs: Any) -> None:
@@ -289,7 +293,12 @@ class NodeCollection(BaseCollection):
             self.add(_n, **kwargs)
 
     def _add(self, node: Node) -> None:
+        """Helper function to add a node to the set of nodes."""
         self[node.uid] = node
+
+    def _remove(self, node: Node) -> None:
+        """Helper function to remove a node from the set of nodes."""
+        self.pop(node.uid, None)
 
     @singledispatchmethod
     def remove(self, *nodes: Union[str, Node, tuple, list], **kwargs) -> None:

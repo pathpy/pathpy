@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an single edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sun 2020-10-04 15:01 juergen>
+# Time-stamp: <Mon 2020-10-05 08:13 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -305,6 +305,7 @@ class Edge(BaseEdge):
         Node v
 
         """
+        # pylint: disable=invalid-name
         return self._v
 
     @property
@@ -327,6 +328,7 @@ class Edge(BaseEdge):
         Node w
 
         """
+        # pylint: disable=invalid-name
         return self._w
 
     def summary(self) -> str:
@@ -428,12 +430,14 @@ class HyperEdge(BaseEdge):
     def v(self) -> NodeSet:
         """Return the source node v of the edge.
         """
+        # pylint: disable=invalid-name
         return self._v
 
     @property
     def w(self) -> NodeSet:
         """Return the target node w of the edge.
         """
+        # pylint: disable=invalid-name
         return self._w
 
     def summary(self) -> str:
@@ -500,6 +504,7 @@ class EdgeSet(BaseCollection):
 
 class EdgeCollection(BaseCollection):
     """A collection of edges"""
+    # pylint: disable=too-many-instance-attributes
 
     def __init__(self, directed: bool = True,
                  multiedges: bool = False,
@@ -584,18 +589,20 @@ class EdgeCollection(BaseCollection):
 
         return _contain
 
-    def __getitem__(self,
-                    key: Union[str, tuple, Edge]) -> Union[Edge, EdgeSet, EdgeCollection]:
+    def __getitem__(self, key: Union[str, tuple, Edge]
+                    ) -> Union[Edge, EdgeSet, EdgeCollection]:
         """Returns a node object."""
 
-        if isinstance(key, tuple) and all([isinstance(i, (str, Node)) for i in key]):
+        if (isinstance(key, tuple)
+                and all([isinstance(i, (str, Node)) for i in key])):
             _node = tuple(self.nodes[i] for i in key)
             if self.multiedges:
                 edge = self._nodes_map[_node]
             else:
                 edge = self._nodes_map[_node][-1]
 
-        elif isinstance(key, tuple) and all([isinstance(i, set) for i in key]):
+        elif (isinstance(key, tuple)
+              and all([isinstance(i, set) for i in key])):
             _nodes: list = []
             for i, nodes in enumerate(key):
                 _nodes.append(set())
@@ -615,9 +622,14 @@ class EdgeCollection(BaseCollection):
         return edge
 
     def __lshift__(self, edge: Edge) -> None:
-        """Quick assigment of the edge"""
+        """Quick assigment of an edge"""
         self[edge.uid] = edge
         self._added.add(edge)
+
+    def __rshift__(self, edge: Edge) -> None:
+        """Quick removal of an edge"""
+        self.pop(edge.uid, None)
+        self._removed.add(edge)
 
     @property
     def nodes(self) -> NodeCollection:
@@ -810,21 +822,14 @@ class EdgeCollection(BaseCollection):
 
     def _add(self, edge: Edge) -> None:
         """Add an edge to the set of edges."""
+        # add edge to the dict
         self[edge.uid] = edge
 
-        _v: Any = edge.v
-        _w: Any = edge.w
+        # store new added edge
+        self._added.add(edge)
 
-        if isinstance(edge, HyperEdge):
-            _v = frozenset(edge.v.values())
-            _w = frozenset(edge.w.values())
-
-        self._nodes_map[(_v, _w)].add(edge)
-        if not self.directed:
-            self._nodes_map[(_w, _v)].add(edge)
-
-        self._node_map[_v].add(edge)
-        self._node_map[_w].add(edge)
+        # update the index structure
+        self.update_index()
 
     @singledispatchmethod
     def remove(self, *edge, **kwargs: Any) -> None:
@@ -905,29 +910,14 @@ class EdgeCollection(BaseCollection):
 
     def _remove(self, edge: Edge) -> None:
         """Remove an edge from the set of edges."""
+        # remove edge from the dict
         self.pop(edge.uid, None)
 
-        _v = edge.v
-        _w = edge.w
+        # store removed edge
+        self._removed.add(edge)
 
-        if isinstance(edge, HyperEdge):
-            _v = frozenset(edge.v.values())
-            _w = frozenset(edge.w.values())
-
-        self._nodes_map[(_v, _w)].discard(edge)
-
-        if not self.directed:
-            self._nodes_map[(_w, _v)].discard(edge)
-
-        self._node_map[_v].discard(edge)
-        self._node_map[_w].discard(edge)
-
-        for _a, _b in [(_v, _w), (_w, _v)]:
-            if len(self._nodes_map[(_a, _b)]) == 0:
-                self._nodes_map.pop((_a, _b), None)
-
-            if len(self._node_map[_a]) == 0:
-                self._node_map.pop(_a, None)
+        # update the index structure
+        self.update_index()
 
     def copy(self, nodes: Optional[NodeCollection] = None) -> EdgeCollection:
         """Return a new copy of the edge collection."""
