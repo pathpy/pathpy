@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : classes.py -- Base classes for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sun 2020-10-04 12:55 juergen>
+# Time-stamp: <Mon 2020-10-05 13:26 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -104,10 +104,6 @@ class BaseClass:
         """
         return self.attributes.get(key, None)
 
-    def __eq__(self, other: object) -> bool:
-        """Returns True if two objects are equal, otherwise False."""
-        return self.__hash__() == other.__hash__()
-
     def __repr__(self) -> str:
         """Return the description of the object.
 
@@ -140,14 +136,6 @@ class BaseClass:
             string = '{} {}'.format(self.__class__.__name__, self.uid)
 
         return string
-
-    def __hash__(self) -> Any:
-        """Returns the unique hash of the object.
-
-        Here the hash value is defined by the unique node id!
-
-        """
-        return hash(id(self))
 
     @property
     def uid(self) -> str:
