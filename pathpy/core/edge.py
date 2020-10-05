@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an single edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-10-05 08:13 juergen>
+# Time-stamp: <Mon 2020-10-05 14:30 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -661,6 +661,10 @@ class EdgeCollection(BaseCollection):
     @add.register(HyperEdge)  # type: ignore
     def _(self, *edge: Edge, **kwargs: Any) -> None:
 
+        if not kwargs.pop('checking', True):
+            self._add(edge[0], indexing=kwargs.pop('indexing', True))
+            return
+
         # check if more then one edge is given raise an AttributeError
         if len(edge) != 1:
             LOG.error('More then one edge was given.')
@@ -820,7 +824,7 @@ class EdgeCollection(BaseCollection):
 
             self._removed.discard(edge)
 
-    def _add(self, edge: Edge) -> None:
+    def _add(self, edge: Edge, indexing: bool = True) -> None:
         """Add an edge to the set of edges."""
         # add edge to the dict
         self[edge.uid] = edge
@@ -829,7 +833,8 @@ class EdgeCollection(BaseCollection):
         self._added.add(edge)
 
         # update the index structure
-        self.update_index()
+        if indexing:
+            self.update_index()
 
     @singledispatchmethod
     def remove(self, *edge, **kwargs: Any) -> None:
@@ -840,6 +845,11 @@ class EdgeCollection(BaseCollection):
     @remove.register(HyperEdge)  # type: ignore
     def _(self, *edge: Edge, **kwargs: Any) -> None:
         # pylint: disable=unused-argument
+
+        if not kwargs.pop('checking', True):
+            self._remove(edge[0], indexing=kwargs.pop('indexing', True))
+            return
+
         if edge[0] in self:
             self._remove(edge[0])
 
@@ -908,7 +918,7 @@ class EdgeCollection(BaseCollection):
         else:
             LOG.warning('No edge was removed!')
 
-    def _remove(self, edge: Edge) -> None:
+    def _remove(self, edge: Edge, indexing: bool = True) -> None:
         """Remove an edge from the set of edges."""
         # remove edge from the dict
         self.pop(edge.uid, None)
@@ -917,7 +927,8 @@ class EdgeCollection(BaseCollection):
         self._removed.add(edge)
 
         # update the index structure
-        self.update_index()
+        if indexing:
+            self.update_index()
 
     def copy(self, nodes: Optional[NodeCollection] = None) -> EdgeCollection:
         """Return a new copy of the edge collection."""
