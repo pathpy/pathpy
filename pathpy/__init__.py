@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : __init__.py -- pathpy init file
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-10-05 08:48 juergen>
+# Time-stamp: <Mon 2020-10-05 09:05 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -31,7 +31,8 @@ from pathpy.core.api import (Node,
 #                              )
 
 
-# from pathpy.models.api import (TemporalNetwork,
+from pathpy.models.api import (Network,)
+#                                TemporalNetwork,
 #                                DirectedAcyclicGraph,
 #                                HigherOrderNetwork,
 #                                NullModel,
