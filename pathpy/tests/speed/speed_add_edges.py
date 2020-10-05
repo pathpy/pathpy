@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : speed_node.py -- Test environment for the Node class performance
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-10-05 08:27 juergen>
+# Time-stamp: <Mon 2020-10-05 13:25 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -23,7 +23,7 @@ def add_edges(pathpy=True, edges=[], indexing=True):
 
     if pathpy and indexing:
         for edge in edges:
-            # ec.add(edge) # Too slow (> 1000)
+            # ec.add(edge)  # Too slow (> 1000)
             ec._add(edge)  # add edge with index structure
         l = len(ec)
     elif pathpy and not indexing:
