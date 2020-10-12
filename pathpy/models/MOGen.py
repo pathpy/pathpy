@@ -16,13 +16,14 @@ import pandas as pd
 import multiprocessing
 from tqdm import tqdm
 import math
-from copy import copy
+from copy import deepcopy
 from scipy.sparse import dok_matrix, csr_matrix, eye, issparse
 from scipy.linalg import toeplitz
 from scipy.special import binom
 import scipy.sparse.linalg as sla
 import matplotlib.pyplot as plt
 from pathpy import logger, config, Network
+from sklearn import preprocessing
 
 # create logger
 LOG = logger(__name__)
@@ -83,9 +84,15 @@ class MultiOrderMatrix:
     def to_dataframe(self, decimals=None):
         idx = [self.id_node_dict[i] for i in range(self.matrix.shape[0])]
         if decimals:
-            matrix = np.round(self.matrix.todense(), decimals)
+            if issparse(self.matrix):
+                matrix = np.round(self.matrix.todense(), decimals)
+            else:
+                matrix = np.round(self.matrix, decimals)
         else:
-            matrix = self.matrix.todense()
+            if issparse(self.matrix):
+                matrix = self.matrix.todense()
+            else:
+                matrix = self.matrix
         return pd.DataFrame(matrix, index=idx, columns=idx)
     
     def _repr_html_(self):
@@ -289,8 +296,14 @@ class MOGen:
                                                        no_of_processes=multiprocessing.cpu_count(),
                                                        verbose=verbose)
         
-        T = copy(A)
-        T.matrix = T.matrix / T.matrix.sum(axis=1)[:, None]
+        
+        T = deepcopy(A)
+        T.matrix.dtype = float
+        for i, val in enumerate(np.nditer(T.matrix.sum(axis=1))):
+            if val > 0:
+                T.matrix[i] = np.divide(T.matrix[i],val)
+            elif val < 0:
+                raise Exception('Entries of A should be positive')
         
         return T
     
@@ -335,7 +348,7 @@ class MOGen:
         A = self.network.adjacency_matrix(weight=None)
                 
         # compute k
-        P = A.copy()
+        P = deepcopy(A)
         dof = A.shape[0] - 1 + P.sum()
         for i in range(1, order):
             P *= A
