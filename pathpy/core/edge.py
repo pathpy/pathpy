@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an single edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-10-05 14:30 juergen>
+# Time-stamp: <Fri 2021-02-26 15:40 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -394,7 +394,7 @@ class HyperEdge(BaseEdge):
             LOG.error('Nodes must be a set of Node objects!')
             raise TypeError
 
-        if not all([isinstance(n, Node) for n in v | w]):
+        if not all((isinstance(n, Node) for n in v | w)):
             LOG.error('All nodes must be Node objects!')
             raise TypeError
 
@@ -573,14 +573,14 @@ class EdgeCollection(BaseCollection):
         """Returns if item is in edges."""
         _contain: bool = False
 
-        if all([isinstance(i, set) for i in item]):
+        if all((isinstance(i, set) for i in item)):
             try:
                 if tuple(map(lambda x: frozenset({self.nodes[i] for i in x}),
                              item)) in self._nodes_map:
                     _contain = True
             except KeyError:
                 pass
-        elif all([isinstance(i, (str, Node)) for i in item]):
+        elif all((isinstance(i, (str, Node)) for i in item)):
             try:
                 if tuple(self.nodes[i] for i in item) in self._nodes_map:
                     _contain = True
@@ -594,7 +594,7 @@ class EdgeCollection(BaseCollection):
         """Returns a node object."""
 
         if (isinstance(key, tuple)
-                and all([isinstance(i, (str, Node)) for i in key])):
+                and all((isinstance(i, (str, Node)) for i in key))):
             _node = tuple(self.nodes[i] for i in key)
             if self.multiedges:
                 edge = self._nodes_map[_node]
@@ -602,7 +602,7 @@ class EdgeCollection(BaseCollection):
                 edge = self._nodes_map[_node][-1]
 
         elif (isinstance(key, tuple)
-              and all([isinstance(i, set) for i in key])):
+              and all((isinstance(i, set) for i in key))):
             _nodes: list = []
             for i, nodes in enumerate(key):
                 _nodes.append(set())

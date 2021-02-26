@@ -4,13 +4,13 @@
 # =============================================================================
 # File      : node.py -- Base class for a single node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-10-05 08:15 juergen>
+# Time-stamp: <Fri 2021-02-26 15:32 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
-from __future__ import annotations
+from __future__ import annotations  # NOTE: not needed for Python 3.8+
 from typing import Any, Optional, Union, Set
-from singledispatchmethod import singledispatchmethod
+from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
 
 from pathpy import logger
 from pathpy.core.classes import BaseNode
