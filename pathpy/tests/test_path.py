@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_path.py -- Test environment for the Path class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-07-14 16:10 juergen>
+# Time-stamp: <Mon 2021-03-29 13:23 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -23,6 +23,121 @@ def test_path():
     f = Edge(b, c)
 
     p = Path(e, f)
+
+
+def test_PathCollection_add_path():
+    """Add path to the path collection."""
+    a = Node('a')
+    b = Node('b')
+    c = Node('c')
+    e = Edge(a, b, uid='e')
+    f = Edge(b, c, uid='f')
+
+    p1 = Path(e, f, uid='p1')
+    p2 = Path(e, uid='p2')
+    p3 = Path(a, uid='p3')
+
+    paths = PathCollection()
+    paths.add(p1)
+
+    with pytest.raises(Exception):
+        paths.add(p1)
+
+    assert len(paths.nodes) == 3
+    assert len(paths.edges) == 2
+    assert len(paths) == 1
+    assert p1 in paths
+
+    paths = PathCollection()
+    paths.add(p1, p2)
+
+    assert p1 in paths
+    assert p2 in paths
+
+
+def test_PathCollection_add_edges():
+    """Add edge path to the path collection."""
+    a = Node('a')
+    b = Node('b')
+    c = Node('c')
+    e = Edge(a, b, uid='e')
+    f = Edge(b, c, uid='f')
+
+    paths = PathCollection()
+    paths.add(e, f, uid='p1')
+
+    assert len(paths.nodes) == 3
+    assert len(paths.edges) == 2
+    assert len(paths) == 1
+    assert 'p1' in paths
+
+    with pytest.raises(Exception):
+        paths.add(e, f, uid='p1')
+
+    with pytest.raises(Exception):
+        paths.add(e, f)
+
+
+def test_PathCollection_add_nodes():
+    """Add node path to the path collection."""
+    a = Node('a')
+    b = Node('b')
+    c = Node('c')
+
+    paths = PathCollection()
+    paths.add(a, b, c, uid='p1')
+
+    assert len(paths.nodes) == 3
+    assert len(paths.edges) == 2
+    assert len(paths) == 1
+    assert 'p1' in paths
+
+    with pytest.raises(Exception):
+        paths.add(a, b, c, uid='p1')
+
+    with pytest.raises(Exception):
+        paths.add(a, b, c)
+
+
+def test_PathCollection_add_str():
+    """Add string path to the path collection."""
+
+    paths = PathCollection()
+    paths.add('a', 'b', 'c', uid='p1')
+
+    assert len(paths.nodes) == 3
+    assert len(paths.edges) == 2
+    assert len(paths) == 1
+    assert 'p1' in paths
+
+    with pytest.raises(Exception):
+        paths.add('a', 'b', 'c', uid='p1')
+
+    with pytest.raises(Exception):
+        paths.add('a', 'b', 'c')
+
+    paths = PathCollection()
+    paths.add('e1', 'e2', uid='p1', nodes=False)
+
+    assert len(paths) == 1
+    assert len(paths.edges) == 2
+    assert len(paths.nodes) == 3
+    assert 'p1' in paths
+    assert 'e1' and 'e2' in paths.edges
+
+
+def test_PathCollection_add_tuple():
+    """Add path tuple to the path collection."""
+
+    paths = PathCollection()
+    paths.add(('a', 'b'), ('a', 'b', 'c'))
+
+    assert len(paths.nodes) == 3
+    assert len(paths.edges) == 2
+    assert len(paths) == 2
+
+    with pytest.raises(Exception):
+        paths.add('a', 'b', 'c')
 
 
 def test_PathCollection():

@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an single edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-02-26 15:40 juergen>
+# Time-stamp: <Fri 2021-02-26 17:25 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -669,10 +669,13 @@ class EdgeCollection(BaseCollection):
         if len(edge) != 1:
             LOG.error('More then one edge was given.')
             raise AttributeError
+
+        # check if edge is an HyperEdge and hyper edges are enabled
         if isinstance(edge[0], HyperEdge) and not self.hyperedges:
             LOG.error('EdgeCollection cannot store HyperEdges! '
                       ' Please enable hyperedges!')
             raise AttributeError
+
         # get edge object
         _edge = edge[0]
 
@@ -739,6 +742,9 @@ class EdgeCollection(BaseCollection):
         # convert to set and add hyperedge
         elif len(edge) == 2 and self.hyperedges:
             self.add(set(edge[0]), set(edge[1]), **kwargs)
+        elif len(edge) > 1 and not self.hyperedges:
+            for _edge in edge:
+                self.add(_edge, **kwargs)
         else:
             LOG.error('The provided edge "%s" is of the wrong format!', edge)
             raise AttributeError

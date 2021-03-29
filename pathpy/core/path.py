@@ -4,13 +4,14 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-10-05 08:45 juergen>
+# Time-stamp: <Mon 2021-03-29 13:24 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
 from typing import Any, Optional, Union, cast
 from collections import defaultdict
+from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
 
 from pathpy import logger
 from pathpy.core.classes import BasePath
@@ -368,9 +369,11 @@ class PathCollection(BaseCollection):
             self._nodes = edges.nodes
 
         # collection of edges
-        self._edges: EdgeCollection = EdgeCollection(directed=directed,
-                                                     multiedges=multiedges,
-                                                     nodes=self._nodes)
+        self._edges: EdgeCollection = EdgeCollection(
+            directed=directed,
+            multiedges=multiedges,
+            nodes=self._nodes
+        )
         if edges is not None:
             self._edges = edges
 
@@ -483,112 +486,170 @@ class PathCollection(BaseCollection):
         """Return if edges are directed. """
         return self._multipaths
 
-    def add(self, *paths: Union[str, tuple, list, Node, Edge, Path],
-            **kwargs: Any) -> None:
+    @singledispatchmethod
+    def add(self, *path, **kwargs: Any) -> None:
         """Add multiple paths."""
+        raise NotImplementedError
 
-        uid: Optional[str] = kwargs.pop('uid', None)
-        nodes: bool = kwargs.pop('nodes', True)
+        # uid: Optional[str] = kwargs.pop('uid', None)
+        # nodes: bool = kwargs.pop('nodes', True)
 
-        if all(isinstance(arg, (str, Node, Edge))for arg in paths):
-            paths = tuple([paths])
+        # if all(isinstance(arg, (str, Node, Edge))for arg in paths):
+        #     paths = tuple([paths])
 
-        if isinstance(paths[0], list) and len(paths) == 1:
-            paths = tuple(paths[0])
+        # if isinstance(paths[0], list) and len(paths) == 1:
+        #     paths = tuple(paths[0])
 
-        for path in paths:
-            self._add_path(path, uid=uid, nodes=nodes, **kwargs)
+        # for path in paths:
+        #     self._add_path(path, uid=uid, nodes=nodes, **kwargs)
 
-    def _add_path(self, *path: Union[str, tuple, list, Node, Edge, Path],
-                  uid: Optional[str] = None, nodes: bool = True,
-                  **kwargs: Any) -> None:
-        """Add a single path."""
+    @add.register(Path)  # type: ignore
+    def _(self, *path: Path, **kwargs: Any) -> None:
 
-        if len(path) == 1 and isinstance(path[0], self._path_class):
-            _path = path[0]
-            # check if path exists already
-            if not self.contain(_path):
+        # if checking is disabed add path directly to the collection
+        if not kwargs.pop('checking', True):
+            self._add(path[0], indexing=kwargs.pop('indexing', True))
+            return
 
-                # if path is zero
-                if len(_path) == 0 and _path.start not in self.nodes:
-                    self.nodes.add(_path.start)
+        # check if more then one path is given raise an AttributeError
+        if len(path) != 1:
+            for _path in path:
+                self.add(_path)
+            return
 
-                # check if edges exists already
-                for edge in _path.edges:
-                    if edge not in self.edges:
-                        self.edges.add(edge)
+        # get path object
+        _path = path[0]
 
-                # add path to the paths
-                self._add(_path)
+        # update path attributes
+        _path.update(**kwargs)
 
-            else:
-                # raise error if path already exists
-                self._if_exist(_path, **kwargs)
+        # check if path already exists
+        if _path not in self and _path.uid not in self.keys():
 
-        elif len(path) == 1 and isinstance(path[0], (tuple, list)):
-            self._add_path(*path[0], uid=uid, nodes=nodes, **kwargs)
+            # if path has len zero add single node
+            if len(_path) == 0 and _path.start not in self.nodes:
+                self.nodes.add(_path.start)
 
-        elif all(isinstance(arg, (str, Node)) for arg in path) and nodes:
-            _nodes = [cast(Union[str, Node], node) for node in path]
-            self._add_path_from_nodes(*_nodes, uid=uid, **kwargs)
+            # check if edges exists already
+            for edge in _path.edges:
+                if edge not in self.edges:
+                    self.edges.add(edge)
 
-        elif (all(isinstance(arg, Edge) for arg in path) or
-              (all(isinstance(arg, (str, Edge)) for arg in path) and not nodes)):
-            _edges = [cast(Union[str, Edge], edge) for edge in path]
-            self._add_path_from_edges(*_edges, uid=uid, **kwargs)
-
-        # otherwise raise error
+            # add path to the paths
+            self._add(_path)
         else:
-            LOG.error('The provided path "%s" is of the wrong type!', path)
+            # raise error if path already exists
+            self._if_exist(_path, **kwargs)
+
+    @add.register(Edge)  # type: ignore
+    def _(self, *path: Edge, **kwargs: Any) -> None:
+
+        # get additional parameters
+        uid: Optional[str] = kwargs.pop('uid', None)
+
+        # check if all objects are edges
+        if not all(isinstance(arg, (Edge, str)) for arg in path):
+            LOG.error('All objects have to be Edge objects!')
             raise TypeError
 
-    def _add_path_from_nodes(self, *nodes: Union[str, Node],
-                             uid: Optional[str] = None, **kwargs: Any) -> None:
-        """Helper function to add a path from nodes."""
+        # generate edge list
+        _edges: list = []
+
+        # get edges
+        for edge in path:
+            if edge not in self.edges or self.multiedges:
+                self.edges.add(edge, nodes=False)
+            _edges.append(self.edges[edge])
+
+        # create path based on single objects
+        _path = _edges
+        if _path not in self or self.multipaths:
+            self.add(self._path_class(*_path, uid=uid, **kwargs))
+        else:
+            # raise error if path already exists
+            self._if_exist(_path, **kwargs)
+
+    @add.register(Node)  # type: ignore
+    def _(self, *path: Node, **kwargs: Any) -> None:
+
+        # get additional parameters
+        uid: Optional[str] = kwargs.pop('uid', None)
+
+        # check if all objects are nodes
+        if not all(isinstance(arg, Node) for arg in path):
+            LOG.error('All objects have to be Node objects!')
+            raise TypeError
+
+        # initialize temporal lists
         _nodes: list = []
         _edges: list = []
         _path: list = []
-        for node in nodes:
+
+        # get nodes
+        for node in path:
             if node not in self.nodes:
                 self.nodes.add(node)
             _nodes.append(self.nodes[node])
 
+        # get edges
         for edge in zip(_nodes[:-1], _nodes[1:]):
             if edge not in self.edges or self.multiedges:
                 self.edges.add(edge)
             _edges.append(self.edges[edge])
 
+        # create path based on single objects
         if len(_edges) == 0:
             _path.append(_nodes[0])
         else:
             _path = _edges
 
         if _path not in self or self.multipaths:
-            self._add_path(self._path_class(*_path, uid=uid, **kwargs))
+            self._add(self._path_class(*_path, uid=uid, **kwargs))
         else:
             # raise error if node already exists
             self._if_exist(_path, **kwargs)
 
-    def _add_path_from_edges(self, *edges: Union[str, Edge],
-                             uid: Optional[str] = None, **kwargs: Any) -> None:
-        """Helper function to add a path from edges."""
-        _edges: list = []
-        for edge in edges:
-            if edge not in self.edges or self.multiedges:
-                if isinstance(edge, str) and len(_edges) > 0:
-                    self.edges.add(Edge(_edges[-1].w, Node(), uid=edge))
-                else:
-                    self.edges.add(edge, nodes=False)
-            _edges.append(self.edges[edge])
+    @add.register(str)  # type: ignore
+    def _(self, *path: str, **kwargs: Any) -> None:
 
-        _path = _edges
+        # get additional parameters
+        uid: Optional[str] = kwargs.pop('uid', None)
+        nodes: bool = kwargs.pop('nodes', True)
+
+        # check if all objects are str
+        if not all(isinstance(arg, str) for arg in path):
+            LOG.error('All objects have to be str objects!')
+            raise TypeError
+
+        _path = []
+        if nodes:
+            for node in path:
+                if node not in self.nodes:
+                    self.nodes.add(node)
+                _path.append(self.nodes[node])
+
+        else:
+            for edge in path:
+                if edge not in self.edges or self.multiedges:
+                    if len(_path) > 0:
+                        self.edges.add(_path[-1].w, Node(), uid=edge)
+                    else:
+                        self.edges.add(edge, nodes=False)
+                _path.append(self.edges[edge])
+
         if _path not in self or self.multipaths:
-            self._add_path(self._path_class(*_path, uid=uid, **kwargs))
+            self.add(*_path, uid=uid, **kwargs)
         else:
-            # raise error if node already exists
+            # raise error if path already exists
             self._if_exist(_path, **kwargs)
 
-    def _add(self, path: Path) -> None:
+    @add.register(tuple)  # type: ignore
+    @add.register(list)  # type: ignore
+    def _(self, *path: Union[tuple, list], **kwargs: Any) -> None:
+        for _path in path:
+            self.add(*_path, **kwargs)
+
+    def _add(self, path: Path, indexing: bool = True) -> None:
         """Add a node to the set of nodes."""
         self[path.uid] = path
         _nodes = tuple(_n.uid for _n in path.nodes)
@@ -600,7 +661,7 @@ class PathCollection(BaseCollection):
         """Helper function if the path does already exsist."""
         # pylint: disable=no-self-use
         # pylint: disable=unused-argument
-        LOG.error('The path "%s" already exists in the Network', path)
+        LOG.error('The path "%s" already exists in the Network', path.uid)
         raise KeyError
 
     def remove(self, *paths: Union[str, tuple, list, Node, Edge, Path],
