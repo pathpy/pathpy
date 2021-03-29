@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-03-29 14:23 juergen>
+# Time-stamp: <Mon 2021-03-29 14:31 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -395,33 +395,49 @@ class PathCollection(BaseCollection):
         self._added: set = set()
         self._removed: set = set()
 
+    @singledispatchmethod
     def __contains__(self, item) -> bool:
-        """Returns if item is in path."""
+        """Returns if item is in path collection."""
         _contain: bool = False
-        if isinstance(item, self._path_class) and item in self._map.values():
+
+        return _contain
+
+    @__contains__.register(Path)  # type: ignore
+    def _(self, item: Path) -> bool:
+        _contain: bool = False
+        if item in self.values():
             _contain = True
-        elif isinstance(item, str) and item in self._map:
+        return _contain
+
+    @__contains__.register(str)  # type: ignore
+    def _(self, item: str) -> bool:
+        _contain: bool = False
+        if item in self.keys():
             _contain = True
-        elif isinstance(item, (tuple, list)):
+        return _contain
 
-            _contain_nodes: bool = False
-            _contain_edges: bool = False
-            try:
-                if tuple(self.nodes[i].uid for i in item) in self._nodes_map:
-                    _contain_nodes = _contain = True
-            except KeyError:
-                pass
+    @__contains__.register(tuple)  # type: ignore
+    @__contains__.register(list)
+    def _(self, item: Union[tuple, list]) -> bool:
+        _contain: bool = False
+        _contain_nodes: bool = False
+        _contain_edges: bool = False
+        try:
+            if tuple(self.nodes[i].uid for i in item) in self._nodes_map:
+                _contain_nodes = _contain = True
+        except KeyError:
+            pass
 
-            try:
-                if (tuple(cast(Edge, self.edges[i]).uid for i in item)
-                        in self._edges_map):
-                    _contain_edges = _contain = True
-            except KeyError:
-                pass
+        try:
+            if (tuple(cast(Edge, self.edges[i]).uid for i in item)
+                    in self._edges_map):
+                _contain_edges = _contain = True
+        except KeyError:
+            pass
 
-            if _contain_nodes and _contain_edges:
-                LOG.warning('Matching node sequence as well as '
-                            'edge sequence was found!')
+        if _contain_nodes and _contain_edges:
+            LOG.warning('Matching node sequence as well as '
+                        'edge sequence was found!')
         return _contain
 
     def __getitem__(self, key: Union[str, tuple, Path]) -> Path:
