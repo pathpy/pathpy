@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an single edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-02-26 17:25 juergen>
+# Time-stamp: <Mon 2021-03-29 14:25 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -785,7 +785,7 @@ class EdgeCollection(BaseCollection):
         LOG.error('The edge "%s" already exists in the Network', edge)
         raise KeyError
 
-    def update_index(self):
+    def update_index(self) -> None:
         """Update the index structure of the EdgeCollection."""
         for edge in list(self._added):
             _v: Any = edge.v

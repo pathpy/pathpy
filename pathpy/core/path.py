@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-03-29 13:24 juergen>
+# Time-stamp: <Mon 2021-03-29 14:23 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -491,18 +491,6 @@ class PathCollection(BaseCollection):
         """Add multiple paths."""
         raise NotImplementedError
 
-        # uid: Optional[str] = kwargs.pop('uid', None)
-        # nodes: bool = kwargs.pop('nodes', True)
-
-        # if all(isinstance(arg, (str, Node, Edge))for arg in paths):
-        #     paths = tuple([paths])
-
-        # if isinstance(paths[0], list) and len(paths) == 1:
-        #     paths = tuple(paths[0])
-
-        # for path in paths:
-        #     self._add_path(path, uid=uid, nodes=nodes, **kwargs)
-
     @add.register(Path)  # type: ignore
     def _(self, *path: Path, **kwargs: Any) -> None:
 
@@ -651,11 +639,15 @@ class PathCollection(BaseCollection):
 
     def _add(self, path: Path, indexing: bool = True) -> None:
         """Add a node to the set of nodes."""
+        # add path to the dict
         self[path.uid] = path
-        _nodes = tuple(_n.uid for _n in path.nodes)
-        _edges = tuple(_e.uid for _e in path.edges)
-        self._nodes_map[_nodes].add(path)
-        self._edges_map[_edges].add(path)
+
+        # store new added path
+        self._added.add(path)
+
+        # update the index structure
+        if indexing:
+            self.update_index()
 
     def _if_exist(self, path: Any, **kwargs: Any) -> None:
         """Helper function if the path does already exsist."""
@@ -664,67 +656,78 @@ class PathCollection(BaseCollection):
         LOG.error('The path "%s" already exists in the Network', path.uid)
         raise KeyError
 
-    def remove(self, *paths: Union[str, tuple, list, Node, Edge, Path],
-               **kwargs: Any) -> None:
-        """Remove multiple paths."""
+    def update_index(self) -> None:
+        """Update the index structure of the PathCollection."""
+        for path in list(self._added):
+            _nodes = tuple(_n.uid for _n in path.nodes)
+            _edges = tuple(_e.uid for _e in path.edges)
+            self._nodes_map[_nodes].add(path)
+            self._edges_map[_edges].add(path)
 
-        uid: Optional[str] = kwargs.pop('uid', None)
-        nodes: bool = kwargs.pop('nodes', True)
+            self._added.discard(path)
 
-        if all(isinstance(arg, (str, Node, Edge))for arg in paths):
-            paths = tuple([paths])
+        for path in list(self._removed):
 
-        for path in paths:
-            self._remove_path(path, uid=uid, nodes=nodes)
+            _nodes = tuple(_n.uid for _n in path.nodes)
+            _edges = tuple(_e.uid for _e in path.edges)
+            self._nodes_map[_nodes].discard(path)
+            self._edges_map[_edges].discard(path)
 
-    def _remove_path(self, *path: Union[str, tuple, list, Node, Edge, Path],
-                     uid: Optional[str] = None, nodes: bool = True) -> None:
-        """Add a single path."""
+            if len(self._nodes_map[_nodes]) == 0:
+                self._nodes_map.pop(_nodes, None)
 
-        if len(path) == 1 and isinstance(path[0], self._path_class) and path[0] in self:
-            self._remove(path[0])
+            if len(self._edges_map[_edges]) == 0:
+                self._edges_map.pop(_edges, None)
 
-        elif len(path) == 1 and isinstance(path[0], str) and path[0] in self:
-            _path = cast(Path, self[path[0]])
+            self._removed.discard(path)
+
+    @singledispatchmethod
+    def remove(self, *edge, **kwargs: Any) -> None:
+        """Remove path. """
+        raise NotImplementedError
+
+    @remove.register(Path)  # type: ignore
+    def _(self, *path: Path, **kwargs: Any) -> None:
+        # pylint: disable=unused-argument
+        for _path in path:
             self._remove(_path)
 
-        elif len(path) == 1 and isinstance(path[0], (tuple, list)):
-            self._remove_path(*path[0], uid=uid, nodes=nodes)
+    @remove.register(Edge)  # type: ignore
+    def _(self, *path: Edge, **kwargs: Any) -> None:
+        # pylint: disable=unused-argument
+        self._remove(self[path])
 
-        elif all(isinstance(arg, (str, Node, Edge)) for arg in path):
+    @remove.register(Node)  # type: ignore
+    def _(self, *path: Node, **kwargs: Any) -> None:
+        # pylint: disable=unused-argument
+        self._remove(self[path])
 
-            if all(arg in self for arg in path):
-                _paths = [cast(Path, self[cast(str, _path)])
-                          for _path in path]
-            elif self.multipaths:
-                _paths = [cast(Path, _path) for _path in cast(
-                    PathSet, self[path]).values()]
-            else:
-                _paths = [cast(Path, self[path])]
+    @remove.register(str)  # type: ignore
+    def _(self, *path: str, **kwargs: Any) -> None:
+        # pylint: disable=unused-argument
+        if len(path) == 1:
+            self._remove(self[path[0]])
+        else:
+            self._remove(self[path])
 
-            # iterate over all edges between the nodes
-            for _path in list(_paths):
-                # if dedicated uid is given
-                if uid is not None:
-                    if _path.uid == uid:
-                        self._remove_path(_path)
-                else:
-                    # remove all edges between the nodes
-                    self._remove_path(_path)
+    @remove.register(tuple)  # type: ignore
+    @remove.register(list)  # type: ignore
+    def _(self, *path: Union[tuple, list], **kwargs: Any) -> None:
+        for _path in path:
+            self.remove(*_path, **kwargs)
 
-    def _remove(self, path: Path) -> None:
-        """Remove an edge from the set of edges."""
+    def _remove(self, path: Path, indexing: bool = True) -> None:
+        """Remove a path from the path collection."""
+
+        # remove edge from the dict
         self.pop(path.uid, None)
-        _nodes = tuple(_n.uid for _n in path.nodes)
-        _edges = tuple(_e.uid for _e in path.edges)
-        self._nodes_map[_nodes].discard(path)
-        self._edges_map[_edges].discard(path)
 
-        if len(self._nodes_map[_nodes]) == 0:
-            self._nodes_map.pop(_nodes, None)
+        # store removed path
+        self._removed.add(path)
 
-        if len(self._edges_map[_edges]) == 0:
-            self._edges_map.pop(_edges, None)
+        # update the index structure
+        if indexing:
+            self.update_index()
 
 # =============================================================================
 # eof

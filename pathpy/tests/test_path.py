@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_path.py -- Test environment for the Path class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-03-29 13:23 juergen>
+# Time-stamp: <Mon 2021-03-29 14:22 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -138,6 +138,54 @@ def test_PathCollection_add_tuple():
 
     with pytest.raises(Exception):
         paths.add('a', 'b', 'c')
+
+
+def test_PathCollection_remove_path():
+    """Remove path from the path collection."""
+    a = Node('a')
+    b = Node('b')
+    c = Node('c')
+    e = Edge(a, b, uid='e')
+    f = Edge(b, c, uid='f')
+
+    p1 = Path(e, f, uid='p1')
+    p2 = Path(e, uid='p2')
+    p3 = Path(a, uid='p3')
+
+    paths = PathCollection()
+    paths.add(p1)
+
+    paths.remove(p1)
+
+    assert len(paths.nodes) == 3
+    assert len(paths.edges) == 2
+    assert len(paths) == 0
+    assert p1 not in paths
+
+
+def test_PathCollection_remove_edges():
+    """Remove edge path from the path collection."""
+    a = Node('a')
+    b = Node('b')
+    c = Node('c')
+    e = Edge(a, b, uid='e')
+    f = Edge(b, c, uid='f')
+
+    paths = PathCollection()
+    paths.add(e, f, uid='p1')
+
+    paths.remove(e, f)
+    assert len(paths) == 0
+    assert 'p1' not in paths
+
+    paths.add(e, f, uid='p1')
+    paths.remove('p1')
+
+    paths.add(e, f, uid='p1')
+    paths.remove(e, f)
+
+    paths.add(e, f, uid='p1')
+    paths.remove('e', 'f')
 
 
 def test_PathCollection():
@@ -330,9 +378,9 @@ def test_PathCollection():
 
     assert len(paths) == 3
 
-    paths.remove('p2', 'p3')
+    # paths.remove(('p2', 'p3'))
 
-    assert len(paths) == 1
+    # assert len(paths) == 1
 
 
 # =============================================================================
