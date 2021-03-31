@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-03-29 17:30 juergen>
+# Time-stamp: <Wed 2021-03-31 18:19 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -12,6 +12,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Optional, Union, cast
 from intervaltree import IntervalTree, Interval
 from collections import defaultdict
+from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
+import pandas as pd
 
 from pathpy import logger, config
 from pathpy.core.node import Node, NodeCollection
@@ -38,7 +40,206 @@ class Timestamp:
     """Class to store timestamps."""
 
 
+class TemporalAttributes:
+    """Activities of temporal objects"""
+
+    def __init__(self):
+
+        self.activities = pd.DataFrame(columns=['interval', 'key', 'value'])
+        self._dt = 1
+
+    @singledispatchmethod
+    def __setitem__(self, key, value) -> None:
+        """Set single item."""
+        raise NotImplementedError
+
+    @__setitem__.register(slice)  # type: ignore
+    @__setitem__.register(int)  # type: ignore
+    @__setitem__.register(float)  # type: ignore
+    def _(self, key: Union[slice, int, float], value: bool) -> None:
+        start, stop = self._time(key)
+        self._setitem(start, stop, 'active', value)
+
+    @__setitem__.register(tuple)  # type: ignore
+    def _(self, key: tuple, value: Any) -> None:
+
+        if isinstance(key[0], (slice, int, float)):
+            key = (key[0], key[1])
+        elif isinstance(key[-1], (slice, int, float)):
+            key = (key[1], key[0])
+        else:
+            raise AttributeError
+
+        start, stop = self._time(key[0])
+
+        self._setitem(start, stop, key[1], value)
+
+    @__setitem__.register(str)  # type: ignore
+    def _(self, key: str, value: Any) -> None:
+
+        start, stop = self._time(None)
+
+        return self._setitem(start, stop, key, value)
+
+    def _setitem(self, start, stop, key, value) -> None:
+        """Helper function to set the item value"""
+        self.activities = self.activities.append(
+            {'interval': pd.Interval(start, stop), 'key': key, 'value': value},
+            ignore_index=True)
+
+    def _time(self, time) -> tuple:
+        """Helper function to get the start and stop time."""
+        if isinstance(time, slice):
+            start = time.start if time.start is not None else -float('inf')
+            stop = time.stop if time.stop is not None else float('inf')
+        elif isinstance(time, (int, float)):
+            start = time
+            stop = time + self._dt
+        else:
+            start = -float('inf')
+            stop = float('inf')
+        return start, stop
+
+    @singledispatchmethod
+    def __getitem__(self, key):
+        """Get single item."""
+        raise NotImplementedError
+
+    @__getitem__.register(slice)  # type: ignore
+    @__getitem__.register(int)  # type: ignore
+    @__getitem__.register(float)  # type: ignore
+    def _(self, key: Union[slice, int, float]) -> pd.DataFrame:
+
+        start, stop = self._time(key)
+        return self._getitem(start, stop, key='active')
+
+    @__getitem__.register(tuple)  # type: ignore
+    def _(self, key: tuple) -> pd.DataFrame:
+
+        if isinstance(key[0], (slice, int, float)):
+            key = (key[0], key[1])
+        elif isinstance(key[-1], (slice, int, float)):
+            key = (key[1], key[0])
+        else:
+            raise AttributeError
+
+        start, stop = self._time(key[0])
+
+        return self._getitem(start, stop, key=key[1])
+
+    @__getitem__.register(str)  # type: ignore
+    def _(self, key: str) -> pd.DataFrame:
+
+        start, stop = self._time(None)
+
+        return self._getitem(start, stop, key=key)
+
+    def _getitem(self, start, stop, key=None):
+        """Helper function to get the item"""
+        data = self.activities
+        item = None
+
+        if key:
+            data = self.activities[self.activities['key'] == key]
+
+        if key in list(self.activities['key']):
+            item = data[
+                (data
+                 .set_index('interval')
+                 .index.overlaps(pd.Interval(start, stop))
+                 )]
+
+        return item
+
+    def update(self, **kwargs: Any) -> None:
+        """Update the values"""
+        if kwargs:
+            start = kwargs.pop('start', float('-inf'))
+            end = kwargs.pop('end', float('inf'))
+            active = kwargs.pop('active', True)
+
+            self._setitem(start, end, 'active', active)
+
+            for key, value in kwargs.items():
+                self._setitem(start, end, key, value)
+
+    def get(self, key, default: Any = None) -> Any:
+        """Get item from object for given key."""
+        return self[key]
+
+
+class TemporalNode(Node):
+    """Base class of a temporal node."""
+
+    def __init__(self, uid: Optional[str] = None, **kwargs: Any) -> None:
+        """Initialize the node object."""
+
+        # initialize the parent class
+        super().__init__(uid=uid, **kwargs)
+
+        self.attributes = TemporalAttributes()
+        self.attributes.update(**kwargs)
+
+
+class TemporalEdge(Edge):
+    """Base class of an temporal edge."""
+
+    def __init__(self, v: TemporalNode, w: TemporalNode,
+                 uid: Optional[str] = None, **kwargs: Any) -> None:
+
+        # initializing the parent class
+        super().__init__(v=v, w=w, uid=uid, **kwargs)
+
+        self.attributes = TemporalAttributes()
+        self.attributes.update(**kwargs)
+
+
 class TemporalNetwork(ABCTemporalNetwork, Network):
+    """Base class for a temporal networks."""
+
+    # # load external functions to the network
+    # to_paths = to_paths.to_path_collection  # type: ignore
+
+    def __init__(self, uid: Optional[str] = None,
+                 directed: bool = True, multiedges: bool = False,
+                 **kwargs: Any) -> None:
+        """Initialize the temporal network object."""
+
+        # initialize the base class
+        super().__init__(uid=uid, directed=directed,
+                         multiedges=multiedges, **kwargs)
+
+        # # add network properties
+        # self._properties['nodes'] = set()
+
+        # a container for node objects
+        self._nodes: TemporalNodeCollection = TemporalNodeCollection()
+
+        # a container for edge objects
+        self._edges: TemporalEdgeCollection = TemporalEdgeCollection(
+            directed=directed,
+            multiedges=multiedges,
+            nodes=self._nodes)
+
+
+class TemporalEdgeCollection(EdgeCollection):
+    """A collection of temporal edges"""
+
+    def __init__(self, directed: bool = True, multiedges: bool = False,
+                 nodes: Optional[TemporalNodeCollection] = None) -> None:
+        """Initialize the network object."""
+
+        # collection of nodes
+        self._nodes: TemporalNodeCollection = TemporalNodeCollection()
+        if nodes is not None:
+            self._nodes = nodes
+
+        # initialize the base class
+        super().__init__(directed=directed, multiedges=multiedges,
+                         nodes=nodes)
+
+
+class OldTemporalNetwork(ABCTemporalNetwork, Network):
     """Base class for a temporal networks."""
 
     # load external functions to the network
@@ -152,7 +353,7 @@ class TemporalNodeCollection(NodeCollection):
     """A collection of temporal nodes"""
 
 
-class TemporalEdgeCollection(EdgeCollection):
+class OldTemporalEdgeCollection(EdgeCollection):
     """A collection of temporal edges"""
 
     def __init__(self, directed: bool = True, multiedges: bool = False,

@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : io.py -- Module for data import/export
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Mon 2021-03-29 17:27 juergen>
+# Time-stamp: <Wed 2021-03-31 12:29 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -144,22 +144,22 @@ def to_temporal_network(frame: pd.DataFrame, loops: bool = True,
 
     # TODO: Make this for loop faster!
     #rows = []
-    #edges = {}
+    edges = {}
     for row in frame.to_dict(orient='records'):
         v = row.pop('v')
         w = row.pop('w')
         uid = row.pop('uid', None)
         # if (v, w) not in edges:
         #     edge = Edge(nodes[v], nodes[w], uid=uid, **row)
-        #     net.edges._add(edge)
         #     edges[(v, w)] = edge
+        # net.edges._add(edge)
         # else:
         #     begin = row.pop(_begin)
         #     end = row.pop(_end)
         #     net.edges._intervals.addi(begin, end, edges[(v, w)])
         #     net.edges._interval_map[edges[(v, w)]].add((begin, end))
+        # net.add_edge(nodes[v], nodes[w], uid=uid, **row)
         net.add_edge(nodes[v], nodes[w], uid=uid, **row)
-    # net.add_edge(nodes[v], nodes[w], uid=uid, **row)
     # net._add_edge_properties()
     return net
 

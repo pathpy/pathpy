@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : classes.py -- Base classes for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-10-05 13:26 juergen>
+# Time-stamp: <Wed 2021-03-31 17:46 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
