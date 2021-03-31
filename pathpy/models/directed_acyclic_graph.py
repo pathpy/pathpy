@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : directed_acyclic_graph.py -- Network model for a DAG
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sat 2020-09-05 21:08 juergen>
+# Time-stamp: <Mon 2021-03-29 17:28 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -16,7 +16,7 @@ from pathpy import logger
 from pathpy.core.node import NodeCollection
 from pathpy.core.edge import EdgeCollection, Edge
 from pathpy.core.path import PathCollection, Node
-from pathpy.core.network import Network
+from pathpy.models.network import Network
 
 from pathpy.converters import to_paths
 
@@ -180,7 +180,7 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
             'Number of roots:\t{}\n'.format(len(self.roots)),
             'Number of leafs:\t{}'.format(len(self.leafs)),
         ]
-        attr = self.attributes.to_dict()
+        attr = self.attributes
         if len(attr) > 0:
             summary.append('\n\nNetwork attributes\n')
             summary.append('------------------\n')

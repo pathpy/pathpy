@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : io.py -- Module for data import/export
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Sat 2020-09-05 18:34 juergen>
+# Time-stamp: <Mon 2021-03-29 17:27 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -16,7 +16,7 @@ from pathpy import config, logger
 
 from pathpy.core.node import Node
 from pathpy.core.edge import Edge
-from pathpy.core.network import Network
+from pathpy.models.network import Network
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
@@ -186,7 +186,8 @@ def from_network(network: Network, exclude_edge_uid: bool = False,
         else:
             edge_frame = pd.DataFrame(columns=['v', 'w', 'uid'])
             edge_frame.loc[0] = [v, w, edge.uid]
-        edge_frame = pd.concat([edge_frame, edge.attributes.to_frame()], axis=1)
+        data = pd.DataFrame.from_dict(edge.attributes)
+        edge_frame = pd.concat([edge_frame, data], axis=1)
         frame = pd.concat([edge_frame, frame], ignore_index=True, sort=False)
     return frame
 
@@ -214,7 +215,8 @@ def from_temporal_network(network: TemporalNetwork,
         else:
             edge_frame = pd.DataFrame(columns=['v', 'w', 'uid', 'begin', 'end'])
             edge_frame.loc[0] = [v, w, uid, begin, end]
-        edge_frame = pd.concat([edge_frame, edge.attributes.to_frame()], axis=1)
+        data = pd.DataFrame.from_dict(edge.attributes)
+        edge_frame = pd.concat([edge_frame, data], axis=1)
         frame = pd.concat([edge_frame, frame], ignore_index=True)
     return frame
 

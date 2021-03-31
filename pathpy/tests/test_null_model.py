@@ -3,14 +3,14 @@
 # =============================================================================
 # File      : test_null_model.py -- Test environment for null models
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-08-31 11:22 juergen>
+# Time-stamp: <Wed 2021-03-31 11:18 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 
 import pytest
 
-from pathpy.core.network import Network
+from pathpy.models.network import Network
 from pathpy.core.path import PathCollection
 from pathpy.models.null_model import NullModel
 from pathpy.models.higher_order_network import HigherOrderNetwork

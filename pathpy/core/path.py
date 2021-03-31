@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-03-29 14:31 juergen>
+# Time-stamp: <Mon 2021-03-29 18:14 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -422,6 +422,7 @@ class PathCollection(BaseCollection):
         _contain: bool = False
         _contain_nodes: bool = False
         _contain_edges: bool = False
+
         try:
             if tuple(self.nodes[i].uid for i in item) in self._nodes_map:
                 _contain_nodes = _contain = True
@@ -463,6 +464,7 @@ class PathCollection(BaseCollection):
 
         elif isinstance(key, self._path_class) and key in self:
             path = key
+
         else:
             path = self._map[key]
         return path

@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_higher_order_network.py -- Test environment for HONs
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-08-31 11:23 juergen>
+# Time-stamp: <Mon 2021-03-29 18:25 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================

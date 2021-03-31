@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : modularity.py -- Methods to calculate modularity of networks
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Tue 2020-04-28 09:44 juergen>
+# Time-stamp: <Mon 2021-03-29 16:56 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -15,7 +15,7 @@ from pathpy import logger
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
-    from pathpy.core.network import Network
+    from pathpy.models.network import Network
 
 
 # create logger for the Plot class

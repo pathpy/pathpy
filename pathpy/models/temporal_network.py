@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-09-04 15:38 juergen>
+# Time-stamp: <Mon 2021-03-29 17:30 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -16,7 +16,7 @@ from collections import defaultdict
 from pathpy import logger, config
 from pathpy.core.node import Node, NodeCollection
 from pathpy.core.edge import Edge, EdgeCollection
-from pathpy.core.network import Network
+from pathpy.models.network import Network
 
 from pathpy.core.base.attributes import TemporalAttributes
 
@@ -71,12 +71,12 @@ class TemporalNetwork(ABCTemporalNetwork, Network):
         nodes = set(self.nodes).difference(self._properties['nodes'])
 
         for node in nodes:
-            attr = node.attributes.to_dict()
+            attr = node.attributes
             time = attr.pop(TIMESTAMP, float('-inf'))
-            if attr:
-                attributes = TemporalAttributes()
-                attributes.update(**{**attr, **{TIMESTAMP: time}})
-                node.attributes = attributes
+            # if attr:
+            #     attributes = TemporalAttributes()
+            #     attributes.update(**{**attr, **{TIMESTAMP: time}})
+            #     node.attributes = attributes
 
             self._properties['nodes'].add(node)
 
@@ -138,7 +138,7 @@ class TemporalNetwork(ABCTemporalNetwork, Network):
             'Number of temp edges:\t{}\n'.format(len(self.edges.temporal())),
             'Observation periode:\t{} - {}'.format(_begin, _end)
         ]
-        attr = self.attributes.to_dict()
+        attr = self.attributes
         if len(attr) > 0:
             summary.append('\n\nNetwork attributes\n')
             summary.append('------------------\n')
@@ -207,9 +207,9 @@ class TemporalEdgeCollection(EdgeCollection):
         begin = edge.attributes['begin']
         end = edge.attributes['end']
 
-        attributes = TemporalAttributes()
-        attributes.update(**{**edge.attributes.to_dict(), **{TIMESTAMP: begin}})
-        edge.attributes = attributes
+        # attributes = TemporalAttributes()
+        # attributes.update(**{**edge.attributes.to_dict(), **{TIMESTAMP: begin}})
+        # edge.attributes = attributes
 
         self._intervals.addi(begin, end, edge)
         self._interval_map[edge].add((begin, end))

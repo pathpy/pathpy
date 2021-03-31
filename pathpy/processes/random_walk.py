@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : random_walk.py -- Class to simulate random walks
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Mon 2020-04-20 11:02 juergen>
+# Time-stamp: <Mon 2021-03-29 17:07 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -19,7 +19,7 @@ from scipy import linalg as spla
 
 from pathpy import logger, tqdm
 # from pathpy.core.path import Path
-from pathpy.core.network import Network
+from pathpy.models.network import Network
 from pathpy.algorithms.matrices import adjacency_matrix
 
 # create custom types
@@ -54,7 +54,7 @@ class RandomWalk(BaseWalk):
     """
 
     def __init__(self, network: Network, weight: Weight = None,
-                 start_node: Optional[str] = None, restart_prob = 0) -> None:
+                 start_node: Optional[str] = None, restart_prob=0) -> None:
         """Initialises a random walk process in a given start node.
 
         The initial time t of the random walk will be set to zero and the
