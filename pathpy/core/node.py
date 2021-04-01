@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : node.py -- Base class for a single node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-02-26 15:32 juergen>
+# Time-stamp: <Thu 2021-04-01 16:22 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -267,9 +267,8 @@ class NodeCollection(BaseCollection):
             # if not add new node
             self[_node.uid] = _node
         else:
-            # raise error if edge already exists
-            LOG.error('The node "%s" already exists!', _node.uid)
-            raise KeyError
+            # raise error if node already exists
+            self._if_exist(_node, **kwargs)
 
     @add.register(str)  # type: ignore
     def _(self, *node: str, **kwargs: Any) -> None:
@@ -283,8 +282,14 @@ class NodeCollection(BaseCollection):
             self[_uid] = self._node_class(uid=_uid, **kwargs)
         else:
             # raise error if node already exists
-            LOG.error('The node "%s" already exists!', _uid)
-            raise KeyError
+            self._if_exist(_uid, **kwargs)
+
+    def _if_exist(self, node: Any, **kwargs: Any) -> None:
+        """Helper function if the node does already exsist."""
+        # pylint: disable=no-self-use
+        # pylint: disable=unused-argument
+        LOG.error('The node "%s" already exists!', node)
+        raise KeyError
 
     @add.register(tuple)  # type: ignore
     @add.register(list)  # type: ignore

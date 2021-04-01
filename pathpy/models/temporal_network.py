@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-03-31 18:19 juergen>
+# Time-stamp: <Thu 2021-04-01 18:01 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -14,6 +14,8 @@ from intervaltree import IntervalTree, Interval
 from collections import defaultdict
 from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
 import pandas as pd
+import numpy as np
+
 
 from pathpy import logger, config
 from pathpy.core.node import Node, NodeCollection
@@ -45,20 +47,24 @@ class TemporalAttributes:
 
     def __init__(self):
 
-        self.activities = pd.DataFrame(columns=['interval', 'key', 'value'])
+        self.attributes = pd.DataFrame(columns=['interval', 'key', 'value'])
         self._dt = 1
+
+    def __repr__(self) -> str:
+        """Return the description of the underlying data frame."""
+        return self.attributes.__repr__()
 
     @singledispatchmethod
     def __setitem__(self, key, value) -> None:
         """Set single item."""
         raise NotImplementedError
 
-    @__setitem__.register(slice)  # type: ignore
-    @__setitem__.register(int)  # type: ignore
-    @__setitem__.register(float)  # type: ignore
-    def _(self, key: Union[slice, int, float], value: bool) -> None:
-        start, stop = self._time(key)
-        self._setitem(start, stop, 'active', value)
+    # @__setitem__.register(slice)  # type: ignore
+    # @__setitem__.register(int)  # type: ignore
+    # @__setitem__.register(float)  # type: ignore
+    # def _(self, key: Union[slice, int, float], value: bool) -> None:
+    #     start, stop = self._time(key)
+    #     self._setitem(start, stop, 'active', value)
 
     @__setitem__.register(tuple)  # type: ignore
     def _(self, key: tuple, value: Any) -> None:
@@ -83,7 +89,7 @@ class TemporalAttributes:
 
     def _setitem(self, start, stop, key, value) -> None:
         """Helper function to set the item value"""
-        self.activities = self.activities.append(
+        self.attributes = self.attributes.append(
             {'interval': pd.Interval(start, stop), 'key': key, 'value': value},
             ignore_index=True)
 
@@ -111,7 +117,7 @@ class TemporalAttributes:
     def _(self, key: Union[slice, int, float]) -> pd.DataFrame:
 
         start, stop = self._time(key)
-        return self._getitem(start, stop, key='active')
+        return self._getitem(start, stop, key=None)
 
     @__getitem__.register(tuple)  # type: ignore
     def _(self, key: tuple) -> pd.DataFrame:
@@ -136,29 +142,33 @@ class TemporalAttributes:
 
     def _getitem(self, start, stop, key=None):
         """Helper function to get the item"""
-        data = self.activities
+        data = self.attributes
         item = None
 
-        if key:
-            data = self.activities[self.activities['key'] == key]
+        if key and key in list(self.attributes['key']):
+            data = self.attributes[self.attributes['key'] == key]
+        elif key is not None:
+            return pd.DataFrame(
+                {'interval': [pd.Interval(start, stop)],
+                 'key': [key], 'value': [None]})
 
-        if key in list(self.activities['key']):
-            item = data[
-                (data
-                 .set_index('interval')
-                 .index.overlaps(pd.Interval(start, stop))
-                 )]
+        # if key in list(self.activities['key']):
+        item = data[
+            (data
+             .set_index('interval')
+             .index.overlaps(pd.Interval(start, stop))
+             )]
 
         return item
 
-    def update(self, **kwargs: Any) -> None:
+    def update(self, uid: str = None, **kwargs: Any) -> None:
         """Update the values"""
-        if kwargs:
-            start = kwargs.pop('start', float('-inf'))
-            end = kwargs.pop('end', float('inf'))
-            active = kwargs.pop('active', True)
 
-            self._setitem(start, end, 'active', active)
+        if kwargs:
+            start, end, kwargs = _time(**kwargs)
+            # active = kwargs.pop('active', True)
+
+            # self._setitem(start, end, 'active', active)
 
             for key, value in kwargs.items():
                 self._setitem(start, end, key, value)
@@ -166,6 +176,31 @@ class TemporalAttributes:
     def get(self, key, default: Any = None) -> Any:
         """Get item from object for given key."""
         return self[key]
+
+
+class TemporalActivities(TemporalAttributes):
+    """Activities of temporal objects"""
+
+    @singledispatchmethod
+    def __setitem__(self, key, value) -> None:
+        """Set single item."""
+        raise NotImplementedError
+
+    @__setitem__.register(slice)  # type: ignore
+    @__setitem__.register(int)  # type: ignore
+    @__setitem__.register(float)  # type: ignore
+    def _(self, key: Union[slice, int, float], value: bool) -> None:
+        start, stop = self._time(key)
+        self._setitem(start, stop, 'active', value)
+
+    def update(self, uid: str = None, **kwargs: Any) -> None:
+        """Update the values"""
+
+        if kwargs:
+            start, end, kwargs = _time(**kwargs)
+            active = kwargs.pop('active', True)
+
+            self._setitem(start, end, 'active', active)
 
 
 class TemporalNode(Node):
@@ -178,7 +213,14 @@ class TemporalNode(Node):
         super().__init__(uid=uid, **kwargs)
 
         self.attributes = TemporalAttributes()
+        self.activities = TemporalActivities()
+        self.update(**kwargs)
+
+    def update(self, **kwargs: Any) -> None:
+        """Update the attributes of the object. """
+
         self.attributes.update(**kwargs)
+        self.activities.update(**kwargs)
 
 
 class TemporalEdge(Edge):
@@ -191,7 +233,92 @@ class TemporalEdge(Edge):
         super().__init__(v=v, w=w, uid=uid, **kwargs)
 
         self.attributes = TemporalAttributes()
+        self.activities = TemporalActivities()
+        self.update(**kwargs)
+
+    def update(self, **kwargs: Any) -> None:
+        """Update the attributes of the object. """
+
         self.attributes.update(**kwargs)
+        self.activities.update(**kwargs)
+
+
+class TemporalNodeCollection(NodeCollection):
+    """A collection of temporal nodes"""
+
+    def __init__(self) -> None:
+        """Initialize the NodeCollection object."""
+
+        # initialize the base class
+        super().__init__()
+
+        # class of objects
+        self._node_class: Any = TemporalNode
+
+    def _if_exist(self, node: Any, **kwargs: Any) -> None:
+        """Helper function if node already exists."""
+        # get the node
+        if isinstance(node, str):
+            _node = cast(TemporalNode, self[node])
+        elif isinstance(node, TemporalNode):
+            _node = cast(TemporalNode, self[node.uid])
+            interval = list(node[:]['interval'])[-1]
+            kwargs.update(start=interval.left, end=interval.right)
+
+            df1 = _node.attributes.attributes
+            df2 = node.attributes.attributes
+
+            _node.attributes.attributes = pd.concat([df1, df2])
+
+        else:
+            raise KeyError
+
+        # get the start and end time
+        start, end, kwargs = _time(**kwargs)
+        # update the node
+        _node.update(start=start, end=end, **kwargs)
+
+
+class TemporalEdgeCollection(EdgeCollection):
+    """A collection of temporal edges"""
+
+    def __init__(self, directed: bool = True, multiedges: bool = False,
+                 nodes: Optional[TemporalNodeCollection] = None) -> None:
+        """Initialize the network object."""
+
+        # collection of nodes
+        self._nodes: TemporalNodeCollection = TemporalNodeCollection()
+        if nodes is not None:
+            self._nodes = nodes
+
+        # initialize the base class
+        super().__init__(directed=directed, multiedges=multiedges,
+                         nodes=nodes)
+        self._edge_class = TemporalEdge
+
+    def _if_exist(self, edge: Any, **kwargs: Any) -> None:
+        """Helper function if edge already exists."""
+        # get the edge
+        if isinstance(edge, (tuple, list)):
+            _edge = cast(TemporalEdge, self[edge[0], edge[1]])
+        elif isinstance(edge, str):
+            _edge = cast(TemporalEdge, self[edge])
+        elif isinstance(edge, TemporalEdge):
+            _edge = cast(TemporalEdge, self[edge.v, edge.w])
+            interval = list(edge[:]['interval'])[-1]
+            kwargs.update(start=interval.left, end=interval.right)
+
+            df1 = _edge.attributes.attributes
+            df2 = edge.attributes.attributes
+
+            _edge.attributes.attributes = pd.concat([df1, df2])
+        else:
+            raise KeyError
+
+        # get the start and end time
+        start, end, kwargs = _time(**kwargs)
+        # update the edge
+        _edge.update(start=start, end=end, **kwargs)
 
 
 class TemporalNetwork(ABCTemporalNetwork, Network):
@@ -221,90 +348,80 @@ class TemporalNetwork(ABCTemporalNetwork, Network):
             multiedges=multiedges,
             nodes=self._nodes)
 
+    @property
+    def tedges(self):
+        """Return a data frame of temporal edges"""
+        tedges = []
+        for edge in self.edges:
+            data = edge.activities.attributes
+            data['uid'] = edge.uid
+            data['edge'] = edge
+            tedges.append(data)
+        return pd.concat(tedges).sort_values(['interval']).reset_index(drop=True)
 
-class TemporalEdgeCollection(EdgeCollection):
-    """A collection of temporal edges"""
+    @property
+    def tnodes(self):
+        """Return a data frame of temporal edges"""
+        tnodes = []
+        for node in self.nodes:
+            data = node.activities.attributes
+            data['uid'] = node.uid
+            data['node'] = node
+            tnodes.append(data)
+        return pd.concat(tnodes).sort_values(['interval']).reset_index(drop=True)
 
-    def __init__(self, directed: bool = True, multiedges: bool = False,
-                 nodes: Optional[TemporalNodeCollection] = None) -> None:
-        """Initialize the network object."""
+    def _time(self, values) -> tuple:
+        """Helper function to get the start and end time."""
+        values = values.set_index('interval')
+        left = values.index.left
+        right = values.index.right
 
-        # collection of nodes
-        self._nodes: TemporalNodeCollection = TemporalNodeCollection()
-        if nodes is not None:
-            self._nodes = nodes
+        start = left[left != float('-inf')].min()
+        end = right[right != float('inf')].max()
 
-        # initialize the base class
-        super().__init__(directed=directed, multiedges=multiedges,
-                         nodes=nodes)
+        if start is np.nan:
+            start = float('-inf')
 
+        if end is np.nan:
+            end = float('inf')
 
-class OldTemporalNetwork(ABCTemporalNetwork, Network):
-    """Base class for a temporal networks."""
+        return start, end
 
-    # load external functions to the network
-    to_paths = to_paths.to_path_collection  # type: ignore
+    def start(self, inf: bool = False):
+        """Start of the temporal network"""
+        start = float('-inf')
 
-    def __init__(self, uid: Optional[str] = None,
-                 directed: bool = True, multiedges: bool = False,
-                 **kwargs: Any) -> None:
-        """Initialize the temporal network object."""
+        nodes, _ = self._time(self.tnodes)
+        edges, _ = self._time(self.tedges)
 
-        # initialize the base class
-        super().__init__(uid=uid, directed=directed,
-                         multiedges=multiedges, **kwargs)
-
-        # add network properties
-        self._properties['nodes'] = set()
-
-        # a container for node objects
-        self._nodes: TemporalNodeCollection = TemporalNodeCollection()
-
-        # a container for edge objects
-        self._edges: TemporalEdgeCollection = TemporalEdgeCollection(
-            directed=directed,
-            multiedges=multiedges,
-            nodes=self._nodes)
-
-    def _add_node_properties(self):
-        """Helper function to update node properties."""
-
-        nodes = set(self.nodes).difference(self._properties['nodes'])
-
-        for node in nodes:
-            attr = node.attributes
-            time = attr.pop(TIMESTAMP, float('-inf'))
-            # if attr:
-            #     attributes = TemporalAttributes()
-            #     attributes.update(**{**attr, **{TIMESTAMP: time}})
-            #     node.attributes = attributes
-
-            self._properties['nodes'].add(node)
-
-    def add_edge(self, *edge: Union[str, tuple, list, Node, Edge],
-                 uid: Optional[str] = None, **kwargs: Any) -> None:
-        """Add an temporal edge."""
-
-        # get keywords defined in the config file
-        _begin = kwargs.pop(config['temporal']['begin'], float('-inf'))
-        _end = kwargs.pop(config['temporal']['end'], float('inf'))
-        _timestamp = kwargs.pop(config['temporal']['timestamp'], None)
-        _duration = kwargs.pop(config['temporal']['duration'], None)
-
-        # check if timestamp is given
-        if isinstance(_timestamp, (int, float)):
-            if isinstance(_duration, (int, float)):
-                _begin = _timestamp
-                _end = _timestamp + _duration
+        if inf:
+            start = min(nodes, edges)
+        else:
+            value = min(nodes, edges)
+            if value == start:
+                start = max(nodes, edges)
             else:
-                _begin = _timestamp
-                _end = _timestamp + config['temporal']['duration_value']
+                start = value
 
-        # TODO: Add other checks eg begin and duration
+        return start
 
-        kwargs.update({'begin': _begin, 'end': _end})
+    def end(self, inf: bool = False):
+        """End of the temporal network"""
+        end = float('inf')
 
-        super().add_edge(*edge, uid=uid, **kwargs)
+        _, nodes = self._time(self.tnodes)
+        _, edges = self._time(self.tedges)
+
+        if inf:
+            end = max(nodes, edges)
+        else:
+            value = max(nodes, edges)
+            if value == end:
+                end = min(nodes, edges)
+            else:
+                end = value
+
+        return end
 
     def summary(self) -> str:
         """Returns a summary of the network.
@@ -323,12 +440,6 @@ class OldTemporalNetwork(ABCTemporalNetwork, Network):
             Returns a summary of important network properties.
 
         """
-        try:
-            _begin = self.edges.begin()
-            _end = self.edges.end()
-        except IndexError:
-            _begin = 0
-            _end = 0
         summary = [
             'Uid:\t\t\t{}\n'.format(self.uid),
             'Type:\t\t\t{}\n'.format(self.__class__.__name__),
@@ -336,8 +447,9 @@ class OldTemporalNetwork(ABCTemporalNetwork, Network):
             'Multi-Edges:\t\t{}\n'.format(str(self.multiedges)),
             'Number of unique nodes:\t{}\n'.format(self.number_of_nodes()),
             'Number of unique edges:\t{}\n'.format(self.number_of_edges()),
-            'Number of temp edges:\t{}\n'.format(len(self.edges.temporal())),
-            'Observation periode:\t{} - {}'.format(_begin, _end)
+            'Number of temp nodes:\t{}\n'.format(len(self.tnodes)),
+            'Number of temp edges:\t{}\n'.format(len(self.tedges)),
+            'Observation periode:\t{} - {}'.format(self.start(), self.end())
         ]
         attr = self.attributes
         if len(attr) > 0:
@@ -347,10 +459,6 @@ class OldTemporalNetwork(ABCTemporalNetwork, Network):
             summary.append('{}:\t{}\n'.format(k, v))
 
         return ''.join(summary)
-
-
-class TemporalNodeCollection(NodeCollection):
-    """A collection of temporal nodes"""
 
 
 class OldTemporalEdgeCollection(EdgeCollection):
@@ -490,6 +598,28 @@ class OldTemporalEdgeCollection(EdgeCollection):
             if _begin > float('-inf') and _end == float('inf'):
                 _end = _begin
         return max(_begin, _end)
+
+
+def _time(*args, **kwargs):
+    """Helper function to extract the start and end time"""
+
+    # get keywords defined in the config file
+    start = kwargs.pop(config['temporal']['start'], float('-inf'))
+    end = kwargs.pop(config['temporal']['end'], float('inf'))
+    timestamp = kwargs.pop(config['temporal']['timestamp'], None)
+    duration = kwargs.pop(config['temporal']['duration'], None)
+
+    # check if timestamp is given
+    if isinstance(timestamp, (int, float)):
+        if isinstance(duration, (int, float)):
+            start = timestamp
+            end = timestamp + duration
+        else:
+            start = timestamp
+            end = timestamp + config['temporal']['duration_value']
+
+    return start, end, kwargs
+
 # =============================================================================
 # eof
 #

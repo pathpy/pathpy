@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an single edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-03-29 14:25 juergen>
+# Time-stamp: <Thu 2021-04-01 16:13 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -695,7 +695,7 @@ class EdgeCollection(BaseCollection):
                 # add edge to the network
                 self._add(_edge)
             else:
-                self._if_exist(_edge.uid, **kwargs)
+                self._if_exist(_edge, **kwargs)
         else:
             # raise error if edge already exists
             self._if_exist(_edge.uid, **kwargs)
