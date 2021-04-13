@@ -96,7 +96,7 @@ def read_network(file):
     return net
 
 
-def read_konect_name(name, base_url="http://konect.uni-koblenz.de/downloads/tsv/"):
+def read_konect_name(name, base_url="http://konect.cc/files/download.tsv."):
     """Retrieves a KONECT data set with a given name and returns a corresponding
     instance of pp.Network.
 
@@ -121,10 +121,10 @@ def read_konect_name(name, base_url="http://konect.uni-koblenz.de/downloads/tsv/
     base_url: str
 
         Base url of the KONECT service that will be used to retrieve data
-        set. Default is "http://konect.uni-koblenz.de/downloads/tsv/". This
+        set. Default is "http://konect.cc/files/download.tsv.". This
         method assumes that the KONECT data file with name X can be retrieved
         via HTTP under the URL
-        "http://konect.uni-koblenz.de/downloads/tsv/X.tar.bz2"
+        "http://konect.cc/files/download.tsv.X.tar.bz2"
 
     """
     f = urllib.request.urlopen(base_url + name + ".tar.bz2").read()
