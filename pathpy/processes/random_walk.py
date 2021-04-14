@@ -208,16 +208,20 @@ class RandomWalk(BaseWalk):
         D = A.sum(axis=1)
         n = network.number_of_nodes()
         T = sp.sparse.csr_matrix((n, n))
+        zero_deg = 0
         for i in range(n):
+            if D[i]==0:
+                zero_deg += 1
             for j in range(n):
                 if D[i]>0:
                     T[i,j] = restart_prob*(1./n) + (1-restart_prob)*A[i,j]/D[i]
-                else:                    
-                    LOG.warning('Computing transition matrix for node with zero out-degree')
+                else:
                     if restart_prob>0:
                         T[i,j] = 1./n 
                     else:     
                         T[i,j] = 0.0
+        if zero_deg > 0:
+            LOG.warning('Network contains {0} nodes with zero out-degree'.format(zero_deg))
         return T
 
     @property
@@ -243,7 +247,7 @@ class RandomWalk(BaseWalk):
         """
         return self._current_node
 
-    def walk(self, steps: int = 1):
+    def walk(self, steps: int = 1, start_node: Optional[str] = None):
         """Generator object that yields a sequence of `steps` visited nodes.
 
         Returns a generator object that yields a sequence of `steps` visited
@@ -279,9 +283,13 @@ class RandomWalk(BaseWalk):
         array([0.3, 0.3, 0.4])
 
         """
-        if self._current_node is None:
+        if self._current_node is None and start_node is None:
             # Terminate the iteration
             return None
+        elif start_node is not None:
+            # override current node
+            self._current_node = start_node
+            
         for t in tqdm(range(steps)):
             prob = self.transition_probabilities(self._current_node)
             if prob.sum() == 0:
