@@ -62,6 +62,8 @@ def to_network(frame: pd.DataFrame, loops: bool = True, directed: bool = True,
     edges: list = []
     edge_set: set = set()
 
+    ignored_edges = 0
+
     # TODO: Make this for loop faster!
     for row in frame.to_dict(orient='records'):
         v = row.pop('v')
@@ -69,10 +71,7 @@ def to_network(frame: pd.DataFrame, loops: bool = True, directed: bool = True,
         uid = row.pop('uid', None)
 
         if (v, w) in edge_set and not multiedges:
-            LOG.warning('The edge (%s,%s) exist already '
-                        'and will not be considered. '
-                        'To capture this edge, please '
-                        'enalbe multiedges and/or directed!', v, w)
+            ignored_edges += 1            
         elif loops or v != w:
             edges.append(Edge(nodes[v], nodes[w], uid=uid, **row))
             edge_set.add((v, w))
@@ -80,6 +79,11 @@ def to_network(frame: pd.DataFrame, loops: bool = True, directed: bool = True,
                 edge_set.add((w, v))
         else:
             continue
+    if ignored_edges > 0:
+        LOG.warning('{0} edges existed already '
+                        'and were not be considered. '
+                        'To capture those edges, please '
+                        'enable multiedges and/or directed!'.format(ignored_edges))
 
     net = Network(directed=directed, multiedges=multiedges, **kwargs)
     for node in nodes.values():
