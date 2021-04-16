@@ -524,7 +524,9 @@ class Parser:
             self.config[key] = u2px(self.config[key])
 
         nodes = self._convert_size(nodes, u2px, otype='node')
+        nodes = self._convert_color(nodes)
         edges = self._convert_size(edges, u2px, otype='edge')
+        edges = self._convert_color(edges)
 
         # update layout
         try:
@@ -542,6 +544,17 @@ class Parser:
 
         # return the figure
         return self.figure
+
+    def _convert_color(self, objects):
+        """Helper function to convert rgb color tuples to JScript color strings"""
+        for obj in objects:
+            if type(obj['color'])==tuple:
+                c = 255*np.array(obj['color'])
+                obj['color'] = 'rgb(' + str(int(c[0])) + ', ' + str(int(c[1])) + ',' + str(int(c[2])) + ')'
+            else:
+                obj['color'] = obj['color']
+
+        return objects
 
     def _convert_size(self, objects, converter, otype='node'):
         """Helper function to convert the units  of the size of an object."""

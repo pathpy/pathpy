@@ -138,9 +138,9 @@ define('network',['d3','tooltip'], function(d3,tooltip){
     // otherwise a default value
     function getColor(d){
       if (typeof d.color === "undefined"){
-        return "#99ccff"
-      } else {
-        return d.color
+        return "#99ccff";
+      } 
+      else return d.color;
       }
     }
 
