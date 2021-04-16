@@ -10,9 +10,10 @@
 # =============================================================================
 from __future__ import annotations
 import abc
+
+from scipy.sparse.construct import random
 from pathpy.models.higher_order_network import HigherOrderNetwork
 
-from numpy.random import standard_cauchy
 from pathpy.core.node import NodeCollection
 from typing import Any, Optional, Union, overload
 
@@ -64,12 +65,66 @@ class BaseWalk:
         """Abstract state property."""
 
 
-class RandomWalk(BaseWalk):
-    """Class for a random walker
-
-    Instances of this class represent the state of a random walk in a
-    network.
+class VoseAliasSampling:    
     """
+    Implementation of fast biased sampling from discrete distributions, following https://www.keithschwarz.com/darts-dice-coins/
+    """
+
+    def __init__(self, weights):
+        """
+        Initialize probability and alias tables
+        """
+        self.n = len(weights)
+        self.probs = dict()
+        self.scaled_probs = dict()
+        self.aliases = dict()
+
+        small = list()
+        large = list()
+
+        for i in range(1, self.n+1):
+            self.probs[i] = weights[i-1]
+            self.scaled_probs[i] = self.n*weights[i-1]
+            if self.scaled_probs[i]>1:
+                large.append(i)
+            elif self.scaled_probs[i]<=1:
+                small.append(i)
+
+        while small and large:
+            l = small.pop()
+            g = large.pop()
+
+            self.probs[l] = self.scaled_probs[l]
+            self.aliases[l] = g
+            self.scaled_probs[g] = self.scaled_probs[l] + self.scaled_probs[g] -1
+
+            if self.scaled_probs[g] < 1:
+                small.append(g)
+            else:
+                large.append(g)
+        while large:
+            g = large.pop()
+            self.probs[g] = 1
+        while small:
+            l = small.pop()
+            self.probs[l] = 1
+
+
+    def sample(self):
+        """
+        Biased sampling of discrete value in O(1)
+        """
+        i = np.random.randint(1, self.n+1)
+        x = np.random.rand()
+        if x < self.probs[i]:
+            return i-1
+        else:
+            return self.aliases[i]-1
+
+
+
+class RandomWalk(BaseWalk):
+    """Random Walk Process in a Network"""
 
     def __init__(self, network: Network, weight: Weight = None, restart_prob = 0) -> None:
         """Initialises a random walk process in a given start node.
@@ -92,6 +147,13 @@ class RandomWalk(BaseWalk):
 
         # transition matrix for the random walk
         self._transition_matrix = RandomWalk.transition_matrix(network, weight, restart_prob)
+
+        # initialize Vose Alias Samplers
+        self.reverse_index = { v:k for k,v in network.nodes.index.items() }
+        self.samplers = { v:VoseAliasSampling(self.transition_probabilities(v)) for v in network.nodes.uids }
+
+        #for v in network.nodes.uids:
+        # self.samplers[v] = VoseAliasSampling(self.transition_probabilities(v))
 
         # uids of the nodes
         self._node_uids: list = list(network.nodes.uids)
@@ -209,7 +271,7 @@ class RandomWalk(BaseWalk):
         A = adjacency_matrix(network, weight=weight)
         D = A.sum(axis=1)
         n = network.number_of_nodes()
-        T = sp.sparse.csr_matrix((n, n))
+        T = sp.sparse.lil_matrix((n, n))
         zero_deg = 0
         for i in range(n):
             if D[i]==0:
@@ -224,7 +286,7 @@ class RandomWalk(BaseWalk):
                         T[i,j] = 0.0
         if zero_deg > 0:
             LOG.warning('Network contains {0} nodes with zero out-degree'.format(zero_deg))
-        return T
+        return T.tocsr()
 
     @property
     def matrix(self) -> sp.sparse.csr_matrix:
@@ -261,29 +323,19 @@ class RandomWalk(BaseWalk):
             LOG.error('Invalid start node for random walk.')
             raise AttributeError('Invalid start node for random walk.')
         
-        self._current_node = start_node
-        self._t = 0
-
-        # initialize start node
+        # initialize walk                
         walk = Path(start_node)
+        self._t = 0
+        self._current_node = start_node
 
-        reverse_index = { k:v for v,k in self._network.nodes.index.items()}
-
+        # construct walk
         for i in range(steps):
-            prob = self.transition_probabilities(self._current_node.uid)
-            if prob.sum() == 0:
-                # Terminate walk
-                return walk
-            # TODO: Implement Walker's Alias method
-            i = np.random.choice(a=self._network.number_of_nodes(), p=prob)
-
-            # Perform transition
-            next = self._network.nodes[reverse_index[i]]
-            edge = self._network.edges[(self._current_node.uid, next.uid)]
+            next = self.reverse_index[self.samplers[self._current_node.uid].sample()]
+            traversed_edge = self._network.edges[(self._current_node.uid, next)]
+            print(traversed_edge)
+            walk._path.append(traversed_edge)
             self._t += 1
-            self._current_node = next
-            walk._path.append(edge)
-
+            self._current_node = self._network.nodes[next]
         return walk
 
 

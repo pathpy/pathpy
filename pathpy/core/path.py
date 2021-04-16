@@ -171,6 +171,7 @@ class Path(BasePath):
         {'a': Node a, 'b': Node b, 'c': Node c}
 
         """
+        # TODO: Bug here for undirected edges!
         return [self._start] + [e.w for e in self._path]
 
     @property
