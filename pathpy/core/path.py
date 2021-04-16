@@ -64,7 +64,7 @@ class Path(BasePath):
                     self._path.append(edge)
                 else:
                     LOG.error('Path object needs consecutive edges!')
-                    raise AttributeError
+                    raise AttributeError('Edges in Path must be consecutive.')
 
     def __str__(self) -> str:
         """Print a summary of the path.
