@@ -4,13 +4,17 @@
 # =============================================================================
 # File      : random_walk.py -- Class to simulate random walks
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Mon 2020-04-20 11:02 juergen>
+# Time-stamp: <Mon 2020-04-20 11:02 ingo>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
 import abc
-from typing import Any, Optional, Union
+from pathpy.models.higher_order_network import HigherOrderNetwork
+
+from numpy.random import standard_cauchy
+from pathpy.core.node import NodeCollection
+from typing import Any, Optional, Union, overload
 
 import numpy as np
 import scipy as sp  # pylint: disable=import-error
@@ -18,8 +22,11 @@ from scipy.sparse import linalg as spl
 from scipy import linalg as spla
 
 from pathpy import logger, tqdm
-# from pathpy.core.path import Path
+from pathpy.core.path import Path
+from pathpy.core.path import PathCollection
 from pathpy.core.network import Network
+from pathpy.core.network import Node
+from pathpy.core.network import Edge
 from pathpy.algorithms.matrices import adjacency_matrix
 
 # create custom types
@@ -30,11 +37,23 @@ LOG = logger(__name__)
 
 
 class BaseWalk:
-    """Abstract base class for all implementations of walk processes.
+    """Abstract base class for all implementations of a walk processes.
     """
     @abc.abstractmethod
-    def walk(self, steps: int):
-        """Abstract walk property."""
+    def walk_step(self):
+        """Abstract walk step method."""
+
+    @abc.abstractmethod
+    def generate_walk(self, steps: int, start_node: Node):
+        """Abstract method to generate a single walk."""
+
+    @abc.abstractmethod
+    def generate_walks(self, steps_per_walk: int, start_nodes: NodeCollection):
+        """Abstract method to generate multiple walks from different start nodes."""
+
+    @abc.abstractmethod
+    def walk(self, steps: int, start_node: Node):
+        """Abstract generator method to perform random walk."""
 
     @abc.abstractproperty
     def t(self) -> int:
@@ -50,11 +69,9 @@ class RandomWalk(BaseWalk):
 
     Instances of this class represent the state of a random walk in a
     network.
-
     """
 
-    def __init__(self, network: Network, weight: Weight = None,
-                 start_node: Optional[str] = None, restart_prob = 0) -> None:
+    def __init__(self, network: Network, weight: Weight = None, restart_prob = 0) -> None:
         """Initialises a random walk process in a given start node.
 
         The initial time t of the random walk will be set to zero and the
@@ -68,20 +85,19 @@ class RandomWalk(BaseWalk):
         self._network: Network = network
 
         # time of the random walk
-        self._t: int = 0
+        self._t: int = -1
+
+        # currently visited node
+        self.current_node = None
 
         # transition matrix for the random walk
         self._transition_matrix = RandomWalk.transition_matrix(network, weight, restart_prob)
 
         # uids of the nodes
-        self._node_uids: list = list(network.nodes.keys())
+        self._node_uids: list = list(network.nodes.uids)
 
         self._visitations = np.ravel(
             np.zeros(shape=(1, network.number_of_nodes())))        
-
-        # path of the random walker
-        # TODO: implement new path class
-        # self._path = Path()
 
         # eigenvectors and eigenvalues
         if network.number_of_nodes()>2:
@@ -96,20 +112,6 @@ class RandomWalk(BaseWalk):
         # stationary probabilities
         self._stationary_probabilities = np.real(pi/np.sum(pi))
 
-        if start_node is None:
-            self._current_node = np.random.choice(self._node_uids)
-        elif start_node not in network.nodes:
-            LOG.warning('Invalid start node for random walk. '
-                        'Picking random node.')
-            self._current_node = np.random.choice(self._node_uids)
-        else:
-            self._current_node = start_node
-
-        self._visitations[network.nodes.index[self._current_node]] += 1
-        
-
-        # TODO: implement new path class
-        # self._path.add_node(self._network.nodes[self._current_node])
 
     def stationary_probabilities(self, **kwargs: Any) -> np.array:
         """Computes stationary visitation probabilities.
@@ -247,11 +249,62 @@ class RandomWalk(BaseWalk):
         """
         return self._current_node
 
-    def walk(self, steps: int = 1, start_node: Optional[str] = None):
-        """Generator object that yields a sequence of `steps` visited nodes.
+    def generate_walk(self, steps: int = 1, start_node: Optional[Node] = None):
+        """Returns a path representing the sequence of nodes and edges traversed 
+        by a single random length with a given number of steps
+        """
 
-        Returns a generator object that yields a sequence of `steps` visited
-        nodes, starting from the current state of the random walk process.
+        # Choose random start node if no node is given
+        if start_node is None:
+            start_node = self._network.nodes[np.random.choice(self._node_uids)]
+        elif start_node.uid not in self._node_uids:
+            LOG.error('Invalid start node for random walk.')
+            raise AttributeError('Invalid start node for random walk.')
+        
+        self._current_node = start_node
+        self._t = 0
+
+        # initialize start node
+        walk = Path(start_node)
+
+        reverse_index = { k:v for v,k in self._network.nodes.index.items()}
+
+        for i in range(steps):
+            prob = self.transition_probabilities(self._current_node.uid)
+            if prob.sum() == 0:
+                # Terminate walk
+                return walk
+            # TODO: Implement Walker's Alias method
+            i = np.random.choice(a=self._network.number_of_nodes(), p=prob)
+
+            # Perform transition
+            next = self._network.nodes[reverse_index[i]]
+            edge = self._network.edges[(self._current_node.uid, next.uid)]
+            self._t += 1
+            self._current_node = next
+            walk._path.append(edge)
+
+        return walk
+
+
+    def generate_walks(self, steps_per_walk: int, start_nodes: Union[int, NodeCollection]):
+        """Returns a PathCollection generated by a number of random walkers starting in different (random) nodes.
+        """
+
+        walks = PathCollection()
+
+        # generate random start_nodes if no nodes are given
+        if type(start_nodes) == int:
+            for i in range(start_nodes):
+                walks.add(self.generate_walk(steps_per_walk))
+        else:
+            for v in start_nodes:
+                walks.add(self.generate_walk(steps_per_walk, start_node=v))
+        
+        return walks
+
+    def walk(self, steps: int = 1, start_node: Optional[Node] = None):
+        """Generator object which yields a configurable number of nodes visited by a random walker.
 
         Parameters
         ----------
@@ -259,10 +312,14 @@ class RandomWalk(BaseWalk):
 
             The number of random walk steps to simulate
 
+        start_node: str
+        
+            Where to start the random walk
+
         Example
         -------
         >>> n = pp.Network('a-b-c-a-c-b')
-        >>> rw = pp.processes.RandomWalk(n, start_node='a')
+        >>> rw = pp.processes.RandomWalk(n)
         >>> for v in rw.walk(10):
         >>>     print('Node visited at time {} is {}'.format(rw.t, rw.state))
         Node visited at time 1 is b
@@ -283,26 +340,28 @@ class RandomWalk(BaseWalk):
         array([0.3, 0.3, 0.4])
 
         """
-        if self._current_node is None and start_node is None:
-            # Terminate the iteration
-            return None
-        elif start_node is not None:
-            # override current node
-            self._current_node = start_node
-            
-        for t in tqdm(range(steps)):
-            prob = self.transition_probabilities(self._current_node)
+
+        if start_node is None:
+            start_node = self._network.nodes[np.random.choice(self._node_uids)]
+
+        reverse_index = { k:v for v,k in self._network.nodes.index.items()}
+
+        # initialize walk
+        self._t = 0
+        self._current_node = start_node
+        self._visitations = np.ravel(np.zeros(shape=(1, self._network.number_of_nodes())))
+        self._visitations[self._network.nodes.index[start_node.uid]] = 1
+                    
+        for t in range(steps):
+            prob = self.transition_probabilities(self._current_node.uid)
             if prob.sum() == 0:
                 self._current_node = None
-                # Terminate the iteration
+                # Terminate loop
                 return None
             i = np.random.choice(a=self._network.number_of_nodes(), p=prob)
-            self._current_node = self._node_uids[i]
+            self._current_node = self._network.nodes[reverse_index[i]]
             self._visitations[i] += 1
             self._t += 1
-
-            # TODO: implement new path class
-            # self._path.add_node(self._network.nodes[self._current_node])
 
             # yield the next visited node
             yield self._current_node
@@ -315,8 +374,3 @@ class RandomWalk(BaseWalk):
 
         """
         return next(self.walk())
-
-    # TODO: implement new path class
-    # @property
-    # def path(self) -> Path:
-    #     return self._path
