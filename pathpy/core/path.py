@@ -60,7 +60,7 @@ class Path(BasePath):
                     self._start = edge.v
 
                 # check if edges are consecutive
-                elif self._path[-1].w == edge.v:
+                elif self._path[-1].w.uid == edge.v.uid:
                     self._path.append(edge)
                 else:
                     LOG.error('Path object needs consecutive edges!')
