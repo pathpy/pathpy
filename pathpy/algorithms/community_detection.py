@@ -36,38 +36,6 @@ def _Q_merge(network: Network, A, D, n: int, m: int, C: Dict, merge: Set = set()
     return q
 
 
-def color_map(network: Network, cluster_mapping: Union[Dict, Iterable], colors: List = None) -> Dict:
-    """Returns a dictionary that maps nodes to colors based on their communities.
-
-    Currently, a maximum of 20 different communities is supported.
-    """
-    if colors == None:
-        colors = ['CornflowerBlue', 'orange', 'yellow', 'cyan', 'blueviolet', 'red', 'blue',
-              'chocolate', 'magenta', 'navy', 'plum', 'thistle', 'wheat',
-              'turquoise', 'steelblue', 'grey', 'powderblue', 'orchid',
-              'mintcream', 'maroon']
-    node_colors = {}
-    community_color_map: Dict = {}
-    i = 0    
-    for x in network.nodes:
-        if isinstance(cluster_mapping, dict):
-            v = x.uid
-        else:
-            v = network.nodes.index[x.uid]
-        
-        if cluster_mapping[v] not in community_color_map:
-            community_color_map[cluster_mapping[v]] = i % len(colors)
-            i += 1
-            if i > 20:
-                LOG.warning('Exceeded 20 different communities, '
-                            'some communities are assigned the same color.')
-        if isinstance(cluster_mapping, dict):
-            node_colors[v] = colors[community_color_map[cluster_mapping[v]]]   
-        else:
-            node_colors[x.uid] = colors[community_color_map[cluster_mapping[v]]]   
-    return node_colors
-
-
 def modularity_maximisation(network: Network,
                             iterations: int = 1000) -> Tuple[Dict, float]:
     """Modularity maximisation."""
