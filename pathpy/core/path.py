@@ -66,6 +66,11 @@ class Path(BasePath):
                     LOG.error('Path object needs consecutive edges!')
                     raise AttributeError('Edges in Path must be consecutive.')
 
+    def tolist(self) -> list:
+        """Return a list of node uids representing the path.
+        """
+        return [x.uid for x in self.nodes]
+
     def __str__(self) -> str:
         """Print a summary of the path.
 
@@ -655,6 +660,11 @@ class PathCollection(BaseCollection):
         if len(self._edges_map[_edges]) == 0:
             self._edges_map.pop(_edges, None)
 
+    def tolist(self) -> list:
+        """Returns a list of lists, where each path in the collection is represented by a list of node uids.
+        """
+
+        return [p.tolist() for p in self.values()]
 # =============================================================================
 # eof
 #
