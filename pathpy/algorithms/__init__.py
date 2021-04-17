@@ -38,6 +38,8 @@ from pathpy.algorithms.trees import (tree_size, check_tree)
 
 from pathpy.algorithms import community_detection
 
+from pathpy.algorithms import evaluation
+
 # =============================================================================
 # eof
 #
