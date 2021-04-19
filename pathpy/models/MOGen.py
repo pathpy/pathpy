@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : MOGen.py -- MOGen models for pathpy
 # Author    : Christoph Gote <cgote@ethz.ch>
-# Time-stamp: <Mon 2021-03-29 17:10 juergen>
+# Time-stamp: <Mon 2021-04-19 17:29 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -21,7 +21,7 @@ from scipy.sparse import dok_matrix, csr_matrix, eye, issparse
 from scipy.linalg import toeplitz
 from scipy.special import binom
 import scipy.sparse.linalg as sla
-import matplotlib.pyplot as plt
+
 from pathpy import logger, config
 from pathpy.models.network import Network
 # from sklearn import preprocessing
@@ -120,7 +120,8 @@ class MultiOrderMatrix:
                 idx.remove(self.node_id_dict[node])
         matrix = self.matrix[idx][:, idx]
 
-        node_id_dict = {self.id_node_dict[idx]: v for v, idx in enumerate(sorted(idx))}
+        node_id_dict = {self.id_node_dict[idx]
+            : v for v, idx in enumerate(sorted(idx))}
 
         return MultiOrderMatrix(matrix, node_id_dict)
 
@@ -139,8 +140,7 @@ class MultiOrderMatrix:
         matrix = self.matrix[idx][:, idx].todense(
         ) + end_prob.sum(axis=1) @ start_dist
 
-        node_id_dict = {self.id_node_dict[idx]
-            : v for v, idx in enumerate(sorted(idx))}
+        node_id_dict = {self.id_node_dict[idx]                        : v for v, idx in enumerate(sorted(idx))}
 
         return MultiOrderMatrix(matrix, node_id_dict)
 
@@ -197,8 +197,7 @@ class MOGen:
 
     def __init__(self, paths, max_order=1, model_selection=True):
         """Initialise MOGen."""
-        self.paths = {tuple(x.uid for x in p.nodes)
-                            : paths[p]['frequency'] for p in paths}
+        self.paths = {tuple(x.uid for x in p.nodes)                      : paths[p]['frequency'] for p in paths}
         self.network = Network()
         for e in paths.edges:
             self.network.add_edge(e)
@@ -514,6 +513,9 @@ class MOGen:
         return self
 
     def plot(self):
+
+        import matplotlib.pyplot as plt
+        
         if self.model_selection:
             orders = list(range(1, self.max_order+1))
         else:
