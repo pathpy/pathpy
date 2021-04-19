@@ -3,14 +3,14 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-07-14 18:13 juergen>
+# Time-stamp: <Mon 2021-03-29 16:18 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 
 import pytest
+import pathpy as pp
 from pathpy import Node, Edge, Network
-
 # Test network
 # ------------
 

@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : MOGen.py -- MOGen models for pathpy
 # Author    : Christoph Gote <cgote@ethz.ch>
-# Time-stamp: <Thu 2020-07-13 17:27 cgote>
+# Time-stamp: <Mon 2021-03-29 17:10 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -22,40 +22,49 @@ from scipy.linalg import toeplitz
 from scipy.special import binom
 import scipy.sparse.linalg as sla
 import matplotlib.pyplot as plt
-from pathpy import logger, config, Network
-from sklearn import preprocessing
+from pathpy import logger, config
+from pathpy.models.network import Network
+# from sklearn import preprocessing
+
 
 # create logger
 LOG = logger(__name__)
 
 ###############################################################################
 
+
 class MultiOrderMatrix:
     def __init__(self, matrix, node_id_dict):
-        assert matrix.shape[0] == matrix.shape[1] #square matrix
-        assert len(node_id_dict) == matrix.shape[0] #entry for each matrix row/col exists
+        assert matrix.shape[0] == matrix.shape[1]  # square matrix
+        # entry for each matrix row/col exists
+        assert len(node_id_dict) == matrix.shape[0]
         assert min(node_id_dict.values()) == 0
         assert max(node_id_dict.values()) == len(node_id_dict) - 1
         assert len(set(node_id_dict.values())) == len(node_id_dict)
-        assert sum([type(x)==int for x in node_id_dict.values()]) == len(node_id_dict)
-        
+        assert sum([type(x) == int for x in node_id_dict.values()]
+                   ) == len(node_id_dict)
+
         self.matrix = csr_matrix(matrix)
-        self.node_id_dict = {(k,) if not type(k) == tuple else k: v for k, v in node_id_dict.items()}
+        self.node_id_dict = {(k,) if not type(
+            k) == tuple else k: v for k, v in node_id_dict.items()}
         self.id_node_dict = {v: k for k, v in self.node_id_dict.items()}
-        self.nodes = list(set((fon,) for hon in self.node_id_dict.keys() for fon in hon if not fon == '+'))
-        self.nodes += list(set(hon[-2:] for hon in self.node_id_dict.keys() if hon[-1] == '+'))
-        self.nodes = sorted(self.nodes, key=lambda x: (x[-1] == '+', len(x), x[-1]))
-        
+        self.nodes = list(set((fon,) for hon in self.node_id_dict.keys()
+                          for fon in hon if not fon == '+'))
+        self.nodes += list(set(hon[-2:]
+                           for hon in self.node_id_dict.keys() if hon[-1] == '+'))
+        self.nodes = sorted(self.nodes, key=lambda x: (
+            x[-1] == '+', len(x), x[-1]))
+
     def __str__(self):
         decimals = 2
-        
+
         idx = [self.id_node_dict[i] for i in range(self.matrix.shape[0])]
-        
+
         if issparse(self.matrix):
             matrix = self.matrix.todense()
         else:
             matrix = self.matrix
-        
+
         out = '\t'
         for node in idx:
             out += ','.join(node) + '\t'
@@ -72,15 +81,15 @@ class MultiOrderMatrix:
 
     def __repr__(self):
         return self.__str__()
-    
+
     def __add__(self, other):
         assert self.node_id_dict == other.node_id_dict
         return MultiOrderMatrix(self.matrix + other.matrix, self.node_id_dict)
-    
+
     def __sub__(self, other):
         assert self.node_id_dict == other.node_id_dict
         return MultiOrderMatrix(self.matrix - other.matrix, self.node_id_dict)
-    
+
     def to_dataframe(self, decimals=None):
         idx = [self.id_node_dict[i] for i in range(self.matrix.shape[0])]
         if decimals:
@@ -94,93 +103,102 @@ class MultiOrderMatrix:
             else:
                 matrix = self.matrix
         return pd.DataFrame(matrix, index=idx, columns=idx)
-    
+
     def _repr_html_(self):
         return self.to_dataframe(decimals=2).to_html()
-    
+
     def display(self, decimals=2):
         display(self.to_dataframe(decimals=decimals))
-        
+
     def remove_zero_order(self):
         assert ('*',) in self.node_id_dict.keys()
-        
+
         idx = list(self.node_id_dict.values())
         idx.remove(self.node_id_dict[('*',)])
         for node in self.node_id_dict.keys():
             if node[-1] == '+':
                 idx.remove(self.node_id_dict[node])
-        matrix = self.matrix[idx][:,idx]
-        
+        matrix = self.matrix[idx][:, idx]
+
         node_id_dict = {self.id_node_dict[idx]: v for v, idx in enumerate(sorted(idx))}
-                
+
         return MultiOrderMatrix(matrix, node_id_dict)
-        
+
     def integrate_zero_order(self):
         assert ('*',) in self.node_id_dict.keys()
         start_nodes = [('*',)]
         end_nodes = [x for x in self.node_id_dict.keys() if x[-1] == '+']
-        idx = list(v for k, v in self.node_id_dict.items() if not k in start_nodes + end_nodes)
+        idx = list(v for k, v in self.node_id_dict.items()
+                   if not k in start_nodes + end_nodes)
 
-        start_dist = self.matrix[self.node_id_dict[('*',)],idx]
-                
-        end_prob = self.matrix[idx,:][:,[self.node_id_dict[x] for x in end_nodes]]
-        
-        matrix = self.matrix[idx][:,idx].todense() + end_prob.sum(axis=1) @ start_dist
-        
-        node_id_dict = {self.id_node_dict[idx]: v for v, idx in enumerate(sorted(idx))}
-        
+        start_dist = self.matrix[self.node_id_dict[('*',)], idx]
+
+        end_prob = self.matrix[idx, :][:, [
+            self.node_id_dict[x] for x in end_nodes]]
+
+        matrix = self.matrix[idx][:, idx].todense(
+        ) + end_prob.sum(axis=1) @ start_dist
+
+        node_id_dict = {self.id_node_dict[idx]
+            : v for v, idx in enumerate(sorted(idx))}
+
         return MultiOrderMatrix(matrix, node_id_dict)
-    
+
     def start_distribution(self):
         assert ('*',) in self.node_id_dict.keys()
         start_nodes = [('*',)]
         end_nodes = [x for x in self.node_id_dict.keys() if x[-1] == '+']
-        
+
         start_dist = self.to_dataframe().loc[
             start_nodes,
             [x for x in self.node_id_dict.keys() if x not in start_nodes + end_nodes]]
         return start_dist
-    
+
     def end_probability(self):
         assert ('*',) in self.node_id_dict.keys()
         start_nodes = [('*',)]
         end_nodes = [x for x in self.node_id_dict.keys() if x[-1] == '+']
-        
+
         end_prob = self.to_dataframe().loc[
             [x for x in self.node_id_dict.keys() if x not in start_nodes + end_nodes],
             end_nodes]
         return end_prob
-    
+
     def to_first_order(self):
         fon_id_dict = {n: i for i, n in enumerate(self.nodes)}
-        
+
         hon = np.matrix([fon_id_dict[(self.id_node_dict[i][-1],)
                                      if self.id_node_dict[i][-1] != '+' else self.id_node_dict[i][-2:]]
                          for i in range(max(self.id_node_dict) + 1)])
         fon = np.matrix([fon_id_dict[n] for n in self.nodes])
-        N = csr_matrix(np.equal(hon.T,fon))
-        
+        N = csr_matrix(np.equal(hon.T, fon))
+
         matrix = N.T / N.T.sum(axis=1)[:, None] @ self.matrix @ N
-                
+
         return MultiOrderMatrix(matrix, fon_id_dict)
 
 ###############################################################################
 
+
 def unwrap_self_count_transitions(arg, **kwarg):
     return MOGen._count_transitions(arg, **kwarg)
+
 
 def unwrap_self_get_log_likelihood_path(arg, **kwarg):
     return MOGen._get_log_likelihood_path(arg, **kwarg)
 
+
 def unwrap_self_generate_paths_chunk(arg, **kwarg):
     return MOGen._generate_path_chunk(arg, **kwarg)
 
+
 class MOGen:
     """A generative mulit-order model for variable-length paths in networks."""
-    
-    def __init__(self, paths, max_order=1, model_selection=True):       
+
+    def __init__(self, paths, max_order=1, model_selection=True):
         """Initialise MOGen."""
-        self.paths = {tuple(x.uid for x in p.nodes): paths[p]['frequency'] for p in paths}
+        self.paths = {tuple(x.uid for x in p.nodes)
+                            : paths[p]['frequency'] for p in paths}
         self.network = Network()
         for e in paths.edges:
             self.network.add_edge(e)
@@ -196,12 +214,12 @@ class MOGen:
         self.AIC = None
         self.models = collections.defaultdict(lambda: {})
         self.log_L_offset = None
-        
+
     def update_max_order(self, max_order):
         """Updates the maximum order considered by MOGen's model selection.
            Note that a new estimate is required for this to take effect."""
         self.max_order = max_order
-        
+
     def update_model_selection(self, model_selection):
         """Updates the model_selection parameter. If True models up to max_order will be considered.
            Otherwise only the model with max_order is computed.
@@ -217,62 +235,68 @@ class MOGen:
                 return math.log(math.factorial(n))
             # For larger n we use Stirling's approximation
             else:
-                return n * math.log(n) - n + 1 # Stirling's approximation
-                
+                return n * math.log(n) - n + 1  # Stirling's approximation
+
         return log_factorial(sum(self.paths.values())) - sum(map(log_factorial, self.paths.values()))
-        
+
     def _chunks(self, iterable, n):
         if n > len(iterable):
             n = len(iterable)
-            
+
         chunksize = len(iterable) / n
         for i in range(n):
-            iterator = itertools.islice(iterable, int(i*chunksize), int((i+1)*chunksize))
+            iterator = itertools.islice(iterable, int(
+                i*chunksize), int((i+1)*chunksize))
             if type(iterable) is list:
                 yield list(iterator)
             elif type(iterable) is dict:
                 yield {x: iterable[x] for x in iterator}
             else:
-                assert True==False
-                
+                assert True == False
+
     def _count_transitions(args):
         counter = collections.Counter()
 
         for path, frequency in args['paths'].items():
-            mask = toeplitz(min(len(path), args['order'])*[1] + \
-                            (len(path)-args['order'])*[0], \
+            mask = toeplitz(min(len(path), args['order'])*[1] +
+                            (len(path)-args['order'])*[0],
                             1*[1] + (len(path)-1)*[0])
-            multi_order_path = tuple(map(lambda x: tuple(x[x != None]), np.where(mask, path, None)))
-            multi_order_path = (('*',),) + multi_order_path + (multi_order_path[-1] + ('+',),)
+            multi_order_path = tuple(
+                map(lambda x: tuple(x[x != None]), np.where(mask, path, None)))
+            multi_order_path = (('*',),) + multi_order_path + \
+                (multi_order_path[-1] + ('+',),)
 
             for s, t in zip(multi_order_path, multi_order_path[1:]):
-                counter[(s,t)] += frequency
+                counter[(s, t)] += frequency
 
-        return counter  
-    
+        return counter
+
     def _get_multi_order_transitions(self, order, no_of_processes=multiprocessing.cpu_count(), verbose=True):
-        n = min(int(np.ceil(len(self.paths)/config['MOGen']['paths_per_chunk'])), no_of_processes)
-        
-        args = [{'paths': path_chunk, 'order': order} for path_chunk in self._chunks(self.paths, n)]
-        
+        n = min(int(np.ceil(len(self.paths) /
+                config['MOGen']['paths_per_chunk'])), no_of_processes)
+
+        args = [{'paths': path_chunk, 'order': order}
+                for path_chunk in self._chunks(self.paths, n)]
+
         counter = collections.Counter()
         with multiprocessing.Pool(no_of_processes) as p:
             with tqdm(total=len(args),
-                      desc='order:{1:>3}; T     ({0} prcs)'.format(no_of_processes, order),
+                      desc='order:{1:>3}; T     ({0} prcs)'.format(
+                          no_of_processes, order),
                       disable=not verbose) as pbar:
                 for c in p.imap_unordered(unwrap_self_count_transitions, args, chunksize=1):
                     counter += c
                     pbar.update(1)
-            
+
         return counter
 
-    
     def _get_multi_order_adjacency_matrix(self, order, no_of_processes=multiprocessing.cpu_count(), verbose=True):
         multi_order_transitions = self._get_multi_order_transitions(order,
                                                                     no_of_processes=no_of_processes,
                                                                     verbose=verbose)
 
-        nodes = list(set(n for transition in multi_order_transitions.keys() for n in transition))
+        nodes = list(set(n for transition in multi_order_transitions.keys()
+                     for n in transition))
         nodes.sort(key=lambda x: (x[-1] == '#', len(x), x[-1]))
         node_id_dict = dict(zip(nodes, range(len(nodes))))
 
@@ -282,45 +306,47 @@ class MOGen:
         for s, t in multi_order_transitions:
             row.append(node_id_dict[s])
             col.append(node_id_dict[t])
-            data.append(multi_order_transitions[(s,t)])
+            data.append(multi_order_transitions[(s, t)])
         A = dok_matrix((len(node_id_dict), len(node_id_dict)))
         A[row, col] = data
-        
+
         return MultiOrderMatrix(A, node_id_dict)
-    
-    
+
     def _get_multi_order_transition_matrix(self, order, no_of_processes=multiprocessing.cpu_count(),
                                            A=None, verbose=True):
         if not A:
             A = self._get_multi_order_adjacency_matrix(order,
                                                        no_of_processes=multiprocessing.cpu_count(),
                                                        verbose=verbose)
-        
-        
+
         T = deepcopy(A)
         T.matrix.dtype = float
         for i, val in enumerate(np.nditer(T.matrix.sum(axis=1))):
             if val > 0:
-                T.matrix[i] = np.divide(T.matrix[i],val)
+
+                T.matrix[i] = np.divide(T.matrix[i], val)
             elif val < 0:
                 raise Exception('Entries of A should be positive')
-        
+
+
         return T
-    
-    
+
     def _get_log_likelihood_path(args):
         log_L = 0
         for path, frequency in args['paths'].items():
-            mask = toeplitz(min(len(path), args['order'])*[1] + \
-                            (len(path)-args['order'])*[0], \
+            mask = toeplitz(min(len(path), args['order'])*[1] +
+                            (len(path)-args['order'])*[0],
                             1*[1] + (len(path)-1)*[0])
-            multi_order_path = tuple(map(lambda x: tuple(x[x != None]), np.where(mask, path, None)))
-            multi_order_path = (('*',),) + multi_order_path + (multi_order_path[-1] + ('+',),)          
+            multi_order_path = tuple(
+                map(lambda x: tuple(x[x != None]), np.where(mask, path, None)))
+            multi_order_path = (('*',),) + multi_order_path + \
+                (multi_order_path[-1] + ('+',),)
 
             for s, t in zip(multi_order_path, multi_order_path[1:]):
                 if s in args['node_id_dict'] and t in args['node_id_dict']:
-                    log_L += np.log(args['T'][args['node_id_dict'][s], args['node_id_dict'][t]]) * frequency
-                else: # the transition is not in the model and therefore has probability 0
+                    log_L += np.log(args['T'][args['node_id_dict']
+                                    [s], args['node_id_dict'][t]]) * frequency
+                else:  # the transition is not in the model and therefore has probability 0
                     log_L += -np.inf
         return log_L
     

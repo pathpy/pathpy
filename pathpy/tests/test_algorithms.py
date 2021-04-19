@@ -3,13 +3,13 @@
 # =============================================================================
 # File      : test_algorithms.py -- Test environment for basic algorithms
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sun 2020-09-06 12:52 juergen>
+# Time-stamp: <Mon 2021-03-29 16:18 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 
 import pytest
-from pathpy import Network, PathCollection, HigherOrderNetwork, NullModel
+from pathpy import Network, PathCollection  # , HigherOrderNetwork, NullModel
 import pathpy as pp
 
 
@@ -111,17 +111,17 @@ def test_betweenness_centrality_network(net):
     # print(c['b'])
 
 
-def test_betweenness_centrality_hon():
-    """Test the betweenness centrality of a hon."""
+# def test_betweenness_centrality_hon():
+#     """Test the betweenness centrality of a hon."""
 
-    paths = PathCollection()
-    paths.add('a', 'c', 'd', 'b', uid='acd', frequency=10)
-    paths.add('b', 'c', 'e', 'b', uid='bce', frequency=10)
+#     paths = PathCollection()
+#     paths.add('a', 'c', 'd', 'b', uid='acd', frequency=10)
+#     paths.add('b', 'c', 'e', 'b', uid='bce', frequency=10)
 
-    hon = HigherOrderNetwork.from_paths(paths, order=2)
+#     hon = HigherOrderNetwork.from_paths(paths, order=2)
 
-    bc = hon.betweenness_centrality()
-    assert bc['c'] == 4
+#     bc = hon.betweenness_centrality()
+#     assert bc['c'] == 4
 
 
 def test_betweenness_centrality_paths():

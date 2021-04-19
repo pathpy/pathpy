@@ -4,23 +4,23 @@
 # =============================================================================
 # File      : degrees.py -- Module to calculate degree-based statistics
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Mon 2020-04-20 09:09 juergen>
+# Time-stamp: <Mon 2021-03-29 16:55 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import TYPE_CHECKING, Union, Dict, Tuple
+from typing import TYPE_CHECKING, Union, Dict
 from collections import defaultdict
 from collections.abc import Iterable
 
 import numpy as np
 
 from pathpy import logger
-from pathpy.core.network import BaseModel
+from pathpy.models.classes import BaseModel
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
-    from pathpy.core.network import Network
+    from pathpy.models.network import Network
 
 # create custom types
 Weight = Union[str, bool, None]
@@ -79,7 +79,7 @@ def degree_distribution(degrees: Union[Network, Iterable],
             of the network
 
         weights : bool
-    
+
             If True the weighted degree distribution will be calculated
 
         Examples
@@ -117,7 +117,7 @@ def degree_distribution(degrees: Union[Network, Iterable],
             cnt[degrees.degrees(weight=weight)[v]] += 1.0 / n
     else:
         n = len(degrees)
-        for d in degrees:            
+        for d in degrees:
             cnt[d] += 1.0 / n
 
     return cnt
@@ -129,14 +129,15 @@ def mean_degree(network, weight: Weight = None) -> float:
     return degree_raw_moment(network, k=1, weight=weight)
 
 
-def mean_neighbor_degree(network, weight: Weight = None, exclude_neighbor = False) -> float:
+def mean_neighbor_degree(network, weight: Weight = None, exclude_neighbor=False) -> float:
     """Calculates the mean (weighted degree of a network)
     """
     neighbor_degrees = []
     for v in network.nodes.uids:
         for w in network.successors[v]:
             if exclude_neighbor:
-                neighbor_degrees.append(network.degrees(weight=weight)[w.uid] - 1)
+                neighbor_degrees.append(
+                    network.degrees(weight=weight)[w.uid] - 1)
             else:
                 neighbor_degrees.append(network.degrees(weight=weight)[w.uid])
     return np.mean(neighbor_degrees)
@@ -154,7 +155,7 @@ def degree_raw_moment(network: Network, k: int = 1,
         The network in which to calculate the k-th raw moment
 
     """
-    p_k = degree_distribution(network, weight = weight)
+    p_k = degree_distribution(network, weight=weight)
     mom = 0.
     for x in p_k:
         mom += x**k * p_k[x]
@@ -258,7 +259,7 @@ def degree_generating_function(degrees: Union[Network, Iterable], x: Union[float
 
     assert isinstance(degrees, (BaseModel, Iterable)), \
         'degrees can only be Network or Iterable'
-    
+
     p_k = degree_distribution(degrees, weight=weight)
 
     if isinstance(x, float):
@@ -310,7 +311,7 @@ def degree_assortativity(network: Network, mode: str = 'in', weight: Weight = No
     """
     A = network.adjacency_matrix(weight=weight)
     m = np.sum(A)
-    
+
     d = network.degrees(weight)
     if network.directed and mode == 'in':
         d = network.indegrees(weight)

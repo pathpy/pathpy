@@ -4,16 +4,17 @@
 # =============================================================================
 # File      : node.py -- Base class for a single node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sun 2020-09-06 10:44 juergen>
+# Time-stamp: <Thu 2021-04-01 16:22 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
-from __future__ import annotations
+from __future__ import annotations  # NOTE: not needed for Python 3.8+
 from typing import Any, Optional, Union, Set
-from singledispatchmethod import singledispatchmethod
+from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
 
 from pathpy import logger
-from pathpy.core.base import BaseNode, BaseCollection
+from pathpy.core.classes import BaseNode
+from pathpy.core.collecions import BaseCollection
 
 # create logger for the Node class
 LOG = logger(__name__)
@@ -114,9 +115,6 @@ class Node(BaseNode):
 
         # initialize the base class
         super().__init__(uid=uid, **kwargs)
-
-        # add attributes to the node
-        self.attributes.update(uid=self.uid, **kwargs)
 
     @property
     def uid(self) -> str:
@@ -238,8 +236,12 @@ class NodeCollection(BaseCollection):
         return _node
 
     def __lshift__(self, node: Node) -> None:
-        """Quick assigment of the node"""
+        """Quick assigment of a node"""
         self[node.uid] = node
+
+    def __rshift__(self, node: Node) -> None:
+        """Quick removal of a node"""
+        self.pop(node.uid, None)
 
     @singledispatchmethod
     def add(self, *node, **kwargs: Any) -> None:
@@ -265,9 +267,8 @@ class NodeCollection(BaseCollection):
             # if not add new node
             self[_node.uid] = _node
         else:
-            # raise error if edge already exists
-            LOG.error('The node "%s" already exists!', _node.uid)
-            raise KeyError
+            # raise error if node already exists
+            self._if_exist(_node, **kwargs)
 
     @add.register(str)  # type: ignore
     def _(self, *node: str, **kwargs: Any) -> None:
@@ -281,8 +282,14 @@ class NodeCollection(BaseCollection):
             self[_uid] = self._node_class(uid=_uid, **kwargs)
         else:
             # raise error if node already exists
-            LOG.error('The node "%s" already exists!', _uid)
-            raise KeyError
+            self._if_exist(_uid, **kwargs)
+
+    def _if_exist(self, node: Any, **kwargs: Any) -> None:
+        """Helper function if the node does already exsist."""
+        # pylint: disable=no-self-use
+        # pylint: disable=unused-argument
+        LOG.error('The node "%s" already exists!', node)
+        raise KeyError
 
     @add.register(tuple)  # type: ignore
     @add.register(list)  # type: ignore
@@ -291,7 +298,12 @@ class NodeCollection(BaseCollection):
             self.add(_n, **kwargs)
 
     def _add(self, node: Node) -> None:
+        """Helper function to add a node to the set of nodes."""
         self[node.uid] = node
+
+    def _remove(self, node: Node) -> None:
+        """Helper function to remove a node from the set of nodes."""
+        self.pop(node.uid, None)
 
     @singledispatchmethod
     def remove(self, *nodes: Union[str, Node, tuple, list], **kwargs) -> None:

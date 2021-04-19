@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : config.py -- Module to read and parse configuration files
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-08-21 18:01 juergen>
+# Time-stamp: <Thu 2021-04-01 10:58 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -63,6 +63,7 @@ config['hon']['separator'] = parser.get('hon', 'separator')
 config['hon']['replace'] = parser.get('hon', 'replace')
 
 config['temporal']['begin'] = parser.get('temporal', 'begin')
+config['temporal']['start'] = parser.get('temporal', 'start')
 config['temporal']['end'] = parser.get('temporal', 'end')
 config['temporal']['timestamp'] = parser.get('temporal', 'timestamp')
 config['temporal']['duration'] = parser.get('temporal', 'duration')

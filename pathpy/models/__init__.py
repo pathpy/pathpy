@@ -1,9 +1,9 @@
 #!/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
-# File      : __init__.py -- Initialize various generators for networks
+# File      : __init__.py -- Initialize various network models
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-04-02 16:47 juergen>
+# Time-stamp: <Mon 2020-10-05 09:02 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================

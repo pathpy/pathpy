@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : __init__.py -- pathpy init file
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2020-09-17 08:33 juergen>
+# Time-stamp: <Mon 2021-03-29 17:32 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -22,30 +22,31 @@ from pathpy.utils.progress import tqdm  # noqa: F401
 
 
 # import symbols into root namespace
-from pathpy.core.api import (Node,
-                             Edge,
-                             HyperEdge,
-                             Path,
-                             PathCollection,
-                             Network,
-                             )
-
-
-from pathpy.models.api import (TemporalNetwork,
-                               DirectedAcyclicGraph,
-                               HigherOrderNetwork,
-                               NullModel,
-                               MultiOrderModel
-                               )
-
-from pathpy.visualisations.api import (plot,
-                                       layout)
+from pathpy.core.api import (
+    Node,
+    Edge,
+    HyperEdge,
+    Path,
+    NodeCollection,
+    EdgeCollection,
+    PathCollection
+)
 
 # import models
-# from pathpy.models.api import (NullModel,
-#                                MultiOrderModel)
-from pathpy.models.api import (MOGen)
+from pathpy.models.api import (
+    Network,
+    TemporalNetwork,
+    DirectedAcyclicGraph,
+    HigherOrderNetwork,
+    NullModel,
+    MultiOrderModel,
+    MOGen
+)
 
+from pathpy.visualisations.api import (
+    plot,
+    layout
+)
 
 # import submodules
 from pathpy import io

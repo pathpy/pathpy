@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : lattice.py -- Module to generate lattice graphs
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Mon 2020-06-20 03:43 ingo>
+# Time-stamp: <Mon 2021-03-29 17:07 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -19,19 +19,19 @@ from pathpy import logger, tqdm
 
 from pathpy.core.edge import Edge
 from pathpy.core.node import Node
-from pathpy.core.network import Network
+from pathpy.models.network import Network
 
 # create logger
 LOG = logger(__name__)
 
 
 def _multi_dim_range(start, stop, dims):
-  if not dims:
-    yield ()
-    return
-  for outer in _multi_dim_range(start, stop, dims - 1):
-    for inner in range(start, stop):
-      yield outer + (inner,)
+    if not dims:
+        yield ()
+        return
+    for outer in _multi_dim_range(start, stop, dims - 1):
+        for inner in range(start, stop):
+            yield outer + (inner,)
 
 
 def lattice_network(start: int=0, stop: int=10, dims: int=2):

@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : random_graphs.py -- Module to generate random graphs
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Sat 2020-09-05 11:35 juergen>
+# Time-stamp: <Mon 2021-03-29 17:09 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -19,7 +19,7 @@ from pathpy import logger, tqdm
 
 from pathpy.core.edge import Edge
 from pathpy.core.node import Node
-from pathpy.core.network import Network
+from pathpy.models.network import Network
 
 import scipy
 
@@ -126,7 +126,8 @@ def ER_nm(n: int, m: int,
     # Check parameter sanity
     M = max_edges(n, directed=directed, loops=loops, multiedges=multiedges)
     if m > M:
-        LOG.error('Given network type with n nodes can have at most {} edges.'.format(M))
+        LOG.error(
+            'Given network type with n nodes can have at most {} edges.'.format(M))
         return None
 
     network = Network(directed=directed)

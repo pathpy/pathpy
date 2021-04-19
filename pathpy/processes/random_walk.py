@@ -23,11 +23,13 @@ from scipy.sparse import linalg as spl
 from scipy import linalg as spla
 
 from pathpy import logger, tqdm
+
 from pathpy.core.path import Path
 from pathpy.core.path import PathCollection
-from pathpy.core.network import Network
-from pathpy.core.network import Node
-from pathpy.core.network import Edge
+from pathpy.models.network import Network
+from pathpy.models.network import Node
+from pathpy.models.network import Edge
+
 from pathpy.algorithms.matrices import adjacency_matrix
 
 # create custom types
@@ -120,6 +122,7 @@ class VoseAliasSampling:
             return i-1
         else:
             return self.aliases[i]-1
+
 
 
 

@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : sql.py -- Read and write sql database tables
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sat 2020-08-22 18:04 juergen>
+# Time-stamp: <Mon 2021-03-29 17:04 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -20,7 +20,7 @@ from pathpy.io.io import to_network, to_temporal_network, to_dataframe
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
-    from pathpy.core.network import Network
+    from pathpy.models.network import Network
     from pathpy.models.temporal_network import TemporalNetwork
 
 

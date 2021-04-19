@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : graphml.py -- Read graphml data files
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sat 2020-08-22 17:21 juergen>
+# Time-stamp: <Mon 2021-03-29 17:05 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -14,7 +14,7 @@ import xml.etree.ElementTree as ET
 from pathpy import logger
 from pathpy.core.edge import Edge, EdgeCollection
 from pathpy.core.node import Node, NodeCollection
-from pathpy.core.network import Network
+from pathpy.models.network import Network
 
 
 # create logger
