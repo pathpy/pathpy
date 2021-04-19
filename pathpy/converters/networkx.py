@@ -2,9 +2,9 @@
 #!/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
-# File      : to_paths.py -- Converter classes to paths
+# File      : networkx.py -- Converter classes to paths
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Mon 2021-04-19 17:25 juergen>
+# Time-stamp: <Mon 2021-04-16 17:25 ingo>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -17,8 +17,7 @@ from pathpy import logger
 
 from pathpy.core.network import Network
 
-
-def to_networkx(network):
+def to_networkx(network) -> Any:
 
     from networkx import Graph, DiGraph, MultiDiGraph, MultiGraph
 
@@ -36,8 +35,7 @@ def to_networkx(network):
                      network.edges[e].attributes.to_dict()) for e in network.edges.uids])
     return G
 
-
-def from_networkx(graph):
+def from_networkx(graph: Any):
     n = Network(directed=graph.is_directed(), multiedges=graph.is_multigraph())
     for v in graph.nodes:
         n.add_node(v, **graph.nodes[v])
