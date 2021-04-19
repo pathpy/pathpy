@@ -38,6 +38,8 @@ from pathpy.models.api import (
     TemporalNetwork,
     DirectedAcyclicGraph,
     HigherOrderNetwork,
+    HigherOrderNode,
+    HigherOrderEdge,
     NullModel,
     MultiOrderModel,
     MOGen

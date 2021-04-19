@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : __init__.py -- initialisation of processes
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Mon 2020-04-20 10:28 juergen>
+# Time-stamp: <Mon 2020-04-20 10:28 ingo>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================

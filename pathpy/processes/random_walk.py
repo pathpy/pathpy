@@ -2,7 +2,7 @@
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
-# File      : random_walk.py -- Class to simulate random walks
+# File      : random_walk.py -- Class to simulate random walks in (higher-order) networks
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
 # Time-stamp: <Mon 2020-04-20 11:02 ingo>
 #
@@ -21,6 +21,7 @@ import numpy as np
 import scipy as sp  # pylint: disable=import-error
 from scipy.sparse import linalg as spl
 from scipy import linalg as spla
+from pandas import DataFrame
 
 from pathpy import logger, tqdm
 
@@ -69,7 +70,7 @@ class BaseWalk:
 
 class VoseAliasSampling:    
     """
-    Implementation of fast biased sampling from discrete distributions, following https://www.keithschwarz.com/darts-dice-coins/
+    Implementation of fast biased sampling from discrete distributions following https://www.keithschwarz.com/darts-dice-coins/
     """
 
     def __init__(self, weights):
@@ -111,7 +112,6 @@ class VoseAliasSampling:
             l = small.pop()
             self.probs[l] = 1
 
-
     def sample(self):
         """
         Biased sampling of discrete value in O(1)
@@ -135,18 +135,17 @@ class RandomWalk(BaseWalk):
         The initial time t of the random walk will be set to zero and the
         initial state is set to the given start node. If start_node is omitted a
         node will be chosen uniformly at random.
-
         """
         # initialize variables
 
-        # network in which the random walk is simulated
+        # network (or higher-order network) in which we perform the random walk
         self._network: Network = network
 
-        # time of the random walk
+        # current time of the random walk
         self._t: int = -1
 
-        # currently visited node
-        self.current_node = None
+        # currently visited node (or higher-order node)
+        self._current_node = None
 
         # transition matrix for the random walk
         self._transition_matrix = RandomWalk.transition_matrix(network, weight, restart_prob)
@@ -155,16 +154,11 @@ class RandomWalk(BaseWalk):
         self.reverse_index = { v:k for k,v in network.nodes.index.items() }
         self.samplers = { v:VoseAliasSampling(self.transition_probabilities(v)) for v in network.nodes.uids }
 
-        #for v in network.nodes.uids:
-        # self.samplers[v] = VoseAliasSampling(self.transition_probabilities(v))
-
-        # uids of the nodes
-        self._node_uids: list = list(network.nodes.uids)
-
+        # number of times each node has been visited
         self._visitations = np.ravel(
             np.zeros(shape=(1, network.number_of_nodes())))        
 
-        # eigenvectors and eigenvalues
+        # compute eigenvectors and eigenvalues of transition matrix
         if network.number_of_nodes()>2:
             _, eigenvectors = spl.eigs(            
                     self._transition_matrix.transpose(), k=1, which='LM')
@@ -174,7 +168,7 @@ class RandomWalk(BaseWalk):
             x = np.argsort(-eigenvals)
             pi = eigenvectors[x][:,0]
 
-        # stationary probabilities
+        # calculate stationary visitation probabilities
         self._stationary_probabilities = np.real(pi/np.sum(pi))
 
 
@@ -191,7 +185,6 @@ class RandomWalk(BaseWalk):
 
             Arbitrary key-value pairs that will be passed to the
             scipy.sparse.linalg.eigs function.
-
         """
         _p = self._stationary_probabilities
         if kwargs:
@@ -202,7 +195,7 @@ class RandomWalk(BaseWalk):
         return _p
 
     def visitation_frequencies(self) -> np.array:
-        """Returns the visitation frequencies of nodes in the sequence of visited nodes.
+        """Returns current normalized visitation frequencies of nodes in the sequence of visited nodes.
 
         Returns the visitation probabilities of nodes based on the history of
         the random walk. Initially, all visitation probabilities are zero except for the start node.
@@ -211,11 +204,9 @@ class RandomWalk(BaseWalk):
         return np.nan_to_num(self._visitations/(self._t+1))
 
     def visitation_probabilities(self, t, start_node) -> np.array:
-        """Returns the visitation probabilities of nodes after t steps based on the start node
+        """Calculates visitation probabilities of nodes after t steps for a given start node
 
-        Returns the visitation probabilities of nodes based on the history of
-        the random walk. Initially, all visitation probabilities are zero except for the start node.
-
+        Initially, all visitation probabilities are zero except for the start node.
         """
         assert start_node in self._network.nodes.uids
 
@@ -297,46 +288,64 @@ class RandomWalk(BaseWalk):
         """
         return self._transition_matrix
 
+    def matrix_pretty(self) -> DatFrame:
+        """
+        """
+        return DataFrame(self.matrix.todense(), columns=[v for v in self._network.nodes.index], index=[v for v in self._network.nodes.index])
+
     @property
     def t(self) -> int:
-        """Returns the current `time` of the random walker
-
-        i.e. the number of random walk steps since the initial state.  The
-        initial time is set to zero and the initial state does not count as a
-        step.
-
+        """Returns the current `time` of the random walker, i.e. the number of random
+        walk steps since the initial state. The initial time is zero and the initial 
+        state does not count as a step.
         """
         return self._t
 
     @property
+    def network(self) -> Network:
+        """Returns the network in which the random walk is performed
+        """
+        return self._network
+
+    @property
     def state(self) -> str:
-        """Returns the current state of the random walk process
+        """Returns the current state of the random walker
         """
         return self._current_node
 
     def generate_walk(self, steps: int = 1, start_node: Optional[Node] = None):
-        """Returns a path representing the sequence of nodes and edges traversed 
-        by a single random length with a given number of steps
+        """Returns a path that represents the sequence of nodes traversed 
+        by a single random walk with a given number of steps (and an optional start node)
         """
 
         # Choose random start node if no node is given
         if start_node is None:
-            start_node = self._network.nodes[np.random.choice(self._node_uids)]
-        elif start_node.uid not in self._node_uids:
+            start_node = self._network.nodes[np.random.choice(list(self._network.nodes.uids))]
+        elif start_node.uid not in self._network.nodes.uids:
             LOG.error('Invalid start node for random walk.')
             raise AttributeError('Invalid start node for random walk.')
         
-        # initialize walk                
-        walk = Path(start_node)
+        # initialize walk
+        if type(self._network) == Network:
+            walk = Path(start_node)
+        elif type(self._network) == HigherOrderNetwork:
+            walk = Path(start_node.nodes[-1])
+        else:
+            raise AttributeError('Unknown network of type {0}'.format(type(self._network)))
         self._t = 0
         self._current_node = start_node
 
         # construct walk
         for i in range(steps):
             next = self.reverse_index[self.samplers[self._current_node.uid].sample()]
-            traversed_edge = self._network.edges[(self._current_node.uid, next)]
-            print(traversed_edge)
-            walk._path.append(traversed_edge)
+            traversed_edge = self._network.edges[(self._current_node.uid, next)]            
+            if type(self._network) == Network:
+                walk._path.append(traversed_edge)
+            elif type(self._network) == HigherOrderNetwork:
+                # map to first-order edge
+                walk._path.append(traversed_edge.w.edges[-1])
+            else:
+                raise AttributeError('Unknown network of type {0}'.format(type(self._network)))
             self._t += 1
             self._current_node = self._network.nodes[next]
         return walk
@@ -358,7 +367,7 @@ class RandomWalk(BaseWalk):
         
         return walks
 
-    def walk(self, steps: int = 1, start_node: Optional[Node] = None):
+    def walk(self, steps: int = 1, start_node: Optional[Node] = None) -> str:
         """Generator object which yields a configurable number of nodes visited by a random walker.
 
         Parameters
@@ -393,11 +402,10 @@ class RandomWalk(BaseWalk):
 
         >>> pp.visitation_probabilities()
         array([0.3, 0.3, 0.4])
-
         """
 
         if start_node is None:
-            start_node = self._network.nodes[np.random.choice(self._node_uids)]
+            start_node = self._network.nodes[np.random.choice(list(self._network.nodes.uids))]
 
         reverse_index = { k:v for v,k in self._network.nodes.index.items()}
 
@@ -419,7 +427,12 @@ class RandomWalk(BaseWalk):
             self._t += 1
 
             # yield the next visited node
-            yield self._current_node
+            if type(self._network) == Network:
+                yield self._current_node.uid
+            elif type(self._network) == HigherOrderNetwork:
+                yield self._current_node.nodes[-1].uid
+            else:
+                raise AttributeError('Unknown network of type {0}'.format(type(self._network)))
 
     def transition(self) -> str:
         """Transition of the random walk.
