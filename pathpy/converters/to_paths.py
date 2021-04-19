@@ -54,7 +54,7 @@ def _dag(self, **kwargs):
 
 @to_path_collection.register(ABCTemporalNetwork)
 def _temp(self, **kwargs):
-    """Convert a temproal netwok to paths."""
+    """Convert a temporal network to paths."""
     from pathpy.models.directed_acyclic_graph import DirectedAcyclicGraph
 
     #paths = PathCollection(edges=self.edges.copy())

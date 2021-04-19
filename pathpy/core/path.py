@@ -58,11 +58,16 @@ class Path(BasePath):
                     self._start = edge.v
 
                 # check if edges are consecutive
-                elif self._path[-1].w == edge.v:
+                elif self._path[-1].w.uid == edge.v.uid:
                     self._path.append(edge)
                 else:
                     LOG.error('Path object needs consecutive edges!')
-                    raise AttributeError
+                    raise AttributeError('Edges in Path must be consecutive.')
+
+    def tolist(self) -> list:
+        """Return a list of node uids representing the path.
+        """
+        return [x.uid for x in self.nodes]
 
     def __str__(self) -> str:
         """Print a summary of the path.
@@ -164,6 +169,7 @@ class Path(BasePath):
         {'a': Node a, 'b': Node b, 'c': Node c}
 
         """
+        # TODO: Bug here for undirected edges!
         return [self._start] + [e.w for e in self._path]
 
     @property
@@ -747,6 +753,11 @@ class PathCollection(BaseCollection):
         if indexing:
             self.update_index()
 
+    def tolist(self) -> list:
+        """Returns a list of lists, where each path in the collection is represented by a list of node uids.
+        """
+
+        return [p.tolist() for p in self.values()]
 # =============================================================================
 # eof
 #

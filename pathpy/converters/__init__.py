@@ -12,7 +12,7 @@
 # pylint: disable=unused-import
 
 from pathpy.converters.to_paths import to_path_collection
-
+from pathpy.converters.networkx import to_networkx, from_networkx
 
 # =============================================================================
 # eof

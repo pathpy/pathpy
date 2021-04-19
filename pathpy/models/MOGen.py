@@ -26,6 +26,7 @@ from pathpy import logger, config
 from pathpy.models.network import Network
 # from sklearn import preprocessing
 
+
 # create logger
 LOG = logger(__name__)
 
@@ -322,9 +323,11 @@ class MOGen:
         T.matrix.dtype = float
         for i, val in enumerate(np.nditer(T.matrix.sum(axis=1))):
             if val > 0:
+
                 T.matrix[i] = np.divide(T.matrix[i], val)
             elif val < 0:
                 raise Exception('Entries of A should be positive')
+
 
         return T
 
