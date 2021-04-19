@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : to_paths.py -- Converter classes to paths
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Wed 2021-04-14 17:31 ingo>
+# Time-stamp: <Mon 2021-04-19 17:25 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -17,10 +17,11 @@ from pathpy import logger
 
 from pathpy.core.network import Network
 
-from networkx import Graph, DiGraph, MultiDiGraph, MultiGraph
-
 
 def to_networkx(network):
+
+    from networkx import Graph, DiGraph, MultiDiGraph, MultiGraph
+
     if network.directed and network.multiedges:
         G = MultiDiGraph()
     elif not network.directed and network.multiedges:
@@ -29,9 +30,12 @@ def to_networkx(network):
         G = DiGraph()
     else:
         G = Graph()
-    G.add_nodes_from([ (v, network.nodes[v].attributes.to_dict()) for v in network.nodes.uids])
-    G.add_edges_from([ (network.edges[e].v.uid, network.edges[e].w.uid, network.edges[e].attributes.to_dict()) for e in network.edges.uids])
+    G.add_nodes_from([(v, network.nodes[v].attributes.to_dict())
+                     for v in network.nodes.uids])
+    G.add_edges_from([(network.edges[e].v.uid, network.edges[e].w.uid,
+                     network.edges[e].attributes.to_dict()) for e in network.edges.uids])
     return G
+
 
 def from_networkx(graph):
     n = Network(directed=graph.is_directed(), multiedges=graph.is_multigraph())
