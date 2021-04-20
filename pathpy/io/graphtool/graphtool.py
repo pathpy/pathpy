@@ -167,11 +167,11 @@ def parse_graphtool_format(data: bytes) -> Network:
         ptr += 8
 
         #if num_neighbors == 0 and str(v) not in n.nodes.uids:
-            #n.add_node(str(v))
+            n.add_node(str(v))
         for j in range(num_neighbors):
             w = struct.unpack(graphtool_endianness + fmt, data[ptr:ptr+d])[0]
             ptr += d
-            #n.add_edge(str(v), str(w))
+            n.add_edge(str(v), str(w))
         
     # read property maps
     property_maps = struct.unpack(graphtool_endianness + 'Q', data[ptr:ptr+8])[0]
@@ -192,17 +192,17 @@ def parse_graphtool_format(data: bytes) -> Network:
 
         if key_type == 0: # network property
             res = _parse_property_value(data, ptr, property_type, graphtool_endianness)
-            #n[property_name] = res[0]
+            n[property_name] = res[0]
             ptr += res[1]
         elif key_type == 1: # vertex property
             for v in range(n_nodes):
                 res = _parse_property_value(data, ptr, property_type, graphtool_endianness)
-                #n.nodes[str(v)][property_name] = res[0]
+                n.nodes[str(v)][property_name] = res[0]
                 ptr += res[1]
         elif key_type == 2: # edge property
             for e in n.edges:
                 res = _parse_property_value(data, ptr, property_type, graphtool_endianness)
-                #n.edges[e.uid][property_name] = res[0]
+                n.edges[e.uid][property_name] = res[0]
                 ptr += res[1]
         else:
             LOG.error('Unknown key type {0}'.format(key_type))
