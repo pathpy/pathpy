@@ -16,7 +16,7 @@ from pathpy.io import sql
 from pathpy.io import csv
 from pathpy.io import konect
 from pathpy.io import graphml
-from pathpy.io import netzschleuder
+from pathpy.io import graphtool
 from pathpy.io.io import (
     to_dataframe,
     to_network,
