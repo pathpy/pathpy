@@ -166,7 +166,7 @@ def parse_graphtool_format(data: bytes) -> Network:
         num_neighbors = struct.unpack(graphtool_endianness + 'Q', data[ptr:ptr+8])[0]
         ptr += 8
 
-        #if num_neighbors == 0 and str(v) not in n.nodes.uids:
+        if num_neighbors == 0 and str(v) not in n.nodes.uids:
             n.add_node(str(v))
         for j in range(num_neighbors):
             w = struct.unpack(graphtool_endianness + fmt, data[ptr:ptr+d])[0]
