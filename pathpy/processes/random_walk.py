@@ -338,7 +338,8 @@ class RandomWalk(BaseWalk):
         # construct walk
         for i in range(steps):
             next = self.reverse_index[self.samplers[self._current_node.uid].sample()]
-            traversed_edge = self._network.edges[(self._current_node.uid, next)]            
+            assert (self._current_node.uid, next) in self._network.edges, 'Assertion Error: {0} not in edge list'.format((self._current_node.uid, next))
+            traversed_edge = self._network.edges[(self._current_node.uid, next)]
             if type(self._network) == Network:
                 walk._path.append(traversed_edge)
             elif type(self._network) == HigherOrderNetwork:
