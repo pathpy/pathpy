@@ -16,8 +16,10 @@ from pathpy import config, logger
 
 from pathpy.models.network import Network
 
-import urllib
+from urllib import request
+from urllib.error import HTTPError
 import json
+
 
 # create logger
 LOG = logger(__name__)
@@ -30,7 +32,7 @@ def list_netzschleuder(properties=False, base_url='https://networks.skewed.de') 
     url = '/api/nets'
     if properties:
         url = url + '?full=True'
-    f = urllib.request.urlopen(base_url + url).read()
+    f = request.urlopen(base_url + url).read()
     return json.loads(f)
 
 
@@ -42,21 +44,22 @@ def read_netzschleuder(name: str, net: Optional[str]=None, base_url='https://net
 
     # retrieve network properties
     url = '/api/net/{0}'.format(name)
-    properties = json.loads(urllib.request.urlopen(base_url + url).read())
+    properties = json.loads(request.urlopen(base_url + url).read())
 
     # retrieve data
     if not net:
         net = name
     url = '/net/{0}/files/{1}.gt.zst'.format(name, net)
     try:
-        f = urllib.request.urlopen(base_url + url).read()
-    except urllib.error.HTTPError:
+        f = request.urlopen(base_url + url)
+    except HTTPError:
         LOG.error('HTTP 404 Error. Did you specify the network to load from this data set?')
         return None
 
     # decompress data
     dctx = zstd.ZstdDecompressor()
-    decompressed = dctx.decompress(f, max_output_size=1048576)
+    reader = dctx.stream_reader(f)
+    decompressed = reader.readall()
 
     # parse graphtool binary format
     n = parse_graphtool_format(bytes(decompressed))

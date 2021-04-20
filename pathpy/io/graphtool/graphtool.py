@@ -132,7 +132,7 @@ def parse_graphtool_format(data: bytes) -> Network:
     ptr += 8
 
     # read string comment
-    comment = data[ptr:ptr+str_len].decode('utf-8')
+    comment = data[ptr:ptr+str_len].decode('ascii')
     ptr += str_len
 
     # read network directedness
@@ -166,12 +166,12 @@ def parse_graphtool_format(data: bytes) -> Network:
         num_neighbors = struct.unpack(graphtool_endianness + 'Q', data[ptr:ptr+8])[0]
         ptr += 8
 
-        if num_neighbors == 0 and str(v) not in n.nodes.uids:
-            n.add_node(str(v))
+        #if num_neighbors == 0 and str(v) not in n.nodes.uids:
+            #n.add_node(str(v))
         for j in range(num_neighbors):
             w = struct.unpack(graphtool_endianness + fmt, data[ptr:ptr+d])[0]
             ptr += d
-            n.add_edge(str(v), str(w))
+            #n.add_edge(str(v), str(w))
         
     # read property maps
     property_maps = struct.unpack(graphtool_endianness + 'Q', data[ptr:ptr+8])[0]
@@ -184,7 +184,7 @@ def parse_graphtool_format(data: bytes) -> Network:
         property_len  = struct.unpack(graphtool_endianness + 'Q', data[ptr:ptr+8])[0]
         ptr += 8
 
-        property_name = data[ptr:ptr+property_len].decode('utf-8')
+        property_name = data[ptr:ptr+property_len].decode('ascii')
         ptr += property_len
 
         property_type = struct.unpack(graphtool_endianness + 'B', data[ptr:ptr+1])[0]
@@ -192,17 +192,17 @@ def parse_graphtool_format(data: bytes) -> Network:
 
         if key_type == 0: # network property
             res = _parse_property_value(data, ptr, property_type, graphtool_endianness)
-            n[property_name] = res[0]
+            #n[property_name] = res[0]
             ptr += res[1]
         elif key_type == 1: # vertex property
             for v in range(n_nodes):
                 res = _parse_property_value(data, ptr, property_type, graphtool_endianness)
-                n.nodes[str(v)][property_name] = res[0]
+                #n.nodes[str(v)][property_name] = res[0]
                 ptr += res[1]
         elif key_type == 2: # edge property
             for e in n.edges:
                 res = _parse_property_value(data, ptr, property_type, graphtool_endianness)
-                n.edges[e.uid][property_name] = res[0]
+                #n.edges[e.uid][property_name] = res[0]
                 ptr += res[1]
         else:
             LOG.error('Unknown key type {0}'.format(key_type))
@@ -224,7 +224,8 @@ def read_graphtool(file: str) -> Network:
         if '.zst' in file:
             import zstandard as zstd 
             dctx = zstd.ZstdDecompressor()
-            return parse_graphtool_format(dctx.decompress(f.read(), max_output_size=1048576))
+            data = f.read()
+            return parse_graphtool_format(dctx.decompress(data, max_output_size=len(data)))
         else:    
             return parse_graphtool_format(f.read())
 
