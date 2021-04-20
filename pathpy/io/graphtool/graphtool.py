@@ -38,7 +38,7 @@ def _parse_property_value(data, ptr, type_index, endianness):
     elif type_index == 4:
         return (struct.unpack(endianness + 'd', data[ptr:ptr+8])[0], 8)
     elif type_index == 5:
-        LOG.error('pathpy does not support properties with type long double')
+        LOG.warning('pathpy does not support properties with type long double. Properties have been dropped.')
     elif type_index == 6:
         str_len = struct.unpack(endianness + 'Q', data[ptr:ptr+8])[0]
         str = data[ptr+8:ptr+8+str_len].decode('utf-8')
@@ -85,7 +85,7 @@ def _parse_property_value(data, ptr, type_index, endianness):
         return (array(vals), 8 + 8*num_values)
     elif type_index == 12:
         val_len = struct.unpack(endianness + 'Q', data[ptr:ptr+8])[0]
-        LOG.error('pathpy does not support properties with type vector<long double>')
+        LOG.warning('pathpy does not support properties with type vector<long double>. Properties have been dropped.')
         return (None, 8 + 16*val_len)
     elif type_index == 13:
         num_strings = struct.unpack(endianness + 'Q', data[ptr:ptr+8])[0]
@@ -103,7 +103,6 @@ def _parse_property_value(data, ptr, type_index, endianness):
         return (pickle.loads(data[ptr+8:ptr+8+val_len]), 8 + val_len)
     else:
         LOG.error('Unknown type index {0}'.format(type_index))
-
 
 def parse_graphtool_format(data: bytes) -> Network:
     """
@@ -201,11 +200,10 @@ def parse_graphtool_format(data: bytes) -> Network:
                 n.nodes[str(v)][property_name] = res[0]
                 ptr += res[1]
         elif key_type == 2: # edge property
-            for v in range(n_nodes):
-                for w in n.successors[str(v)]:
-                    res = _parse_property_value(data, ptr, property_type, graphtool_endianness)
-                    n.edges[(str(v), str(w))][property_name] = res[0]
-                    ptr += res[1]
+            for e in n.edges:
+                res = _parse_property_value(data, ptr, property_type, graphtool_endianness)
+                n.edges[e.uid][property_name] = res[0]
+                ptr += res[1]
         else:
             LOG.error('Unknown key type {0}'.format(key_type))
 
