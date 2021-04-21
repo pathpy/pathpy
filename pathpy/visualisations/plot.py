@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : plot.py -- Module to plot pathoy networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sat 2020-09-05 19:14 juergen>
+# Time-stamp: <Wed 2021-04-21 09:13 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -18,7 +18,6 @@ import numpy as np
 import pandas as pd
 
 from pathpy import logger, config
-from pathpy.core.base import (BaseModel)
 from pathpy.visualisations.utils import UnitConverter
 
 from pathpy.visualisations.backends import (D3js,
@@ -30,7 +29,7 @@ from pathpy.visualisations.fileformats import (HTML,
                                                PDF,
                                                PNG)
 
-from pathpy.models.models import (ABCTemporalNetwork)
+from pathpy.models.classes import (BaseNetwork, BaseTemporalNetwork)
 
 # create logger for the Plot class
 LOG = logger(__name__)
@@ -319,7 +318,7 @@ class Parser:
         """Parses the pathpy network into a json like dict."""
         raise NotImplementedError
 
-    @parse.register(ABCTemporalNetwork)
+    @parse.register(BaseTemporalNetwork)
     def _parse_temporal(self, obj: Any, plot_config: defaultdict, **kwargs: Any) -> defaultdict:
         LOG.debug('Parse a temporal network')
 
@@ -469,7 +468,7 @@ class Parser:
         """Convert float to ISO 8601 string."""
         return datetime.utcfromtimestamp(time).strftime("%Y-%m-%dT%H:%M:%S")
 
-    @parse.register(BaseModel)
+    @parse.register(BaseNetwork)
     def _parse_static(self, obj: Any, plot_config: defaultdict,
                       **kwargs: Any) -> defaultdict:
         """Parse static network."""
@@ -548,9 +547,10 @@ class Parser:
     def _convert_color(self, objects):
         """Helper function to convert rgb color tuples to JScript color strings"""
         for obj in objects:
-            if type(obj['color'])==tuple:
+            if type(obj['color']) == tuple:
                 c = 255*np.array(obj['color'])
-                obj['color'] = 'rgb(' + str(int(c[0])) + ', ' + str(int(c[1])) + ',' + str(int(c[2])) + ')'
+                obj['color'] = 'rgb(' + str(int(c[0])) + ', ' + \
+                    str(int(c[1])) + ',' + str(int(c[2])) + ')'
             else:
                 obj['color'] = obj['color']
 
@@ -689,7 +689,7 @@ class Parser:
                 _obj[uid]['target'] = obj.w.uid
 
             # add obj attributes
-            for attr, value in obj.attributes.to_dict().items():
+            for attr, value in obj.attributes.items():
 
                 # if mapping is given map the attribute
                 if mapping is not None and attr in mapping:

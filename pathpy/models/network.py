@@ -5,7 +5,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-03-29 16:40 juergen>
+# Time-stamp: <Wed 2021-04-21 09:09 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any, Tuple, Optional, Union, Dict, Set, cast
 from collections import defaultdict
 
 from pathpy import logger
-from pathpy.models.classes import BaseModel
+from pathpy.models.classes import BaseNetwork
 from pathpy.core.node import Node, NodeCollection
 from pathpy.core.edge import Edge, EdgeCollection
 
@@ -42,7 +42,7 @@ if TYPE_CHECKING:
 LOG = logger(__name__)
 
 
-class Network(BaseModel):
+class Network(BaseNetwork):
     """Class for a network.
 
     A network is a structure amounting to a set of objects in which some of the
