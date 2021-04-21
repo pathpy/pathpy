@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an single edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-04-01 16:13 juergen>
+# Time-stamp: <Wed 2021-04-21 19:16 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -536,6 +536,7 @@ class EdgeCollection(BaseCollection):
         self._node_map: defaultdict = defaultdict(set)
 
         # class of objects
+        self._node_class: Any = Node
         self._edge_class: Any = Edge
         if self._hyperedges:
             self._edge_class = HyperEdge
@@ -580,7 +581,7 @@ class EdgeCollection(BaseCollection):
                     _contain = True
             except KeyError:
                 pass
-        elif all((isinstance(i, (str, Node)) for i in item)):
+        elif all((isinstance(i, (str, self._node_class)) for i in item)):
             try:
                 if tuple(self.nodes[i] for i in item) in self._nodes_map:
                     _contain = True
@@ -730,7 +731,8 @@ class EdgeCollection(BaseCollection):
 
         # add edge with unknown nodes
         else:
-            self.add(self._edge_class(Node(), Node(), uid=edge[0], **kwargs))
+            self.add(self._edge_class(self._node_class(), self._node_class(),
+                                      uid=edge[0], **kwargs))
 
     @add.register(tuple)  # type: ignore
     @add.register(list)  # type: ignore

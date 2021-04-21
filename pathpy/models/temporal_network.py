@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-04-21 17:15 juergen>
+# Time-stamp: <Wed 2021-04-21 19:13 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -73,6 +73,7 @@ class TemporalDict(MutableMapping):
 
     @singledispatchmethod
     def _keytransform(self, key):
+        """Helper function to generate the correct key"""
         return (self._start, self._end, key)
 
     @_keytransform.register(tuple)  # type: ignore
@@ -97,6 +98,7 @@ class TemporalDict(MutableMapping):
         return key
 
     def update(self, *args, **kwargs):
+        """Update the TemporalDict"""
         if args and isinstance(args[0], TemporalDict):
             for key, value in dict(*args, **kwargs).items():
                 self.__setitem__(key, value)
@@ -105,6 +107,7 @@ class TemporalDict(MutableMapping):
                 self.__setitem__((*args, key), value)
 
     def sort(self):
+        """Sort the keys"""
         self.store = dict(sorted(self.store.items(), key=lambda item: item[0]))
         return self
 
@@ -324,6 +327,7 @@ class TemporalNode(Node):
             self.activities[start, end, self.uid] = self
 
     def active(self, *args, **kwargs) -> None:
+        """Activate node."""
         start, end, kwargs = _get_start_end(*args, **kwargs)
         self.activities[start, end, self.uid] = self
 
@@ -351,6 +355,7 @@ class TemporalEdge(Edge):
             self.activities[start, end, self.uid] = self
 
     def active(self, *args, **kwargs) -> None:
+        """Activate edge"""
         start, end, kwargs = _get_start_end(*args, **kwargs)
         self.activities[start, end, self.uid] = self
 
@@ -394,7 +399,10 @@ class TemporalEdgeCollection(EdgeCollection):
         # initialize the base class
         super().__init__(directed=directed, multiedges=multiedges,
                          nodes=nodes)
-        self._edge_class = TemporalEdge
+
+        # class of objects
+        self._node_class: Any = TemporalNode
+        self._edge_class: Any = TemporalEdge
 
     def _if_exist(self, edge: Any, **kwargs: Any) -> None:
         """Helper function if edge already exists."""
