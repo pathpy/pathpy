@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : node.py -- Base class for a single node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-04-01 16:22 juergen>
+# Time-stamp: <Wed 2021-04-21 10:23 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -271,10 +271,11 @@ class NodeCollection(BaseCollection):
             self._if_exist(_node, **kwargs)
 
     @add.register(str)  # type: ignore
-    def _(self, *node: str, **kwargs: Any) -> None:
+    @add.register(int)  # type: ignore
+    def _(self, *node: Union[str, int], **kwargs: Any) -> None:
 
         # get node uid
-        _uid: str = node[0]
+        _uid: str = str(node[0])
 
         # check if node with given uid str exists already
         if _uid not in self:
