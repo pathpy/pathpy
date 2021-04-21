@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-04-01 18:01 juergen>
+# Time-stamp: <Wed 2021-04-21 10:18 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -22,11 +22,11 @@ from pathpy.core.node import Node, NodeCollection
 from pathpy.core.edge import Edge, EdgeCollection
 from pathpy.models.network import Network
 
-from pathpy.core.base.attributes import TemporalAttributes
+# from pathpy.core.base.attributes import TemporalAttributes
 
 from pathpy.converters import to_paths
 
-from pathpy.models.models import ABCTemporalNetwork
+from pathpy.models.classes import BaseTemporalNetwork
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
@@ -38,8 +38,8 @@ LOG = logger(__name__)
 TIMESTAMP = config['temporal']['timestamp']
 
 
-class Timestamp:
-    """Class to store timestamps."""
+# class Timestamp:
+#     """Class to store timestamps."""
 
 
 class TemporalAttributes:
@@ -321,7 +321,7 @@ class TemporalEdgeCollection(EdgeCollection):
         _edge.update(start=start, end=end, **kwargs)
 
 
-class TemporalNetwork(ABCTemporalNetwork, Network):
+class TemporalNetwork(BaseTemporalNetwork, Network):
     """Base class for a temporal networks."""
 
     # # load external functions to the network
@@ -357,7 +357,7 @@ class TemporalNetwork(ABCTemporalNetwork, Network):
             data['uid'] = edge.uid
             data['edge'] = edge
             tedges.append(data)
-        return pd.concat(tedges).sort_values(['interval']).reset_index(drop=True)
+        return pd.concat(tedges).sort_values(['interval']).reset_index(drop=True) if len(tedges) > 0 else pd.DataFrame()
 
     @property
     def tnodes(self):
@@ -368,16 +368,21 @@ class TemporalNetwork(ABCTemporalNetwork, Network):
             data['uid'] = node.uid
             data['node'] = node
             tnodes.append(data)
-        return pd.concat(tnodes).sort_values(['interval']).reset_index(drop=True)
+        return pd.concat(tnodes).sort_values(['interval']).reset_index(drop=True) if len(tnodes) > 0 else pd.DataFrame()
 
     def _time(self, values) -> tuple:
         """Helper function to get the start and end time."""
-        values = values.set_index('interval')
-        left = values.index.left
-        right = values.index.right
 
-        start = left[left != float('-inf')].min()
-        end = right[right != float('inf')].max()
+        start = float('-inf')
+        end = float('inf')
+
+        if not values.empty:
+            values = values.set_index('interval')
+            left = values.index.left
+            right = values.index.right
+
+            start = left[left != float('-inf')].min()
+            end = right[right != float('inf')].max()
 
         if start is np.nan:
             start = float('-inf')
