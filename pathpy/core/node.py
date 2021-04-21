@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : node.py -- Base class for a single node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-04-21 10:23 juergen>
+# Time-stamp: <Wed 2021-04-21 10:37 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -271,8 +271,7 @@ class NodeCollection(BaseCollection):
             self._if_exist(_node, **kwargs)
 
     @add.register(str)  # type: ignore
-    @add.register(int)  # type: ignore
-    def _(self, *node: Union[str, int], **kwargs: Any) -> None:
+    def _(self, *node: str, **kwargs: Any) -> None:
 
         # get node uid
         _uid: str = str(node[0])
@@ -284,6 +283,10 @@ class NodeCollection(BaseCollection):
         else:
             # raise error if node already exists
             self._if_exist(_uid, **kwargs)
+
+    @add.register(int)  # type: ignore
+    def _(self, *node: int, **kwargs: Any) -> None:
+        self.add(str(node[0]), **kwargs)
 
     def _if_exist(self, node: Any, **kwargs: Any) -> None:
         """Helper function if the node does already exsist."""
