@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-04-21 19:13 juergen>
+# Time-stamp: <Wed 2021-04-21 20:52 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -377,11 +377,13 @@ class TemporalNodeCollection(NodeCollection):
         # get the node
         if isinstance(node, str):
             _node = cast(TemporalNode, self[node])
+            _node.update(active=True, **kwargs)
+        elif isinstance(node, TemporalNode):
+            pass
         else:
             raise KeyError
 
         # update the node
-        _node.update(active=True, **kwargs)
 
 
 class TemporalEdgeCollection(EdgeCollection):
@@ -407,15 +409,20 @@ class TemporalEdgeCollection(EdgeCollection):
     def _if_exist(self, edge: Any, **kwargs: Any) -> None:
         """Helper function if edge already exists."""
         # get the edge
+
         if isinstance(edge, (tuple, list)):
             _edge = cast(TemporalEdge, self[edge[0], edge[1]])
+            _edge.update(active=True, **kwargs)
         elif isinstance(edge, str):
             _edge = cast(TemporalEdge, self[edge])
+            _edge.update(active=True, **kwargs)
+        elif isinstance(edge, TemporalEdge):
+            _edge = cast(TemporalEdge, self[edge.v, edge.w])
+            _edge.attributes.update(edge.attributes)
+            for key in edge.activities:
+                _edge.activities[key[0], key[1], _edge.uid] = _edge
         else:
             raise KeyError
-
-        # update the edge
-        _edge.update(active=True, **kwargs)
 
 
 class TemporalNetwork(BaseTemporalNetwork, Network):
@@ -465,69 +472,19 @@ class TemporalNetwork(BaseTemporalNetwork, Network):
 
         return tnodes.sort()
 
-    def _time(self, values) -> tuple:
-        """Helper function to get the start and end time."""
-
-        start = float('-inf')
-        end = float('inf')
-
-        if not values.empty:
-            values = values.set_index('interval')
-            left = values.index.left
-            right = values.index.right
-
-            start = left[left != float('-inf')].min()
-            end = right[right != float('inf')].max()
-
-        if start is np.nan:
-            start = float('-inf')
-
-        if end is np.nan:
-            end = float('inf')
-
-        return start, end
-
     def start(self, inf: bool = False):
         """Start of the temporal network"""
-        start = float('-inf')
-
-        nodes, _ = self._time(self.tnodes)
-        edges, _ = self._time(self.tedges)
-
-        if inf:
-            start = min(nodes, edges)
-        else:
-            value = min(nodes, edges)
-            if value == start:
-                start = max(nodes, edges)
-            else:
-                start = value
-
+        start, _ = self._get_start_end(self.tnodes, self.tedges, inf=inf)
         return start
 
     def end(self, inf: bool = False):
         """End of the temporal network"""
-        end = float('inf')
-
-        _, nodes = self._time(self.tnodes)
-        _, edges = self._time(self.tedges)
-
-        if inf:
-            end = max(nodes, edges)
-        else:
-            value = max(nodes, edges)
-            if value == end:
-                end = min(nodes, edges)
-            else:
-                end = value
-
+        _, end = self._get_start_end(self.tnodes, self.tedges, inf=inf)
         return end
 
-    def _get_start_end(self, tnodes=None, tedges=None, inf: bool = False):
+    def _get_start_end(self, tnodes={}, tedges={}, inf: bool = False):
         """Helper function to get the start end end times"""
-        # tnodes.key()
-        print('xxxxxxxxxxxxxx')
-        print(tnodes.keys())
+
         keys = list(tnodes.keys()) + list(tedges.keys())
         start, end, _ = zip(*keys)
         start_times = sorted(list(set(start)))[:2]

@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an single edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-04-21 19:16 juergen>
+# Time-stamp: <Wed 2021-04-21 20:27 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -662,6 +662,9 @@ class EdgeCollection(BaseCollection):
     @add.register(HyperEdge)  # type: ignore
     def _(self, *edge: Edge, **kwargs: Any) -> None:
 
+        # remove uid kwarg for edge objects
+        kwargs.pop('uid', None)
+
         if not kwargs.pop('checking', True):
             self._add(edge[0], indexing=kwargs.pop('indexing', True))
             return
@@ -680,9 +683,6 @@ class EdgeCollection(BaseCollection):
         # get edge object
         _edge = edge[0]
 
-        # update edge attributes
-        _edge.update(**kwargs)
-
         # check if edge exists already
         if _edge not in self and _edge.uid not in self.keys():
 
@@ -693,6 +693,12 @@ class EdgeCollection(BaseCollection):
 
             # check if single edge between node v and w
             if (_edge.v, _edge.w) not in self or self.multiedges:
+
+                # update edge attributes
+                if kwargs:
+                    print(kwargs)
+                    _edge.update(**kwargs)
+
                 # add edge to the network
                 self._add(_edge)
             else:
