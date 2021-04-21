@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : io.py -- Module for data import/export
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Wed 2021-03-31 12:29 juergen>
+# Time-stamp: <Wed 2021-04-21 16:25 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -71,7 +71,7 @@ def to_network(frame: pd.DataFrame, loops: bool = True, directed: bool = True,
         uid = row.pop('uid', None)
 
         if (v, w) in edge_set and not multiedges:
-            ignored_edges += 1            
+            ignored_edges += 1
         elif loops or v != w:
             edges.append(Edge(nodes[v], nodes[w], uid=uid, **row))
             edge_set.add((v, w))
@@ -81,9 +81,9 @@ def to_network(frame: pd.DataFrame, loops: bool = True, directed: bool = True,
             continue
     if ignored_edges > 0:
         LOG.warning('{0} edges existed already '
-                        'and were not be considered. '
-                        'To capture those edges, please '
-                        'enable multiedges and/or directed!'.format(ignored_edges))
+                    'and were not be considered. '
+                    'To capture those edges, please '
+                    'enable multiedges and/or directed!'.format(ignored_edges))
 
     net = Network(directed=directed, multiedges=multiedges, **kwargs)
     for node in nodes.values():
@@ -101,36 +101,36 @@ def to_temporal_network(frame: pd.DataFrame, loops: bool = True,
                         **kwargs: Any) -> TemporalNetwork:
     """Read temporal network from a pandas data frame."""
 
-    from pathpy.models.temporal_network import TemporalNetwork
+    from pathpy.models.temporal_network import TemporalNetwork, TemporalEdge, TemporalNode
 
     # if no v/w columns are included, pick first synonym
     frame = _check_column_name(frame, 'v', config['edge']['v_synonyms'])
     frame = _check_column_name(frame, 'w', config['edge']['w_synonyms'])
 
-    _begin = config['temporal']['begin']
+    _start = config['temporal']['start']
     _end = config['temporal']['end']
     _timestamp = config['temporal']['timestamp']
     _duration = config['temporal']['duration']
 
-    _key_words = {'begin': _begin, 'end': _end,
+    _key_words = {'start': _start, 'end': _end,
                   'timestamp': _timestamp, 'duration': _duration}
 
     for key, name in _key_words.items():
         frame = _check_column_name(
             frame, name, config['temporal'][key+'_synonyms'])
 
-    if _timestamp in frame.columns:
-        frame[_begin] = frame[_timestamp]
-        if _duration in frame.columns:
-            frame[_end] = frame[_timestamp] + frame[_duration]
-        else:
-            frame[_end] = frame[_timestamp] + \
-                config['temporal']['duration_value']
+    # if _timestamp in frame.columns:
+    #     frame[_start] = frame[_timestamp]
+    #     if _duration in frame.columns:
+    #         frame[_end] = frame[_timestamp] + frame[_duration]
+    #     else:
+    #         frame[_end] = frame[_timestamp] + \
+    #             config['temporal']['duration_value']
 
-    if _begin and _end not in frame.columns:
-        LOG.error('A TemporalNetwork needs "%s" and "%s" (or "%s" and "%s") '
-                  'attributes!', _begin, _end, _timestamp, _duration)
-        raise IOError
+    # if _start and _end not in frame.columns:
+    #     LOG.error('A TemporalNetwork needs "%s" and "%s" (or "%s" and "%s") '
+    #               'attributes!', _start, _end, _timestamp, _duration)
+    #     raise IOError
 
     LOG.debug('Creating %s network', directed)
 
@@ -140,31 +140,53 @@ def to_temporal_network(frame: pd.DataFrame, loops: bool = True,
         LOG.error('DataFrame minimally needs columns \'v\' and \'w\'')
         raise IOError
 
-    nodes = {n: Node(n) for n in node_set}
-
+    nodes = {str(n): TemporalNode(n) for n in node_set}
+    net = None
     net = TemporalNetwork(directed=directed, multiedges=multiedges, **kwargs)
-    for node in nodes.values():
+    for node in node_set:
         net.nodes.add(node)
 
-    # TODO: Make this for loop faster!
-    #rows = []
+    print(node_set)
+    # # TODO: Make this for loop faster!
+    # #rows = []
     edges = {}
     for row in frame.to_dict(orient='records'):
-        v = row.pop('v')
-        w = row.pop('w')
+        v = str(row.pop('v'))
+        w = str(row.pop('w'))
         uid = row.pop('uid', None)
-        # if (v, w) not in edges:
-        #     edge = Edge(nodes[v], nodes[w], uid=uid, **row)
-        #     edges[(v, w)] = edge
+
+        if (v, w) not in edges:
+            edge = TemporalEdge(nodes[v], nodes[w], uid=uid, **row)
+            edges[(v, w)] = edge
+        else:
+            edges[(v, w)].update(active=True, **row)
+    for edge in edges.values():
+        net.edges._add(edge)
+        #edges[(v, w)].update(start=12, end=24)
         # net.edges._add(edge)
-        # else:
-        #     begin = row.pop(_begin)
-        #     end = row.pop(_end)
-        #     net.edges._intervals.addi(begin, end, edges[(v, w)])
-        #     net.edges._interval_map[edges[(v, w)]].add((begin, end))
-        # net.add_edge(nodes[v], nodes[w], uid=uid, **row)
-        net.add_edge(nodes[v], nodes[w], uid=uid, **row)
-    # net._add_edge_properties()
+    # print(len(edges))
+    # print(len(list(edges.values())[0].activities))
+    # net.add_edge(v, w, uid=uid, **row)
+
+    #     print(v, w, uid)
+    #     print(row)
+    #     # if (v, w) not in edges:
+    #     #     edge = Edge(nodes[v], nodes[w], uid=uid, **row)
+    #     #     edges[(v, w)] = edge
+    # #     # net.edges._add(edge)
+    # #     # else:
+    # #     #     begin = row.pop(_begin)
+    # #     #     end = row.pop(_end)
+    # #     #     net.edges._intervals.addi(begin, end, edges[(v, w)])
+    # #     #     net.edges._interval_map[edges[(v, w)]].add((begin, end))
+    # #     # net.add_edge(nodes[v], nodes[w], uid=uid, **row)
+    # #     net.add_edge(nodes[v], nodes[w], uid=uid, **row)
+    # # # net._add_edge_properties()
+
+    # print(frame)
+    # print(net)
+    # print(net.tedges)
+    # print(net.tnodes)
     return net
 
 

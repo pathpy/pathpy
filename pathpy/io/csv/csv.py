@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : sql.py -- Read and write sql database tables
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-03-31 11:55 juergen>
+# Time-stamp: <Wed 2021-04-21 09:53 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -60,6 +60,7 @@ def read_network(filename: Optional[str] = None,
     frame = read_dataframe(filename=filename, sep=sep,
                            header=header, names=names)
 
+    print(frame)
     net = to_network(frame, loops=loops, directed=directed,
                      multiedges=multiedges, **kwargs)
 

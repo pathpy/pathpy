@@ -3,12 +3,13 @@
 # =============================================================================
 # File      : test_temporal_network.py -- Test environment for temp networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-04-01 17:59 juergen>
+# Time-stamp: <Wed 2021-04-21 17:16 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 
 import pytest
+import pathpy as pp
 from pathpy import Node, Edge
 import pandas as pd
 import numpy as np
@@ -17,118 +18,203 @@ from pathpy.models.temporal_network import (
     TemporalNetwork,
     TemporalNode,
     TemporalEdge,
-    TemporalAttributes,
     TemporalNetwork,
-    TemporalActivities
+    # TemporalAttributes,
+    # TemporalActivities,
+    TemporalDict
 )
 
 
-def test_temporal_node():
-    """Test temporal nodes"""
-    a = TemporalNode('a', start=1, end=4, color='red')
-    a2 = TemporalNode('a', start=8, end=10, color='black')
+def test_temporal_dict():
+    """Test the temporal dict"""
 
-    # a = TemporalNode('a', color='red')
-    # a2 = TemporalNode('a', color='black')
+    d = TemporalDict(a='first item')
+    print(d)
+    d['b'] = 'second item'
+    print(d)
+    print(d['b'])
+    for key in d.values():
+        print(key)
 
-    b = TemporalNode('b', color='blue')
-    c = TemporalNode('c', color='green')
+    a = TemporalDict()
+    a[3:5, 'color'] = 'red'
+    a[2, 3, 'color'] = 'blue'
+    a[1, 'color'] = 'green'
+    a['color'] = 'black'
+    a['color', 7] = 'yellow'
+    a['color', 7:10] = 'pink'
+    print(a)
 
-    e = TemporalEdge(a, b, uid='e', start=1, end=3, color='blue')
-    f = TemporalEdge(b, c, uid='f', start=5, end=6, color='orange')
+    a.update(1, 5, color='cccc', size=34)
 
-    # a.activities[4:50] = True
-    # print(a.activities.attributes)
+    a.update(color='cccc', size=34)
+    for k, v in a.items():
+        print(k, v)
+
+
+def test_temporal_edge():
+    """Test the temporal edge class"""
+
+    a = TemporalNode('a')
+    b = TemporalNode('b')
+
+    e = TemporalEdge(a, b, uid='a-b', start=5, end=10, color='red')
+    e = TemporalEdge(a, b, uid='a-b', timestamp=5, color='red')
+    e = TemporalEdge(a, b, uid='a-b', timestamp=5, duration=3, color='red')
+
+    print(e.activities)
+    print(e.attributes)
+
+    e.update(2, 6, color='green')
+    e.active(12, 16)
+    print(e.activities)
+    print(e.attributes)
+
+
+def test_temporal_network():
+    """Test the temporal network class"""
     net = TemporalNetwork()
-    net.add_edge(e)
-    net.add_edge(f)
 
-    net.add_node(a2)
+    a = TemporalNode('a')
+    b = TemporalNode('b')
 
-    print(net.nodes['a'].attributes)
-    print(net.nodes['a'].activities)
-    # print(net.edges)
+    e = TemporalEdge(a, b, uid='a-b', start=5, end=10, color='red')
 
-    print(net.tnodes)
-    #g = TemporalEdge(a, b, start=7, end=8, color='red')
-    # net.add_edge(g)
+    # net.add_edge(e)
+    net.add_edge('a', 'b', uid='a-b', start=1, end=6, color='red')
+    net.add_edge('a', 'b', uid='a-b', start=13, end=16, color='green')
+    net.add_edge('b', 'c', uid='b-c', start=4, end=8, color='red')
+    net.add_edge('b', 'c', uid='b-c', start=10, end=18, color='green')
+    # net.add_edge('c', 'd', uid='b-c', color='green')
 
-    net.add_edge(a, b, uid='e', start=7, end=8, color='orange')
-    net.add_edge('c', 'd', uid='g', timestamp=16, duration=30, color='yellow')
-    # print(net.edges[a, b].attributes.attributes)
-    # print(net.edges[a, b].activities.attributes)
+    print(net.edges['a-b'].attributes)
+    print(net.edges['a-b'].activities)
 
-    # print(net.edges[a, b]['color'])
-    # print(net.edges)
-    # print(net.edges.keys())
-    # print(net.edges.values())
-    # # print(net.tedges.set_index('interval').index.left.min())
-    # # print(net.tedges.set_index('interval').index.right.max())
-    # print(net.nodes)
-    print(net.edges['g'].activities)
-    # left = net.tnodes.set_index('interval').index.left
-    # right = net.tnodes.set_index('interval').index.right
+    # d = {}
+    # for edge in net.edges:
+    #     print(edge.activities)
+    # d = {**edge.activities for edge in net.edges}
+    # print(d)
 
-    # #left = left.loc[left != float('-inf')]
-
-    # print(left[left != float('-inf')].min())
-    # print(right[right != float('inf')].max() is np.nan)
-    # # print(net.tnodes.set_index('interval').index.left.min())
-    # # print(net.tnodes.set_index('interval').index.right.max())
-
-    # # print(len(net.tedges))
     print(net)
-    # print(net.start())
-    # print(net.end())
-    # for e in net.tedges.iterrows():
-    #     print(e)
-    # print(e['auto'])
-    # a['color'] = 'blue'
-    # # print(a.attributes)
-    # # print(a['color'])
-    # print(a[1:8])
 
-    # a = TemporalAttributes()
-    # # a[3.:6.:34.] = True
-    # # a[5:9] = False
-    # # a[1] = True
-    # a[3:5, 'color'] = 'red'
-    # a['color', 6] = 'blue'
-    # a['value', 4] = 34.2343434
-    # a['shape'] = 'rectangle'
+    # x = {(1, 2): 2, (3, 4): 4, (4, 9): 3, (2, 5): 1, (0, 10): 0, (4, 5): 6}
+    # y = dict(sorted(x.items(), key=lambda item: item[0]))
 
-    # a = TemporalActivities()
-    # a[3.:6.:34.] = True
-    # a[5:9] = False
-    # a[1] = True
+    # print(y)
+#     # a['color', 6] = 'blue'
+#     # a['value', 4] = 34.2343434
+#     # a['shape'] = 'rectangle'
 
-    # print(a[1:7])
-    # print(a())
-    # print(a._activities)
+    # print(d)
+    # print('a' in d)
 
-    # print(a['color', 0:9])
-    # print(a['color'])
-    # print(a[1])
-    # df = pd.DataFrame(columns=['interval', 'active'])
-    # df = df.append({'interval': pd.Interval(
-    #     1, 4), 'active': True}, ignore_index=True)
-    # df = df.append({'interval': pd.Interval(
-    #     0, 8), 'active': True}, ignore_index=True)
-    # df = df.append({'interval': pd.Interval(
-    #     2, 3), 'active': True}, ignore_index=True)
-    # df = df.append({'interval': pd.Interval(
-    #     2, 3), 'active': False}, ignore_index=True)
+# def test_temporal_node():
+#     """Test temporal nodes"""
+#     a = TemporalNode('a', start=1, end=4, color='red')
+#     a2 = TemporalNode('a', start=8, end=10, color='black')
 
-    # df = df.set_index('interval')
-    # print(df)
-    # print(df.index.overlaps(pd.Interval(4, 7)))
+#     # a = TemporalNode('a', color='red')
+#     # a2 = TemporalNode('a', color='black')
 
-    # print(df.sort_values(by=['interval']))
+#     b = TemporalNode('b', color='blue')
+#     c = TemporalNode('c', color='green')
 
-    # print(df['interval'].overlaps(pd.Interval(6, 7)))
-    # v = TAttributes(color='red')
-    # print(v['color'])
-    # print(a['color', 0:5])
+#     e = TemporalEdge(a, b, uid='e', start=1, end=3, color='blue')
+#     f = TemporalEdge(b, c, uid='f', start=5, end=6, color='orange')
+
+#     # a.activities[4:50] = True
+#     # print(a.activities.attributes)
+#     net = TemporalNetwork()
+#     net.add_edge(e)
+#     net.add_edge(f)
+
+#     net.add_node(a2)
+
+#     print(net.nodes['a'].attributes)
+#     print(net.nodes['a'].activities)
+#     # print(net.edges)
+
+#     print(net.tnodes)
+#     #g = TemporalEdge(a, b, start=7, end=8, color='red')
+#     # net.add_edge(g)
+
+#     net.add_edge(a, b, uid='e', start=7, end=8, color='orange')
+#     net.add_edge('c', 'd', uid='g', timestamp=16, duration=30, color='yellow')
+#     # print(net.edges[a, b].attributes.attributes)
+#     # print(net.edges[a, b].activities.attributes)
+
+#     # print(net.edges[a, b]['color'])
+#     # print(net.edges)
+#     # print(net.edges.keys())
+#     # print(net.edges.values())
+#     # # print(net.tedges.set_index('interval').index.left.min())
+#     # # print(net.tedges.set_index('interval').index.right.max())
+#     # print(net.nodes)
+#     print(net.edges['g'].activities)
+#     # left = net.tnodes.set_index('interval').index.left
+#     # right = net.tnodes.set_index('interval').index.right
+
+#     # #left = left.loc[left != float('-inf')]
+
+#     # print(left[left != float('-inf')].min())
+#     # print(right[right != float('inf')].max() is np.nan)
+#     # # print(net.tnodes.set_index('interval').index.left.min())
+#     # # print(net.tnodes.set_index('interval').index.right.max())
+
+#     # # print(len(net.tedges))
+#     print(net)
+#     # print(net.start())
+#     # print(net.end())
+#     # for e in net.tedges.iterrows():
+#     #     print(e)
+#     # print(e['auto'])
+#     # a['color'] = 'blue'
+#     # # print(a.attributes)
+#     # # print(a['color'])
+#     # print(a[1:8])
+
+#     # a = TemporalAttributes()
+#     # # a[3.:6.:34.] = True
+#     # # a[5:9] = False
+#     # # a[1] = True
+#     # a[3:5, 'color'] = 'red'
+#     # a['color', 6] = 'blue'
+#     # a['value', 4] = 34.2343434
+#     # a['shape'] = 'rectangle'
+
+#     # a = TemporalActivities()
+#     # a[3.:6.:34.] = True
+#     # a[5:9] = False
+#     # a[1] = True
+
+#     # print(a[1:7])
+#     # print(a())
+#     # print(a._activities)
+
+#     # print(a['color', 0:9])
+#     # print(a['color'])
+#     # print(a[1])
+#     # df = pd.DataFrame(columns=['interval', 'active'])
+#     # df = df.append({'interval': pd.Interval(
+#     #     1, 4), 'active': True}, ignore_index=True)
+#     # df = df.append({'interval': pd.Interval(
+#     #     0, 8), 'active': True}, ignore_index=True)
+#     # df = df.append({'interval': pd.Interval(
+#     #     2, 3), 'active': True}, ignore_index=True)
+#     # df = df.append({'interval': pd.Interval(
+#     #     2, 3), 'active': False}, ignore_index=True)
+
+#     # df = df.set_index('interval')
+#     # print(df)
+#     # print(df.index.overlaps(pd.Interval(4, 7)))
+
+#     # print(df.sort_values(by=['interval']))
+
+#     # print(df['interval'].overlaps(pd.Interval(6, 7)))
+#     # v = TAttributes(color='red')
+#     # print(v['color'])
+#     # print(a['color', 0:5])
 
 
 # def test_temporal_network():
@@ -170,6 +256,16 @@ def test_temporal_node():
 # print(tn.edges.items(temporal=False))
 # print(tn.edges)
 
+
+def test_read_csv():
+    """Read temporal network from csv"""
+    # tn = pp.io.csv.read_temporal_network(
+    #     'temporal_edges.tedges', directed=True)
+    # tn = pp.io.csv.read_temporal_network(
+    #     'temporal_clusters.tedges', directed=True)
+
+    # print('done')
+    # print(tn.tnodes)
 
 # =============================================================================
 # eof

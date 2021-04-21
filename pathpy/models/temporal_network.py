@@ -4,18 +4,19 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-04-21 10:18 juergen>
+# Time-stamp: <Wed 2021-04-21 17:15 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Optional, Union, cast
 from intervaltree import IntervalTree, Interval
-from collections import defaultdict
+from collections import defaultdict, ChainMap
 from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
 import pandas as pd
 import numpy as np
 
+from collections.abc import MutableMapping
 
 from pathpy import logger, config
 from pathpy.core.node import Node, NodeCollection
@@ -41,166 +42,263 @@ TIMESTAMP = config['temporal']['timestamp']
 # class Timestamp:
 #     """Class to store timestamps."""
 
+class TemporalDict(MutableMapping):
+    """A dictionary that applies an arbitrary key-altering
+       function before accessing the keys"""
 
-class TemporalAttributes:
-    """Activities of temporal objects"""
-
-    def __init__(self):
-
-        self.attributes = pd.DataFrame(columns=['interval', 'key', 'value'])
+    def __init__(self, *args, **kwargs):
+        self.store = dict()
+        self._start = float('-inf')
+        self._end = float('inf')
         self._dt = 1
+        self.update(dict(*args, **kwargs))  # use the free update to set keys
 
-    def __repr__(self) -> str:
-        """Return the description of the underlying data frame."""
-        return self.attributes.__repr__()
-
-    @singledispatchmethod
-    def __setitem__(self, key, value) -> None:
-        """Set single item."""
-        raise NotImplementedError
-
-    # @__setitem__.register(slice)  # type: ignore
-    # @__setitem__.register(int)  # type: ignore
-    # @__setitem__.register(float)  # type: ignore
-    # def _(self, key: Union[slice, int, float], value: bool) -> None:
-    #     start, stop = self._time(key)
-    #     self._setitem(start, stop, 'active', value)
-
-    @__setitem__.register(tuple)  # type: ignore
-    def _(self, key: tuple, value: Any) -> None:
-
-        if isinstance(key[0], (slice, int, float)):
-            key = (key[0], key[1])
-        elif isinstance(key[-1], (slice, int, float)):
-            key = (key[1], key[0])
-        else:
-            raise AttributeError
-
-        start, stop = self._time(key[0])
-
-        self._setitem(start, stop, key[1], value)
-
-    @__setitem__.register(str)  # type: ignore
-    def _(self, key: str, value: Any) -> None:
-
-        start, stop = self._time(None)
-
-        return self._setitem(start, stop, key, value)
-
-    def _setitem(self, start, stop, key, value) -> None:
-        """Helper function to set the item value"""
-        self.attributes = self.attributes.append(
-            {'interval': pd.Interval(start, stop), 'key': key, 'value': value},
-            ignore_index=True)
-
-    def _time(self, time) -> tuple:
-        """Helper function to get the start and stop time."""
-        if isinstance(time, slice):
-            start = time.start if time.start is not None else -float('inf')
-            stop = time.stop if time.stop is not None else float('inf')
-        elif isinstance(time, (int, float)):
-            start = time
-            stop = time + self._dt
-        else:
-            start = -float('inf')
-            stop = float('inf')
-        return start, stop
-
-    @singledispatchmethod
     def __getitem__(self, key):
-        """Get single item."""
-        raise NotImplementedError
+        return self.store[self._keytransform(key)]
 
-    @__getitem__.register(slice)  # type: ignore
-    @__getitem__.register(int)  # type: ignore
-    @__getitem__.register(float)  # type: ignore
-    def _(self, key: Union[slice, int, float]) -> pd.DataFrame:
+    def __setitem__(self, key, value):
+        self.store[self._keytransform(key)] = value
 
-        start, stop = self._time(key)
-        return self._getitem(start, stop, key=None)
+    def __delitem__(self, key):
+        del self.store[self._keytransform(key)]
 
-    @__getitem__.register(tuple)  # type: ignore
-    def _(self, key: tuple) -> pd.DataFrame:
+    def __iter__(self):
+        return iter(self.store)
 
-        if isinstance(key[0], (slice, int, float)):
-            key = (key[0], key[1])
-        elif isinstance(key[-1], (slice, int, float)):
-            key = (key[1], key[0])
-        else:
-            raise AttributeError
+    def __len__(self):
+        return len(self.store)
 
-        start, stop = self._time(key[0])
-
-        return self._getitem(start, stop, key=key[1])
-
-    @__getitem__.register(str)  # type: ignore
-    def _(self, key: str) -> pd.DataFrame:
-
-        start, stop = self._time(None)
-
-        return self._getitem(start, stop, key=key)
-
-    def _getitem(self, start, stop, key=None):
-        """Helper function to get the item"""
-        data = self.attributes
-        item = None
-
-        if key and key in list(self.attributes['key']):
-            data = self.attributes[self.attributes['key'] == key]
-        elif key is not None:
-            return pd.DataFrame(
-                {'interval': [pd.Interval(start, stop)],
-                 'key': [key], 'value': [None]})
-
-        # if key in list(self.activities['key']):
-        item = data[
-            (data
-             .set_index('interval')
-             .index.overlaps(pd.Interval(start, stop))
-             )]
-
-        return item
-
-    def update(self, uid: str = None, **kwargs: Any) -> None:
-        """Update the values"""
-
-        if kwargs:
-            start, end, kwargs = _time(**kwargs)
-            # active = kwargs.pop('active', True)
-
-            # self._setitem(start, end, 'active', active)
-
-            for key, value in kwargs.items():
-                self._setitem(start, end, key, value)
-
-    def get(self, key, default: Any = None) -> Any:
-        """Get item from object for given key."""
-        return self[key]
-
-
-class TemporalActivities(TemporalAttributes):
-    """Activities of temporal objects"""
+    def __repr__(self):
+        return self.store.__repr__()
 
     @singledispatchmethod
-    def __setitem__(self, key, value) -> None:
-        """Set single item."""
-        raise NotImplementedError
+    def _keytransform(self, key):
+        return (self._start, self._end, key)
 
-    @__setitem__.register(slice)  # type: ignore
-    @__setitem__.register(int)  # type: ignore
-    @__setitem__.register(float)  # type: ignore
-    def _(self, key: Union[slice, int, float], value: bool) -> None:
-        start, stop = self._time(key)
-        self._setitem(start, stop, 'active', value)
+    @_keytransform.register(tuple)  # type: ignore
+    def _(self, key: tuple) -> tuple:
 
-    def update(self, uid: str = None, **kwargs: Any) -> None:
-        """Update the values"""
+        if len(key) == 2:
+            if isinstance(key[0], (slice, int, float)):
+                _key = (key[0], key[1])
+            elif len(key) == 2 and isinstance(key[-1], (slice, int, float)):
+                _key = (key[1], key[0])
+            else:
+                raise KeyError
 
-        if kwargs:
-            start, end, kwargs = _time(**kwargs)
-            active = kwargs.pop('active', True)
+            start, end, _ = _get_start_end(_key[0])
+            key = (start, end, _key[1])
+        elif len(key) == 1:
+            start, end, _ = _get_start_end()
+            key = (start, end, key[0])
+        elif len(key) != 3:
+            raise KeyError
 
-            self._setitem(start, end, 'active', active)
+        return key
+
+    def update(self, *args, **kwargs):
+        if args and isinstance(args[0], TemporalDict):
+            for key, value in dict(*args, **kwargs).items():
+                self.__setitem__(key, value)
+        else:
+            for key, value in dict(**kwargs).items():
+                self.__setitem__((*args, key), value)
+
+    def sort(self):
+        self.store = dict(sorted(self.store.items(), key=lambda item: item[0]))
+        return self
+
+
+def _get_start_end(*args, **kwargs):
+    """Helper function to extract the start and end time"""
+
+    # get keywords defined in the config file
+    start = kwargs.pop(config['temporal']['start'], float('-inf'))
+    end = kwargs.pop(config['temporal']['end'], float('inf'))
+    timestamp = kwargs.pop(config['temporal']['timestamp'], None)
+    duration = kwargs.pop(config['temporal']['duration'], None)
+
+    # check if timestamp is given
+    if isinstance(timestamp, (int, float)):
+        if isinstance(duration, (int, float)):
+            start = timestamp
+            end = timestamp + duration
+        else:
+            start = timestamp
+            end = timestamp + config['temporal']['duration_value']
+
+    if args:
+        if len(args) == 1 and isinstance(args[0], slice):
+            start = args[0].start if args[0].start is not None else start
+            end = args[0].stop if args[0].stop is not None else end
+        elif len(args) == 1 and isinstance(args[0], (int, float)):
+            start = args[0]
+            end = args[0] + config['temporal']['duration_value']
+        elif len(args) == 2 and all(isinstance(a, (int, float)) for a in args):
+            start = args[0]
+            end = args[1]
+    return start, end, kwargs
+
+
+# class TemporalAttributes:
+#     """Activities of temporal objects"""
+
+#     def __init__(self):
+
+#         self.attributes = pd.DataFrame(columns=['interval', 'key', 'value'])
+#         self._dt = 1
+
+#     def __repr__(self) -> str:
+#         """Return the description of the underlying data frame."""
+#         return self.attributes.__repr__()
+
+#     @ singledispatchmethod
+#     def __setitem__(self, key, value) -> None:
+#         """Set single item."""
+#         raise NotImplementedError
+
+#     # @__setitem__.register(slice)  # type: ignore
+#     # @__setitem__.register(int)  # type: ignore
+#     # @__setitem__.register(float)  # type: ignore
+#     # def _(self, key: Union[slice, int, float], value: bool) -> None:
+#     #     start, stop = self._time(key)
+#     #     self._setitem(start, stop, 'active', value)
+
+#     @ __setitem__.register(tuple)  # type: ignore
+#     def _(self, key: tuple, value: Any) -> None:
+
+#         if isinstance(key[0], (slice, int, float)):
+#             key = (key[0], key[1])
+#         elif isinstance(key[-1], (slice, int, float)):
+#             key = (key[1], key[0])
+#         else:
+#             raise AttributeError
+
+#         start, stop = self._time(key[0])
+
+#         self._setitem(start, stop, key[1], value)
+
+#     @ __setitem__.register(str)  # type: ignore
+#     def _(self, key: str, value: Any) -> None:
+
+#         start, stop = self._time(None)
+
+#         return self._setitem(start, stop, key, value)
+
+#     def _setitem(self, start, stop, key, value) -> None:
+#         """Helper function to set the item value"""
+#         self.attributes = self.attributes.append(
+#             {'interval': pd.Interval(start, stop), 'key': key, 'value': value},
+#             ignore_index=True)
+
+#     def _time(self, time) -> tuple:
+#         """Helper function to get the start and stop time."""
+#         if isinstance(time, slice):
+#             start = time.start if time.start is not None else -float('inf')
+#             stop = time.stop if time.stop is not None else float('inf')
+#         elif isinstance(time, (int, float)):
+#             start = time
+#             stop = time + self._dt
+#         else:
+#             start = -float('inf')
+#             stop = float('inf')
+#         return start, stop
+
+#     @ singledispatchmethod
+#     def __getitem__(self, key):
+#         """Get single item."""
+#         raise NotImplementedError
+
+#     @ __getitem__.register(slice)  # type: ignore
+#     @ __getitem__.register(int)  # type: ignore
+#     @ __getitem__.register(float)  # type: ignore
+#     def _(self, key: Union[slice, int, float]) -> pd.DataFrame:
+
+#         start, stop = self._time(key)
+#         return self._getitem(start, stop, key=None)
+
+#     @ __getitem__.register(tuple)  # type: ignore
+#     def _(self, key: tuple) -> pd.DataFrame:
+
+#         if isinstance(key[0], (slice, int, float)):
+#             key = (key[0], key[1])
+#         elif isinstance(key[-1], (slice, int, float)):
+#             key = (key[1], key[0])
+#         else:
+#             raise AttributeError
+
+#         start, stop = self._time(key[0])
+
+#         return self._getitem(start, stop, key=key[1])
+
+#     @ __getitem__.register(str)  # type: ignore
+#     def _(self, key: str) -> pd.DataFrame:
+
+#         start, stop = self._time(None)
+
+#         return self._getitem(start, stop, key=key)
+
+#     def _getitem(self, start, stop, key=None):
+#         """Helper function to get the item"""
+#         data = self.attributes
+#         item = None
+
+#         if key and key in list(self.attributes['key']):
+#             data = self.attributes[self.attributes['key'] == key]
+#         elif key is not None:
+#             return pd.DataFrame(
+#                 {'interval': [pd.Interval(start, stop)],
+#                  'key': [key], 'value': [None]})
+
+#         # if key in list(self.activities['key']):
+#         item = data[
+#             (data
+#              .set_index('interval')
+#              .index.overlaps(pd.Interval(start, stop))
+#              )]
+
+#         return item
+
+#     def update(self, uid: str = None, **kwargs: Any) -> None:
+#         """Update the values"""
+
+#         if kwargs:
+#             start, end, kwargs = _time(**kwargs)
+#             # active = kwargs.pop('active', True)
+
+#             # self._setitem(start, end, 'active', active)
+
+#             for key, value in kwargs.items():
+#                 self._setitem(start, end, key, value)
+
+#     def get(self, key, default: Any = None) -> Any:
+#         """Get item from object for given key."""
+#         return self[key]
+
+
+# class TemporalActivities(TemporalAttributes):
+#     """Activities of temporal objects"""
+
+#     @ singledispatchmethod
+#     def __setitem__(self, key, value) -> None:
+#         """Set single item."""
+#         raise NotImplementedError
+
+#     @ __setitem__.register(slice)  # type: ignore
+#     @ __setitem__.register(int)  # type: ignore
+#     @ __setitem__.register(float)  # type: ignore
+#     def _(self, key: Union[slice, int, float], value: bool) -> None:
+#         start, stop = self._time(key)
+#         self._setitem(start, stop, 'active', value)
+
+#     def update(self, uid: str = None, **kwargs: Any) -> None:
+#         """Update the values"""
+
+#         if kwargs:
+#             start, end, kwargs = _time(**kwargs)
+#             active = kwargs.pop('active', True)
+
+#             self._setitem(start, end, 'active', active)
 
 
 class TemporalNode(Node):
@@ -210,17 +308,24 @@ class TemporalNode(Node):
         """Initialize the node object."""
 
         # initialize the parent class
-        super().__init__(uid=uid, **kwargs)
+        super().__init__(uid=uid)
 
-        self.attributes = TemporalAttributes()
-        self.activities = TemporalActivities()
-        self.update(**kwargs)
+        self.attributes = TemporalDict()
+        self.activities = TemporalDict()
+        self.update(active=True, **kwargs)
 
-    def update(self, **kwargs: Any) -> None:
+    def update(self, *args, active: bool = False, **kwargs: Any) -> None:
         """Update the attributes of the object. """
 
-        self.attributes.update(**kwargs)
-        self.activities.update(**kwargs)
+        start, end, kwargs = _get_start_end(*args, **kwargs)
+
+        self.attributes.update(start, end, **kwargs)
+        if active:
+            self.activities[start, end, self.uid] = self
+
+    def active(self, *args, **kwargs) -> None:
+        start, end, kwargs = _get_start_end(*args, **kwargs)
+        self.activities[start, end, self.uid] = self
 
 
 class TemporalEdge(Edge):
@@ -230,17 +335,24 @@ class TemporalEdge(Edge):
                  uid: Optional[str] = None, **kwargs: Any) -> None:
 
         # initializing the parent class
-        super().__init__(v=v, w=w, uid=uid, **kwargs)
+        super().__init__(v=v, w=w, uid=uid)
 
-        self.attributes = TemporalAttributes()
-        self.activities = TemporalActivities()
-        self.update(**kwargs)
+        self.attributes = TemporalDict()
+        self.activities = TemporalDict()
+        self.update(active=True, **kwargs)
 
-    def update(self, **kwargs: Any) -> None:
+    def update(self, *args, active: bool = False, **kwargs: Any) -> None:
         """Update the attributes of the object. """
 
-        self.attributes.update(**kwargs)
-        self.activities.update(**kwargs)
+        start, end, kwargs = _get_start_end(*args, **kwargs)
+
+        self.attributes.update(start, end, **kwargs)
+        if active:
+            self.activities[start, end, self.uid] = self
+
+    def active(self, *args, **kwargs) -> None:
+        start, end, kwargs = _get_start_end(*args, **kwargs)
+        self.activities[start, end, self.uid] = self
 
 
 class TemporalNodeCollection(NodeCollection):
@@ -260,23 +372,11 @@ class TemporalNodeCollection(NodeCollection):
         # get the node
         if isinstance(node, str):
             _node = cast(TemporalNode, self[node])
-        elif isinstance(node, TemporalNode):
-            _node = cast(TemporalNode, self[node.uid])
-            interval = list(node[:]['interval'])[-1]
-            kwargs.update(start=interval.left, end=interval.right)
-
-            df1 = _node.attributes.attributes
-            df2 = node.attributes.attributes
-
-            _node.attributes.attributes = pd.concat([df1, df2])
-
         else:
             raise KeyError
 
-        # get the start and end time
-        start, end, kwargs = _time(**kwargs)
         # update the node
-        _node.update(start=start, end=end, **kwargs)
+        _node.update(active=True, **kwargs)
 
 
 class TemporalEdgeCollection(EdgeCollection):
@@ -303,22 +403,11 @@ class TemporalEdgeCollection(EdgeCollection):
             _edge = cast(TemporalEdge, self[edge[0], edge[1]])
         elif isinstance(edge, str):
             _edge = cast(TemporalEdge, self[edge])
-        elif isinstance(edge, TemporalEdge):
-            _edge = cast(TemporalEdge, self[edge.v, edge.w])
-            interval = list(edge[:]['interval'])[-1]
-            kwargs.update(start=interval.left, end=interval.right)
-
-            df1 = _edge.attributes.attributes
-            df2 = edge.attributes.attributes
-
-            _edge.attributes.attributes = pd.concat([df1, df2])
         else:
             raise KeyError
 
-        # get the start and end time
-        start, end, kwargs = _time(**kwargs)
         # update the edge
-        _edge.update(start=start, end=end, **kwargs)
+        _edge.update(active=True, **kwargs)
 
 
 class TemporalNetwork(BaseTemporalNetwork, Network):
@@ -349,26 +438,24 @@ class TemporalNetwork(BaseTemporalNetwork, Network):
             nodes=self._nodes)
 
     @property
-    def tedges(self):
+    def tedges(self) -> TemporalDict:
         """Return a data frame of temporal edges"""
-        tedges = []
-        for edge in self.edges:
-            data = edge.activities.attributes
-            data['uid'] = edge.uid
-            data['edge'] = edge
-            tedges.append(data)
-        return pd.concat(tedges).sort_values(['interval']).reset_index(drop=True) if len(tedges) > 0 else pd.DataFrame()
+
+        tedges = TemporalDict()
+        for active in [edge.activities for edge in self.edges]:
+            tedges.update(active)
+
+        return tedges.sort()
 
     @property
-    def tnodes(self):
+    def tnodes(self) -> TemporalDict:
         """Return a data frame of temporal edges"""
-        tnodes = []
-        for node in self.nodes:
-            data = node.activities.attributes
-            data['uid'] = node.uid
-            data['node'] = node
-            tnodes.append(data)
-        return pd.concat(tnodes).sort_values(['interval']).reset_index(drop=True) if len(tnodes) > 0 else pd.DataFrame()
+
+        tnodes = TemporalDict()
+        for active in [node.activities for node in self.nodes]:
+            tnodes.update(active)
+
+        return tnodes.sort()
 
     def _time(self, values) -> tuple:
         """Helper function to get the start and end time."""
@@ -428,6 +515,25 @@ class TemporalNetwork(BaseTemporalNetwork, Network):
 
         return end
 
+    def _get_start_end(self, tnodes=None, tedges=None, inf: bool = False):
+        """Helper function to get the start end end times"""
+        # tnodes.key()
+        print('xxxxxxxxxxxxxx')
+        print(tnodes.keys())
+        keys = list(tnodes.keys()) + list(tedges.keys())
+        start, end, _ = zip(*keys)
+        start_times = sorted(list(set(start)))[:2]
+        end_times = sorted(list(set(end)))[-2:]
+
+        start = start_times[0]
+        end = end_times[-1]
+        if not inf:
+            if start == float('-inf'):
+                start = start_times[-1]
+            if end == float('inf'):
+                end = end_times[0]
+        return start, end
+
     def summary(self) -> str:
         """Returns a summary of the network.
 
@@ -445,6 +551,11 @@ class TemporalNetwork(BaseTemporalNetwork, Network):
             Returns a summary of important network properties.
 
         """
+
+        tnodes = self.tnodes
+        tedges = self.tedges
+        start, end = self._get_start_end(tnodes, tedges)
+
         summary = [
             'Uid:\t\t\t{}\n'.format(self.uid),
             'Type:\t\t\t{}\n'.format(self.__class__.__name__),
@@ -452,9 +563,9 @@ class TemporalNetwork(BaseTemporalNetwork, Network):
             'Multi-Edges:\t\t{}\n'.format(str(self.multiedges)),
             'Number of unique nodes:\t{}\n'.format(self.number_of_nodes()),
             'Number of unique edges:\t{}\n'.format(self.number_of_edges()),
-            'Number of temp nodes:\t{}\n'.format(len(self.tnodes)),
-            'Number of temp edges:\t{}\n'.format(len(self.tedges)),
-            'Observation periode:\t{} - {}'.format(self.start(), self.end())
+            'Number of temp nodes:\t{}\n'.format(len(tnodes)),
+            'Number of temp edges:\t{}\n'.format(len(tedges)),
+            'Observation periode:\t{} - {}'.format(start, end)
         ]
         attr = self.attributes
         if len(attr) > 0:
@@ -488,7 +599,7 @@ class OldTemporalEdgeCollection(EdgeCollection):
         # map edges to intervals
         self._interval_map: defaultdict = defaultdict(set)
 
-    @property
+    @ property
     def intervals(self):
         """Return an interval tree of the temporal edges."""
         return self._intervals
