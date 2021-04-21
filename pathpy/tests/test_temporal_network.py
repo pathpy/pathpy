@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_temporal_network.py -- Test environment for temp networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-04-21 21:07 juergen>
+# Time-stamp: <Wed 2021-04-21 21:10 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -346,8 +346,8 @@ def test_read_csv():
     """Read temporal network from csv"""
     # tn = pp.io.csv.read_temporal_network(
     #     'temporal_edges.tedges', directed=True)
-    tn = pp.io.csv.read_temporal_network(
-        'temporal_clusters.tedges', directed=False)
+    # tn = pp.io.csv.read_temporal_network(
+    #     'temporal_clusters.tedges', directed=False)
 
     # print('done')
     # # # print(tn.tnodes)
