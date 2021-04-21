@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : classes.py -- Base classes for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-03-31 17:46 juergen>
+# Time-stamp: <Wed 2021-04-21 09:45 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -21,7 +21,7 @@ class BaseClass:
         # declare variable
         self._uid: str
         self._is_python_uid: bool
-        self.attributes: dict
+        self.attributes: Any
 
         # assign node identifier
         if uid is not None:
