@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : plot.py -- Module to plot pathoy networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-04-21 09:13 juergen>
+# Time-stamp: <Thu 2021-04-22 16:34 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -92,7 +92,7 @@ config['plot']['interactiv']['fileformat'] = ['html']
 # Animation config
 config['plot']['animation'] = {}
 config['plot']['animation']["enabled"] = False
-config['plot']['animation']["begin"] = None
+config['plot']['animation']["start"] = None
 config['plot']['animation']["end"] = None
 config['plot']['animation']["steps"] = 20
 config['plot']['animation']["speed"] = 100
@@ -337,25 +337,25 @@ class Parser:
         self.figure['data']['changes'] = []
 
         # get start and end time
-        begin = obj.edges.begin(finite=True)
-        end = obj.edges.end(finite=True)
+        start = obj.start(inf=False)
+        end = obj.end(inf=False)
 
         # raise error if time frame is not finite
-        if begin == float('-inf') or end == float('inf'):
+        if start == float('-inf') or end == float('inf'):
             LOG.error('The begin/end time is not finite!')
             raise ValueError
 
         # begin and end of the animation
         # TODO: make this more efficient
-        animation_begin = self.config['animation']['begin']
+        animation_start = self.config['animation']['start']
         animation_end = self.config['animation']['end']
         steps = self.config['animation']['steps']
         # if no begin is given take the first observed temporal event
-        if animation_begin is None:
-            animation_begin = self._isotime(begin)
-        elif isinstance(animation_begin, (int, float)):
-            begin = animation_begin
-            animation_begin = self._isotime(animation_begin)
+        if animation_start is None:
+            animation_start = self._isotime(start)
+        elif isinstance(animation_start, (int, float)):
+            start = animation_start
+            animation_start = self._isotime(animation_start)
         else:
             raise NotImplementedError
 
@@ -368,107 +368,129 @@ class Parser:
             raise NotImplementedError
 
         # set animation begin and end for d3js
-        self.config['animation']['begin'] = animation_begin
+        self.config['animation']['start'] = animation_start
         self.config['animation']['end'] = animation_end
 
         # get static edges
-        edges = {e['uid']: e for e in self.figure['data']['edges']}
+        # edges = {e['uid']: e for e in self.figure['data']['edges']}
 
-        _intervals = obj.edges.intervals
+        # _intervals = obj.edges.intervals
 
-        tree = _intervals.copy()
-        tree.slice(begin)
-        tree.slice(end)
-        tree.remove_envelop(_intervals.begin(), begin)
-        tree.remove_envelop(end, _intervals.end())
+        # tree = _intervals.copy()
+        # tree.slice(begin)
+        # tree.slice(end)
+        # tree.remove_envelop(_intervals.begin(), begin)
+        # tree.remove_envelop(end, _intervals.end())
 
-        edge_temp_attr: defaultdict = defaultdict(lambda: defaultdict(dict))
-        for edge in obj.edges.values():
-            df = edge.attributes.to_frame(history=True)
-            df = df.where(pd.notnull(df), None)
-            attr = list(df.to_dict('index').values())
-            for values in attr:
-                time = values.pop(TIMESTAMP, None)
-                edge_temp_attr[edge.uid][time].update(**values)
+        # edge_temp_attr: defaultdict = defaultdict(lambda: defaultdict(dict))
+        # for edge in obj.edges.values():
+        #     df = edge.attributes.to_frame(history=True)
+        #     df = df.where(pd.notnull(df), None)
+        #     attr = list(df.to_dict('index').values())
+        #     for values in attr:
+        #         time = values.pop(TIMESTAMP, None)
+        #         edge_temp_attr[edge.uid][time].update(**values)
+
+        def find_nearest(array, value, index=True):
+            idx = (np.abs(array - value)).argmin()
+            if index:
+                result = int(idx)
+            else:
+                result = array[idx]
+            return result
 
         # generate temporal edges
         temporal_edges = []
-        time = list(np.linspace(begin, end, num=steps))
-        for t in time:
-            for _, _, edge in tree[t]:
+        times = np.linspace(start, end, num=steps)
 
-                # get default object
-                _edge = edges[edge.uid]
-                # get temporal attributes
-                _attr = edge_temp_attr[edge.uid][int(round(t, 0))]
-                # if temporal attributes given update old attributes:
-                if _attr:
-                    for key, value in _attr.items():
-                        if key in _edge:
-                            _edge[key] = value
+        # when edge is active or not
+        for (start, end, uid), edge in obj.tedges.items():
+            _edge = {'uid': uid}
+            _edge['startTime'] = find_nearest(times, start)
+            _edge['endTime'] = find_nearest(times, end)
+            _edge['active'] = True
+            temporal_edges.append(_edge)
 
-                _edge['time'] = time.index(t)
-                temporal_edges.append(_edge.copy())
+        # temporal edge attributes
+        # TODO combine if change at same time
+        for edge in obj.edges:
+            for (start, end, key), value in edge.attributes.items():
+                _edge = {'uid': edge.uid}
+                _edge['startTime'] = find_nearest(times, start)
+                _edge['endTime'] = find_nearest(times, end)
+                _edge[key] = value
+                temporal_edges.append(_edge)
 
         # add temporal edges to the data
-        self.figure['data']['edges'] = temporal_edges
+        self.figure['data']['tedges'] = temporal_edges
 
-        # get static nodes
-        nodes = {n['uid']: n for n in self.figure['data']['nodes']}
+        # # get static nodes
+        # nodes = {n['uid']: n for n in self.figure['data']['nodes']}
 
-        node_temp_attr: defaultdict = defaultdict(lambda: defaultdict(dict))
-        for node in obj.nodes.values():
-            df = node.attributes.to_frame(history=True)
-            df = df.where(pd.notnull(df), None)
-            attr = list(df.to_dict('index').values())
-            for values in attr:
-                time = values.pop(TIMESTAMP, None)
-                node_temp_attr[node.uid][time].update(**values)
+        # node_temp_attr: defaultdict = defaultdict(lambda: defaultdict(dict))
+        # for node in obj.nodes.values():
+        #     df = node.attributes.to_frame(history=True)
+        #     df = df.where(pd.notnull(df), None)
+        #     attr = list(df.to_dict('index').values())
+        #     for values in attr:
+        #         time = values.pop(TIMESTAMP, None)
+        #         node_temp_attr[node.uid][time].update(**values)
 
-        # generating initial nodes
-        initial_nodes = []
-        for node in obj.nodes.keys():
-            _node = nodes[node]
-            _attr = node_temp_attr[node][float('-inf')]
-            if _attr:
-                for key, value in _attr.items():
-                    if key in _node:
-                        _node[key] = value
-            initial_nodes.append(_node.copy())
+        # # generating initial nodes
+        # initial_nodes = []
+        # for node in obj.nodes.keys():
+        #     _node = nodes[node]
+        #     _attr = node_temp_attr[node][float('-inf')]
+        #     if _attr:
+        #         for key, value in _attr.items():
+        #             if key in _node:
+        #                 _node[key] = value
+        #     initial_nodes.append(_node.copy())
 
-        # add initial nodes to the data
-        self.figure['data']['nodes'] = initial_nodes
+        # # add initial nodes to the data
+        # self.figure['data']['nodes'] = initial_nodes
 
         temporal_nodes = []
-        for initial_node in initial_nodes:
-            _node = initial_node.copy()
-            _node['time'] = 0
-            temporal_nodes.append(_node)
 
-        time = list(np.linspace(begin, end, num=steps))
-        for t in time:
-            for node in obj.nodes.keys():
-                _node = nodes[node]
-                _attr = node_temp_attr[node][int(round(t, 0))]
-                if _attr:
-                    for key, value in _attr.items():
-                        if key in _edge:
-                            _node[key] = value
+        # temporal edge attributes
+        # TODO combine if change at same time
+        for node in obj.nodes:
+            for (start, end, key), value in node.attributes.items():
+                _node = {'uid': node.uid}
+                _node['startTime'] = find_nearest(times, start)
+                _node['endTime'] = find_nearest(times, end)
+                _node[key] = value
+                temporal_nodes.append(_node)
 
-                    _node['time'] = time.index(t)
-                    temporal_nodes.append(_node.copy())
+        # for initial_node in initial_nodes:
+        #     _node = initial_node.copy()
+        #     _node['time'] = 0
+        #     temporal_nodes.append(_node)
 
-        self.figure['data']['changes'] = temporal_nodes
+        # time = list(np.linspace(begin, end, num=steps))
+        # for t in time:
+        #     for node in obj.nodes.keys():
+        #         _node = nodes[node]
+        #         _attr = node_temp_attr[node][int(round(t, 0))]
+        #         if _attr:
+        #             for key, value in _attr.items():
+        #                 if key in _edge:
+        #                     _node[key] = value
+
+        #             _node['time'] = time.index(t)
+        #             temporal_nodes.append(_node.copy())
+
+        self.figure['data']['tnodes'] = temporal_nodes
 
         # return the figure
         return self.figure
 
-    @staticmethod
+    @ staticmethod
     def _isotime(time: Union[int, float]) -> str:
         """Convert float to ISO 8601 string."""
         return datetime.utcfromtimestamp(time).strftime("%Y-%m-%dT%H:%M:%S")
 
-    @parse.register(BaseNetwork)
+    @ parse.register(BaseNetwork)
     def _parse_static(self, obj: Any, plot_config: defaultdict,
                       **kwargs: Any) -> defaultdict:
         """Parse static network."""
@@ -614,25 +636,25 @@ class Parser:
             _layout[n] = (_x, _y)
 
         # find min and max values of new the points
-        min_x = min(_layout.items(), key=lambda item: item[1][0])[1][0]
-        max_x = max(_layout.items(), key=lambda item: item[1][0])[1][0]
-        min_y = min(_layout.items(), key=lambda item: item[1][1])[1][1]
-        max_y = max(_layout.items(), key=lambda item: item[1][1])[1][1]
+        min_x=min(_layout.items(), key=lambda item: item[1][0])[1][0]
+        max_x=max(_layout.items(), key=lambda item: item[1][0])[1][0]
+        min_y=min(_layout.items(), key=lambda item: item[1][1])[1][1]
+        max_y=max(_layout.items(), key=lambda item: item[1][1])[1][1]
 
         # calculate the translation
-        translation = (((width-margins['left']-margins['right'])/2
+        translation=(((width-margins['left']-margins['right'])/2
                         + margins['left']) - ((max_x-min_x)/2 + min_x),
                        ((height-margins['top']-margins['bottom'])/2
                         + margins['bottom']) - ((max_y-min_y)/2 + min_y))
 
         # apply translation to the points
         for n, (x, y) in _layout.items():
-            _x = (x)+translation[0]
-            _y = (y)+translation[1]
-            _layout[n] = (_x, _y)
+            _x=(x)+translation[0]
+            _y=(y)+translation[1]
+            _layout[n]=(_x, _y)
 
         for node in nodes:
-            node['coordinates'] = _layout[node['uid']]
+            node['coordinates']=_layout[node['uid']]
 
         return nodes
 
@@ -640,28 +662,28 @@ class Parser:
         """Parse the config file."""
 
         # initialize temporal dict
-        _config: defaultdict = defaultdict(dict)
+        _config: defaultdict=defaultdict(dict)
 
         # extend default dict
         for key in properties:
-            _config[key] = defaultdict(dict)
+            _config[key]=defaultdict(dict)
 
         # iterate over kwargs
         for key, value in kwargs.items():
 
             # split key from kwargs
-            _key = key.split("_", 1)
+            _key=key.split("_", 1)
 
             # check if key is valid
             if _key[0] in properties:
                 if _key[1] in properties[_key[0]]:
 
                     # add value to dictionary
-                    _config[_key[0]][_key[1]] = value
+                    _config[_key[0]][_key[1]]=value
 
             # check if key is in the default config
             elif key in self.config:
-                _config[key] = value
+                _config[key]=value
 
         return _config
 
@@ -669,37 +691,37 @@ class Parser:
         """Parse static objects such as nodes and edges."""
 
         # initialize temporal dict
-        _obj: defaultdict = defaultdict(dict)
+        _obj: defaultdict=defaultdict(dict)
 
         # get mapping if defined
-        mapping = kwargs.get('mapping', None)
+        mapping=kwargs.get('mapping', None)
 
         # iterate over objects
         for uid, obj in objects.items():
 
             # add default properties to the obj
-            _obj[uid] = self.default_properties[otype].copy()
+            _obj[uid]=self.default_properties[otype].copy()
 
             # add obj uid
-            _obj[uid]['uid'] = uid
+            _obj[uid]['uid']=uid
 
             # if obj is an edge add source and target nodes
             if otype == 'edge':
-                _obj[uid]['source'] = obj.v.uid
-                _obj[uid]['target'] = obj.w.uid
+                _obj[uid]['source']=obj.v.uid
+                _obj[uid]['target']=obj.w.uid
 
             # add obj attributes
             for attr, value in obj.attributes.items():
 
                 # if mapping is given map the attribute
                 if mapping is not None and attr in mapping:
-                    attr = mapping[attr]
+                    attr=mapping[attr]
 
                 # check if attribute is in the default object
                 if attr in self.default_properties[otype]:
 
                     # update attribute if given
-                    _obj[uid][attr] = value
+                    _obj[uid][attr]=value
 
         # update objects based on the kwargs
         # iterate over the kwargs config
@@ -714,7 +736,7 @@ class Parser:
             elif isinstance(values, list):
                 for i, obj in enumerate(_obj.values()):
                     try:
-                        obj[key] = values[i]
+                        obj[key]=values[i]
                     except KeyError:
                         pass
 
@@ -722,7 +744,7 @@ class Parser:
             elif isinstance(values, dict):
                 for k in _obj:
                     if k in values:
-                        _obj[k][key] = values[k]
+                        _obj[k][key]=values[k]
             # otherwise raise error
             else:
                 LOG.error('Something went wrong, by formatting the values!')
