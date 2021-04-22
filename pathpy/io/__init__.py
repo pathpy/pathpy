@@ -1,4 +1,4 @@
-"""Module for input output data to pathpy"""
+"""Module to import/export data"""
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
@@ -22,6 +22,7 @@ from pathpy.io.io import (
     to_network,
     to_temporal_network
 )
+from pathpy.io import network_recognition
 
 # =============================================================================
 # eof
