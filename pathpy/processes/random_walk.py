@@ -288,7 +288,7 @@ class RandomWalk(BaseWalk):
         """
         return self._transition_matrix
 
-    def matrix_pretty(self) -> DatFrame:
+    def matrix_pd(self) -> DataFrame:
         """
         """
         return DataFrame(self.matrix.todense(), columns=[v for v in self._network.nodes.index], index=[v for v in self._network.nodes.index])
