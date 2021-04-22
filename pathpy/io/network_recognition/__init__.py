@@ -11,4 +11,4 @@
 # flake8: noqa
 # pylint: disable=unused-import
 
-from .onr import from_image
+from .onr import from_image, detect_nodes
