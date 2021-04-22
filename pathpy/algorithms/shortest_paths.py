@@ -383,8 +383,8 @@ def avg_path_length(network: Network,
 
     exclude_zero : bool
 
-        If True, (zero) diagonal entries in the distance matrix will be included
-        in the average shortest path length.
+        If True, (zero) diagonal entries in the distance matrix will be excluded
+        in the average shortest path length calculation.
 
     Examples
     --------
