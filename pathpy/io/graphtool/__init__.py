@@ -9,5 +9,5 @@
 # =============================================================================
 
 
-from pathpy.io.graphtool.netzschleuder import (read_netzschleuder, list_netzschleuder)
+from pathpy.io.graphtool.netzschleuder import (read_netzschleuder_record, list_netzschleuder_records, read_netzschleuder_network)
 from pathpy.io.graphtool.graphtool import (read_graphtool, parse_graphtool_format)

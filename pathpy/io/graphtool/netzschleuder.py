@@ -25,18 +25,26 @@ import json
 LOG = logger(__name__)
 
 
-def list_netzschleuder(properties=False, base_url='https://networks.skewed.de') -> Union[list, dict]:
+def list_netzschleuder_records(base_url='https://networks.skewed.de', **kwargs) -> Union[list, dict]:
     """
     Reads a list of data sets from the netzschleuder repository
     """ 
     url = '/api/nets'
-    if properties:
-        url = url + '?full=True'
+    for k, v in kwargs.items():
+        url += '?{0}={1}'.format(k, v)
     f = request.urlopen(base_url + url).read()
     return json.loads(f)
 
 
-def read_netzschleuder(name: str, net: Optional[str]=None, base_url='https://networks.skewed.de') -> Network:
+def read_netzschleuder_record(name: str, base_url='https://networks.skewed.de') -> dict:
+    """
+    Reads a single record 
+    """ 
+    url = '/api/net/{0}'.format(name)
+    return json.loads(request.urlopen(base_url + url).read())
+
+
+def read_netzschleuder_network(name: str, net: Optional[str]=None, ignore_temporal: Optional[bool]=False, base_url='https://networks.skewed.de') -> Network:
     """
     Reads a network from the netzschleuder repository
     """
@@ -62,7 +70,7 @@ def read_netzschleuder(name: str, net: Optional[str]=None, base_url='https://net
     decompressed = reader.readall()
 
     # parse graphtool binary format
-    n = parse_graphtool_format(bytes(decompressed))
+    n = parse_graphtool_format(bytes(decompressed), ignore_temporal=ignore_temporal)
     if n:
         # store network attributes
         for k, v in properties.items():

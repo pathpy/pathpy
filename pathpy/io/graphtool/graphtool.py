@@ -8,16 +8,20 @@
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import TYPE_CHECKING, Optional, Union
+from collections import defaultdict
+from pathpy.io.io import to_network, to_temporal_network
+from typing import TYPE_CHECKING, Union
 
 
 from pathpy import config, logger
 
 from pathpy.models.network import Network
+from pathpy.models.temporal_network import TemporalNetwork
 from numpy import array
 
 import struct
 import pickle
+import pandas as pd
 
 # create logger
 LOG = logger(__name__)
@@ -104,7 +108,8 @@ def _parse_property_value(data, ptr, type_index, endianness):
     else:
         LOG.error('Unknown type index {0}'.format(type_index))
 
-def parse_graphtool_format(data: bytes) -> Network:
+
+def parse_graphtool_format(data: bytes, ignore_temporal=False) -> Union[Network, TemporalNetwork]:
     """
     Parses the graphtool binary format and returns a pathpy Network
     """
@@ -143,8 +148,9 @@ def parse_graphtool_format(data: bytes) -> Network:
     n_nodes = struct.unpack(graphtool_endianness + 'Q', data[ptr:ptr+8])[0]
     ptr += 8
 
-    # create pathpy network
-    n = Network(directed = directed, multiedges=True)
+    # create pandas dataframe
+    network_dict = {}
+    # n = Network(directed = directed, multiedges=True)
 
     # determine binary representation of neighbour lists
     if n_nodes<2**8:
@@ -160,20 +166,29 @@ def parse_graphtool_format(data: bytes) -> Network:
         fmt = 'Q'
         d = 8
 
+    n_edges = 0
     # parse lists of out-neighbors for all n nodes
     for v in range(n_nodes):
         # read number of neighbors
         num_neighbors = struct.unpack(graphtool_endianness + 'Q', data[ptr:ptr+8])[0]
         ptr += 8
 
-        if num_neighbors == 0 and str(v) not in n.nodes.uids:
-            n.add_node(str(v))
+        # add edges to record
         for j in range(num_neighbors):
             w = struct.unpack(graphtool_endianness + fmt, data[ptr:ptr+d])[0]
             ptr += d
-            n.add_edge(str(v), str(w))
-        
-    # read property maps
+            network_dict[n_edges] = [str(v), str(w)]
+            n_edges += 1
+    
+    network_data = pd.DataFrame.from_dict(network_dict, orient='index', columns=['v', 'w'])
+
+    # collect all attributes from property maps
+    network_attributes = {}
+    edge_attribute_names = set()
+    node_attributes = defaultdict(lambda: dict())
+    edge_attributes = defaultdict(lambda: defaultdict(lambda: pd.NA))
+    
+    # parse property maps
     property_maps = struct.unpack(graphtool_endianness + 'Q', data[ptr:ptr+8])[0]
     ptr += 8
 
@@ -192,17 +207,18 @@ def parse_graphtool_format(data: bytes) -> Network:
 
         if key_type == 0: # network property
             res = _parse_property_value(data, ptr, property_type, graphtool_endianness)
-            n[property_name] = res[0]
+            network_attributes[property_name] = res[0]
             ptr += res[1]
         elif key_type == 1: # vertex property
             for v in range(n_nodes):
                 res = _parse_property_value(data, ptr, property_type, graphtool_endianness)
-                n.nodes[str(v)][property_name] = res[0]
+                node_attributes[str(v)][property_name] = res[0]
                 ptr += res[1]
         elif key_type == 2: # edge property
-            for e in n.edges:
+            for e in range(n_edges):
                 res = _parse_property_value(data, ptr, property_type, graphtool_endianness)
-                n.edges[e.uid][property_name] = res[0]
+                edge_attributes[e][property_name] = res[0]
+                edge_attribute_names.add(property_name)
                 ptr += res[1]
         else:
             LOG.error('Unknown key type {0}'.format(key_type))
@@ -213,6 +229,25 @@ def parse_graphtool_format(data: bytes) -> Network:
     LOG.info('comment \t= ', comment)
     LOG.info('directed \t= ', directed)
     LOG.info('nodes \t\t= ', n_nodes)
+
+    # add edge properties to data frame
+    for p in edge_attribute_names:
+        # due to use of default_dict, this will add NA values ot edges which are missing properties
+        network_data[p] = [ edge_attributes[e][p] for e in range(n_edges) ]
+
+    # create network from pandas dataframe
+    n:Network = None
+    if 'time' in edge_attribute_names and not ignore_temporal:
+        n = to_temporal_network(network_data, directed=directed, **network_attributes)
+    else:
+        n = to_network(network_data, directed=directed, **network_attributes)
+    
+    for v in node_attributes:        
+        for p in node_attributes[v]:
+            # for now we remove _pos for temporal networks due to type being incompatible with plotting
+            if p != '_pos' or ('time' not in edge_attribute_names or ignore_temporal):
+                n.nodes[v][p] = node_attributes[v][p]
+
     return n
 
 
