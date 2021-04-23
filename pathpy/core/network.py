@@ -98,7 +98,7 @@ class Network(BaseModel):
     --------
     Create an empty network structure with no nodes, edges or paths.
 
-    >>> form pathpy import Node, Edge, Path, Network
+    >>> from pathpy import Node, Edge, Path, Network
     >>> net = Network()
 
     Some properties of the network are: the name, if directed or if temporal
