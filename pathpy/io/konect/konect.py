@@ -12,17 +12,21 @@ import tarfile
 import io
 import urllib
 
+from typing import Union
+
 import pandas as pd  # pylint: disable=import-error
 
 from pathpy import logger
-from pathpy.io.io import to_network
+from pathpy.io.io import to_network, to_temporal_network
+from pathpy.core.network import Network
+from pathpy.models.temporal_network import TemporalNetwork
 
 # create logger
 LOG = logger(__name__)
 
 
-def read_network(file):
-    """Reads a KONECT data file and returns a pp.Network instance.
+def read_network(file: str, ignore_temporal: bool=False) -> Union[Network, TemporalNetwork]:
+    """Reads a KONECT data file in TSV format and returns a pp.Network instance.
 
     The unified KONECT data format is a compressed .tar.bz2 file containing two
     files meta.* and out.*. The key-value attributes in the meta file
@@ -30,7 +34,7 @@ def read_network(file):
     are stored as attributes in the returned instance of pp.Network.
 
     Depending on the data file, the generated network will be a single -or
-    multi-edge network with directed or undirected edges. The type of the
+    multi-edge network with directed or undirected edges, or a Temporal Network. The type of the
     network will be automatically determined based on the data file. Weight and
     Time attributes are stored as edge attributes.
 
@@ -41,18 +45,28 @@ def read_network(file):
 
         Filename or byte stream from which data should be loaded
 
+    ignore_temporal: bool=False
+        
+        If False (default), a temporal or static network will be returned depending on the data.
+        If True, a static network will be returned even if the edges of the KONECT network contain a time attribute. 
+
     """
 
+    # implicit semantics of columns in TSV files
     tsv_columns = ['v', 'w', 'weight', 'time']
 
     if isinstance(file, str):
         tar = tarfile.open(file, mode='r:bz2')
     elif isinstance(file, bytes):
         tar = tarfile.open(fileobj=io.BytesIO(file), mode='r:bz2')
+
+    # network-level attributes
     attributes = {}
+
     directed = False
     multiedges = False
-    network_data = None
+    network_data: pd.DataFrame = None
+
     for tarinfo in tar:
         if tarinfo.isfile():
             f = tarinfo.path.split('/')[-1]
@@ -69,12 +83,15 @@ def read_network(file):
             # read network data
             elif f.startswith('out.'):
                 with io.TextIOWrapper(tar.extractfile(tarinfo)) as buffer:
+                    # check whether network is directed
                     directed = 'asym' in buffer.readline()
+
+                    # read pandas data frame
                     network_data = pd.read_csv(
                         buffer, sep=r'\s+', header=None, comment='%')
                     network_data = network_data.dropna(axis=1, how='all')
 
-                    # print(network_data.head())
+                    # extract which columns are present
                     network_data.columns = [tsv_columns[i]
                                             for i in range(len(network_data.columns))]
                     duplicates = len(
@@ -87,16 +104,20 @@ def read_network(file):
     if 'timeiso' in attributes:
         try:
             dt = pd.to_datetime(attributes['timeiso'])
-            attributes['time'] = attributes['timeiso']
+            attributes['time'] = attributes['timeiso']            
         except ValueError:
             LOG.warning('KONECT data contains invalid timeiso: {}'.format(
                 attributes['timeiso']))
-    net = to_network(network_data, directed=directed,
-                     multiedges=multiedges, **attributes)
-    return net
+    if 'time' in network_data.columns and not ignore_temporal:
+        network_data.rename(columns= {'time': 'timestamp'}, inplace=True)
+        return to_temporal_network(network_data, 
+                directed=directed, multiedges=multiedges, **attributes)
+    else:
+        return to_network(network_data, 
+            directed=directed, multiedges=multiedges, **attributes)
 
 
-def read_konect_name(name, base_url="http://konect.cc/files/download.tsv."):
+def read_konect_name(name, ignore_temporal: bool=False, base_url="http://konect.cc/files/download.tsv."):
     """Retrieves a KONECT data set with a given name and returns a corresponding
     instance of pp.Network.
 
@@ -126,9 +147,14 @@ def read_konect_name(name, base_url="http://konect.cc/files/download.tsv."):
         via HTTP under the URL
         "http://konect.cc/files/download.tsv.X.tar.bz2"
 
+    ignore_temporal: bool=False
+        
+        If False (default), a temporal or static network will be returned depending on the data.
+        If True, a static network will be returned even if the edges of the KONECT network contain a time attribute. 
+
     """
     f = urllib.request.urlopen(base_url + name + ".tar.bz2").read()
-    return read_network(f)
+    return read_network(f, ignore_temporal)
 
 
 # =============================================================================
