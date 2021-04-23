@@ -10,7 +10,7 @@
 from __future__ import annotations
 from collections import defaultdict
 from pathpy.io.io import to_network, to_temporal_network
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Union, Tuple, Optional, List, Any
 
 
 from pathpy import config, logger
@@ -27,9 +27,32 @@ import pandas as pd
 LOG = logger(__name__)
 
 
-def _parse_property_value(data, ptr, type_index, endianness):
+def _parse_property_value(data: bytes, ptr: int, type_index: int, endianness: str) -> Tuple[Optional[Any], int]:
     """
-    Parses a property value and returns the value along with the number of processed bytes
+    Parses a property value as well as the number of processed bytes.
+
+    Parameters
+    ----------
+
+    data: bytes
+
+        byte array containing the data to be decoded
+
+    ptr: int
+
+        index of the first byte to be parsed
+
+    type_index: int
+
+        integer representing the type of the property value to be parsed
+
+    endianness: str
+
+        String representation of endianness, where '>' represents Big Endian 
+        and '<' represents Little Endian
+
+    Returns
+    -------
     """
     if type_index == 0:
         return (bool(data[ptr]), 1)
@@ -43,6 +66,7 @@ def _parse_property_value(data, ptr, type_index, endianness):
         return (struct.unpack(endianness + 'd', data[ptr:ptr+8])[0], 8)
     elif type_index == 5:
         LOG.warning('pathpy does not support properties with type long double. Properties have been dropped.')
+        return (None, 16)
     elif type_index == 6:
         str_len = struct.unpack(endianness + 'Q', data[ptr:ptr+8])[0]
         str = data[ptr+8:ptr+8+str_len].decode('utf-8')
@@ -107,18 +131,30 @@ def _parse_property_value(data, ptr, type_index, endianness):
         return (pickle.loads(data[ptr+8:ptr+8+val_len]), 8 + val_len)
     else:
         LOG.error('Unknown type index {0}'.format(type_index))
+        return (None, 0)
 
 
-def parse_graphtool_format(data: bytes, ignore_temporal=False) -> Union[Network, TemporalNetwork]:
+def parse_graphtool_format(data: bytes, ignore_temporal: bool=False) -> Union[Network, TemporalNetwork]:
     """
-    Parses the graphtool binary format and returns a pathpy Network
+    Decodes data in graphtool binary format and returns a pathpy network.
+
+    Parameters
+    ----------
+
+    data: bytes
+        Array of bys to be decoded
+
+    ignore_temporal: bool=False
+        If False, this function will return a static or temporal network depending 
+        on whether edges contain a time attribute. If True, pathpy will not interpret
+        time attributes and thus always return a static network.
     """
     # see doc at https://graph-tool.skewed.de/static/doc/gt_format.html
 
     # check magic bytes
     if data[0:6] != b'\xe2\x9b\xbe\x20\x67\x74':
         LOG.error('Invalid graphtool file. Wrong magic bytes.')
-        return None
+        raise AssertionError('Invalid graphtool file.')
     ptr = 6
 
     # read graphtool version byte
@@ -223,12 +259,12 @@ def parse_graphtool_format(data: bytes, ignore_temporal=False) -> Union[Network,
         else:
             LOG.error('Unknown key type {0}'.format(key_type))
 
-    LOG.info('Version \t= ', graphtool_version)
-    LOG.info('Endianness \t= ', graphtool_endianness)
-    LOG.info('comment size \t= ', str_len)
-    LOG.info('comment \t= ', comment)
-    LOG.info('directed \t= ', directed)
-    LOG.info('nodes \t\t= ', n_nodes)
+    LOG.info('Version \t= {0}'.format(graphtool_version))
+    LOG.info('Endianness \t= {0}'.format(graphtool_endianness))
+    LOG.info('comment size \t= {0}'.format(str_len))
+    LOG.info('comment \t= {0}'.format(comment))
+    LOG.info('directed \t= {0}'.format(directed))
+    LOG.info('nodes \t\t= {0}'.format(n_nodes))
 
     # add edge properties to data frame
     for p in edge_attribute_names:
@@ -236,7 +272,7 @@ def parse_graphtool_format(data: bytes, ignore_temporal=False) -> Union[Network,
         network_data[p] = [ edge_attributes[e][p] for e in range(n_edges) ]
 
     # create network from pandas dataframe
-    n:Network = None
+    n: Optional[Network] = None
     if 'time' in edge_attribute_names and not ignore_temporal:
         n = to_temporal_network(network_data, directed=directed, **network_attributes)
     else:
@@ -247,20 +283,28 @@ def parse_graphtool_format(data: bytes, ignore_temporal=False) -> Union[Network,
             # for now we remove _pos for temporal networks due to type being incompatible with plotting
             if p != '_pos' or ('time' not in edge_attribute_names or ignore_temporal):
                 n.nodes[v][p] = node_attributes[v][p]
-
     return n
 
 
-def read_graphtool(file: str) -> Network: 
+def read_graphtool(file: str) -> Optional[Union[Network, TemporalNetwork]]: 
     """
     Reads a file in graphtool binary format
+
+    Parameters
+    ----------
+
+    file: str
+        Path to graphtool file to be read
     """
     with open(file, 'rb') as f:
         if '.zst' in file:
-            import zstandard as zstd 
-            dctx = zstd.ZstdDecompressor()
-            data = f.read()
-            return parse_graphtool_format(dctx.decompress(data, max_output_size=len(data)))
+            try: 
+                import zstandard as zstd 
+                dctx = zstd.ZstdDecompressor()
+                data = f.read()
+                return parse_graphtool_format(dctx.decompress(data, max_output_size=len(data)))
+            except ModuleNotFoundError:
+                LOG.error('Package zstandard is needed to decode graphtool files. Please install module, e.g., using "pip install zstandard".')
         else:    
             return parse_graphtool_format(f.read())
 
