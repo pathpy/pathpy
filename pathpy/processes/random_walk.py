@@ -1,4 +1,4 @@
-"""Random walker in pathpy."""
+"""Efficient implementation of random walk process."""
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
@@ -6,16 +6,16 @@
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
 # Time-stamp: <Mon 2020-04-20 11:02 ingo>
 #
-# Copyright (c) 2016-2020 Pathpy Developers
+# Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
 import abc
 
 from scipy.sparse.construct import random
-from pathpy.models.higher_order_network import HigherOrderNetwork
+from pathpy.models.higher_order_network import HigherOrderEdge, HigherOrderNetwork, HigherOrderNode
 
 from pathpy.core.node import NodeCollection
-from typing import Any, Optional, Union, overload
+from typing import Any, Iterable, Optional, Union
 
 import numpy as np
 import scipy as sp  # pylint: disable=import-error
@@ -70,12 +70,43 @@ class BaseWalk:
 
 class VoseAliasSampling:    
     """
-    Implementation of fast biased sampling from discrete distributions following https://www.keithschwarz.com/darts-dice-coins/
+    Implementation of fast biased sampling from a discrete distribution
+    of values [0, ..., n]
+    
+    For explanation see https://www.keithschwarz.com/darts-dice-coins/
+
+    Parameters
+    ----------
+
+    weights: Union[np.array, list]
+
+        relative weights of the n events, where weights[i] is the relative 
+        statistical weight of event i. The weights do not need to be 
+        normalized. 
+        
+        For an array with length n, generated random values 
+        will be from range(n).
+        
+    See Also
+    --------
+    RandomWalk
+
+    Examples
+    --------
+    Create a VoseAliasSampling instance
+
+    >>> from pathpy.processes.RandomWalk import VoseAliasSampling
+    >>> sampler = VoseAliasSampling([1,1,2])
+    
+    Fast biased sampling in O(1)
+    
+    >>> [ sampler.sample() for i in range(10) ]
+    [ 0 2 0 1 2 1 2 1 2 0 2 2 ] 
     """
 
-    def __init__(self, weights):
+    def __init__(self, weights: Union[np.array, list]) -> None:
         """
-        Initialize probability and alias tables
+        Initializes probability and alias tables
         """
         self.n = len(weights)
         self.probs = dict()
@@ -112,9 +143,15 @@ class VoseAliasSampling:
             l = small.pop()
             self.probs[l] = 1
 
-    def sample(self):
+    def sample(self) -> int:
         """
         Biased sampling of discrete value in O(1)
+
+        Returns
+        -------
+            integer value from range(n), where n is the length 
+            of the weight array used to create the instance.
+
         """
         i = np.random.randint(1, self.n+1)
         x = np.random.rand()
@@ -124,19 +161,79 @@ class VoseAliasSampling:
             return self.aliases[i]-1
 
 
-
-
 class RandomWalk(BaseWalk):
-    """Random Walk Process in a Network"""
+    """Implements a (biased) random walk process in a network or higher-order 
+    network.
 
-    def __init__(self, network: Network, weight: Weight = None, restart_prob = 0) -> None:
-        """Initialises a random walk process in a given start node.
+    Parameters
+    ----------
+    network: Network
 
-        The initial time t of the random walk will be set to zero and the
-        initial state is set to the given start node. If start_node is omitted a
-        node will be chosen uniformly at random.
+        The network instance on which to perform the random walk process. Can also 
+        be an instance of HigherOrderNetwork.
+
+    weight: Weight = None
+
+        If specified, the given numerical edge attribute will be used to bias
+        the random walk transition probabilities.
+
+    restart_probability: float = 0
+
+        The per-step probability that a random walker restarts in a random node
+
+    See Also
+    --------
+    VoseAliasSampling
+
+    Examples
+    --------
+    Create a Network an RandomWalk instance
+
+    >>> import pathpy as pp
+    >>> n = pp.Network(directed=False)
+    >>> n.add_edge('a', 'b', weight=1, uid='a-b')
+    >>> n.add_edge('b', 'c', weight=1, uid='b-c')
+    >>> n.add_edge('c', 'a', weight=2, uid='c-a')
+    >>> n.add_edge('c', 'd', weight=1, uid='c-d')
+    >>> n.add_edge('d', 'a', weight=1, uid='d-a')
+
+    Generate a random walk with 10 steps starting from node 'a'
+
+    >>> rw = pp.processes.RandomWalk(n, weight='weight')
+    >>> p = rw.generate_walk(steps=10, start_node=n.nodes['a'])
+    >>> pprint([v.uid for v in p.nodes ]) 
+    [ 'a', 'b', 'c', 'a', 'a', 'b', 'c', 'd', 'a', 'b'] 
+
+    Random walk using iterator interface
+
+    >>> for x in rw.walk(5, start_node=n.nodes['a']):
+    >>>     print('Current node = {0}'.format(v))
+    >>>     print(rw.visitation_probabilities())
+    Current node = b
+    [0.5 0.5 0.  0. ]
+    Current node = c
+    [0.33333333 0.33333333 0.33333333 0.        ]
+    Current node = d
+    [0.25 0.25 0.25 0.25]
+    Current node = a
+    [0.4 0.2 0.2 0.2]
+    Current node = b
+    [0.33333333 0.33333333 0.16666667 0.16666667]
+    Current node = a
+    [0.42857143 0.28571429 0.14285714 0.14285714]
+    Current node = c
+    [0.375 0.25  0.25  0.125]
+    Current node = a
+    [0.44444444 0.22222222 0.22222222 0.11111111]
+    Current node = b
+    [0.4 0.3 0.2 0.1]
+    Current node = a
+    [0.45454545 0.27272727 0.18181818 0.09090909]
+    """
+
+    def __init__(self, network: Network, weight: Optional[Weight] = None, restart_prob: float = 0) -> None:
+        """Initialises a random walk process.
         """
-        # initialize variables
 
         # network (or higher-order network) in which we perform the random walk
         self._network: Network = network
@@ -145,7 +242,7 @@ class RandomWalk(BaseWalk):
         self._t: int = -1
 
         # currently visited node (or higher-order node)
-        self._current_node = None
+        self._current_node: Optional[Node] = None
 
         # transition matrix for the random walk
         self._transition_matrix = RandomWalk.transition_matrix(network, weight, restart_prob)
@@ -183,7 +280,7 @@ class RandomWalk(BaseWalk):
 
         **kwargs: Any
 
-            Arbitrary key-value pairs that will be passed to the
+            Arbitrary key-value pairs to bee passed to the
             scipy.sparse.linalg.eigs function.
         """
         _p = self._stationary_probabilities
@@ -195,28 +292,25 @@ class RandomWalk(BaseWalk):
         return _p
 
     def visitation_frequencies(self) -> np.array:
-        """Returns current normalized visitation frequencies of nodes in the sequence of visited nodes.
-
-        Returns the visitation probabilities of nodes based on the history of
+        """Returns current normalized visitation frequencies of nodes based on the history of
         the random walk. Initially, all visitation probabilities are zero except for the start node.
-
         """
         return np.nan_to_num(self._visitations/(self._t+1))
 
-    def visitation_probabilities(self, t, start_node) -> np.array:
+    def visitation_probabilities(self, t, start_node: Node) -> np.ndarray:
         """Calculates visitation probabilities of nodes after t steps for a given start node
 
         Initially, all visitation probabilities are zero except for the start node.
         """
-        assert start_node in self._network.nodes.uids
+        assert start_node.uid in self._network.nodes.uids
 
         initial_dist = np.zeros(self._network.number_of_nodes())
-        initial_dist[self._network.nodes.index[start_node]] = 1.0
+        initial_dist[self._network.nodes.index[start_node.uid]] = 1.0
         return np.dot(initial_dist, (self._transition_matrix**t).todense())
 
     @property
     def total_variation_distance(self) -> float:
-        """Computes the total variation distance between stationary 
+        """Returns the total variation distance between stationary 
         visitation probabilities and the current visitation frequencies
 
         Computes the total variation distance between the current visitation
@@ -239,13 +333,13 @@ class RandomWalk(BaseWalk):
                 self._network.nodes.index[node], :].todense()))
 
     @staticmethod
-    def TVD(a ,b) -> float:        
+    def TVD(a: np.array ,b: np.array) -> float:        
         return np.abs(a - b).sum()/2.0
 
     @staticmethod
     def transition_matrix(network: Network,
-                          weight: Weight = None, restart_prob: float = 0) -> sp.sparse.csr_matrix:
-        """Returns a transition matrix of the random walker.
+                          weight: Optional[Weight] = None, restart_prob: float = 0) -> sp.sparse.csr_matrix:
+        """Returns the transition matrix of a (biased) random walk in the given network.
 
         Returns a transition matrix that describes a random walk process in the
         given network.
@@ -256,10 +350,10 @@ class RandomWalk(BaseWalk):
 
             The network for which the transition matrix will be created.
 
-        weight: bool
+        weight: Weight
 
-            Whether to account for edge weights when computing transition
-            probabilities.
+            If specified, the numerical edge attribute that shall be used in the biased
+            transition probabilities of the random walk.
 
         """
         A = adjacency_matrix(network, weight=weight)
@@ -308,14 +402,32 @@ class RandomWalk(BaseWalk):
         return self._network
 
     @property
-    def state(self) -> str:
+    def state(self) -> Optional[Node]:
         """Returns the current state of the random walker
         """
         return self._current_node
 
-    def generate_walk(self, steps: int = 1, start_node: Optional[Node] = None):
+    def generate_walk(self, steps: int = 1, start_node: Optional[Union[Node, HigherOrderNode]] = None) -> Path:
         """Returns a path that represents the sequence of nodes traversed 
-        by a single random walk with a given number of steps (and an optional start node)
+        by a single random walk with a given number of steps 
+        (and an optional given start node)
+
+        Parameters
+        ----------
+
+        steps: int = 1
+            
+            The number of steps of the random walk
+
+        start_node: Optional[Node] = None
+
+            If specified, the random walk will start from the given node. If not given, 
+            a random start node will be chosen uniformly.
+
+        Returns
+        -------
+
+        A Path object containing the sequence of traversed nodes
         """
 
         # Choose random start node if no node is given
@@ -337,9 +449,9 @@ class RandomWalk(BaseWalk):
 
         # construct walk
         for i in range(steps):
-            next = self.reverse_index[self.samplers[self._current_node.uid].sample()]
-            assert (self._current_node.uid, next) in self._network.edges, 'Assertion Error: {0} not in edge list'.format((self._current_node.uid, next))
-            traversed_edge = self._network.edges[(self._current_node.uid, next)]
+            next_node = self.reverse_index[self.samplers[self._current_node.uid].sample()]
+            assert (self._current_node.uid, next_node) in self._network.edges, 'Assertion Error: {0} not in edge list'.format((self._current_node.uid, next_node))
+            traversed_edge: Union[Edge, HigherOrderEdge] = self._network.edges[(self._current_node.uid, next_node)]
             if type(self._network) == Network:
                 walk._path.append(traversed_edge)
             elif type(self._network) == HigherOrderNetwork:
@@ -348,12 +460,29 @@ class RandomWalk(BaseWalk):
             else:
                 raise AttributeError('Unknown network of type {0}'.format(type(self._network)))
             self._t += 1
-            self._current_node = self._network.nodes[next]
+            self._current_node = self._network.nodes[next_node]
         return walk
 
 
-    def generate_walks(self, steps_per_walk: int, start_nodes: Union[int, NodeCollection]):
+    def generate_walks(self, steps_per_walk: int, start_nodes: Union[int, Iterable[Node]]) -> PathCollection:
         """Returns a PathCollection generated by a number of random walkers starting in different (random) nodes.
+
+        Parameters
+        ----------
+
+            steps_per_walk: int
+                The number of steps to be performed for each random walk
+
+            start_nodes: Union[int, NodeCollection]
+                The (number of) start nodes to use for the generated random walks. If an integer k is given, 
+                k random walks will be generated for start nodes chosen uniformly at random. If a list of Node
+                objects is given, a single random walk will be started for each entry in the list.
+
+        Returns
+        -------
+
+            A PathCollection instance. Each random walk is represented by one Path instance in this collection.
+
         """
 
         walks = PathCollection()
@@ -434,12 +563,3 @@ class RandomWalk(BaseWalk):
                 yield self._current_node.nodes[-1].uid
             else:
                 raise AttributeError('Unknown network of type {0}'.format(type(self._network)))
-
-    def transition(self) -> str:
-        """Transition of the random walk.
-
-        Performs a single transition of the random walk and returns the visited
-        node
-
-        """
-        return next(self.walk())
