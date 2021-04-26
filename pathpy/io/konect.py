@@ -10,9 +10,10 @@
 # =============================================================================
 import tarfile
 import io
-import urllib
+from urllib import request
+from urllib.error import HTTPError
 
-from typing import Union
+from typing import Union, Optional
 
 import pandas as pd  # pylint: disable=import-error
 
@@ -99,8 +100,7 @@ def read_network(file: str, ignore_temporal: bool=False) -> Union[Network, Tempo
                     if duplicates > 0:
                         LOG.info('Found {} duplicate edges'.format(duplicates))
                         multiedges = True
-                    LOG.info('Detected columns: ', [
-                             c for c in network_data.columns])
+                    LOG.info('Detected columns: {0}'.format(str([c for c in network_data.columns])))
     if 'timeiso' in attributes:
         try:
             dt = pd.to_datetime(attributes['timeiso'])
@@ -117,7 +117,7 @@ def read_network(file: str, ignore_temporal: bool=False) -> Union[Network, Tempo
             directed=directed, multiedges=multiedges, **attributes)
 
 
-def read_konect_name(name, ignore_temporal: bool=False, base_url="http://konect.cc/files/download.tsv."):
+def read_konect_name(name, ignore_temporal: bool=False, base_url="http://konect.cc/files/download.tsv.") -> Optional[Union[Network, TemporalNetwork]]:
     """Retrieves a KONECT data set with a given name and returns a corresponding
     instance of pp.Network.
 
@@ -153,8 +153,12 @@ def read_konect_name(name, ignore_temporal: bool=False, base_url="http://konect.
         If True, a static network will be returned even if the edges of the KONECT network contain a time attribute. 
 
     """
-    f = urllib.request.urlopen(base_url + name + ".tar.bz2").read()
-    return read_network(f, ignore_temporal)
+    try:
+        f = request.urlopen(base_url + name + ".tar.bz2").read()
+        return read_network(f, ignore_temporal)
+    except HTTPError:
+        LOG.error('HTTP 404 Error, could not open URL.')
+        return None
 
 
 # =============================================================================

@@ -17,7 +17,7 @@ from pathpy import config, logger
 
 from pathpy.core.node import Node
 from pathpy.core.edge import Edge
-from pathpy.models.network import Network
+from pathpy.core.network import Network
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
