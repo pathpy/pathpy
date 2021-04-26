@@ -31,6 +31,8 @@ from pathpy.statistics.modularity import (Q_modularity,
                                           Q_assortativity_coefficient,
                                           )
 
+from pathpy.statistics import likelihoods
+
 # =============================================================================
 # eof
 #

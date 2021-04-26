@@ -1,3 +1,4 @@
+"""Methods to calculate model likelihoods based on observed paths."""
 #!/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
@@ -17,7 +18,7 @@ from scipy import sparse
 import numpy as np
 
 from pathpy import config, logger, tqdm
-from pathpy.core.base import BaseNetwork, BaseHigherOrderNetwork
+from pathpy.core.base.classes import BaseHigherOrderNetwork
 
 
 # create logger

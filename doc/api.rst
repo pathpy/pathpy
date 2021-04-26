@@ -12,62 +12,86 @@ Base classes
 
 .. autosummary::
     :toctree: generated
+    :nosignatures:
 
      Node
      Edge
      Path
      Network
 
-.. _algorithms_api:
+.. _converters_api:
 
-
-Converting objects
-------------------
-
-.. autosummary::
-    :toctree:
-
-    converters.networkx
-    converters.to_paths
-
-Plotting objects
-----------------
+Object-based interoperability
+-----------------------------
 
 .. autosummary::
-    :toctree:
+    :toctree: generated
+    :nosignatures:
+    :recursive:
 
-    plot
+    converters.to_networkx
+    converters.from_networkx
+
+.. _plotting_api:
+
+Visualisations
+--------------
+..
+    see fix for missing links in recursion at https://stackoverflow.com/questions/2701998/sphinx-autodoc-is-not-automatic-enough
+
+.. autosummary::
+    :toctree: generated
+    :nosignatures:
+    :recursive:
+
+    visualisations.plot
+    visualisations.layout.layout
+    visualisations.layout.Layout
+
+
+.. _io_api:
 
 Reading and writing network data
 --------------------------------
 
-.. _io_api:
-
 .. autosummary::
     :toctree: generated
+    :template: custom-module-template.rst
+    :nosignatures:
+    :recursive:
 
-    io.konect
-    io.graphtool
+    io.pandas
     io.csv
     io.sql
+    io.graphtool
     io.graphml
+    io.konect
+    
+
+.. _generators_api:
 
 Generating graphs
 -----------------
 
-.. _generators_api:
-
 .. autosummary::
     :toctree: generated
+    :template: custom-module-template.rst
+    :nosignatures:
+    :recursive:
 
     generators.lattice
     generators.random_graphs
+
+.. _statistics_api:
 
 Statistical analysis
 --------------------
 
 .. autosummary::
     :toctree: generated
+    :template: custom-module-template.rst
+    :nosignatures:
+    :recursive:
 
     statistics.clustering
     statistics.degrees
@@ -75,28 +99,34 @@ Statistical analysis
     statistics.modularity
     statistics.subpaths
 
+.. _algorithms_api:
 
-Graph algorithms
-----------------
+Algorithms for networks and paths
+---------------------------------
 
 .. autosummary::
     :toctree: generated
+    :template: custom-module-template.rst
+    :nosignatures:
+    :recursive:
 
     algorithms.centralities
     algorithms.community_detection
     algorithms.components
     algorithms.shortest_paths
+    algorithms.path_extraction
     algorithms.trees
     algorithms.evaluation
 
-.. _algorithms_api:
+.. _processes_api:
 
 Simulating dynamical processes
 ------------------------------
 
-.. _processes_api:
-
 .. autosummary::
     :toctree: generated
+    :template: custom-module-template.rst
+    :nosignatures:
+    :recursive:
 
     processes.random_walk
