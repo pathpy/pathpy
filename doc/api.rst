@@ -43,41 +43,19 @@ Reading and writing network data
 
 .. _io_api:
 
-.. automodule:: io.konect
-    members
-
-.. automodule:: io.sql
-    members
-
-.. automodule:: io.graphtool
-    members
-
-.. automodule:: io.netzschleuder
-    members
-
-.. automodule:: io.csv.csv
-    members
-
 .. autosummary::
     :toctree: generated
 
-    io.konect.konect
-    io.graphtool.graphtool
-    io.graphtool.netzschleuder
-    io.graphml.graphml
-    io.sql.sql
-    io.csv.csv.py
+    io.konect
+    io.graphtool
+    io.csv
+    io.sql
+    io.graphml
 
 Generating graphs
 -----------------
 
-.. _processes_api:
-
-.. automodule:: generators.lattice
-    members
-
-.. automodule:: generators.random_graphs
-    members
+.. _generators_api:
 
 .. autosummary::
     :toctree: generated
@@ -118,12 +96,7 @@ Simulating dynamical processes
 
 .. _processes_api:
 
-.. automodule:: processes.random_walk
-    members
-
 .. autosummary::
     :toctree: generated
 
-    processes.random_walk.BaseWalk
-    processes.random_walk.RandomWalk
-    processes.random_walk.VoseAliasSampling
+    processes.random_walk

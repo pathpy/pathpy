@@ -16,7 +16,7 @@ import sqlite3
 import pandas as pd  # pylint: disable=import-error
 
 from pathpy import logger
-from pathpy.io.io import to_network, to_temporal_network, to_dataframe
+from pathpy.io.pandas import to_network, to_temporal_network, to_dataframe
 
 # pseudo load class for type checking
 if TYPE_CHECKING:

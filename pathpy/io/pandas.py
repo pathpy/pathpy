@@ -1,3 +1,4 @@
+"""Functions to read and write network and path data to/from pandas data frames"""
 #!/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================

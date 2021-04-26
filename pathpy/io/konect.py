@@ -1,4 +1,4 @@
-"""Functions to read konect files."""
+"""Functions to read files from the Koblenz Network Collection (konect.cc)."""
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
@@ -17,7 +17,7 @@ from typing import Union
 import pandas as pd  # pylint: disable=import-error
 
 from pathpy import logger
-from pathpy.io.io import to_network, to_temporal_network
+from pathpy.io.pandas import to_network, to_temporal_network
 from pathpy.core.network import Network
 from pathpy.models.temporal_network import TemporalNetwork
 

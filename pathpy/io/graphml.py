@@ -1,4 +1,4 @@
-"""Functions to read graphml files."""
+"""Functions to read and write graphml files."""
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
