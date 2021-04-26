@@ -72,7 +72,7 @@ def max_edges(n: int, directed: bool = False, multiedges: bool = False, loops: b
         return int(n*(n+1)/2)
     elif not loops and not directed:
         return int(n*(n-1)/2)
-    elif not loops and directed:
+    else: # not loops and directed:
         return int(n*(n-1))
 
 
@@ -409,32 +409,35 @@ def is_graphic_Erdos_Gallai(degrees):
 
 def generate_degree_sequence(n, distribution: Union[Dict[float, float], scipy.stats.rv_continuous, scipy.stats.rv_discrete], **distribution_args) -> np.array:
     """Generates a random graphic degree sequence drawn from a given degree distribution"""
-
-    s = [ 1 ]
-
-    # create rv_discrete object with custum distribution
+    # create rv_discrete object with custom distribution and generate degree sequence
     if isinstance(distribution, dict):
         degrees = [ k for k in distribution ]
         probs = [ distribution[k] for k in degrees ]
 
-        distribution = scipy.stats.rv_discrete(name='custom', values=(degrees, probs))
-
+        dist = scipy.stats.rv_discrete(name='custom', values=(degrees, probs))
+        s = [ 1 ]
+        while not is_graphic_Erdos_Gallai(s):
+            s = dist.rvs(size=n, **distribution_args)
+        return s
     # use scipy rv objects to generate graphic degree sequence
-    if isinstance(distribution, scipy.stats.rv_discrete):
+    elif isinstance(distribution, scipy.stats.rv_discrete):
+        s = [ 1 ]
         while not is_graphic_Erdos_Gallai(s):
             s = distribution.rvs(size=n, **distribution_args)
+        return s
 
     elif isinstance(distribution, scipy.stats.rv_continuous):
+        s = [ 1 ]
         while not is_graphic_Erdos_Gallai(s):
             s = np.rint(distribution.rvs(size=n, **distribution_args))
+        return s
     else:
+        s = [ 1 ]
         LOG.error('Distribution must be either dict, scipy.stats.rv_continuous or scipy.stats.rv_discrete')
-        return None
-
-    return s
+        return s
 
 
-def Molloy_Reed(degrees: Union[np.array, Dict[str, float]], multiedge: bool = False, relax: bool=False, node_uids: Optional[list] = None) -> Network:
+def Molloy_Reed(degrees: Union[np.array, Dict[int, float]], multiedge: bool = False, relax: bool=False, node_uids: Optional[list] = None) -> Optional[Network]:
     """Generate Molloy-Reed graph.
 
     Generates a random undirected network with given degree sequence based on
@@ -480,7 +483,7 @@ def Molloy_Reed(degrees: Union[np.array, Dict[str, float]], multiedge: bool = Fa
 
     # assume that we are given a graphical degree sequence
     if not is_graphic_Erdos_Gallai(degrees):
-        return
+        return None
 
     # create empty network with n nodes
     n = len(degrees)
@@ -498,7 +501,7 @@ def Molloy_Reed(degrees: Union[np.array, Dict[str, float]], multiedge: bool = Fa
     # generate link stubs based on degree sequence
     stubs = []
     for i in range(n):
-        for k in range(int(degrees[i])):
+        for _ in range(int(degrees[i])):
             stubs.append(str(node_uids[i]))
 
     # connect randomly chosen pairs of link stubs
@@ -522,7 +525,7 @@ def Molloy_Reed(degrees: Union[np.array, Dict[str, float]], multiedge: bool = Fa
     return network
 
 
-def Molloy_Reed_randomize(network: Network) -> Network:
+def Molloy_Reed_randomize(network: Network) -> Optional[Network]:
 
     # degrees are listed in order of node indices 
     degrees = network.degree_sequence()    

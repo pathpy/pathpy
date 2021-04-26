@@ -10,7 +10,7 @@
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import TYPE_CHECKING, Dict, Tuple, Iterable, Union
+from typing import TYPE_CHECKING, Dict, Tuple, Set
 import numpy as np
 import random
 
