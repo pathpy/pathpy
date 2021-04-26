@@ -1,13 +1,14 @@
-"""Converter to paths"""
-#!/usr/bin/python -tt
+"""Algorithms to compute paths in temporal networks."""
+# !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
-# File      : to_paths.py -- Converte classes to paths
-# Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sat 2020-09-05 20:51 juergen>
+# File      : path_extraction.py -- Algorithms to compute paths in temporal networks
+# Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
+# Time-stamp: <Tue 2021-04-26 18:28 ingo>
 #
-# Copyright (c) 2016-2020 Pathpy Developers
+# Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
+
 from __future__ import annotations
 from typing import Any, List, Union, Optional
 from functools import singledispatch
@@ -131,14 +132,3 @@ def _causal_tree(dag, root):
         tree.add_edge(x, y, original=edge_map[(x, y)])
 
     return tree
-
-
-# =============================================================================
-# eof
-#
-# Local Variables:
-# mode: python
-# mode: linum
-# mode: auto-fill
-# fill-column: 79
-# End:

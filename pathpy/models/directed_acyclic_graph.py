@@ -18,7 +18,7 @@ from pathpy.core.edge import EdgeCollection, Edge
 from pathpy.core.path import PathCollection, Node
 from pathpy.models.network import Network
 
-from pathpy.converters import to_paths
+from pathpy.algorithms import path_extraction
 
 from pathpy.models.models import ABCDirectedAcyclicGraph
 
@@ -30,7 +30,7 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
     """Base class for a directed acyclic graph."""
 
     # load external functions to the network
-    to_paths = to_paths.to_path_collection  # type: ignore
+    to_paths = path_extraction.to_path_collection  # type: ignore
 
     def __init__(self, uid: Optional[str] = None, multiedges: bool = False,
                  **kwargs: Any) -> None:
