@@ -22,6 +22,7 @@ from pathpy.io import csv
 from pathpy.io import sql
 from pathpy.io import graphtool
 from pathpy.io import konect
+from pathpy.io import infomap
 
 # =============================================================================
 # eof
