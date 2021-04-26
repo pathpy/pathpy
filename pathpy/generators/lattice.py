@@ -1,4 +1,4 @@
-"""Lattice graphs for pathpy."""
+"""Methods to generate regular lattice networks with different dimensions"""
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================

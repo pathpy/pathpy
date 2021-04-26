@@ -1,4 +1,4 @@
-""""Algorithms for shortest paths calculations."""
+"""Algorithms for shortest paths calculations."""
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================

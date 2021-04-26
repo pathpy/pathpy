@@ -1,4 +1,4 @@
-"""Degree statistics."""
+"""Methods to calculate degree statistics and assortativity in static networks."""
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================

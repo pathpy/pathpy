@@ -1,4 +1,5 @@
-"""Efficient implementation of random walk process."""
+"""This module contains classes to efficiently simlate random walks on static, temporal, and higher-order networks. 
+"""
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================

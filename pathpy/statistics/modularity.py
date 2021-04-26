@@ -1,4 +1,4 @@
-"""Methods to calculate modularity of networks."""
+"""Methods to assess the modular structure of networks"""
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================

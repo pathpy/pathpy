@@ -1,4 +1,4 @@
-"""Module to analyze sub-paths"""
+"""Methods to calculate sub-path statistics in Paths and PathCollections"""
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================

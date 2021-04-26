@@ -1,4 +1,4 @@
-"""Clustering statistics."""
+"""Methods to analyze clustering patterns in networks"""
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================

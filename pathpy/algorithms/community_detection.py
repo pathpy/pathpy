@@ -1,4 +1,4 @@
-"""Methods to find community structures in networks."""
+"""Algorithms to find community structures in networks."""
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
