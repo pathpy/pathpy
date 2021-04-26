@@ -12,6 +12,7 @@
 # pylint: disable=unused-import
 
 from pathpy.converters.networkx import to_networkx, from_networkx
+from pathpy.converters.infomap import to_state_file
 
 # =============================================================================
 # eof
