@@ -20,13 +20,13 @@ from pathpy import logger
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
-    from pathpy.models.network import Network
+    from pathpy.models.api import Network
 
 # create logger
 LOG = logger(__name__)
 
 
-def check_tree(network: Network):
+def check_tree(network: Network) -> bool:
 
     if network.directed:
 
@@ -63,7 +63,7 @@ def check_tree(network: Network):
     return False
 
 
-def tree_size(network: Network, node: str):
+def tree_size(network: Network, node: str) -> int:
 
     size = 1
     for v in network.successors[node]:

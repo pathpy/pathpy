@@ -9,24 +9,23 @@
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from collections import defaultdict
-from pathpy.io.pandas import to_network, to_temporal_network
-from typing import TYPE_CHECKING, Union, Tuple, Optional, List, Any
 
-
-from pathpy import logger
-
-from pathpy.core.network import Network
-from pathpy.models.temporal_network import TemporalNetwork
-from numpy import array
-
-import struct
+import json
 import pickle
-import pandas as pd
-
+import struct
+from collections import defaultdict
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Union
 from urllib import request
 from urllib.error import HTTPError
-import json
+
+from numpy import array
+
+from pathpy import logger
+from pathpy.io.pandas import to_network, to_temporal_network
+from pathpy.models.network import Network
+from pathpy.models.temporal_network import TemporalNetwork
+
+import pandas as pd
 
 # create logger
 LOG = logger(__name__)
@@ -473,8 +472,7 @@ def read_netzschleuder_network(name: str, net: Optional[str]=None,
 
     """
     try:
-        import zstandard as zstd 
-        
+        import zstandard as zstd
 
         # retrieve network properties
         url = '/api/net/{0}'.format(name)

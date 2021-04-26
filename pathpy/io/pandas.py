@@ -15,9 +15,9 @@ import pandas as pd  # pylint: disable=import-error
 
 from pathpy import config, logger
 
-from pathpy.core.node import Node
-from pathpy.core.edge import Edge
-from pathpy.core.network import Network
+from pathpy.core.api import Node
+from pathpy.core.api import Edge
+from pathpy.models.api import Network
 
 # pseudo load class for type checking
 if TYPE_CHECKING:

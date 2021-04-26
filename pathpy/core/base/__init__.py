@@ -16,7 +16,7 @@
 #     TemporalAttributes
 # )
 
-from .collecions import (
+from pathpy.core.collections import (
     BaseCollection,
 )
 

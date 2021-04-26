@@ -12,8 +12,8 @@
 import xml.etree.ElementTree as ET
 
 from pathpy import logger
-from pathpy.core.edge import Edge, EdgeCollection
-from pathpy.core.node import Node, NodeCollection
+from pathpy.core.api import Edge, EdgeCollection
+from pathpy.core.api import Node, NodeCollection
 from pathpy.models.network import Network
 
 

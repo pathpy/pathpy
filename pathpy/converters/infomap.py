@@ -8,12 +8,10 @@
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
+from typing import Optional
 
 from pathpy import logger
-
-from pathpy.core.path import Path
-from pathpy.core.path import PathCollection
-from typing import Optional
+from pathpy.core.api import PathCollection
 
 def to_state_file(paths: PathCollection, file: str, weight: Optional[str]=None) -> None:
     """

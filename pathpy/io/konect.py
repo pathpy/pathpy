@@ -19,8 +19,8 @@ import pandas as pd  # pylint: disable=import-error
 
 from pathpy import logger
 from pathpy.io.pandas import to_network, to_temporal_network
-from pathpy.core.network import Network
-from pathpy.models.temporal_network import TemporalNetwork
+from pathpy.models.api import Network
+from pathpy.models.api import TemporalNetwork
 
 # create logger
 LOG = logger(__name__)

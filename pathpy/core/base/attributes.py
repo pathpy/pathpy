@@ -13,7 +13,7 @@ from collections import defaultdict
 
 import pandas as pd  # noqa: F401
 
-from ... import logger, config
+from pathpy import logger, config
 
 # create logger
 log = logger(__name__)

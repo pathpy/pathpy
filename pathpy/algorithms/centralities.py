@@ -21,16 +21,15 @@ from pathpy import logger
 from pathpy.algorithms import shortest_paths
 from pathpy.algorithms.matrices import adjacency_matrix
 
-from pathpy.core.collecions import BaseCollection
+from pathpy.core.collections import BaseCollection
 from pathpy.models.classes import BaseModel
 from pathpy.models.models import ABCHigherOrderNetwork
 
-
 # pseudo load class for type checking
 if TYPE_CHECKING:
-    from pathpy.core.path import PathCollection
-    from pathpy.core.network import Network
-    from pathpy.models.higher_order_network import HigherOrderNetwork
+    from pathpy.core.api import PathCollection
+    from pathpy.models.api import Network
+    from pathpy.models.api import HigherOrderNetwork
 
 # create logger
 LOG = logger(__name__)

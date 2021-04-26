@@ -13,20 +13,15 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Tuple, Optional, Union, Dict, Set, cast
 from collections import defaultdict
 
+from numpy import short
+
 from pathpy import logger
 from pathpy.models.classes import BaseNetwork
 from pathpy.core.node import Node, NodeCollection
 from pathpy.core.edge import Edge, EdgeCollection
 
-from pathpy.algorithms import (
-    matrices,
-    centralities,
-    shortest_paths,
-    components
-)
-
-from pathpy.statistics import degrees as degree_statistics
-from pathpy.statistics import clustering
+from pathpy.algorithms import shortest_paths, centralities, matrices, components
+from pathpy.statistics import degrees, clustering
 from pathpy.visualisations.plot import plot as network_plot
 
 # create custom types
@@ -192,15 +187,15 @@ class Network(BaseNetwork):
     largest_component_size = components.largest_component_size  # type: ignore
     is_connected = components.is_connected
 
-    mean_degree = degree_statistics.mean_degree
-    mean_neighbor_degree = degree_statistics.mean_neighbor_degree
-    degree_sequence = degree_statistics.degree_sequence
-    degree_assortativity = degree_statistics.degree_assortativity
-    degree_central_moment = degree_statistics.degree_central_moment
-    degree_distribution = degree_statistics.degree_distribution
-    degree_generating_function = degree_statistics.degree_generating_function
-    degree_raw_moment = degree_statistics.degree_raw_moment
-    molloy_reed_fraction = degree_statistics.molloy_reed_fraction
+    mean_degree = degrees.mean_degree
+    mean_neighbor_degree = degrees.mean_neighbor_degree
+    degree_sequence = degrees.degree_sequence
+    degree_assortativity = degrees.degree_assortativity
+    degree_central_moment = degrees.degree_central_moment
+    degree_distribution = degrees.degree_distribution
+    degree_generating_function = degrees.degree_generating_function
+    degree_raw_moment = degrees.degree_raw_moment
+    molloy_reed_fraction = degrees.molloy_reed_fraction
 
     avg_clustering_coefficient = clustering.avg_clustering_coefficient
     local_clustering_coefficient = clustering.local_clustering_coefficient
