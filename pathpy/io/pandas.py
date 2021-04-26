@@ -193,6 +193,7 @@ def from_temporal_network(network: TemporalNetwork,
     """
     frame = pd.DataFrame()
 
+    # TODO: temporal() is a deprecated method in the old TemporalEdgeCollection 
     for uid, edge, begin, end in network.edges.temporal():
         v = edge.v.uid
         w = edge.w.uid

@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING, Union, Tuple, Optional, List, Any
 
 from pathpy import logger
 
-from pathpy.models.network import Network
+from pathpy.core.network import Network
 from pathpy.models.temporal_network import TemporalNetwork
 from numpy import array
 
@@ -58,6 +58,8 @@ def _parse_property_value(data: bytes, ptr: int, type_index: int, endianness: st
 
     Returns
     -------
+
+    Tuple (v, n) consisting of the property value v and the number of bytes n processed
     """
     if type_index == 0:
         return (bool(data[ptr]), 1)
@@ -141,7 +143,8 @@ def _parse_property_value(data: bytes, ptr: int, type_index: int, endianness: st
 
 def parse_graphtool_format(data: bytes, ignore_temporal: bool=False) -> Union[Network, TemporalNetwork]:
     """
-    Decodes data in graphtool binary format and returns a pathpy network.
+    Decodes data in graphtool binary format and returns a pathpy network. For a documentation of 
+    hte graphtool binary format, see see doc at https://graph-tool.skewed.de/static/doc/gt_format.html
 
     Parameters
     ----------
@@ -153,8 +156,12 @@ def parse_graphtool_format(data: bytes, ignore_temporal: bool=False) -> Union[Ne
         If False, this function will return a static or temporal network depending 
         on whether edges contain a time attribute. If True, pathpy will not interpret
         time attributes and thus always return a static network.
+
+    Returns
+    -------
+
+    An instance of Network or TemporalNetwork
     """
-    # see doc at https://graph-tool.skewed.de/static/doc/gt_format.html
 
     # check magic bytes
     if data[0:6] != b'\xe2\x9b\xbe\x20\x67\x74':
@@ -277,7 +284,7 @@ def parse_graphtool_format(data: bytes, ignore_temporal: bool=False) -> Union[Ne
         network_data[p] = [ edge_attributes[e][p] for e in range(n_edges) ]
 
     # create network from pandas dataframe
-    n: Optional[Network] = None
+    n: Optional[Union[Network, TemporalNetwork]] = None
     if 'time' in edge_attribute_names and not ignore_temporal:
         n = to_temporal_network(network_data, directed=directed, **network_attributes)
     else:

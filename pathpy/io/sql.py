@@ -20,7 +20,7 @@ from pathpy.io.pandas import to_network, to_temporal_network, to_dataframe
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
-    from pathpy.models.network import Network
+    from pathpy.core.network import Network
     from pathpy.models.temporal_network import TemporalNetwork
 
 

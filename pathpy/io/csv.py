@@ -23,7 +23,7 @@ from pathpy.core.edge import Edge, EdgeCollection
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
-    from pathpy.models.network import Network
+    from pathpy.core.network import Network
     from pathpy.models.temporal_network import TemporalNetwork
     from pathpy.core.path import PathCollection
 

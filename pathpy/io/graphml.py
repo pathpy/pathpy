@@ -22,7 +22,7 @@ LOG = logger(__name__)
 
 
 def read_network(filename: str):
-    """Reads a pathyp.Network from a graphml file.
+    """Reads a pathpy.Network from a graphml file.
 
     This function supports typed Node and Edge attributes including default
     values.

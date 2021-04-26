@@ -74,33 +74,41 @@ def read_network(file: str, ignore_temporal: bool=False) -> Union[Network, Tempo
 
             # read meta-data into attributes
             if f.startswith('meta.'):
-                with io.TextIOWrapper(tar.extractfile(tarinfo)) as buffer:
-                    for line in buffer.readlines():
-                        s = line.split(': ', 1)
-                        # ignore empty lines
-                        if len(s) == 2:
-                            attributes[s[0].strip()] = s[1].strip()
+                bytedata = tar.extractfile(tarinfo)
+                if bytedata:
+                    with io.TextIOWrapper(bytedata) as buffer:
+                        for line in buffer.readlines():
+                            s = line.split(': ', 1)
+                            # ignore empty lines
+                            if len(s) == 2:
+                                attributes[s[0].strip()] = s[1].strip()
+                else:
+                    LOG.error('Could not extract tar file {0}'.format(f))
 
             # read network data
             elif f.startswith('out.'):
-                with io.TextIOWrapper(tar.extractfile(tarinfo)) as buffer:
-                    # check whether network is directed
-                    directed = 'asym' in buffer.readline()
+                bytedata = tar.extractfile(tarinfo)
+                if bytedata:
+                    with io.TextIOWrapper(bytedata) as buffer:
+                        # check whether network is directed
+                        directed = 'asym' in buffer.readline()
 
-                    # read pandas data frame
-                    network_data = pd.read_csv(
-                        buffer, sep=r'\s+', header=None, comment='%')
-                    network_data = network_data.dropna(axis=1, how='all')
+                        # read pandas data frame
+                        network_data = pd.read_csv(
+                            buffer, sep=r'\s+', header=None, comment='%')
+                        network_data = network_data.dropna(axis=1, how='all')
 
-                    # extract which columns are present
-                    network_data.columns = [tsv_columns[i]
-                                            for i in range(len(network_data.columns))]
-                    duplicates = len(
-                        network_data[network_data.duplicated(['v', 'w'], keep=False)])
-                    if duplicates > 0:
-                        LOG.info('Found {} duplicate edges'.format(duplicates))
-                        multiedges = True
-                    LOG.info('Detected columns: {0}'.format(str([c for c in network_data.columns])))
+                        # extract which columns are present
+                        network_data.columns = [tsv_columns[i]
+                                                for i in range(len(network_data.columns))]
+                        duplicates = len(
+                            network_data[network_data.duplicated(['v', 'w'], keep=False)])
+                        if duplicates > 0:
+                            LOG.info('Found {} duplicate edges'.format(duplicates))
+                            multiedges = True
+                        LOG.info('Detected columns: {0}'.format(str([c for c in network_data.columns])))
+                else:
+                    LOG.error('Could not extract file {0}'.format(f))
     if 'timeiso' in attributes:
         try:
             dt = pd.to_datetime(attributes['timeiso'])
