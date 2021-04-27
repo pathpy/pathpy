@@ -4,24 +4,20 @@
 # =============================================================================
 # File      : random_graphs.py -- Module to generate random graphs
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Mon 2021-03-29 17:09 juergen>
+# Time-stamp: <Mon 2021-04-27 01:12 ingo>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from functools import singledispatch
 
 from typing import Optional, Union, Dict
 
 import numpy as np
+import scipy
 
 from pathpy import logger, tqdm
-
-from pathpy.core.edge import Edge
-from pathpy.core.node import Node
-from pathpy.models.network import Network
-
-import scipy
+from pathpy.core.api import Node, Edge
+from pathpy.models.api import Network
 
 # create logger
 LOG = logger(__name__)

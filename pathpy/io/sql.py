@@ -10,18 +10,17 @@
 # =============================================================================
 
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, Optional, cast, Union
-
+from typing import TYPE_CHECKING, Any, Optional, Union, cast
 import sqlite3
-import pandas as pd  # pylint: disable=import-error
 
 from pathpy import logger
-from pathpy.io.pandas import to_network, to_temporal_network, to_dataframe
+from pathpy.io.pandas import to_dataframe, to_network, to_temporal_network
+
+import pandas as pd  # pylint: disable=import-error
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
-    from pathpy.core.network import Network
-    from pathpy.models.temporal_network import TemporalNetwork
+    from pathpy.models.api import Network, TemporalNetwork
 
 
 # create logger

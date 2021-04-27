@@ -12,13 +12,11 @@ from __future__ import annotations
 from typing import Any, List, Dict, Tuple, Optional
 from functools import singledispatch
 from collections import Counter
-import datetime
-import sys
 from scipy import sparse
 import numpy as np
 
 from pathpy import config, logger, tqdm
-from pathpy.core.base.classes import BaseHigherOrderNetwork
+from pathpy.models.models import ABCHigherOrderNetwork
 
 
 # create logger
@@ -30,7 +28,7 @@ def likelihood(self, observations: Any, log: bool = False) -> float:
     """Returns the likelihood given some observations."""
 
 
-@likelihood.register(BaseHigherOrderNetwork)
+@likelihood.register(ABCHigherOrderNetwork)
 def _hon(self, observations: Any, log: bool = False) -> float:
     """Returns the likelihood of a higher order network
     given some observations."""

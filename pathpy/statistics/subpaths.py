@@ -12,10 +12,11 @@ from __future__ import annotations
 from typing import Optional
 import sys
 from collections import Counter, defaultdict
+
 import numpy as np
 
 from pathpy import logger, tqdm
-from pathpy.core.path import PathCollection, Path
+from pathpy.core.api import PathCollection, Path
 
 # create logger for the Network class
 LOG = logger(__name__)

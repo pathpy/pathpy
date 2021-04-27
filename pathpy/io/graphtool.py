@@ -9,24 +9,25 @@
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from collections import defaultdict
-from pathpy.io.pandas import to_network, to_temporal_network
-from typing import TYPE_CHECKING, Union, Tuple, Optional, List, Any
 
-
-from pathpy import logger
-
-from pathpy.core.network import Network
-from pathpy.models.temporal_network import TemporalNetwork
-from numpy import array
-
-import struct
+import json
+from pathpy.utils.errors import FileFormatError, NetworkError
 import pickle
-import pandas as pd
-
+import struct
+from collections import defaultdict
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Union
 from urllib import request
 from urllib.error import HTTPError
-import json
+
+from numpy import array
+
+from pathpy import logger
+from pathpy.io.pandas import to_network, to_temporal_network
+from pathpy.models.network import Network
+from pathpy.models.temporal_network import TemporalNetwork
+from pathpy import FileFormatError, NetworkError, MissingModuleError
+
+import pandas as pd
 
 # create logger
 LOG = logger(__name__)
@@ -137,8 +138,9 @@ def _parse_property_value(data: bytes, ptr: int, type_index: int, endianness: st
         val_len = struct.unpack(endianness + 'Q', data[ptr:ptr+8])[0]
         return (pickle.loads(data[ptr+8:ptr+8+val_len]), 8 + val_len)
     else:
-        LOG.error('Unknown type index {0}'.format(type_index))
-        return (None, 0)
+        msg = 'Unknown type index {0} while parsing graphtool file'.format(type_index)
+        LOG.error(msg)
+        raise FileFormatError(msg)
 
 
 def parse_graphtool_format(data: bytes, ignore_temporal: bool=False) -> Union[Network, TemporalNetwork]:
@@ -166,7 +168,7 @@ def parse_graphtool_format(data: bytes, ignore_temporal: bool=False) -> Union[Ne
     # check magic bytes
     if data[0:6] != b'\xe2\x9b\xbe\x20\x67\x74':
         LOG.error('Invalid graphtool file. Wrong magic bytes.')
-        raise AssertionError('Invalid graphtool file.')
+        raise FileFormatError('Invalid graphtool file. Wrong magic bytes.')
     ptr = 6
 
     # read graphtool version byte
@@ -316,7 +318,9 @@ def read_graphtool(file: str) -> Optional[Union[Network, TemporalNetwork]]:
                 data = f.read()
                 return parse_graphtool_format(dctx.decompress(data, max_output_size=len(data)))
             except ModuleNotFoundError:
-                LOG.error('Package zstandard is needed to decode graphtool files. Please install module, e.g., using "pip install zstandard".')
+                msg = 'Package zstandard is needed to decode graphtool files. Please install module, e.g., using "pip install zstandard".'
+                LOG.error(msg)                
+                raise MissingModuleError(msg)
         else:    
             return parse_graphtool_format(f.read())
 
@@ -372,8 +376,14 @@ def list_netzschleuder_records(base_url: str='https://networks.skewed.de', **kwa
     url = '/api/nets'
     for k, v in kwargs.items():
         url += '?{0}={1}'.format(k, v)
-    f = request.urlopen(base_url + url).read()
-    return json.loads(f)
+    try:
+        f = request.urlopen(base_url + url).read()
+        return json.loads(f)
+    except HTTPError:
+        msg = 'Could not connect to netzschleuder repository at {0}'.format(base_url)
+        LOG.error(msg)
+        raise NetworkError(msg)
+
 
 
 def read_netzschleuder_record(name: str, base_url: str='https://networks.skewed.de') -> dict:
@@ -408,7 +418,12 @@ def read_netzschleuder_record(name: str, base_url: str='https://networks.skewed.
     Dictionary containing key-value pairs of metadata
     """ 
     url = '/api/net/{0}'.format(name)
-    return json.loads(request.urlopen(base_url + url).read())
+    try:
+        return json.loads(request.urlopen(base_url + url).read())
+    except HTTPError:
+        msg = 'Could not connect to netzschleuder repository at {0}'.format(base_url)
+        LOG.error(msg)
+        raise NetworkError(msg)
 
 
 def read_netzschleuder_network(name: str, net: Optional[str]=None, 
@@ -473,8 +488,7 @@ def read_netzschleuder_network(name: str, net: Optional[str]=None,
 
     """
     try:
-        import zstandard as zstd 
-        
+        import zstandard as zstd
 
         # retrieve network properties
         url = '/api/net/{0}'.format(name)
@@ -487,8 +501,9 @@ def read_netzschleuder_network(name: str, net: Optional[str]=None,
         try:
             f = request.urlopen(base_url + url)
         except HTTPError:
-            LOG.error('HTTP 404 Error. Did you specify the network to load from this data set?')
-            return None
+            msg = 'Could not connect to netzschleuder repository at {0}'.format(base_url)
+            LOG.error(msg)
+            raise NetworkError(msg)
 
         # decompress data
         dctx = zstd.ZstdDecompressor()
@@ -504,4 +519,6 @@ def read_netzschleuder_network(name: str, net: Optional[str]=None,
 
         return n
     except ModuleNotFoundError:
-        LOG.error('Package zstandard is needed to decode graphtool files. Please install module, e.g., using "pip install zstandard.')
+        msg = 'Package zstandard is needed to decode graphtool files. Please install module, e.g., using "pip install zstandard.'
+        LOG.error(msg)
+        raise MissingModuleError(msg)

@@ -16,9 +16,9 @@ from collections import defaultdict, deque
 
 from pathpy import logger
 
-from pathpy.core.node import NodeCollection
-from pathpy.core.edge import EdgeCollection
-from pathpy.core.path import PathCollection
+from pathpy.core.api import NodeCollection
+from pathpy.core.api import EdgeCollection
+from pathpy.core.api import PathCollection
 
 from pathpy.models.models import (ABCDirectedAcyclicGraph,
                                   ABCTemporalNetwork)

@@ -15,7 +15,7 @@ from singledispatchmethod import singledispatchmethod
 
 from pathpy import logger
 from pathpy.core.classes import BaseEdge
-from pathpy.core.collecions import BaseCollection
+from pathpy.core.collections import BaseCollection
 from pathpy.core.node import Node, NodeSet, NodeCollection
 
 # create logger for the Edge class

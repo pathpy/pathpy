@@ -14,7 +14,7 @@ from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
 
 from pathpy import logger
 from pathpy.core.classes import BaseNode
-from pathpy.core.collecions import BaseCollection
+from pathpy.core.collections import BaseCollection
 
 # create logger for the Node class
 LOG = logger(__name__)

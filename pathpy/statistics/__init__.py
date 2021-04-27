@@ -19,6 +19,7 @@ from pathpy.statistics.degrees import (degree_sequence,
                                        degree_generating_function,
                                        mean_degree,
                                        mean_neighbor_degree,
+                                       molloy_reed_fraction
                                        )
 
 from pathpy.statistics.clustering import (local_clustering_coefficient,
