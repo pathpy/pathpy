@@ -107,7 +107,7 @@ def train_test_split(network: Network, test_size: Optional[float]=0.25, train_si
 
 
 @train_test_split.register(TemporalNetwork)
-def _(network: TemporalNetwork, test_size: Optional[float]=0.25, train_size: Optional[float]=None, split: Optional[str]='time') -> tuple(TemporalNetwork, TemporalNetwork):
+def _(network: TemporalNetwork, test_size: Optional[float]=0.25, train_size: Optional[float]=None, split: Optional[str]='interactions') -> tuple(TemporalNetwork, TemporalNetwork):
     """
     Performs a random split of a temporal network into a training and test network. The split can be performed along nodes, interactions, or time
     """
@@ -119,20 +119,32 @@ def _(network: TemporalNetwork, test_size: Optional[float]=0.25, train_size: Opt
         end_time = network.end()
         split_point = start_time + (end_time-start_time) * (1-test_size)
 
-        for e in network.edges:
-            if e['time'] < split_point:
-                train_network.add_edge(e)
+        for (start, end, uid) in network.tedges:
+            if end < split_point:
+                if uid in train_network.edges:
+                    train_network.add_edge(train_network.edges[uid], start=start, end=end)
+                else:
+                    train_network.add_edge(network.edges[uid].v, network.edges[uid].w, start=start, end=end, uid=uid)
             else:
-                test_network.add_edge(e)
+                if uid in test_network.edges:
+                    test_network.add_edge(network.edges[uid], start=start, end=end)
+                else:
+                    test_network.add_edge(network.edges[uid].v, network.edges[uid].w, start=start, end=end, uid=uid)
 
     elif split == 'interactions':
-        split_point = network.number_of_edges() * (1-test_size)
+        split_point = len(network.tedges) * (1-test_size)
         i = 0 
-        for e in network.edges:
-            if i < split_point:
-                train_network.add_edge(e)
+        for (start, end, uid) in network.tedges:
+            if i <= split_point:
+                if uid in train_network.edges:
+                    train_network.add_edge(train_network.edges[uid], start=start, end=end)
+                else:
+                    train_network.add_edge(network.edges[uid].v, network.edges[uid].w, start=start, end=end, uid=uid)
             else:
-                test_network.add_edge(e)
+                if uid in test_network.edges:
+                    test_network.add_edge(network.edges[uid], start=start, end=end)
+                else:
+                    test_network.add_edge(network.edges[uid].v, network.edges[uid].w, start=start, end=end, uid=uid)
             i+= 1
     else:
         raise NotImplementedError('Unsupported split method "{0}" for instance of type TemporalNetwork'.format(split))
@@ -141,4 +153,4 @@ def _(network: TemporalNetwork, test_size: Optional[float]=0.25, train_size: Opt
 
 
 def adjusted_mutual_information(clustering_1: dict, clustering_2: dict):
-    raise NotImplementedError()
+    raise NotImplementedError('Adjusted mutual information is not implemented')
