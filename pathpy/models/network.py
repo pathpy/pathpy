@@ -216,11 +216,7 @@ class Network(BaseNetwork):
         can be printed to the console.
 
         """
-        return self.summary()
-
-    # def _repr_html_(self):
-    #     """Plot the network in an interactive environment."""
-    #     self.plot()
+        return self.summary()    
 
     @property
     def uid(self) -> str:
@@ -1008,6 +1004,22 @@ class Network(BaseNetwork):
             network.edges._add(edge)
         network._add_edge_properties()
         return network
+
+    @classmethod
+    def to_weighted_network(cls, network: Network, **kwargs):
+        """
+        Discards all multiple edges and adds a weight property that counts the number of 
+        edges between node pairs.
+        """
+        uid: Optional[str] = kwargs.pop('uid', None)
+        directed: bool = kwargs.pop('directed', network.directed)
+        multiedges: bool = False
+
+        weighted = cls(uid=uid, directed=directed, multiedges=multiedges, **kwargs)
+        for e in network.edges:
+            if (e.v, e.w) not in weighted.edges:
+                weighted.add_edge(e.v, e.w, weight=len(network.edges[(e.v, e.w)]))
+        return weighted
 
 # =============================================================================
 # eof
