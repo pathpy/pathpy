@@ -8,6 +8,7 @@
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
+from pathpy.utils.errors import NetworkError
 import tarfile
 import io
 from urllib import request
@@ -21,6 +22,7 @@ from pathpy import logger
 from pathpy.io.pandas import to_network, to_temporal_network
 from pathpy.models.api import Network
 from pathpy.models.api import TemporalNetwork
+from pathpy import FileFormatError, NetworkError
 
 # create logger
 LOG = logger(__name__)
@@ -127,7 +129,9 @@ def read_tsv_network(file: str, ignore_temporal: bool=False) -> Union[Network, T
                             if len(s) == 2:
                                 attributes[s[0].strip()] = s[1].strip()
                 else:
-                    LOG.error('Could not extract tar file {0}'.format(f))
+                    msg = 'Could not extract tar file {0}'.format(f)
+                    LOG.error(msg)
+                    raise FileFormatError(msg)
 
             # read network data
             elif f.startswith('out.'):
@@ -152,7 +156,9 @@ def read_tsv_network(file: str, ignore_temporal: bool=False) -> Union[Network, T
                             multiedges = True
                         LOG.info('Detected columns: {0}'.format(str([c for c in network_data.columns])))
                 else:
-                    LOG.error('Could not extract file {0}'.format(f))
+                    msg = 'Could not extract tar file {0}'.format(f)
+                    LOG.error(msg)
+                    raise FileFormatError(msg)
     if 'timeiso' in attributes:
         try:
             dt = pd.to_datetime(attributes['timeiso'])
@@ -261,8 +267,7 @@ def read_konect_name(name, ignore_temporal: bool=False, base_url="http://konect.
         f = request.urlopen(base_url + name + ".tar.bz2").read()
         return read_tsv_network(f, ignore_temporal)
     except HTTPError:
-        LOG.error('HTTP 404 Error, could not open URL.')
-        return None
+        raise NetworkError('Could not connect to KONECT server at {0}'.format(base_url))
 
 
 # =============================================================================

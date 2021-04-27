@@ -19,6 +19,7 @@ import sys
 from pathpy.utils.config import config  # noqa: F401
 from pathpy.utils.logger import logger  # noqa: F401
 from pathpy.utils.progress import tqdm  # noqa: F401
+from pathpy.utils.errors import FileFormatError, NetworkError, MissingModuleError
 
 
 # import symbols into root namespace
