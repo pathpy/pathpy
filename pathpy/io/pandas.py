@@ -83,8 +83,8 @@ def to_network(frame: pd.DataFrame, loops: bool = True, directed: bool = True,
     if ignored_edges > 0:
         LOG.warning('{0} edges existed already '
                     'and were not be considered. '
-                    'To capture those edges, please '
-                    'enable multiedges and/or directed!'.format(ignored_edges))
+                    'To capture those edges, consider creating '
+                    'a multiedge and/or directed network.'.format(ignored_edges))
 
     net = Network(directed=directed, multiedges=multiedges, **kwargs)
     for node in nodes.values():

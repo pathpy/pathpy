@@ -143,7 +143,7 @@ def _parse_property_value(data: bytes, ptr: int, type_index: int, endianness: st
         raise FileFormatError(msg)
 
 
-def parse_graphtool_format(data: bytes, ignore_temporal: bool=False) -> Union[Network, TemporalNetwork]:
+def parse_graphtool_format(data: bytes, ignore_temporal: bool=False, multiedges: bool=False) -> Union[Network, TemporalNetwork]:
     """
     Decodes data in graphtool binary format and returns a pathpy network. For a documentation of 
     hte graphtool binary format, see see doc at https://graph-tool.skewed.de/static/doc/gt_format.html
@@ -290,7 +290,7 @@ def parse_graphtool_format(data: bytes, ignore_temporal: bool=False) -> Union[Ne
     if 'time' in edge_attribute_names and not ignore_temporal:
         n = to_temporal_network(network_data, directed=directed, **network_attributes)
     else:
-        n = to_network(network_data, directed=directed, **network_attributes)
+        n = to_network(network_data, directed=directed, multiedges=multiedges, **network_attributes)
     
     for v in node_attributes:        
         for p in node_attributes[v]:
@@ -300,7 +300,7 @@ def parse_graphtool_format(data: bytes, ignore_temporal: bool=False) -> Union[Ne
     return n
 
 
-def read_graphtool(file: str) -> Optional[Union[Network, TemporalNetwork]]: 
+def read_graphtool(file: str, ignore_temporal: bool=False, multiedges: bool=False) -> Optional[Union[Network, TemporalNetwork]]: 
     """
     Reads a file in graphtool binary format
 
@@ -318,11 +318,11 @@ def read_graphtool(file: str) -> Optional[Union[Network, TemporalNetwork]]:
                 data = f.read()
                 return parse_graphtool_format(dctx.decompress(data, max_output_size=len(data)))
             except ModuleNotFoundError:
-                msg = 'Package zstandard is needed to decode graphtool files. Please install module, e.g., using "pip install zstandard".'
+                msg = 'Package zstandard is required to decompress graphtool files. Please install module, e.g., using "pip install zstandard".'
                 LOG.error(msg)                
                 raise MissingModuleError(msg)
         else:    
-            return parse_graphtool_format(f.read())
+            return parse_graphtool_format(f.read(), ignore_temporal, multiedges)
 
 
 def write_graphtool(network: Network, file: str):
@@ -427,7 +427,7 @@ def read_netzschleuder_record(name: str, base_url: str='https://networks.skewed.
 
 
 def read_netzschleuder_network(name: str, net: Optional[str]=None, 
-        ignore_temporal: bool=False, 
+        ignore_temporal: bool=False, multiedges: bool=False,
         base_url: str='https://networks.skewed.de') -> Optional[Union[Network, TemporalNetwork]]:
     """Reads a pathpy network record from the netzschleuder repository.
 
@@ -511,7 +511,7 @@ def read_netzschleuder_network(name: str, net: Optional[str]=None,
         decompressed = reader.readall()
 
         # parse graphtool binary format
-        n = parse_graphtool_format(bytes(decompressed), ignore_temporal=ignore_temporal)
+        n = parse_graphtool_format(bytes(decompressed), ignore_temporal=ignore_temporal, multiedges=multiedges)
         if n:
             # store network attributes
             for k, v in properties.items():
@@ -519,6 +519,6 @@ def read_netzschleuder_network(name: str, net: Optional[str]=None,
 
         return n
     except ModuleNotFoundError:
-        msg = 'Package zstandard is needed to decode graphtool files. Please install module, e.g., using "pip install zstandard.'
+        msg = 'Package zstandard is required to decompress graphtool files. Please install module, e.g., using "pip install zstandard.'
         LOG.error(msg)
         raise MissingModuleError(msg)
