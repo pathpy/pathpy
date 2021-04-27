@@ -19,7 +19,7 @@ from collections import defaultdict
 # from singledispatchmethod import singledispatchmethod
 
 from pathpy import logger
-from pathpy.core.base import BaseModel
+from pathpy.models.classes import BaseModel
 from pathpy.models.higher_order_network import HigherOrderNetwork
 from pathpy.models.null_model import NullModel
 from pathpy.core.path import PathCollection
