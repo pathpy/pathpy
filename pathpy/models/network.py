@@ -20,10 +20,6 @@ from pathpy.models.classes import BaseNetwork
 from pathpy.core.node import Node, NodeCollection
 from pathpy.core.edge import Edge, EdgeCollection
 
-from pathpy.algorithms import shortest_paths, centralities, matrices, components
-from pathpy.statistics import degrees, clustering
-from pathpy.visualisations.plot import plot as network_plot
-
 # create custom types
 Weight = Union[str, bool, None]
 
@@ -170,37 +166,7 @@ class Network(BaseNetwork):
 
     """
     # pylint: disable=too-many-instance-attributes
-    # pylint: disable=too-many-public-methods
-
-    # load external functions to the network
-    adjacency_matrix = matrices.adjacency_matrix  # type: ignore
-    transition_matrix = matrices.transition_matrix  # type: ignore
-    distance_matrix = shortest_paths.distance_matrix  # type: ignore
-    diameter = shortest_paths.diameter  # type: ignore
-    avg_path_length = shortest_paths.avg_path_length
-
-    betweenness_centrality = centralities.betweenness_centrality  # type: ignore
-    closeness_centrality = centralities.closeness_centrality  # type: ignore
-
-    find_connected_components = components.find_connected_components  # type: ignore
-    largest_connected_component = components.largest_connected_component  # type: ignore
-    largest_component_size = components.largest_component_size  # type: ignore
-    is_connected = components.is_connected
-
-    mean_degree = degrees.mean_degree
-    mean_neighbor_degree = degrees.mean_neighbor_degree
-    degree_sequence = degrees.degree_sequence
-    degree_assortativity = degrees.degree_assortativity
-    degree_central_moment = degrees.degree_central_moment
-    degree_distribution = degrees.degree_distribution
-    degree_generating_function = degrees.degree_generating_function
-    degree_raw_moment = degrees.degree_raw_moment
-    molloy_reed_fraction = degrees.molloy_reed_fraction
-
-    avg_clustering_coefficient = clustering.avg_clustering_coefficient
-    local_clustering_coefficient = clustering.local_clustering_coefficient
-
-    plot = network_plot
+    # pylint: disable=too-many-public-methods       
 
     def __init__(self, uid: Optional[str] = None, directed: bool = True,
                  multiedges: bool = False, **kwargs: Any) -> None:
