@@ -1,10 +1,10 @@
-"""Converter to read paths and higher-order models in infomap"""
+"""Functions to export paths and higher-order models to state files used by InfoMap"""
 #!/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
 # File      : infomap.py -- Converter classes to infomap
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Mon 2021-04-19 15:55 ingo>
+# Time-stamp: <Tue 2021-04-27 11:12 ingo>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -15,21 +15,24 @@ from pathpy.core.api import PathCollection
 
 def to_state_file(paths: PathCollection, file: str, weight: Optional[str]=None) -> None:
     """
-    Writes path statistics into a state file that can be read by InfoMap
+    Writes paths from a PathCollection instance into a state file that can be read by InfoMap.
+
+    .. [1] M. Rosvall, Daniel Axelsson, Carl T. Bergstrom, "The map equation" The European Physical Journal Special Topics 178.1 (2009): 13-23.
 
     Parameters
     ----------
-        paths : PathCollection
-            the PathCollection instance that will be used to generate the state file
+    paths : PathCollection
+        the PathCollection instance that will be used to generate the state file
 
-        file : str
-            Path where the state file will be saved
+    file : str
+        Path where the state file will be saved
 
-        weight : Optional[str]=None
-            if not None (default), the given path attribute will be used to set link weights in the state file
+    weight : Optional[str]=None
+        if not None (default), the given path attribute will be used to set link weights in the state file
 
     Examples
     --------
+
     Create a state file from a PathCollection with three paths
 
     >>> pc = pp.PathCollection()
@@ -37,32 +40,29 @@ def to_state_file(paths: PathCollection, file: str, weight: Optional[str]=None) 
     >>> b = pp.Node('b')
     >>> c = pp.Node('c')
     >>> d = pp.Node('d')
-
     >>> e1 = pp.Edge(a, b, uid='a-b')
     >>> e2 = pp.Edge(b, c, uid='b-c')
     >>> e3 = pp.Edge(c, d, uid='c-d')
-
     >>> pc.add(pp.Path(e1, frequency=15))
     >>> pc.add(pp.Path(e1, e2, frequency=42))
     >>> pc.add(pp.Path(e1, e2, e3, frequency=41))
-
     >>> pp.converters.to_state_file(pc, 'paths.state', weight='frequency')
     >>> with open('test.state', 'r') as f:
     >>> print(f.read())
+    *Vertices 4
+    1 "b"
+    2 "d"
+    3 "a"
+    4 "c"
+    *States
+    1 1 "a b"
+    2 4 "b c"
+    3 4 "a b c"
+    4 2 "b c d"
+    *Links
+    1 2 42
+    3 4 41
 
-    >>> *Vertices 4
-    >>> 1 "b"
-    >>> 2 "d"
-    >>> 3 "a"
-    >>> 4 "c"
-    >>> *States
-    >>> 1 1 "a b"
-    >>> 2 4 "b c"
-    >>> 3 4 "a b c"
-    >>> 4 2 "b c d"
-    >>> *Links
-    >>> 1 2 42
-    >>> 3 4 41
     """
     state_file = []
     with open(file, mode='w') as f:        

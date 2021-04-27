@@ -3,10 +3,10 @@
 # -*- coding: utf-8 -*-
 # =============================================================================
 # File      : konect.py -- Read konect data files
-# Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sat 2020-08-22 17:58 juergen>
+# Author    : Ingo Scholtes <scholtes@uni-wuppertal>
+# Time-stamp: <Tue 2021-04-27 11:12 ingo>
 #
-# Copyright (c) 2016-2020 Pathpy Developers
+# Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
 import tarfile
 import io
@@ -26,7 +26,7 @@ from pathpy.models.api import TemporalNetwork
 LOG = logger(__name__)
 
 
-def read_network(file: str, ignore_temporal: bool=False) -> Union[Network, TemporalNetwork]:
+def read_tsv_network(file: str, ignore_temporal: bool=False) -> Union[Network, TemporalNetwork]:
     """Reads a KONECT data file in TSV format and returns a pp.Network instance.
 
     The unified KONECT data format is a compressed .tar.bz2 file containing two
@@ -39,18 +39,62 @@ def read_network(file: str, ignore_temporal: bool=False) -> Union[Network, Tempo
     network will be automatically determined based on the data file. Weight and
     Time attributes are stored as edge attributes.
 
+    For more information on the TSV file format, see Section 9 in referenced handbook.
+
+    .. [1] J Kunegis, "Handbook of Network Analysis - The Konect Project", https://github.com/kunegis/konect-handbook/blob/master/konect-handbook.pdf, 2019
+
     Parameters
     ----------
-
     file: str, Bytes
-
         Filename or byte stream from which data should be loaded
 
     ignore_temporal: bool=False
-        
         If False (default), a temporal or static network will be returned depending on the data.
-        If True, a static network will be returned even if the edges of the KONECT network contain a time attribute. 
+        If True, a static network will be returned even if the edges of the KONECT network contain a time attribute.
 
+    Returns
+    -------
+    Network or TemporalNetwork
+        a static or temporal network object
+
+    Examples
+    --------
+
+    Read a static network
+
+    >>> n = pp.io.konect.read_konect_name('ucidata-zachary.tsv')
+    >>> print(n)
+    Uid:			0x7f9a6878bb80
+    Type:			Network
+    Directed:		False
+    Multi-Edges:		False
+    Number of nodes:	34
+    Number of edges:	78
+
+    Read a temporal network
+
+    >>> tn = pp.io.konect.read_konect_name('edit-htwikisource.tsv')
+    >>> print(tn)
+    Uid:			0x7f9a38914730
+    Type:			TemporalNetwork
+    Directed:		False
+    Multi-Edges:		True
+    Number of unique nodes:	115
+    Number of unique edges:	157
+    Number of temp nodes:	115
+    Number of temp edges:	315
+    Observation periode:	1151852649 - 1443816055.0
+
+    Read a temporal network as static network
+
+    >>> n = pp.io.konect.read_konect_name('edit-htwikisource.tsv', ignore_temporal=True)
+    >>> print(n)
+    Uid:			0x7f9a687cbb80
+    Type:			Network
+    Directed:		False
+    Multi-Edges:		True
+    Number of nodes:	115
+    Number of edges:	315
     """
 
     # implicit semantics of columns in TSV files
@@ -126,7 +170,7 @@ def read_network(file: str, ignore_temporal: bool=False) -> Union[Network, Tempo
 
 
 def read_konect_name(name, ignore_temporal: bool=False, base_url="http://konect.cc/files/download.tsv.") -> Optional[Union[Network, TemporalNetwork]]:
-    """Retrieves a KONECT data set with a given name and returns a corresponding
+    """Retrieves a data set with a given name from the KONECT repository and returns a corresponding
     instance of pp.Network.
 
     The unified KONECT data format is a compressed .tar.bz2 file containing two
@@ -138,6 +182,13 @@ def read_konect_name(name, ignore_temporal: bool=False, base_url="http://konect.
     multi-edge network with directed or undirected edges. The type of the
     network will be automatically determined based on the data file. Weight and
     Time attributes are stored as edge attributes.
+
+    .. [1] J Kunegis, "Konect: the koblenz network collection" Proceedings of the 22nd international conference on world wide web. 2013.
+
+    See also
+    --------
+
+    read_tsv_network: Read (temporal) network from a TSV file
 
     Parameters
     ----------
@@ -158,12 +209,57 @@ def read_konect_name(name, ignore_temporal: bool=False, base_url="http://konect.
     ignore_temporal: bool=False
         
         If False (default), a temporal or static network will be returned depending on the data.
-        If True, a static network will be returned even if the edges of the KONECT network contain a time attribute. 
+        If True, a static network will be returned even if the edges of the KONECT network contain a time attribute.
+
+    Returns
+    -------
+
+    Instance of Network or TemporalNetwork
+
+    Examples
+    --------
+
+    Read a static network from the konect repository
+
+    >>> n = pp.io.konect.read_konect_name('ucidata-zachary')
+    >>> print(n)
+    Uid:			0x7f9a6878bb80
+    Type:			Network
+    Directed:		False
+    Multi-Edges:		False
+    Number of nodes:	34
+    Number of edges:	78
+
+    Read a temporal network from the konect repository
+
+    >>> tn = pp.io.konect.read_konect_name('edit-htwikisource')
+    >>> print(tn)
+    Uid:			0x7f9a38914730
+    Type:			TemporalNetwork
+    Directed:		False
+    Multi-Edges:		True
+    Number of unique nodes:	115
+    Number of unique edges:	157
+    Number of temp nodes:	115
+    Number of temp edges:	315
+    Observation periode:	1151852649 - 1443816055.0
+
+    Read a temporal network as static network
+
+    >>> n = pp.io.konect.read_konect_name('edit-htwikisource', ignore_temporal=True)
+    >>> print(n)
+    Uid:			0x7f9a687cbb80
+    Type:			Network
+    Directed:		False
+    Multi-Edges:		True
+    Number of nodes:	115
+    Number of edges:	315
+
 
     """
     try:
         f = request.urlopen(base_url + name + ".tar.bz2").read()
-        return read_network(f, ignore_temporal)
+        return read_tsv_network(f, ignore_temporal)
     except HTTPError:
         LOG.error('HTTP 404 Error, could not open URL.')
         return None

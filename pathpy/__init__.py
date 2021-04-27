@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : __init__.py -- pathpy init file
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-03-29 17:32 juergen>
+# Time-stamp: <Tue 2021-04-27 10:56 ingo>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
