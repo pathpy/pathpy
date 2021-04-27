@@ -9,26 +9,26 @@
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import TYPE_CHECKING, Optional, Union
+from typing import Optional, Union
 from functools import singledispatch
 
 from numpy.random import choice
 
-# pseudo load class for type checking
-if TYPE_CHECKING:
-    from pathpy.models.api import Network
-    from pathpy.models.api import TemporalNetwork
-
 from pathpy import logger
-from pathpy.models.network import Network
-from pathpy.models.temporal_network import TemporalNetwork
+from pathpy.models.api import Network
+from pathpy.models.api import TemporalNetwork
 
 # create logger
 LOG = logger(__name__)
 
+# def train_test_split(network: Union[Network, TemporalNetwork], test_size: Optional[float]=0.25, train_size: Optional[float]=None, split: Optional[str]='node') -> tuple(Union[Network,TemporalNetwork], Union[Network, TemporalNetwork]):
+    
+#     raise NotImplementedError('Unsupported type')
+
+
 @singledispatch
-def train_test_split(network: Union[Network, TemporalNetwork], test_size: Optional[float]=0.25, train_size: Optional[float]=None, split: Optional[str]='node') -> tuple(Union[Network,TemporalNetwork], Union[Network, TemporalNetwork]):
-    """Returns a train/test split of a network object. This method is implemented for instances of Network and TemporalNetwork. The train/test split is non-destructive and based on object references, i.e. this function will return copies of the Network instance that contain references to the same node/edge objects.
+def train_test_split(network: Network, test_size: Optional[float]=0.25, train_size: Optional[float]=None, split: Optional[str]='node') -> tuple(Network, Network):
+    """Returns a train/test split of a network object. This method is implemented for instances of Network and TemporalNetwork. The train/test split is non-destructive and based on object references, i.e. the function returns new Network instances that contain references to the same node/edge objects. The original network is not affected.
 
     Parameters
     ----------
@@ -69,14 +69,6 @@ def train_test_split(network: Union[Network, TemporalNetwork], test_size: Option
     Network with three nodes
 
     """
-    raise NotImplementedError
-
-
-@train_test_split.register(Network)
-def _split_network(network: Network, test_size: Optional[float]=0.25, train_size: Optional[float]=None, split: Optional[str]='node') -> tuple(Network, Network):
-    """
-    Performs a random split of a static network into a training and test network. The split can be performed along nodes or edges.
-    """
     test_network = Network(directed=network.directed, multiedges=network.multiedges, uid=network.uid+'_test')
     train_network = Network(directed=network.directed, multiedges=network.multiedges, uid=network.uid+'_train')
 
@@ -107,20 +99,43 @@ def _split_network(network: Network, test_size: Optional[float]=0.25, train_size
             test_network.add_edge(e)
         train_edges = [e for e in network.edges if e.uid not in test_network.edges.uids]
         for e in train_edges:
-            train_network.add_edges(e)
+            train_network.add_edge(e)
     else:
-        raise AttributeError('Unknown split method "{0}"'.format(split))
+        raise NotImplementedError('Unsupported split method "{0}" for instance of type Network'.format(split))
 
     return test_network, train_network
 
 
 @train_test_split.register(TemporalNetwork)
-def _split_temporal_network(network: TemporalNetwork, test_size: Optional[float]=0.25, train_size: Optional[float]=None, split: Optional[str]='time') -> tuple(TemporalNetwork, TemporalNetwork):
+def _(network: TemporalNetwork, test_size: Optional[float]=0.25, train_size: Optional[float]=None, split: Optional[str]='time') -> tuple(TemporalNetwork, TemporalNetwork):
     """
     Performs a random split of a temporal network into a training and test network. The split can be performed along nodes, interactions, or time
     """
     test_network = TemporalNetwork(directed=network.directed, multiedges=network.multiedges, uid=network.uid+'_test')
     train_network = TemporalNetwork(directed=network.directed, multiedges=network.multiedges, uid=network.uid+'_train')
+
+    if split == 'time':
+        start_time = network.end()
+        end_time = network.end()
+        split_point = start_time + (end_time-start_time) * (1-test_size)
+
+        for e in network.edges:
+            if e['time'] < split_point:
+                train_network.add_edge(e)
+            else:
+                test_network.add_edge(e)
+
+    elif split == 'interactions':
+        split_point = network.number_of_edges() * (1-test_size)
+        i = 0 
+        for e in network.edges:
+            if i < split_point:
+                train_network.add_edge(e)
+            else:
+                test_network.add_edge(e)
+            i+= 1
+    else:
+        raise NotImplementedError('Unsupported split method "{0}" for instance of type TemporalNetwork'.format(split))
 
     return test_network, train_network
 
