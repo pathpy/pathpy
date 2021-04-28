@@ -1,4 +1,4 @@
-"""Methods to find community structures in networks."""
+"""Algorithms to find community structures in networks."""
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
@@ -10,7 +10,7 @@
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import TYPE_CHECKING, Dict, Tuple, Iterable, Union
+from typing import TYPE_CHECKING, Dict, Tuple, Set
 import numpy as np
 import random
 
@@ -18,7 +18,7 @@ from pathpy import logger, tqdm
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
-    from pathpy.core.network import Network
+    from pathpy.models.api import Network
 
 # create logger for the Plot class
 LOG = logger(__name__)

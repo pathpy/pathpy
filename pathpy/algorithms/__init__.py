@@ -1,4 +1,4 @@
-"""Matrices module for pathpy."""
+"""Collection of algorithms for networks, temporal networks, higher-order networks, and paths"""
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
@@ -49,6 +49,8 @@ from pathpy.algorithms.trees import (
 from pathpy.algorithms import community_detection
 
 from pathpy.algorithms import evaluation
+
+from pathpy.algorithms import path_extraction
 
 # =============================================================================
 # eof

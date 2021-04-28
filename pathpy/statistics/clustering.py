@@ -1,4 +1,4 @@
-"""Clustering statistics."""
+"""Methods to analyze clustering patterns in networks"""
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
@@ -16,7 +16,7 @@ from pathpy import logger
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
-    from pathpy.models.network import Network
+    from pathpy.models.api import Network
 
 # create logger
 LOG = logger(__name__)

@@ -19,6 +19,7 @@ from pathpy.statistics.degrees import (degree_sequence,
                                        degree_generating_function,
                                        mean_degree,
                                        mean_neighbor_degree,
+                                       molloy_reed_fraction
                                        )
 
 from pathpy.statistics.clustering import (local_clustering_coefficient,
@@ -30,6 +31,8 @@ from pathpy.statistics.modularity import (Q_modularity,
                                           Q_max_modularity,
                                           Q_assortativity_coefficient,
                                           )
+
+from pathpy.statistics import likelihoods
 
 # =============================================================================
 # eof

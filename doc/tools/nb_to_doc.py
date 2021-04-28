@@ -11,7 +11,7 @@ def convert_nb(nbname):
 
     # Execute the notebook
     sh(["jupyter", "nbconvert", "--to", "notebook",
-        "--execute", "--inplace", nbname])
+        "--execute", "--inplace", nbname, "--TagRemovePreprocessor.remove_cell_tags={'hide'}"])
 
     # Convert to .rst for Sphinx
     sh(["jupyter", "nbconvert", "--to", "rst", nbname,

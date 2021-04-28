@@ -13,21 +13,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Tuple, Optional, Union, Dict, Set, cast
 from collections import defaultdict
 
+from numpy import short
+
 from pathpy import logger
 from pathpy.models.classes import BaseNetwork
 from pathpy.core.node import Node, NodeCollection
 from pathpy.core.edge import Edge, EdgeCollection
-
-from pathpy.algorithms import (
-    matrices,
-    centralities,
-    shortest_paths,
-    components
-)
-
-from pathpy.statistics import degrees as degree_statistics
-from pathpy.statistics import clustering
-from pathpy.visualisations.plot import plot as network_plot
 
 # create custom types
 Weight = Union[str, bool, None]
@@ -175,37 +166,7 @@ class Network(BaseNetwork):
 
     """
     # pylint: disable=too-many-instance-attributes
-    # pylint: disable=too-many-public-methods
-
-    # load external functions to the network
-    adjacency_matrix = matrices.adjacency_matrix  # type: ignore
-    transition_matrix = matrices.transition_matrix  # type: ignore
-    distance_matrix = shortest_paths.distance_matrix  # type: ignore
-    diameter = shortest_paths.diameter  # type: ignore
-    avg_path_length = shortest_paths.avg_path_length
-
-    betweenness_centrality = centralities.betweenness_centrality  # type: ignore
-    closeness_centrality = centralities.closeness_centrality  # type: ignore
-
-    find_connected_components = components.find_connected_components  # type: ignore
-    largest_connected_component = components.largest_connected_component  # type: ignore
-    largest_component_size = components.largest_component_size  # type: ignore
-    is_connected = components.is_connected
-
-    mean_degree = degree_statistics.mean_degree
-    mean_neighbor_degree = degree_statistics.mean_neighbor_degree
-    degree_sequence = degree_statistics.degree_sequence
-    degree_assortativity = degree_statistics.degree_assortativity
-    degree_central_moment = degree_statistics.degree_central_moment
-    degree_distribution = degree_statistics.degree_distribution
-    degree_generating_function = degree_statistics.degree_generating_function
-    degree_raw_moment = degree_statistics.degree_raw_moment
-    molloy_reed_fraction = degree_statistics.molloy_reed_fraction
-
-    avg_clustering_coefficient = clustering.avg_clustering_coefficient
-    local_clustering_coefficient = clustering.local_clustering_coefficient
-
-    plot = network_plot
+    # pylint: disable=too-many-public-methods       
 
     def __init__(self, uid: Optional[str] = None, directed: bool = True,
                  multiedges: bool = False, **kwargs: Any) -> None:
@@ -255,11 +216,7 @@ class Network(BaseNetwork):
         can be printed to the console.
 
         """
-        return self.summary()
-
-    # def _repr_html_(self):
-    #     """Plot the network in an interactive environment."""
-    #     self.plot()
+        return self.summary()    
 
     @property
     def uid(self) -> str:
@@ -1047,6 +1004,22 @@ class Network(BaseNetwork):
             network.edges._add(edge)
         network._add_edge_properties()
         return network
+
+    @classmethod
+    def to_weighted_network(cls, network: Network, **kwargs):
+        """
+        Discards all multiple edges and adds a weight property that counts the number of 
+        edges between node pairs.
+        """
+        uid: Optional[str] = kwargs.pop('uid', None)
+        directed: bool = kwargs.pop('directed', network.directed)
+        multiedges: bool = False
+
+        weighted = cls(uid=uid, directed=directed, multiedges=multiedges, **kwargs)
+        for e in network.edges:
+            if (e.v, e.w) not in weighted.edges:
+                weighted.add_edge(e.v, e.w, weight=len(network.edges[(e.v, e.w)]))
+        return weighted
 
 # =============================================================================
 # eof
