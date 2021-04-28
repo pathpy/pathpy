@@ -12,3 +12,5 @@
 # pylint: disable=unused-import
 
 from pathpy.processes.random_walk import RandomWalk
+
+from pathpy.processes.sampling import VoseAliasSampling
