@@ -32,30 +32,16 @@ class BaseProcess:
 
     @abc.abstractmethod
     def init(self, seed: Any) -> None:
-        """Abstract method to initialize the state of the process with a given seed state."""
+        """Abstract method to initialize the process with a given seed state."""
 
     @abc.abstractmethod
     def random_seed(self) -> Any:
-        """Abstract method to generate a seed state for the process."""
+        """Abstract method to generate a random seed state for the process."""
 
     @abc.abstractmethod
-    def step(self) -> Set[str]:
+    def step(self) -> Iterable[str]:
         """Abstract method to simulate a single step of the process. Returns 
-        a set of node uids whose state has been changed in this step."""
-
-    @abc.abstractmethod
-    def simulation_run(self, steps: int, seed: Optional[Any]=None) -> Tuple[int, Set[str]]:
-        """Abstract generator method that initializes the process, runs a number of steps and yields a tuple consisting of the current time and the set of nodes whose state has changed in each step."""
-        if seed == None:
-            self.init(self.random_seed())
-        else:
-            self.init(seed)
-        for _ in range(steps):
-            ret = self.step()
-            if ret is not None:
-                yield self.time, ret
-            else:
-                return None
+        an iterable of node uids whose state has been changed in this step."""
 
     @abc.abstractproperty
     def time(self) -> int:
@@ -69,8 +55,18 @@ class BaseProcess:
     def node_state(self, v: str) -> Any:
         """Abstract method returning the current state of a given node."""
 
-    def __get_item__(self, v: Node) -> Any:
-        return self.node_state(v)
+    def simulation_run(self, steps: int, seed: Optional[Any]=None) -> Tuple[int, Set[str]]:
+        """Abstract generator method that initializes the process, runs a number of steps and yields a tuple consisting of the current time and the set of nodes whose state has changed in each step."""
+        if seed == None:
+            self.init(self.random_seed())
+        else:
+            self.init(seed)
+        for _ in range(steps):
+            ret = self.step()
+            if ret is not None:
+                yield self.time, ret
+            else:
+                return None
 
     def run_experiment(self, steps: int, runs: Optional[Union[int, Iterable[Any]]] = 1) -> DataFrame:
         """Perform one or more simulation runs of the process with a given number of steps."""
@@ -86,17 +82,17 @@ class BaseProcess:
 
         results = list()
         run_id: int = 0
-        for seed in seeds:
-            # for each run, results dictionary contains a dictionary with arbitrary value for each time 
-
+        for seed in seeds:            
+            
+            # initialize seed state and record initial state
             self.init(seed)
             for v in self.network.nodes.uids:
-                results.append({'run_id': run_id, 'seed': seed, 'time': 0, 'node': v, 'state': self.node_state(v)})
+                results.append({'run_id': run_id, 'seed': seed, 'time': self.time, 'node': v, 'state': self.node_state(v)})
 
-            # perform the given number of steps
-            for time, ret in self.simulation_run(steps):
+            # simulate the given number of steps
+            for time, updated_nodes in self.simulation_run(steps, seed):
                 # record the new state of each changed node
-                for v in ret:
+                for v in updated_nodes:
                     results.append({'run_id': run_id, 'seed': seed, 'time': time, 'node': v, 'state': self.node_state(v)})
             run_id += 1
 
