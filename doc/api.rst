@@ -129,4 +129,7 @@ Simulating dynamical processes
     :nosignatures:
     :recursive:
 
+    processes.process.BaseProcess
     processes.random_walk
+    processes.epidemic_spreading
+    processes.sampling
