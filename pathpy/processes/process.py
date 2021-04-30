@@ -1,4 +1,4 @@
-"""Module for base classes in the processes module."""
+"""Base classes for simulation of dynamical processes"""
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================

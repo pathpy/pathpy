@@ -1,4 +1,4 @@
-""" Classes to simulate epidemic spreading in networks. 
+""" Classes to simulate epidemic spreading on networks
 """
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-

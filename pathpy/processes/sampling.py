@@ -1,4 +1,4 @@
-"""Class to efficiently sample from discrete distribution. 
+"""Classes for efficient random sampling from discrete distributions
 """
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
@@ -16,10 +16,9 @@ import numpy as np
 
 class VoseAliasSampling:
     """
-    Implementation of fast biased sampling from a discrete distribution
-    of values [0, ..., n]
+    Implementation of fast biased sampling of discrete values [0, ..., n]
     
-    For explanation see https://www.keithschwarz.com/darts-dice-coins/
+    For a concise explanation see https://www.keithschwarz.com/darts-dice-coins/
 
     Parameters
     ----------
