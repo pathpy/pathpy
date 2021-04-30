@@ -1,4 +1,4 @@
-"""Degree statistics."""
+"""Methods to calculate degree statistics and assortativity in static networks."""
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
@@ -20,7 +20,7 @@ from pathpy.models.classes import BaseModel
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
-    from pathpy.models.network import Network
+    from pathpy.models.api import Network
 
 # create custom types
 Weight = Union[str, bool, None]

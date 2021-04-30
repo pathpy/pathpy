@@ -25,8 +25,6 @@ from pathpy.models.network import Network
 
 # from pathpy.core.base.attributes import TemporalAttributes
 
-from pathpy.converters import to_paths
-
 from pathpy.models.classes import BaseTemporalNetwork
 
 # pseudo load class for type checking
