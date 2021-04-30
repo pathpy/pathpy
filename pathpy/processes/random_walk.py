@@ -590,7 +590,7 @@ class HigherOrderRandomWalk(RandomWalk):
         RandomWalk.init(self, seed)
 
     @property
-    def _first_order_visitation_frequencies(self) -> np.array:
+    def first_order_visitation_frequencies(self) -> np.array:
         """Returns current normalized visitation frequencies of first-order nodes based on the history of
         the higher-order random walk. Initially, all visitation probabilities are zero except for the last node of the higher-order seed node.
         """
