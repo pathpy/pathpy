@@ -24,6 +24,7 @@ from pathpy.io import sql
 from pathpy.io import graphtool
 from pathpy.io import konect
 from pathpy.io import infomap
+from pathpy.io import network_recognition
 
 # =============================================================================
 # eof
