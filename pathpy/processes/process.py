@@ -161,14 +161,27 @@ class BaseProcess:
             tn.nodes[row['node']][row['time']*timescale, 'color'] = self.state_to_color(row['state'])
         return tn.plot(**kwargs)
 
-    def to_directed_acylic_graph(self, data: DataFrame, run_id: Optional[int]=0, states: Optional[Iterable[Any]]=None) -> DirectedAcyclicGraph:
+    def to_directed_acylic_graph(self, data: DataFrame, run_id: Optional[int]=0, time_delta: Optional[int]=None, states: Optional[Iterable[Any]]=None) -> DirectedAcyclicGraph:
         """Returns a directed acyclic graph representation of all state changes over time.
-        In this graph an edge (v_t' -> w_t) indicates that node w changed its state to x at time t after node v previously changed its state to x at time t' < t and an edge (v,w) exists in the network.
+        In this graph an edge (v_t' -> w_t) indicates that node w changed to state x at time t after a 
+        connected node v previously changed its state to x at time t' < t (i.e. (v,w) exists in the network).
 
-        Each link in the directed acyclic graph indicates that node v may have causally influenced node w at time t. As an example, for a an SIR epidemic spreading process, the DAG captures possible transmission routes.
+        A link (v-t') -> (w-t) in the directed acyclic graph indicates that node v may have causally influenced node w at time t. As an example, for a an SIR epidemic spreading process, the DAG representation captures possible transmission routes.
 
         Parameters
         ----------
+        data: DataFrame
+            recorded state changes of nodes, as returned by `run_experiment`
+
+        run_id: Optional[int]=0
+            identifier of simulation run to turn into DAG
+
+        time_delta: Optional[int]=None
+            maximum time difference of possible influence, i.e. if set to delta, any state changes between connected nodes that are apart further than delta time steps are not considered. If None (default) the last prior state change of any connected node is considered, independent of the 
+            time distance
+
+        states: Optional[Iterable[Any]]=None
+            Only changes to states in this set will be considered. If None (default) all state changes will be considered
         """
         dag = DirectedAcyclicGraph(uid='{0}'.format(run_id))
         run = data.loc[data['run_id']==run_id]
@@ -181,26 +194,35 @@ class BaseProcess:
 
             w = row['node']
             t = row['time']
-            uid = '{0}-{1}'.format(w, row['time'])
+            uid = '{0}-{1}'.format(w, t)
             dag.add_node(uid, node_label=w, time=t, state=state)
 
             # find predecessor of node v that last changed its state
             predecessors = []
-            t_max = -1
             for v in self._network.predecessors[w]:
-                # candidate state changes of v prior to t
-                candidates = run.loc[(run['node']==v.uid) & (run['state']==state) & (run['time']<t)]
+
+                # get all state changes of node v prior to time t
+                candidates = run.loc[(run['node']==v.uid) & (run['time']<t)]
+
                 if len(candidates)>0:
+
+                    # find time stamp and new state of last state change
                     r = candidates['time'].argmax()
-                    t_p = candidates.iloc[r]['time']
-                    if t_p > t_max:                        
-                        predecessors = ['{0}-{1}'.format(v.uid, t_p)]
-                        t_max = t_p
-                    elif t_p == t_max:
-                        predecessors.append('{0}-{1}'.format(v.uid, t_p))
+                    last_time = candidates.iloc[r]['time']
+                    last_state = candidates.iloc[r]['state']
+
+                    # check last state change and time difference
+                    if  last_state in states and (time_delta is None or (t-last_time) < time_delta):
+                        pred_uid = '{0}-{1}'.format(v.uid, last_time)
+                        if pred_uid not in dag.nodes:
+                            predecessors.append(Node(pred_uid, node_label=v.uid, time=last_time, state=last_state))
+                        else:
+                            predecessors.append(dag.nodes[pred_uid])
+                        # predecessors = ['{0}-{1}'.format(v.uid, t_p)]                        
+                    #elif :                        
 
             for v in predecessors:
-                dag.add_edge(v, uid)
+                dag.add_edge(v, dag.nodes[uid])
             
         return dag
 
