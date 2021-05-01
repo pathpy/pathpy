@@ -596,6 +596,31 @@ class HigherOrderRandomWalk(RandomWalk):
         """
         return np.nan_to_num(self._first_order_visitations/(self._t+1))
 
+    def first_order_stationary_state(self, **kwargs) -> np.array:
+        """Returns current normalized visitation frequencies of first-order nodes based on the history of
+        the higher-order random walk. Initially, all visitation probabilities are zero except for the last node of the higher-order seed node.
+        """
+        first_order_stationary_state = np.ravel(
+            np.zeros(shape=(1, self._first_order_network.number_of_nodes())))
+        higher_order_stationary_dist = RandomWalk.stationary_state(self, **kwargs)
+        for v in self._network.nodes:
+            # newly visited node in first_order network
+            v1 = v.nodes[-1]
+            first_order_stationary_state[self._first_order_network.nodes.index[v1.uid]] += higher_order_stationary_dist[self._network.nodes.index[v.uid]]
+        return first_order_stationary_state
+
+    @property
+    def first_order_total_variation_distance(self) -> float:
+        """Returns the total variation distance between stationary 
+        visitation probabilities and the current visitation frequencies, projected
+        to nodes in the first_order_network.
+
+        Computes the total variation distance between the current (first-order) node visitation
+        probabilities and the (first-order) stationary node visitation probabilities. This quantity converges to zero for HigherOrderRandomWalk.time -> np.infty and its magnitude indicates the
+        current relaxation of the higher-order random walk process.
+        """
+        return self.TVD(self.first_order_stationary_state(), self.first_order_visitation_frequencies)
+
 
     def first_order_node(self, higher_order_node: str) -> str:
         """
