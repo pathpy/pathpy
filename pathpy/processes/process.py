@@ -17,6 +17,7 @@ from pandas import DataFrame
 from pathpy.core.classes import BaseClass
 from pathpy.core.api import Node
 from pathpy.models.network import Network
+from pathpy.models.directed_acyclic_graph import DirectedAcyclicGraph
 from pathpy.models.temporal_network import TemporalNetwork, TemporalNode
 from pathpy import tqdm
 
@@ -159,3 +160,48 @@ class BaseProcess:
         for index, row in evolution.iterrows():            
             tn.nodes[row['node']][row['time']*timescale, 'color'] = self.state_to_color(row['state'])
         return tn.plot(**kwargs)
+
+    def to_directed_acylic_graph(self, data: DataFrame, run_id: Optional[int]=0, states: Optional[Iterable[Any]]=None) -> DirectedAcyclicGraph:
+        """Returns a directed acyclic graph representation of all state changes over time.
+        In this graph an edge (v_t' -> w_t) indicates that node w changed its state to x at time t after node v previously changed its state to x at time t' < t and an edge (v,w) exists in the network.
+
+        Each link in the directed acyclic graph indicates that node v may have causally influenced node w at time t. As an example, for a an SIR epidemic spreading process, the DAG captures possible transmission routes.
+
+        Parameters
+        ----------
+        """
+        dag = DirectedAcyclicGraph(uid='{0}'.format(run_id))
+        run = data.loc[data['run_id']==run_id]
+
+        for index, row in run.iterrows():            
+            # add temporal node            
+            state = row['state']            
+            if states and state not in states:
+                continue
+
+            w = row['node']
+            t = row['time']
+            uid = '{0}-{1}'.format(w, row['time'])
+            dag.add_node(uid, node_label=w, time=t, state=state)
+
+            # find predecessor of node v that last changed its state
+            predecessors = []
+            t_max = -1
+            for v in self._network.predecessors[w]:
+                # candidate state changes of v prior to t
+                candidates = run.loc[(run['node']==v.uid) & (run['state']==state) & (run['time']<t)]
+                if len(candidates)>0:
+                    r = candidates['time'].argmax()
+                    t_p = candidates.iloc[r]['time']
+                    if t_p > t_max:                        
+                        predecessors = ['{0}-{1}'.format(v.uid, t_p)]
+                        t_max = t_p
+                    elif t_p == t_max:
+                        predecessors.append('{0}-{1}'.format(v.uid, t_p))
+
+            for v in predecessors:
+                dag.add_edge(v, uid)
+            
+        return dag
+
+
