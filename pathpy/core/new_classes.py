@@ -4,12 +4,19 @@
 # =============================================================================
 # File      : classes.py -- Base classes for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sat 2021-05-01 17:14 juergen>
+# Time-stamp: <Sat 2021-05-01 17:52 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
 from typing import Any, Optional
 from copy import deepcopy
+from collections.abc import MutableMapping
+from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
+
+from pathpy import logger
+
+# create logger for the Path class
+LOG = logger(__name__)
 
 
 class PathPyObject:
@@ -284,6 +291,119 @@ class PathPyObject:
         else:
             value = float(self.attributes.get('weight', default))
         return value
+
+
+class PathPyCollection(MutableMapping):
+    """Base collection for PathPyObjects"""
+
+    def __init__(self, *args, **kwargs) -> None:
+
+        # dict to store the PathPyObjects {uid:PathPyObject}
+        self._store: dict = dict()
+
+        # use the free update to set keys
+        self.update(dict(*args, **kwargs))
+
+    @singledispatchmethod
+    def __getitem__(self, key):
+        return None
+
+    @__getitem__.register(str)  # type: ignore
+    def _(self, key):
+        return self._store[key]
+
+    @__getitem__.register(PathPyObject)  # type: ignore
+    def _(self, key):
+        return self._store[key.uid]
+
+    def __setitem__(self, key, value):
+        self._store[key] = value
+
+    def __delitem__(self, key):
+        del self._store[key]
+
+    def __iter__(self):
+        return iter(self._store)
+
+    def __len__(self):
+        return len(self._store)
+
+    def __repr__(self):
+        return self._store.__repr__()
+
+    @singledispatchmethod
+    def __contains__(self, item) -> bool:
+        """Returns if item is in edges."""
+        return False
+
+    @__contains__.register(PathPyObject)  # type: ignore
+    def _(self, item: PathPyObject) -> bool:
+        return item in self._store.values()
+
+    @__contains__.register(str)  # type: ignore
+    def _(self, item: str) -> bool:
+        return item in self._store.keys()
+
+    @property
+    def uids(self) -> set:
+        """Return the associated uids. """
+        return set(self.keys())
+
+    @singledispatchmethod
+    def add(self, *args, **kwargs):
+        """Add objects"""
+        # pylint: disable=no-self-use
+        # pylint: disable=unused-argument
+        raise NotImplementedError
+
+    @add.register(PathPyObject)  # type: ignore
+    def _(self, *args: PathPyObject, **kwargs: Any):
+        """Add object to collection"""
+
+        for obj in args:
+            # check if object exists already
+            if obj not in self.values() and obj.uid not in self.keys():
+
+                # update attributes
+                if kwargs:
+                    obj.update(**kwargs)
+
+                # add edge to the collection
+                self._add(obj)
+            else:
+                self._if_exist(obj, **kwargs)
+
+    def _add(self, obj: PathPyObject) -> None:
+        """Add an edge to the set of edges."""
+        self[obj.uid] = obj
+
+    def _if_exist(self, obj: Any, **kwargs: Any) -> None:
+        """Helper function if the edge does already exsist."""
+        # pylint: disable=no-self-use
+        # pylint: disable=unused-argument
+        LOG.error('The object "%s" already exists in the Collection', obj.uid)
+        raise KeyError
+
+    @singledispatchmethod
+    def remove(self, *args, **kwargs):
+        """Remove objects"""
+        # pylint: disable=no-self-use
+        # pylint: disable=unused-argument
+        raise NotImplementedError
+
+    @remove.register(PathPyObject)  # type: ignore
+    def _(self, *args: PathPyObject, **kwargs: Any) -> None:
+        """Remove object from the collection"""
+        # pylint: disable=unused-argument
+        for obj in args:
+            # check if object exists already
+            if obj in self.values() and obj.uid in self.keys():
+                self._remove(obj)
+
+    def _remove(self, obj: PathPyObject) -> None:
+        """Add an edge to the set of edges."""
+        self.pop(obj.uid, None)
+
 
 # =============================================================================
 # eof
