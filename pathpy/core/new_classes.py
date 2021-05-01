@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : classes.py -- Base classes for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sat 2021-05-01 17:52 juergen>
+# Time-stamp: <Sat 2021-05-01 17:55 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -350,14 +350,14 @@ class PathPyCollection(MutableMapping):
         return set(self.keys())
 
     @singledispatchmethod
-    def add(self, *args, **kwargs):
+    def add(self, *args: Any, **kwargs: Any) -> None:
         """Add objects"""
         # pylint: disable=no-self-use
         # pylint: disable=unused-argument
         raise NotImplementedError
 
     @add.register(PathPyObject)  # type: ignore
-    def _(self, *args: PathPyObject, **kwargs: Any):
+    def _(self, *args: PathPyObject, **kwargs: Any) -> None:
         """Add object to collection"""
 
         for obj in args:
@@ -385,7 +385,7 @@ class PathPyCollection(MutableMapping):
         raise KeyError
 
     @singledispatchmethod
-    def remove(self, *args, **kwargs):
+    def remove(self, *args: Any, **kwargs: Any) -> None:
         """Remove objects"""
         # pylint: disable=no-self-use
         # pylint: disable=unused-argument
