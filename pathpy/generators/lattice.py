@@ -1,31 +1,28 @@
-"""Lattice graphs for pathpy."""
+"""Methods to generate regular lattice networks with different dimensions"""
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
 # File      : lattice.py -- Module to generate lattice graphs
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Mon 2021-03-29 17:07 juergen>
+# Time-stamp: <Mon 2021-04-27 01:07 ingo>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from functools import singledispatch
 
-from typing import Optional, Union, Dict
+from typing import Optional, Tuple
 
 import numpy as np
 
-from pathpy import logger, tqdm
-
-from pathpy.core.edge import Edge
-from pathpy.core.node import Node
-from pathpy.models.network import Network
+from pathpy import logger
+from pathpy.core.api import Node
+from pathpy.models.api import Network
 
 # create logger
 LOG = logger(__name__)
 
 
-def _multi_dim_range(start, stop, dims):
+def _multi_dim_range(start, stop, dims) -> Tuple:
     if not dims:
         yield ()
         return
@@ -34,7 +31,7 @@ def _multi_dim_range(start, stop, dims):
             yield outer + (inner,)
 
 
-def lattice_network(start: int=0, stop: int=10, dims: int=2):
+def lattice_network(start: Optional[int]=0, stop: Optional[int]=10, dims: Optional[int]=2) -> Network:
     """
     Generates a n-dimensional lattice network with coordinates in each dimension 
     ranging from start (inclusive) to stop (exclusive)

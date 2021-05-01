@@ -1,4 +1,4 @@
-"""Functions to read graphml files."""
+"""Functions to read and write graphml files."""
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
@@ -12,8 +12,8 @@
 import xml.etree.ElementTree as ET
 
 from pathpy import logger
-from pathpy.core.edge import Edge, EdgeCollection
-from pathpy.core.node import Node, NodeCollection
+from pathpy.core.api import Edge, EdgeCollection
+from pathpy.core.api import Node, NodeCollection
 from pathpy.models.network import Network
 
 
@@ -22,7 +22,7 @@ LOG = logger(__name__)
 
 
 def read_network(filename: str):
-    """Reads a pathyp.Network from a graphml file.
+    """Reads a pathpy.Network from a graphml file.
 
     This function supports typed Node and Edge attributes including default
     values.

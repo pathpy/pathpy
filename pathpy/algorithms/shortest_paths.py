@@ -1,4 +1,4 @@
-""""Algorithms for shortest paths calculations."""
+"""Algorithms for shortest paths calculations."""
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
@@ -17,11 +17,10 @@ from scipy.sparse import csgraph  # pylint: disable=import-error
 
 from pathpy import logger, tqdm
 
-from pathpy.models import network as net
+import pathpy.models.api as api
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
-    # from pathpy.core.node import Node
     from pathpy.models.network import Network
 
 # from pathpy.core.path import Path
@@ -234,7 +233,7 @@ def shortest_path_tree(network: Network,
     """Computes a shortest path tree rooted at the node with the
     given source uid."""
 
-    n_tree = net.Network(directed=True)
+    n_tree = api.Network(directed=True)
 
     Q: dict = dict()
     dist = dict()

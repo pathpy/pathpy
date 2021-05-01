@@ -11,17 +11,18 @@
 # flake8: noqa
 # pylint: disable=unused-import
 
-
-from pathpy.io import sql
-from pathpy.io import csv
-from pathpy.io import konect
-from pathpy.io import graphml
-from pathpy.io import graphtool
-from pathpy.io.io import (
+from pathpy.io.pandas import (
     to_dataframe,
     to_network,
     to_temporal_network
 )
+
+from pathpy.io import graphml
+from pathpy.io import csv
+from pathpy.io import sql
+from pathpy.io import graphtool
+from pathpy.io import konect
+from pathpy.io import infomap
 
 # =============================================================================
 # eof

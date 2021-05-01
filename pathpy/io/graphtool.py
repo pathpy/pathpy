@@ -1,3 +1,4 @@
+"""Functions to read networks from graphtool binary format and to retrieve network data from the netzschleuder repository"""
 #!/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
@@ -8,19 +9,24 @@
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
+
+import json
+from pathpy.utils.errors import FileFormatError, NetworkError
+import pickle
+import struct
 from collections import defaultdict
-from pathpy.io.io import to_network, to_temporal_network
-from typing import TYPE_CHECKING, Union, Tuple, Optional, List, Any
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Union
+from urllib import request
+from urllib.error import HTTPError
 
-
-from pathpy import config, logger
-
-from pathpy.models.network import Network
-from pathpy.models.temporal_network import TemporalNetwork
 from numpy import array
 
-import struct
-import pickle
+from pathpy import logger
+from pathpy.io.pandas import to_network, to_temporal_network
+from pathpy.models.network import Network
+from pathpy.models.temporal_network import TemporalNetwork
+from pathpy import FileFormatError, NetworkError, MissingModuleError
+
 import pandas as pd
 
 # create logger
@@ -53,6 +59,8 @@ def _parse_property_value(data: bytes, ptr: int, type_index: int, endianness: st
 
     Returns
     -------
+
+    Tuple (v, n) consisting of the property value v and the number of bytes n processed
     """
     if type_index == 0:
         return (bool(data[ptr]), 1)
@@ -130,13 +138,15 @@ def _parse_property_value(data: bytes, ptr: int, type_index: int, endianness: st
         val_len = struct.unpack(endianness + 'Q', data[ptr:ptr+8])[0]
         return (pickle.loads(data[ptr+8:ptr+8+val_len]), 8 + val_len)
     else:
-        LOG.error('Unknown type index {0}'.format(type_index))
-        return (None, 0)
+        msg = 'Unknown type index {0} while parsing graphtool file'.format(type_index)
+        LOG.error(msg)
+        raise FileFormatError(msg)
 
 
-def parse_graphtool_format(data: bytes, ignore_temporal: bool=False) -> Union[Network, TemporalNetwork]:
+def parse_graphtool_format(data: bytes, ignore_temporal: bool=False, multiedges: bool=False) -> Union[Network, TemporalNetwork]:
     """
-    Decodes data in graphtool binary format and returns a pathpy network.
+    Decodes data in graphtool binary format and returns a pathpy network. For a documentation of 
+    hte graphtool binary format, see see doc at https://graph-tool.skewed.de/static/doc/gt_format.html
 
     Parameters
     ----------
@@ -148,13 +158,17 @@ def parse_graphtool_format(data: bytes, ignore_temporal: bool=False) -> Union[Ne
         If False, this function will return a static or temporal network depending 
         on whether edges contain a time attribute. If True, pathpy will not interpret
         time attributes and thus always return a static network.
+
+    Returns
+    -------
+    Network or TemporalNetwork
+        a static or temporal network object
     """
-    # see doc at https://graph-tool.skewed.de/static/doc/gt_format.html
 
     # check magic bytes
     if data[0:6] != b'\xe2\x9b\xbe\x20\x67\x74':
         LOG.error('Invalid graphtool file. Wrong magic bytes.')
-        raise AssertionError('Invalid graphtool file.')
+        raise FileFormatError('Invalid graphtool file. Wrong magic bytes.')
     ptr = 6
 
     # read graphtool version byte
@@ -272,11 +286,11 @@ def parse_graphtool_format(data: bytes, ignore_temporal: bool=False) -> Union[Ne
         network_data[p] = [ edge_attributes[e][p] for e in range(n_edges) ]
 
     # create network from pandas dataframe
-    n: Optional[Network] = None
+    n: Optional[Union[Network, TemporalNetwork]] = None
     if 'time' in edge_attribute_names and not ignore_temporal:
         n = to_temporal_network(network_data, directed=directed, **network_attributes)
     else:
-        n = to_network(network_data, directed=directed, **network_attributes)
+        n = to_network(network_data, directed=directed, multiedges=multiedges, **network_attributes)
     
     for v in node_attributes:        
         for p in node_attributes[v]:
@@ -286,7 +300,7 @@ def parse_graphtool_format(data: bytes, ignore_temporal: bool=False) -> Union[Ne
     return n
 
 
-def read_graphtool(file: str) -> Optional[Union[Network, TemporalNetwork]]: 
+def read_graphtool(file: str, ignore_temporal: bool=False, multiedges: bool=False) -> Optional[Union[Network, TemporalNetwork]]: 
     """
     Reads a file in graphtool binary format
 
@@ -304,9 +318,11 @@ def read_graphtool(file: str) -> Optional[Union[Network, TemporalNetwork]]:
                 data = f.read()
                 return parse_graphtool_format(dctx.decompress(data, max_output_size=len(data)))
             except ModuleNotFoundError:
-                LOG.error('Package zstandard is needed to decode graphtool files. Please install module, e.g., using "pip install zstandard".')
+                msg = 'Package zstandard is required to decompress graphtool files. Please install module, e.g., using "pip install zstandard".'
+                LOG.error(msg)                
+                raise MissingModuleError(msg)
         else:    
-            return parse_graphtool_format(f.read())
+            return parse_graphtool_format(f.read(), ignore_temporal, multiedges)
 
 
 def write_graphtool(network: Network, file: str):
@@ -314,3 +330,195 @@ def write_graphtool(network: Network, file: str):
     Writes a network to graphtool binary format
     """ 
     raise NotImplementedError()
+
+
+def list_netzschleuder_records(base_url: str='https://networks.skewed.de', **kwargs) -> Union[list, dict]:
+    """Reads a list of data sets available at the netzschleuder repository.
+
+    Parameters
+    ----------
+    
+    base_url: str='https://networks.skewed.de'
+
+        Base URL of netzschleuder repository
+    
+    **kwargs
+
+        Keyword arguments that will be passed to the netzschleuder repository as HTTP GET parameters. 
+        For supported parameters see https://networks.skewed.de/api
+
+
+    Examples
+    --------
+    Return a list of all data sets
+
+    >>> import pathpy as pp
+    >>> pp.io.graphtool.list_netzschleuder_records()
+    ['karate', 'reality_mining', 'sp_hypertext', ...]
+
+    Return a list of all data sets with a given tag
+
+    >>> pp.io.graphtool.list_netzschleuder_records(tags='temporal')
+    ['reality_mining', 'sp_hypertext', ...]
+
+    Return a dictionary containing all data set names (keys) as well as all network attributes
+    
+    >>> pp.io.graphtool.list_netzschleuder_records(full=True)
+    { 'reality_mining': [...], 'karate': [...] }
+
+
+    Returns
+    -------
+
+    Either a list of data set names or a dictionary containing all data set names and network attributes.
+
+    """ 
+    url = '/api/nets'
+    for k, v in kwargs.items():
+        url += '?{0}={1}'.format(k, v)
+    try:
+        f = request.urlopen(base_url + url).read()
+        return json.loads(f)
+    except HTTPError:
+        msg = 'Could not connect to netzschleuder repository at {0}'.format(base_url)
+        LOG.error(msg)
+        raise NetworkError(msg)
+
+
+
+def read_netzschleuder_record(name: str, base_url: str='https://networks.skewed.de') -> dict:
+    """
+    Reads metadata of a single data record with given name from the netzschleuder repository
+
+    Parameters
+    ----------
+
+    name: str
+
+        Name of the data set for which to retrieve the metadata
+
+    base_url: str='https://networks.skewed.de'
+
+        Base URL of netzschleuder repository
+
+    Examples
+    --------
+
+    Retrieve metadata of karate club network
+    >>> import pathpy as pp
+    >>> metdata = pp.io.graphtool.read_netzschleuder_record('karate')
+    >>> print(metadata)
+    { 
+        'analyses': {'77': {'average_degree': 4.52... } }
+    }
+
+    Returns
+    -------
+
+    Dictionary containing key-value pairs of metadata
+    """ 
+    url = '/api/net/{0}'.format(name)
+    try:
+        return json.loads(request.urlopen(base_url + url).read())
+    except HTTPError:
+        msg = 'Could not connect to netzschleuder repository at {0}'.format(base_url)
+        LOG.error(msg)
+        raise NetworkError(msg)
+
+
+def read_netzschleuder_network(name: str, net: Optional[str]=None, 
+        ignore_temporal: bool=False, multiedges: bool=False,
+        base_url: str='https://networks.skewed.de') -> Optional[Union[Network, TemporalNetwork]]:
+    """Reads a pathpy network record from the netzschleuder repository.
+
+    Parameters
+    ----------
+    name: str
+
+        Name of the network data sets to read from
+
+    net: Optional[str]=None
+
+        Identifier of the network within the data set to read. For data sets 
+        containing a single network only, this can be set to None.
+
+    ignore_temporal: bool=False
+
+        If False, this function will return a static or temporal network depending 
+        on whether edges contain a time attribute. If True, pathpy will not interpret
+        time attributes and thus always return a static network.
+
+    base_url: str=https://networks.skewed.de
+
+        Base URL of netzschleuder repository
+
+    Examples
+    --------
+
+    Read network '77' from karate club data set
+
+    >>> import pathpy as pp
+    >>> n = pp.io.graphtool.read_netzschleuder_network('karate', '77')
+    >>> print(type(n))
+    >>> pp.plot(n)
+    pp.Network
+
+    Read a temporal network from a data set containing a single network only
+    (i.e. net can be omitted):
+
+    >>> n = pp.io.graphtool.read_netzschleuder_network('reality_mining')
+    >>> print(type(n))
+    >>> pp.plot(n)
+    pp.TemporalNetwork
+
+    Read temporal network but ignore time attribute of edges:
+
+    >>> n = pp.io.graphtool.read_netzschleuder_network('reality_mining', ignore_temporal=True)
+    >>> print(type(n))
+    >>> pp.plot(n)
+    pp.Network
+
+
+    Returns
+    -------
+
+    Depending on whether the network data set contains an edge attribute
+    'time' (and whether ignore_temporal is set to True), this function 
+    returns an instance of Network or TemporalNetwork
+
+    """
+    try:
+        import zstandard as zstd
+
+        # retrieve network properties
+        url = '/api/net/{0}'.format(name)
+        properties = json.loads(request.urlopen(base_url + url).read())
+
+        # retrieve data
+        if not net:
+            net = name
+        url = '/net/{0}/files/{1}.gt.zst'.format(name, net)
+        try:
+            f = request.urlopen(base_url + url)
+        except HTTPError:
+            msg = 'Could not connect to netzschleuder repository at {0}'.format(base_url)
+            LOG.error(msg)
+            raise NetworkError(msg)
+
+        # decompress data
+        dctx = zstd.ZstdDecompressor()
+        reader = dctx.stream_reader(f)
+        decompressed = reader.readall()
+
+        # parse graphtool binary format
+        n = parse_graphtool_format(bytes(decompressed), ignore_temporal=ignore_temporal, multiedges=multiedges)
+        if n:
+            # store network attributes
+            for k, v in properties.items():
+                n[k] = v
+
+        return n
+    except ModuleNotFoundError:
+        msg = 'Package zstandard is required to decompress graphtool files. Please install module, e.g., using "pip install zstandard.'
+        LOG.error(msg)
+        raise MissingModuleError(msg)

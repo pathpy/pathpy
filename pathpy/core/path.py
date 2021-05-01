@@ -15,7 +15,7 @@ from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
 
 from pathpy import logger
 from pathpy.core.classes import BasePath
-from pathpy.core.collecions import BaseCollection
+from pathpy.core.collections import BaseCollection
 from pathpy.core.node import Node, NodeCollection
 from pathpy.core.edge import Edge, EdgeCollection
 

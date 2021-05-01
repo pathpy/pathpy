@@ -15,17 +15,17 @@ from typing import TYPE_CHECKING, Any, Optional, Union
 import pandas as pd  # pylint: disable=import-error
 
 from pathpy import logger
-from pathpy.io.io import to_network, to_temporal_network, to_dataframe
+from pathpy.io.pandas import to_network, to_temporal_network, to_dataframe
 
-from pathpy.core.node import Node, NodeCollection
-from pathpy.core.edge import Edge, EdgeCollection
+from pathpy.core.api import Node, NodeCollection
+from pathpy.core.api import Edge, EdgeCollection
 # from pathpy.core.path import Path, PathCollection
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
-    from pathpy.models.network import Network
-    from pathpy.models.temporal_network import TemporalNetwork
-    from pathpy.core.path import PathCollection
+    from pathpy.models.api import Network
+    from pathpy.models.api import TemporalNetwork
+    from pathpy.core.api import PathCollection
 
 # create logger
 LOG = logger(__name__)
@@ -54,13 +54,12 @@ def read_network(filename: Optional[str] = None,
                  header: bool = True,
                  names: Optional[list] = None,
                  **kwargs: Any) -> Network:
-    """Read network from a csv database."""
+    """Reads a network from a csvfile."""
     # pylint: disable=too-many-arguments
 
     frame = read_dataframe(filename=filename, sep=sep,
                            header=header, names=names)
 
-    print(frame)
     net = to_network(frame, loops=loops, directed=directed,
                      multiedges=multiedges, **kwargs)
 

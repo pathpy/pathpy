@@ -14,10 +14,9 @@ from functools import singledispatch
 from collections import defaultdict, deque
 
 from pathpy import logger
+from pathpy.models.api import Network
 
-from pathpy.core.network import Network
-
-def to_networkx(network) -> Any:
+def to_networkx(network: Network) -> Any:
 
     from networkx import Graph, DiGraph, MultiDiGraph, MultiGraph
 
@@ -35,7 +34,7 @@ def to_networkx(network) -> Any:
                      network.edges[e].attributes.to_dict()) for e in network.edges.uids])
     return G
 
-def from_networkx(graph: Any):
+def from_networkx(graph: Any) -> Network:
     n = Network(directed=graph.is_directed(), multiedges=graph.is_multigraph())
     for v in graph.nodes:
         n.add_node(v, **graph.nodes[v])
