@@ -4,14 +4,13 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-03 15:36 juergen>
+# Time-stamp: <Mon 2021-05-03 15:37 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, Optional, Union, cast
+from typing import Any, Optional, Union
 from collections import defaultdict
-from collections.abc import MutableMapping
 
 from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
 
