@@ -4,11 +4,11 @@
 # =============================================================================
 # File      : node.py -- Base class for a node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-03 15:44 juergen>
+# Time-stamp: <Mon 2021-05-03 15:46 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
-from typing import Any, Optional, Union, cast
+from typing import Any, Optional, Union
 
 from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
 
