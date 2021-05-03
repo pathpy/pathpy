@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : node.py -- Base class for a node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-03 15:46 juergen>
+# Time-stamp: <Mon 2021-05-03 17:36 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -13,8 +13,7 @@ from typing import Any, Optional, Union
 from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
 
 from pathpy import logger
-from pathpy.core.classes import PathPyObject
-from pathpy.core.path import BasePath, BasePathCollection
+from pathpy.core.core import PathPyObject, BasePath, BasePathCollection
 
 # create logger for the Path class
 LOG = logger(__name__)
@@ -39,6 +38,7 @@ class Node(BasePath):
 
 class NodeCollection(BasePathCollection):
     """A collection of nodes"""
+    # pylint: disable=too-many-ancestors
 
     def __init__(self, *args, **kwargs) -> None:
         """Initialize the NodeCollection object."""

@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-03 15:55 juergen>
+# Time-stamp: <Mon 2021-05-03 17:38 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -13,8 +13,7 @@ from typing import Any, Optional, Union
 from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
 
 from pathpy import logger
-from pathpy.core.classes import PathPyObject
-from pathpy.core.path import BasePath, BasePathCollection
+from pathpy.core.core import PathPyObject, BasePath, BasePathCollection
 from pathpy.core.node import Node, NodeCollection
 
 # create logger for the Path class
@@ -65,6 +64,7 @@ class Edge(BasePath):
 
 class EdgeCollection(BasePathCollection):
     """A collection of edges"""
+    # pylint: disable=too-many-ancestors
 
     def __init__(self, directed: bool = True,
                  multiedges: bool = False,
