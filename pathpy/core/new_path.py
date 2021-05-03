@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-03 15:33 juergen>
+# Time-stamp: <Mon 2021-05-03 15:36 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -283,6 +283,26 @@ def _get_valid_objects(item) -> list:
     """Helper function to return a list with valid objects"""
     return [obj for obj in item.objects.values()
             if (isinstance(obj, BasePath) and obj.uid != item.uid)]
+
+
+class Path(BasePath):
+    """Base class for a path."""
+
+    def summary(self) -> str:
+        """Returns a summary of the path. """
+        summary = [
+            'Uid:\t\t{}\n'.format(self.uid),
+            'Type:\t\t{}\n'.format(self.__class__.__name__),
+            'Directed:\t{}\n'.format(self.directed),
+            'Nodes:\t\t{}\n'.format(self.relations),
+        ]
+
+        return ''.join(summary)
+
+
+class PathCollection(BasePathCollection):
+    """A collection of edges"""
+
 
 # =============================================================================
 # eof
