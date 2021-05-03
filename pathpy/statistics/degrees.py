@@ -299,7 +299,7 @@ def molloy_reed_fraction(network: Network, weight: Weight = False) -> float:
     return _mrf
 
 
-def degree_assortativity(network: Network, mode: str = 'in', weight: Weight = None) -> float:
+def degree_assortativity(network: Network, mode: str = 'total', weight: Weight = None) -> float:
     """Calculates the degree assortativity coefficient of a network.
 
     Parameters
@@ -317,6 +317,8 @@ def degree_assortativity(network: Network, mode: str = 'in', weight: Weight = No
         d = network.indegrees(weight)
     elif network.directed and mode == 'out':
         d = network.outdegrees(weight)
+    elif network.directed and mode == 'total':
+        d = network.degrees(weight)
     elif not network.directed:
         m = m/2.
     idx = network.nodes.index

@@ -27,6 +27,7 @@ jobs:
         pip install -U -e .
         pip install -U -r requirements/pathpy.txt
         pip install -U -r requirements/test.txt
+        pip install zstandard
         pip install jupyter
     - name: Test with pytest
       run: |

@@ -10,7 +10,6 @@
 
 import pytest
 
-from pathpy.core.base.attributes import Attributes
 import pathpy as pp
 
 
