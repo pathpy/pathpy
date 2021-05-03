@@ -83,7 +83,7 @@ def to_state_file(paths: PathCollection, file: str, weight: Optional[str]=None) 
         links = []
         i = 1
         for p in paths:
-            print(' -> '.join(v.uid for v in p.nodes))
+            # print(' -> '.join(v.uid for v in p.nodes))
             for k in range(len(p.nodes)-1):
                 current_node = p.nodes[k].uid
                 if k == 0:
