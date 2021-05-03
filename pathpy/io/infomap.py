@@ -83,48 +83,50 @@ def to_state_file(paths: PathCollection, file: str, weight: Optional[str]=None) 
         links = []
         i = 1
         for p in paths:
-
-            if len(p.edges)>0:
-                # path contains first edge (v, w), which we map 
-                # to transition {eps}_v -> {v}_w
-                node = p.nodes[0].uid
-                state = '{eps}_' + node
-                next_node = p.nodes[1].uid
-                next_state = '{' + node + '}_' + next_node
+            print(' -> '.join(v.uid for v in p.nodes))
+            for k in range(len(p.nodes)-1):
+                current_node = p.nodes[k].uid
+                if k == 0:
+                    # map first edge (v, w) to transition {eps}_v -> {v}_w
+                    current_state = '{eps}_' + current_node
+                else:
+                    current_state = '{' + '-'.join([v.uid for v in p.nodes[:k]]) + '}_' + current_node
+                next_node = p.nodes[k+1].uid
+                next_state = '{' + '-'.join([v.uid for v in p.nodes[:k+1]]) + '}_' + next_node
 
                 # add state nodes with indices
-                if state not in states_to_index:
-                    states_by_index[i] = (node, state)
-                    states_to_index[state] = i
+                if current_state not in states_to_index:
+                    states_by_index[i] = (current_node, current_state)
+                    states_to_index[current_state] = i
                     i += 1
                 if next_state not in states_to_index:
                     states_by_index[i] = (next_node, next_state)
                     states_to_index[next_state] = i
                     i += 1
                 if weight:
-                    links.append((state, next_state, paths[p][weight]))
+                    links.append((current_state, next_state, paths[p][weight]))
                 else:
-                    links.append((state, next_state))
-            if len(p.edges)>1:
-                # extract pairs of connected state nodes as well as associated nodes
-                node = p.nodes[-2].uid
-                state = '{' + '-'.join([v.uid for v in p.nodes[:-2]]) + '}_' + node
-                next_node = p.nodes[-1].uid
-                next_state = '{' + '-'.join([v.uid for v in p.nodes[1:-1]]) + '}_' + next_node
+                    links.append((current_state, next_state))
+            # for i in range(1, len(p.nodes)):
+            #     # extract pair of connected state nodes and associated nodes
+            #     node = p.nodes[-2].uid
+            #     state = '{' + '-'.join([v.uid for v in p.nodes[:-2]]) + '}_' + node
+            #     next_node = p.nodes[-1].uid
+            #     next_state = '{' + '-'.join([v.uid for v in p.nodes[i:-1]]) + '}_' + next_node
 
-                # add state nodes with indices
-                if state not in states_to_index:
-                    states_by_index[i] = (node, state)
-                    states_to_index[state] = i
-                    i += 1
-                if next_state not in states_to_index:
-                    states_by_index[i] = (next_node, next_state)
-                    states_to_index[next_state] = i
-                    i += 1
-                if weight:
-                    links.append((state, next_state, paths[p][weight]))
-                else:
-                    links.append((state, next_state))
+            #     # add state nodes with indices
+            #     if state not in states_to_index:
+            #         states_by_index[i] = (node, state)
+            #         states_to_index[state] = i
+            #         i += 1
+            #     if next_state not in states_to_index:
+            #         states_by_index[i] = (next_node, next_state)
+            #         states_to_index[next_state] = i
+            #         i += 1
+            #     if weight:
+            #         links.append((state, next_state, paths[p][weight]))
+            #     else:
+            #         links.append((state, next_state))
 
         for index, item in states_by_index.items():
             state_file.append('{0} {1} "{2}"'.format(index, nodes_to_index[item[0]], item[1]))
