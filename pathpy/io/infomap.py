@@ -55,14 +55,15 @@ def to_state_file(paths: PathCollection, file: str, weight: Optional[str]=None) 
     3 "a"
     4 "c"
     *States
-    1 1 "a b"
-    2 4 "b c"
-    3 4 "a b c"
-    4 2 "b c d"
+    1 1 "{a}_b"
+    2 4 "{b}_c"
+    3 4 "{a-b}_c"
+    4 2 "{b-c}_d"
+    5 1  "{eps}_a"
     *Links
     1 2 42
     3 4 41
-
+    5 1 15
     """
     state_file = []
     with open(file, mode='w') as f:        
@@ -82,6 +83,28 @@ def to_state_file(paths: PathCollection, file: str, weight: Optional[str]=None) 
         links = []
         i = 1
         for p in paths:
+
+            if len(p.edges)>0:
+                # path contains first edge (v, w), which we map 
+                # to transition {eps}_v -> {v}_w
+                node = p.nodes[0].uid
+                state = '{eps}_' + node
+                next_node = p.nodes[1].uid
+                next_state = '{' + node + '}_' + next_node
+
+                # add state nodes with indices
+                if state not in states_to_index:
+                    states_by_index[i] = (node, state)
+                    states_to_index[state] = i
+                    i += 1
+                if next_state not in states_to_index:
+                    states_by_index[i] = (next_node, next_state)
+                    states_to_index[next_state] = i
+                    i += 1
+                if weight:
+                    links.append((state, next_state, paths[p][weight]))
+                else:
+                    links.append((state, next_state))
             if len(p.edges)>1:
                 # extract pairs of connected state nodes as well as associated nodes
                 node = p.nodes[-2].uid
