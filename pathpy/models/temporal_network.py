@@ -10,7 +10,6 @@
 # =============================================================================
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Optional, Union, cast
-from intervaltree import IntervalTree, Interval
 from collections import defaultdict, ChainMap
 from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
 import pandas as pd
