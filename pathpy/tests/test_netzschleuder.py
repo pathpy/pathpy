@@ -46,6 +46,7 @@ def get_metric(network: pp.Network, metric: str):
     }
     return switcher.get(metric, None)
 
+@pytest.mark.slow
 def test_netzschleuder_consistency():
     for data, net, multi in datasets:
         print('Running metric tests for network {0}/{1} ...'.format(data, net))
