@@ -9,6 +9,7 @@
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
+from pathpy.models.temporal_network import TemporalNode, TemporalEdge
 from typing import Any, Optional, Set
 from collections import defaultdict
 
@@ -63,7 +64,9 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
 
     @property
     def acyclic(self) -> Optional[bool]:
-        """Returns if the graph is acyclic."""
+        """Returns if the graph is acyclic or None if 
+        this is currently unknown. Call topological_sorting
+        on the network to calculate this property."""
         return self._acyclic
 
     def _add_node_properties(self):
@@ -298,26 +301,25 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
         node_map = {}
 
         i = 0
-        for uid, edge, begin, end in temporal_network.edges.temporal():
-            # i += 1
-
-            # if i == 300:
-            #     break
+        for begin, end, uid in temporal_network.tedges:
+            edge: TemporalEdge = temporal_network.edges[uid]
+            v: TemporalNode = edge.v
+            w: TemporalNode = edge.w
             # create time-unfolded nodes v_t and w_{t+1}
-            v_t = "{0}_{1}".format(edge.v.uid, begin)
+            v_t = "{0}_{1}".format(v.uid, begin)
             #node_map[v_t] = edge.v.uid
 
             # create one time-unfolded link for all delta in [1, delta]
             # this implies that for delta = 2 and an edge (a,b,1) two
             # time-unfolded links (a_1, b_2) and (a_1, b_3) will be created
             for x in range(1, int(delta)+1):
-                w_t = "{0}_{1}".format(edge.w.uid, begin+x)
+                w_t = "{0}_{1}".format(w.uid, begin+x)
                 #node_map[w_t] = edge.w.uid
                 if v_t not in dag.nodes:
-                    dag.nodes._add(Node(v_t, original=edge.v))
+                    dag.nodes._add(Node(v_t, original=v))
                     #dag.add_node(v_t, original=edge.v)
                 if w_t not in dag.nodes:
-                    dag.nodes._add(Node(w_t, original=edge.w))
+                    dag.nodes._add(Node(w_t, original=w))
                     #dag.add_node(w_t, original=edge.w)
 
                 e = Edge(dag.nodes[v_t], dag.nodes[w_t], original=edge)
