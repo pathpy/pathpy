@@ -75,6 +75,9 @@ class TemporalDict(MutableMapping):
 
     @_keytransform.register(tuple)  # type: ignore
     def _(self, key: tuple) -> tuple:
+        """
+        TODO: explain what is happening here
+        """
 
         if len(key) == 2:
             if isinstance(key[0], (slice, int, float)):
@@ -451,7 +454,7 @@ class TemporalNetwork(BaseTemporalNetwork, Network):
 
     @property
     def tedges(self) -> TemporalDict:
-        """Return a data frame of temporal edges"""
+        """Return a temporal dictionary of temporal edges"""
 
         tedges = TemporalDict()
         for active in [edge.activities for edge in self.edges]:
@@ -461,7 +464,7 @@ class TemporalNetwork(BaseTemporalNetwork, Network):
 
     @property
     def tnodes(self) -> TemporalDict:
-        """Return a data frame of temporal edges"""
+        """Return a temporal dictionary of temporal nodes"""
 
         tnodes = TemporalDict()
         for active in [node.activities for node in self.nodes]:

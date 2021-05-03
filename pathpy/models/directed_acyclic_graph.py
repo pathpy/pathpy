@@ -30,7 +30,7 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
     """Base class for a directed acyclic graph."""
 
     # load external functions to the network
-    to_paths = path_extraction.to_path_collection  # type: ignore
+    to_paths = path_extraction.extract_path_collection  # type: ignore
 
     def __init__(self, uid: Optional[str] = None, multiedges: bool = False,
                  **kwargs: Any) -> None:
@@ -283,9 +283,12 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
 
         return paths
 
+
     @classmethod
     def from_temporal_network(cls, temporal_network, **kwargs: Any):
-        """Creates a time-unfolded directed acyclic graph."""
+        """Creates a time-unfolded directed acyclic graph representation of 
+        the temporal network.
+        """
 
         delta: int = kwargs.get('delta', 1)
 

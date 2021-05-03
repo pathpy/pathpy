@@ -19,22 +19,18 @@ from pathpy import logger
 from pathpy.core.api import NodeCollection
 from pathpy.core.api import EdgeCollection
 from pathpy.core.api import PathCollection
-
-from pathpy.models.models import (ABCDirectedAcyclicGraph,
-                                  ABCTemporalNetwork)
+from pathpy.models.classes import BaseTemporalNetwork
+from pathpy.models.models import ABCDirectedAcyclicGraph
 
 # create logger
 LOG = logger(__name__)
 
-
 @singledispatch
-def to_path_collection(self, **kwargs: Any) -> PathCollection:
-    """Converts object to path collection"""
+def extract_path_collection(self, **kwargs: Any) -> PathCollection:
     raise NotImplementedError
 
-
-@to_path_collection.register(ABCDirectedAcyclicGraph)
-def _dag(self, **kwargs):
+@extract_path_collection.register(ABCDirectedAcyclicGraph)
+def _dag_paths(self, **kwargs):
     """Convert a DAG to paths."""
 
     # check if dag is acyclic
@@ -53,8 +49,8 @@ def _dag(self, **kwargs):
     return paths
 
 
-@to_path_collection.register(ABCTemporalNetwork)
-def _temp(self, **kwargs):
+@extract_path_collection.register(BaseTemporalNetwork)
+def _temporal_paths(self, **kwargs):
     """Convert a temporal network to paths."""
     from pathpy.models.directed_acyclic_graph import DirectedAcyclicGraph
 
