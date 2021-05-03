@@ -13,6 +13,8 @@ from pathpy.models.temporal_network import TemporalNode, TemporalEdge
 from typing import Any, Optional, Set
 from collections import defaultdict
 
+from numpy import inf
+
 from pathpy import logger
 from pathpy.core.node import NodeCollection
 from pathpy.core.edge import EdgeCollection, Edge
@@ -142,7 +144,7 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
             _nodes: list = [(edge.v, edge.w), (edge.w, edge.v)]
 
             for _v, _w in _nodes:
-                print(_v.uid, _w.uid)
+                # print(_v.uid, _w.uid)
                 self._properties['successors'][_v].discard(_w)
                 self._properties['outgoing'][_v].discard(edge)
                 self._properties['predecessors'][_w].discard(_v)
@@ -293,7 +295,7 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
         the temporal network.
         """
 
-        delta: int = kwargs.get('delta', 1)
+        delta: float = kwargs.get('delta', 1)
 
         dag = cls()
 
@@ -305,14 +307,20 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
             edge: TemporalEdge = temporal_network.edges[uid]
             v: TemporalNode = edge.v
             w: TemporalNode = edge.w
+
+            if delta < inf:
+                current_delta = int(delta)
+            else:
+                current_delta = temporal_network.end()-begin
+
             # create time-unfolded nodes v_t and w_{t+1}
             v_t = "{0}_{1}".format(v.uid, begin)
             #node_map[v_t] = edge.v.uid
 
             # create one time-unfolded link for all delta in [1, delta]
             # this implies that for delta = 2 and an edge (a,b,1) two
-            # time-unfolded links (a_1, b_2) and (a_1, b_3) will be created
-            for x in range(1, int(delta)+1):
+            # time-unfolded links (a_1, b_2) and (a_1, b_3) will be created            
+            for x in range(1, int(current_delta)+1):
                 w_t = "{0}_{1}".format(w.uid, begin+x)
                 #node_map[w_t] = edge.w.uid
                 if v_t not in dag.nodes:

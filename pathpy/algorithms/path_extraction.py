@@ -31,7 +31,8 @@ def extract_path_collection(self, **kwargs: Any) -> PathCollection:
 
 @extract_path_collection.register(ABCDirectedAcyclicGraph)
 def _dag_paths(self, **kwargs):
-    """Convert a DAG to paths."""
+    """Calculates path statistics from a directed acyclic graph
+    """
 
     # check if dag is acyclic
     if self.acyclic is None:
@@ -57,10 +58,12 @@ def _temporal_paths(self, **kwargs):
     #paths = PathCollection(edges=self.edges.copy())
     paths = PathCollection()
 
-    delta = kwargs.get('delta', 1)
+    delta : float = kwargs.get('delta', 1)
+
     # generate a single time-unfolded DAG
     dag = DirectedAcyclicGraph.from_temporal_network(self, delta=delta)
 
+    # extract causal tree for each root node
     for root in dag.roots:
         causal_tree = _causal_tree(dag, root)
 
@@ -76,7 +79,9 @@ def _temporal_paths(self, **kwargs):
 
 
 def _causal_tree(dag, root):
-    """Generate a causal tree"""
+    """ Generates a causal tree in a DAG, starting from a 
+    given root node
+    """
     LOG.debug('Generate causal tree for root: %s', root.uid)
     from pathpy.models.directed_acyclic_graph import DirectedAcyclicGraph
 
