@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sat 2021-05-01 17:32 juergen>
+# Time-stamp: <Mon 2021-05-03 15:33 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -16,7 +16,7 @@ from collections.abc import MutableMapping
 from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
 
 from pathpy import logger
-from pathpy.core.classes import PathPyObject
+from pathpy.core.classes import PathPyObject, PathPyCollection
 
 # create logger for the Path class
 LOG = logger(__name__)
@@ -190,6 +190,93 @@ class BasePath(PathPyObject):
         ]
 
         return ''.join(summary)
+
+
+class BasePathCollection(PathPyCollection):
+    """Base collection for BasePathObjects"""
+
+    def __init__(self, *args, **kwargs):
+        """Initialize the BasePathCollection object."""
+
+        # dict to store child objects {child.uid:child.PathPyObject}
+        self._objects: dict = dict()
+
+        # mapping between the child and the parten {child.uid: {parten.uids}}
+        self._mapping: defaultdict = defaultdict(set)
+
+        # enable indexing of the structures
+        self._indexed: bool = kwargs.pop('indexed', True)
+
+        # inidcator whether the network is directed or undirected
+        self._directed: bool = kwargs.pop('directed', True)
+
+        # dict to store the relationships between objects
+        # IMPORTANT key has to be hashable
+        # i.e. if the structure changes the mapping has to be updated
+        self._relations: defaultdict = defaultdict(set)
+
+        # initialize the base class
+        super().__init__(*args, **kwargs)
+
+    @singledispatchmethod
+    def __getitem__(self, key):
+        return super().__getitem__(key)
+
+    @__getitem__.register(tuple)  # type: ignore
+    def _(self, key):
+        return {self._store[uid] for uid in self._relations[PathTuple(key, directed=self.directed)]}
+
+    @singledispatchmethod
+    def __contains__(self, item) -> bool:
+        """Returns if item is in edges."""
+        return super().__contains__(item)
+
+    @__contains__.register(tuple)  # type: ignore
+    def _(self, item: tuple) -> bool:
+        return PathTuple(item, directed=self.directed) in self._relations
+
+    @property
+    def directed(self) -> bool:
+        """Return if the collection is directed. """
+        return self._directed
+
+    def _add(self, obj: BasePath) -> None:
+        """Add an edge to the set of edges."""
+        super()._add(obj)
+        self._objects.update(obj.objects)
+
+        for uid in obj.objects:
+            self._mapping[uid].add(obj.uid)
+
+        if self._indexed:
+            self._relations[obj.relations].add(obj.uid)
+
+    @singledispatchmethod
+    def remove(self, *args, **kwargs):
+        """Remove objects"""
+        super().remove(*args, **kwargs)
+
+    @remove.register(str)  # type: ignore
+    def _(self, *args: str, **kwargs: Any):
+        """Remove object from the collection"""
+        for uid in args:
+            if uid in self.keys():
+                self._remove(self[uid], **kwargs)
+
+    def _remove(self, obj: BasePath) -> None:
+        """Add an edge to the set of edges."""
+        super()._remove(obj)
+
+        for uid in obj.objects:
+            self._mapping[uid].discard(obj.uid)
+            if len(self._mapping[uid]) == 0:
+                self._mapping.pop(uid, None)
+                self._objects.pop(uid, None)
+
+        if self._indexed:
+            self._relations[obj.relations].discard(obj.uid)
+            if len(self._relations[obj.relations]) == 0:
+                self._relations.pop(obj.relations, None)
 
 
 def _get_valid_objects(item) -> list:
