@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : node.py -- Base class for a node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-05-04 11:00 juergen>
+# Time-stamp: <Tue 2021-05-04 11:38 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -20,9 +20,106 @@ LOG = logger(__name__)
 
 
 class Node(PathPyPath):
-    """Base class for a node."""
+    """Base class for a node.
 
-    def __init__(self, *n: Union[str, PathPyObject],
+    A node (or vertex) is the fundamental unit of which networks are formed. In
+    general nodes are treated as featureless and indivisible objects, although
+    they may have additional structure depending on the application from which
+    the netwokr arises.
+
+    In ``pathpy`` the :py:class:`Node` is a path of length 0. I.e. an object
+    which do not have any explicit relations to other objects. Internaly it
+    refers to a :py:class:`PathPyObject` or to itself.  The node is referenced
+    by its unique identifier (``uid``) and can store any arbitrary python
+    objects as attributes.
+
+    Parameters
+    ----------
+    *node : str or PathPyObject
+
+        A ``str`` or :py:class:`PathPyObject` associated with the node. The
+        :py:class:`Node` will point to this object and stor this reference. If
+        a ``str`` is given, the :py:class:`Node` will refere to itself usig the
+        ``str`` as ``uid``.
+
+    uid : str optional (default=None)
+
+        The parameter ``uid`` is the unique identifier for the node. Every node
+        should have an uid. The uid is converted to a string value and is used
+        as a key value for all dict which saving node objects. If no ``uid`` is
+        given, and the node argument is not a ``str``, a random python uid will
+        be assigned.
+
+    kwargs : Any
+
+        Keyword arguments to store node attributes. Attributes are added to the
+        node as ``key=value`` pairs.
+
+    Examples
+    --------
+    Load the ``pathpy`` module and create an empty :py:class:`Node` object.
+
+    >>> from pathpy import Node
+    >>> u = Node('u')
+
+    Get the id of the node.
+
+    >>> u.uid
+    'u'
+
+    Create a node with attached attribute.
+
+    >>> u = Node('u', color='red')
+    >>> u['color']
+    'red'
+
+    Add attribute to the node.
+
+    >>> u['shape'] = 'circle'
+    >>> u['shape]
+    'circle'
+
+    Change single attribute.
+
+    >>> u['color'] = 'blue'
+
+    Update multiple attributes.
+
+    >>> u.update(color='green', shape='rectangle')
+
+    Make a copy of the node.
+
+    >>> v = u.copy()
+    >>> v.uid
+    'u'
+
+    Make a plot element and plot the node as a png image.
+
+    .. todo::
+
+        Make a single plot command for plotting nodes.
+        The code below is not working yet!
+
+    >>> plt = u.plot()
+    >>> plt.show('png')
+
+    .. plot::
+
+       import pathpy as pp
+       u = pp.Node('u', color='green', shape='rectangle')
+       net = pp.Network()
+       net.add_node(u)
+       plt = net.plot()
+       plt.show('png')
+
+    See Also
+    --------
+    Edge
+    Path
+
+    """
+
+    def __init__(self, *node: Union[str, PathPyObject],
                  uid: Optional[str] = None, **kwargs: Any) -> None:
         """Initialize the node object."""
 
@@ -30,10 +127,11 @@ class Node(PathPyPath):
         # ----------------
         # If only one string argument is given and no uid is defined
         # use the string argument as uid
-        uid = n[0] if n and isinstance(n[0], str) and uid is None else uid
+        uid = node[0] if node and isinstance(
+            node[0], str) and uid is None else uid
 
         # initialize the parent class
-        super().__init__(*n, uid=uid, **kwargs)
+        super().__init__(*node, uid=uid, **kwargs)
 
 
 class NodeCollection(PathPyCollection):
