@@ -19,23 +19,20 @@ from pathpy import logger
 from pathpy.core.api import NodeCollection
 from pathpy.core.api import EdgeCollection
 from pathpy.core.api import PathCollection
-
-from pathpy.models.models import (ABCDirectedAcyclicGraph,
-                                  ABCTemporalNetwork)
+from pathpy.models.classes import BaseTemporalNetwork
+from pathpy.models.models import ABCDirectedAcyclicGraph
 
 # create logger
 LOG = logger(__name__)
 
-
 @singledispatch
-def to_path_collection(self, **kwargs: Any) -> PathCollection:
-    """Converts object to path collection"""
+def extract_path_collection(self, **kwargs: Any) -> PathCollection:
     raise NotImplementedError
 
-
-@to_path_collection.register(ABCDirectedAcyclicGraph)
-def _dag(self, **kwargs):
-    """Convert a DAG to paths."""
+@extract_path_collection.register(ABCDirectedAcyclicGraph)
+def _dag_paths(self, **kwargs):
+    """Calculates path statistics from a directed acyclic graph
+    """
 
     # check if dag is acyclic
     if self.acyclic is None:
@@ -53,18 +50,20 @@ def _dag(self, **kwargs):
     return paths
 
 
-@to_path_collection.register(ABCTemporalNetwork)
-def _temp(self, **kwargs):
+@extract_path_collection.register(BaseTemporalNetwork)
+def _temporal_paths(self, **kwargs):
     """Convert a temporal network to paths."""
     from pathpy.models.directed_acyclic_graph import DirectedAcyclicGraph
 
     #paths = PathCollection(edges=self.edges.copy())
     paths = PathCollection()
 
-    delta = kwargs.get('delta', 1)
+    delta : float = kwargs.get('delta', 1)
+
     # generate a single time-unfolded DAG
     dag = DirectedAcyclicGraph.from_temporal_network(self, delta=delta)
 
+    # extract causal tree for each root node
     for root in dag.roots:
         causal_tree = _causal_tree(dag, root)
 
@@ -80,7 +79,9 @@ def _temp(self, **kwargs):
 
 
 def _causal_tree(dag, root):
-    """Generate a causal tree"""
+    """ Generates a causal tree in a DAG, starting from a 
+    given root node
+    """
     LOG.debug('Generate causal tree for root: %s', root.uid)
     from pathpy.models.directed_acyclic_graph import DirectedAcyclicGraph
 

@@ -217,11 +217,11 @@ def write_dataframe(frame: pd.DataFrame, path_or_buf: Any = None,
 
 def write(network: Union[Network, TemporalNetwork],
           path_or_buf: Any = None,
-          exclude_edge_uid: bool = False,
+          include_edge_uid: bool = False,
           export_indices: bool = False,
           **pdargs: Any) -> None:
     """Stores all edges including edge attributes in a csv file."""
-    frame = to_dataframe(network=network, exclude_edge_uid=exclude_edge_uid,
+    frame = to_dataframe(network=network, include_edge_uid=include_edge_uid,
                          export_indices=export_indices)
 
     return write_dataframe(frame, path_or_buf=path_or_buf, **pdargs)

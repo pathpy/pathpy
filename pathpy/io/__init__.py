@@ -1,4 +1,4 @@
-"""Module for input output data to pathpy"""
+"""Module to import/export data"""
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
@@ -16,6 +16,7 @@ from pathpy.io.pandas import (
     to_network,
     to_temporal_network
 )
+from pathpy.io import network_recognition
 
 from pathpy.io import graphml
 from pathpy.io import csv
@@ -23,6 +24,7 @@ from pathpy.io import sql
 from pathpy.io import graphtool
 from pathpy.io import konect
 from pathpy.io import infomap
+from pathpy.io import network_recognition
 
 # =============================================================================
 # eof
