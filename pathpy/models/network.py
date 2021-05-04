@@ -5,7 +5,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-05-04 13:32 juergen>
+# Time-stamp: <Tue 2021-05-04 13:44 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -259,19 +259,19 @@ class Network(BaseNetwork):
         # TODO: update also netork properties
 
         # add nodes and edges of self to the new network
-        network.add_nodes(*self.nodes)
-        network.add_edges(*self.edges)
+        network.add_nodes(*self.nodes.values())
+        network.add_edges(*self.edges.values())
 
         # add nodes and edges of the other to the new network
         # iterate over all other nodes
-        for node in other.nodes:
+        for node in other.nodes.values():
             # check if the node object already exists
             if node not in network.nodes.values():
                 # add node to the network
                 network.add_node(node)
 
         # iterate over all other edges
-        for edge in other.edges:
+        for edge in other.edges.values():
             # check if the edge object already exists
             if edge not in network.edges.values():
                 # add node to the network
@@ -288,12 +288,12 @@ class Network(BaseNetwork):
                           **self.attributes)
 
         # add nodes and edges of self to a new network
-        network.add_nodes(*self.nodes)
-        network.add_edges(*self.edges)
+        network.add_nodes(*self.nodes.values())
+        network.add_edges(*self.edges.values())
 
         # remove nodes and edges of the other network
-        network.remove_edges(*other.edges)
-        network.remove_nodes(*other.nodes)
+        network.remove_edges(*other.edges.values())
+        network.remove_nodes(*other.nodes.values())
 
         # return the new network
         return network
@@ -306,14 +306,14 @@ class Network(BaseNetwork):
 
         # add nodes and edges of the other to the network
         # iterate over all other nodes
-        for node in other.nodes:
+        for node in other.nodes.values():
             # check if the node object already exists
             if node not in self.nodes.values():
                 # add node to the network
                 self.add_node(node)
 
         # iterate over all other edges
-        for edge in other.edges:
+        for edge in other.edges.values():
             # check if the edge object already exists
             if edge not in self.edges.values():
                 # add node to the network
@@ -325,8 +325,8 @@ class Network(BaseNetwork):
         """Remove a network."""
 
         # remove nodes and edges of the other network
-        self.remove_edges(*other.edges)
-        self.remove_nodes(*other.nodes)
+        self.remove_edges(*other.edges.values())
+        self.remove_nodes(*other.nodes.values())
 
         return self
 
