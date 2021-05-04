@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : onr.py -- Read networks from image data
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Sat 2021-04-23 01:11 ingos>
+# Time-stamp: <Tue 2021-05-04 02:41 ingos>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
