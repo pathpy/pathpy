@@ -5,7 +5,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-05-04 12:54 juergen>
+# Time-stamp: <Tue 2021-05-04 13:18 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -460,8 +460,7 @@ class Network(BaseNetwork):
         {'v': {Node w}, 'w':{}}
 
         """
-        _d = self._properties['successors']
-        return {node.uid: _d[node] for node in self.nodes}
+        return {n: self._properties['successors'][n] for n in self.nodes}
 
     @property
     def predecessors(self) -> Dict[str, Set[Node]]:
@@ -488,32 +487,27 @@ class Network(BaseNetwork):
         {'v':{}, 'w': {Node v}}
 
         """
-        _d = self._properties['predecessors']
-        return {node.uid: _d[node] for node in self.nodes}
+        return {n: self._properties['predecessors'][n] for n in self.nodes}
 
     @property
     def outgoing(self) -> Dict[str, Set[Edge]]:
         """Retuns a dict with sets of outgoing edges."""
-        _d = self._properties['outgoing']
-        return {node.uid: _d[node] for node in self.nodes}
+        return {n: self._properties['outgoing'][n] for n in self.nodes}
 
     @property
     def incoming(self) -> Dict[str, Set[Edge]]:
         """Retuns a dict with sets of incoming edges."""
-        _d = self._properties['incoming']
-        return {node.uid: _d[node] for node in self.nodes}
+        return {n: self._properties['incoming'][n] for n in self.nodes}
 
     @property
     def neighbors(self) -> Dict[str, Set[Node]]:
         """Retuns a dict with sets of adjacent nodes."""
-        _d = self._properties['neighbors']
-        return {node.uid: _d[node] for node in self.nodes}
+        return {n: self._properties['neighbors'][n] for n in self.nodes}
 
     @property
     def incident_edges(self) -> Dict[str, Set[Edge]]:
         """Retuns a dict with sets of adjacent edges."""
-        _d = self._properties['incident_edges']
-        return {node.uid: _d[node] for node in self.nodes}
+        return {n: self._properties['incident_edges'][n] for n in self.nodes}
 
     def _degrees(self, _dict: defaultdict,
                  weight: Weight = None) -> Dict[str, float]:
