@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an single edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-04-21 20:27 juergen>
+# Time-stamp: <Tue 2021-05-04 11:09 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -16,7 +16,7 @@ from singledispatchmethod import singledispatchmethod
 from pathpy import logger
 from pathpy.core.classes import BaseEdge
 from pathpy.core.collections import BaseCollection
-from pathpy.core.node import Node, NodeSet, NodeCollection
+from pathpy.core.node import Node, NodeCollection
 
 # create logger for the Edge class
 LOG = logger(__name__)
