@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-03 17:37 juergen>
+# Time-stamp: <Tue 2021-05-04 11:01 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -12,13 +12,13 @@
 # from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
 
 from pathpy import logger
-from pathpy.core.core import BasePath, BasePathCollection
+from pathpy.core.core import PathPyPath, PathPyCollection
 
 # create logger for the Path class
 LOG = logger(__name__)
 
 
-class Path(BasePath):
+class Path(PathPyPath):
     """Base class for a path."""
 
     def summary(self) -> str:
@@ -33,7 +33,7 @@ class Path(BasePath):
         return ''.join(summary)
 
 
-class PathCollection(BasePathCollection):
+class PathCollection(PathPyCollection):
     """A collection of edges"""
     # pylint: disable=too-many-ancestors
 
