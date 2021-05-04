@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-05-04 12:08 juergen>
+# Time-stamp: <Tue 2021-05-04 13:02 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -94,7 +94,11 @@ class EdgeCollection(PathPyCollection):
     def _(self, key):
         if any((isinstance(i, (self._node_class)) for i in key)):
             key = tuple(self.nodes[i].uid for i in key)
-        return super().__getitem__(key)
+
+        edge = super().__getitem__(key)
+        if not self.multiedges and isinstance(edge, set):
+            edge = next(iter(edge))
+        return edge
 
     @singledispatchmethod
     def __contains__(self, item) -> bool:
