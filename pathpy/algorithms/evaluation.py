@@ -115,7 +115,7 @@ def _(network: TemporalNetwork, test_size: Optional[float]=0.25, train_size: Opt
     train_network = TemporalNetwork(directed=network.directed, multiedges=network.multiedges, uid=network.uid+'_train')
 
     if split == 'time':
-        start_time = network.end()
+        start_time = network.start()
         end_time = network.end()
         split_point = start_time + (end_time-start_time) * (1-test_size)
 
