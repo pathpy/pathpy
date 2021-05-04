@@ -5,7 +5,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-05-04 13:18 juergen>
+# Time-stamp: <Tue 2021-05-04 13:32 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -897,25 +897,26 @@ class Network(BaseNetwork):
     def _add_edge_properties(self):
         """Helper function to update network properties."""
 
-        edges = set(self.edges).difference(self._properties['edges'])
+        edges = set(self.edges.values()).difference(self._properties['edges'])
 
         for edge in edges:
-            _v, _w = self.edges[edge].relations
+            _v, _w = edge.relations
+            uid = edge.uid
 
             _nodes: list = [(_v, _w), (_w, _v)]
 
             for _v, _w in _nodes:
                 self._properties['successors'][_v].add(_w)
-                self._properties['outgoing'][_v].add(edge)
+                self._properties['outgoing'][_v].add(uid)
                 self._properties['predecessors'][_w].add(_v)
-                self._properties['incoming'][_w].add(edge)
+                self._properties['incoming'][_w].add(uid)
 
                 if self.directed:
                     break
 
             for _v, _w in _nodes:
                 self._properties['neighbors'][_v].add(_w)
-                self._properties['incident_edges'][_v].add(edge)
+                self._properties['incident_edges'][_v].add(uid)
 
                 self._properties['indegrees'][_v] = len(
                     self._properties['incoming'][_v])
@@ -929,25 +930,25 @@ class Network(BaseNetwork):
     def _remove_edge_properties(self):
         """Helper function to update network properties."""
 
-        edges = self._properties['edges'].difference(set(self.edges))
+        edges = self._properties['edges'].difference(set(self.edges.values()))
 
         for edge in edges:
-            _v, _w = self.edges[edge].relations
-
+            _v, _w = edge.relations
+            uid = edge.uid
             _nodes: list = [(_v, _w), (_w, _v)]
 
             for _v, _w in _nodes:
                 self._properties['successors'][_v].discard(_w)
-                self._properties['outgoing'][_v].discard(edge)
+                self._properties['outgoing'][_v].discard(uid)
                 self._properties['predecessors'][_w].discard(_v)
-                self._properties['incoming'][_w].discard(edge)
+                self._properties['incoming'][_w].discard(uid)
 
                 if self.directed:
                     break
 
             for _v, _w in _nodes:
                 self._properties['neighbors'][_v].discard(_w)
-                self._properties['incident_edges'][_v].discard(edge)
+                self._properties['incident_edges'][_v].discard(uid)
 
                 self._properties['indegrees'][_v] = len(
                     self._properties['incoming'][_v])
