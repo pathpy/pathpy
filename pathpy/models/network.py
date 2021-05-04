@@ -5,7 +5,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-04-21 09:09 juergen>
+# Time-stamp: <Tue 2021-05-04 12:54 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -166,7 +166,7 @@ class Network(BaseNetwork):
 
     """
     # pylint: disable=too-many-instance-attributes
-    # pylint: disable=too-many-public-methods       
+    # pylint: disable=too-many-public-methods
 
     def __init__(self, uid: Optional[str] = None, directed: bool = True,
                  multiedges: bool = False, **kwargs: Any) -> None:
@@ -216,7 +216,7 @@ class Network(BaseNetwork):
         can be printed to the console.
 
         """
-        return self.summary()    
+        return self.summary()
 
     @property
     def uid(self) -> str:
@@ -906,7 +906,9 @@ class Network(BaseNetwork):
         edges = set(self.edges).difference(self._properties['edges'])
 
         for edge in edges:
-            _nodes: list = [(edge.v, edge.w), (edge.w, edge.v)]
+            _v, _w = self.edges[edge].relations
+
+            _nodes: list = [(_v, _w), (_w, _v)]
 
             for _v, _w in _nodes:
                 self._properties['successors'][_v].add(_w)
@@ -936,7 +938,9 @@ class Network(BaseNetwork):
         edges = self._properties['edges'].difference(set(self.edges))
 
         for edge in edges:
-            _nodes: list = [(edge.v, edge.w), (edge.w, edge.v)]
+            _v, _w = self.edges[edge].relations
+
+            _nodes: list = [(_v, _w), (_w, _v)]
 
             for _v, _w in _nodes:
                 self._properties['successors'][_v].discard(_w)
@@ -1015,10 +1019,12 @@ class Network(BaseNetwork):
         directed: bool = kwargs.pop('directed', network.directed)
         multiedges: bool = False
 
-        weighted = cls(uid=uid, directed=directed, multiedges=multiedges, **kwargs)
+        weighted = cls(uid=uid, directed=directed,
+                       multiedges=multiedges, **kwargs)
         for e in network.edges:
             if (e.v, e.w) not in weighted.edges:
-                weighted.add_edge(e.v, e.w, weight=len(network.edges[(e.v, e.w)]))
+                weighted.add_edge(e.v, e.w, weight=len(
+                    network.edges[(e.v, e.w)]))
         return weighted
 
 # =============================================================================
