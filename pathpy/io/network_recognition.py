@@ -91,21 +91,23 @@ def _detect_edges(edges, min_edge_length, max_edge_gap, threshold, intersect_tol
                     network.add_edge(v, w)
 
 
-def _preprocess_image(img, sigma=0.25):
+def _preprocess_image(img, sigma=0.25, dil=2):
     """
     """
     from skimage.color import rgb2gray
     from skimage import feature
+    from skimage.morphology import dilation, square
 
     grayscale = rgb2gray(img)
     edges = feature.canny(grayscale, sigma=sigma)
+    edges = dilation(edges, square(dil))
 
     # plt.imshow(edges, cmap='gray')
 
     return edges
 
 
-def from_image(img_path, sigma=0.25, node_radius: tuple=(10,15), num_nodes: int=50, threshold=20, min_edge_length: int=20, max_edge_gap: int=5, intersect_tolerance_factor: int=1.1) -> Network:
+def from_image(img_path, sigma=0.25, dilation=2, node_radius: tuple=(10,15), num_nodes: int=50, threshold=20, min_edge_length: int=20, max_edge_gap: int=5, intersect_tolerance_factor: int=1.1) -> Network:
     """
     """
     from skimage import io
@@ -114,7 +116,7 @@ def from_image(img_path, sigma=0.25, node_radius: tuple=(10,15), num_nodes: int=
 
     n = Network(directed=False, multiedges=False)
 
-    edges = _preprocess_image(img, sigma)
+    edges = _preprocess_image(img, sigma, dilation)
 
     _detect_nodes(edges, node_radius, num_nodes, n)
     _detect_edges(edges, min_edge_length, max_edge_gap, threshold, intersect_tolerance_factor, n)
