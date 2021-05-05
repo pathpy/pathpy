@@ -1,28 +1,27 @@
-""""Algorithms for shortest paths calculations."""
+"""Algorithms for shortest paths calculations."""
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
 # File      : shortest_paths.py -- Module to calculate shortest paths and diameter
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Thu 2020-09-03 14:30 juergen>
+# Time-stamp: <Mon 2021-03-29 16:33 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, List, Dict, Tuple, Optional, Union
+from typing import TYPE_CHECKING, Tuple, Union
 from collections import defaultdict
 import numpy as np
 from scipy.sparse import csgraph  # pylint: disable=import-error
-from queue import PriorityQueue
+# from queue import PriorityQueue
 
 from pathpy import logger, tqdm
 
-from ..core import network as net
+import pathpy.models.api as api
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
-    from pathpy.core.network import Network
-    from pathpy.core.node import Node
+    from pathpy.models.network import Network
 
 # from pathpy.core.path import Path
 
@@ -36,7 +35,7 @@ def distance_matrix(network: Network,
 
     .. note::
 
-        Shortest paths are calculated using the implementation 
+        Shortest paths are calculated using the implementation
         of the Floyd-Warshall algorithm provided in `scipy.csgraph`.
 
     Parameters
@@ -77,7 +76,8 @@ def distance_matrix(network: Network,
 
 def all_shortest_paths(network: Network,
                        weight: Union[str, bool, None] = None,
-                       return_distance_matrix: bool = True) -> Union[defaultdict, Tuple[defaultdict, np.ndarray]]:
+                       return_distance_matrix: bool = True
+                       ) -> Union[defaultdict, Tuple[defaultdict, np.ndarray]]:
     """Calculates shortest paths between all pairs of nodes.
 
     .. note::
@@ -121,9 +121,9 @@ def all_shortest_paths(network: Network,
     for e in network.edges:
         cost = 1
 
-        if weight == True:
+        if weight is True:
             cost = e.attributes['weight']
-        elif weight != False and weight != None:
+        elif weight is not False and weight is not None:
             cost = e.attributes[weight]
 
         dist[e.v.uid][e.w.uid] = cost
@@ -132,7 +132,8 @@ def all_shortest_paths(network: Network,
             dist[e.w.uid][e.v.uid] = cost
             s_p[e.w.uid][e.v.uid].add((e.w.uid, e.v.uid))
 
-    for k in tqdm(network.nodes.keys(), desc='calculating shortest paths between all nodes'):
+    for k in tqdm(network.nodes.keys(),
+                  desc='calculating shortest paths between all nodes'):
         for v in network.nodes.keys():
             for w in network.nodes.keys():
                 if v != w:
@@ -165,8 +166,10 @@ def all_shortest_paths(network: Network,
         return s_p
 
 
-def single_source_shortest_paths(network: Network, source: str, weight: Union[bool, str, None] = None) -> Union[dict, np.array]:
-    """Calculates all shortest paths from a single given source node using a 
+def single_source_shortest_paths(network: Network,
+                                 source: str, weight: Union[bool, str, None] = None
+                                 ) -> Union[dict, np.array]:
+    """Calculates all shortest paths from a single given source node using a
     custom implementation of Dijkstra's algorithm based on a priority queue.
     """
     Q: dict = dict()
@@ -189,9 +192,9 @@ def single_source_shortest_paths(network: Network, source: str, weight: Union[bo
             # for networks with no edge costs, edges have constant cost
             cost = 1
 
-            if weight == True:
+            if weight is True:
                 cost = list(network.edges[u, v])[0].attributes['weight']
-            elif weight != False and weight != None:
+            elif weight is not False and weight is not None:
                 cost = list(network.edges[u, v])[0].attributes[weight]
 
             new_dist = dist[u] + cost
@@ -213,10 +216,10 @@ def single_source_shortest_paths(network: Network, source: str, weight: Union[bo
         if dest.uid != source:
             path = [dest.uid]
             x = dest.uid
-            while x != source and x != None:
+            while x is not source and x is not None:
                 x = prev[x]
                 path.append(x)
-            if x == None:
+            if x is None:
                 s_p[dest.uid] = None
             else:
                 path.reverse()
@@ -224,11 +227,13 @@ def single_source_shortest_paths(network: Network, source: str, weight: Union[bo
     return dist_arr, s_p
 
 
-def shortest_path_tree(network: Network, source: str, weight: Union[bool, str, None] = None) -> Network:
+def shortest_path_tree(network: Network,
+                       source: str, weight: Union[bool, str, None] = None
+                       ) -> Network:
     """Computes a shortest path tree rooted at the node with the
     given source uid."""
 
-    n_tree = net.Network(directed=True)
+    n_tree = api.Network(directed=True)
 
     Q: dict = dict()
     dist = dict()
@@ -249,9 +254,9 @@ def shortest_path_tree(network: Network, source: str, weight: Union[bool, str, N
             # for networks with no edge costs, edges have constant cost
             cost = 1
 
-            if weight == True:
+            if weight is True:
                 cost = list(network.edges[u, v])[0].attributes['weight']
-            elif weight != False and weight != None:
+            elif weight is not False and weight is not None:
                 cost = list(network.edges[u, v])[0].attributes[weight]
 
             new_dist = dist[u] + cost
@@ -263,7 +268,7 @@ def shortest_path_tree(network: Network, source: str, weight: Union[bool, str, N
                     Q[v.uid] = new_dist
 
     for k, v in prev.items():
-        if v != None:
+        if v is not None:
             n_tree.add_edge(v, k)
 
     return n_tree
@@ -354,10 +359,10 @@ def avg_path_length(network: Network,
     """Calculates the average shortest path length in directed or undirected
     networks, according to the definition
 
-        <l> := \sum_{i \neq j} D[i,j]/(n (n-1))
+        <l> := \\sum_{i \neq j} D[i,j]/(n (n-1))
 
-    where n is the number of nodes and D is a matrix containing shortest pair 
-    distances for all node pairs i,j. The above definition holds for the 
+    where n is the number of nodes and D is a matrix containing shortest pair
+    distances for all node pairs i,j. The above definition holds for the
     default case where paths between node pairs (i,i) are excluded.
 
     .. note::
@@ -377,7 +382,8 @@ def avg_path_length(network: Network,
 
     exclude_zero : bool
 
-        If True, (zero) diagonal entries in the distance matrix will be included in the average shortest path length.
+        If True, (zero) diagonal entries in the distance matrix will be excluded
+        in the average shortest path length calculation.
 
     Examples
     --------
@@ -387,7 +393,7 @@ def avg_path_length(network: Network,
         [   a x c ]
         [ a 0 1 2 ]
     D = [ x 1 0 1 ]
-        [ c 2 1 0 ]    
+        [ c 2 1 0 ]
 
     yielding an average shortest path length of 8/6 = 1.33
 
@@ -399,6 +405,7 @@ def avg_path_length(network: Network,
     1.3333
     >>> pp.algorithms.shortest_paths.avg_path_length(net, exclude_zero=False)
     0.8888
+
     """
     D = distance_matrix(network, weight=weight)
 

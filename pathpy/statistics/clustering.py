@@ -1,10 +1,10 @@
-"""Clustering statistics."""
+"""Methods to analyze clustering patterns in networks"""
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
 # File      : clustering.py -- Module to calculate clustering statistics
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Mon 2020-04-20 10:01 juergen>
+# Time-stamp: <Mon 2021-03-29 16:56 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -16,7 +16,7 @@ from pathpy import logger
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
-    from pathpy.core.network import Network
+    from pathpy.models.api import Network
 
 # create logger
 LOG = logger(__name__)

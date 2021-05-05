@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : null_models.py -- Null models for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sun 2020-09-06 11:07 juergen>
+# Time-stamp: <Wed 2021-03-31 11:18 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -18,7 +18,7 @@ from pathpy import logger, tqdm
 from pathpy.core.node import NodeCollection
 from pathpy.core.edge import EdgeCollection
 from pathpy.core.path import PathCollection
-from pathpy.core.network import Network
+from pathpy.models.network import Network
 
 from pathpy.models.higher_order_network import (HigherOrderNetwork,
                                                 HigherOrderNodeCollection)
@@ -43,7 +43,7 @@ class NullModel(HigherOrderNetwork):
         """Fit data to a NullModel"""
         raise NotImplementedError
 
-    @fit.register(PathCollection)
+    @fit.register(PathCollection)  # type: ignore
     def _(self, data: PathCollection, order: Optional[int] = None) -> None:
 
         # Check order
@@ -78,7 +78,7 @@ class NullModel(HigherOrderNetwork):
             LOG.error('A Null Model with order %s is not supported', self.order)
             raise AttributeError
 
-    @fit.register(Network)
+    @fit.register(Network)  # type: ignore
     def _(self, data: Network, order: Optional[int] = None) -> None:
 
         # Check order

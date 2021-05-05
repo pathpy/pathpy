@@ -101,10 +101,6 @@ def test_repr(nodes):
 
     assert vw.__repr__() == 'Edge vw'
 
-    vw = Edge(v, w)
-
-    assert vw.__repr__().replace('>', '').split(' ')[-1] == vw.uid
-
 
 def test_update(nodes):
     """Test update node attributes."""

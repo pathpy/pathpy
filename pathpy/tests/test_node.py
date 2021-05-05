@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_node.py -- Test environment for the Node class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-07-14 18:08 juergen>
+# Time-stamp: <Sun 2020-10-04 11:18 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -71,10 +71,6 @@ def test_repr():
     u = Node('u')
 
     assert u.__repr__() == 'Node u'
-
-    v = Node()
-
-    assert v.__repr__().replace('>', '').split(' ')[-1] == v.uid
 
 
 def test_update():

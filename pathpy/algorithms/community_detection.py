@@ -1,4 +1,4 @@
-"""Methods to find community structures in networks."""
+"""Algorithms to find community structures in networks."""
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
@@ -10,7 +10,7 @@
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import TYPE_CHECKING, Dict, Tuple, Iterable, Union
+from typing import TYPE_CHECKING, Dict, Tuple, Set
 import numpy as np
 import random
 
@@ -18,7 +18,7 @@ from pathpy import logger, tqdm
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
-    from pathpy.core.network import Network
+    from pathpy.models.api import Network
 
 # create logger for the Plot class
 LOG = logger(__name__)
@@ -34,38 +34,6 @@ def _Q_merge(network: Network, A, D, n: int, m: int, C: Dict, merge: Set = set()
                 q += A[network.nodes.index[v], network.nodes.index[w]] - D[v]*D[w]/(2*m)
     q /= 2*m
     return q
-
-
-def color_map(network: Network, cluster_mapping: Union[Dict, Iterable], colors: List = None) -> Dict:
-    """Returns a dictionary that maps nodes to colors based on their communities.
-
-    Currently, a maximum of 20 different communities is supported.
-    """
-    if colors == None:
-        colors = ['CornflowerBlue', 'orange', 'yellow', 'cyan', 'blueviolet', 'red', 'blue',
-              'chocolate', 'magenta', 'navy', 'plum', 'thistle', 'wheat',
-              'turquoise', 'steelblue', 'grey', 'powderblue', 'orchid',
-              'mintcream', 'maroon']
-    node_colors = {}
-    community_color_map: Dict = {}
-    i = 0    
-    for x in network.nodes:
-        if isinstance(cluster_mapping, dict):
-            v = x.uid
-        else:
-            v = network.nodes.index[x.uid]
-        
-        if cluster_mapping[v] not in community_color_map:
-            community_color_map[cluster_mapping[v]] = i % len(colors)
-            i += 1
-            if i > 20:
-                LOG.warning('Exceeded 20 different communities, '
-                            'some communities are assigned the same color.')
-        if isinstance(cluster_mapping, dict):
-            node_colors[v] = colors[community_color_map[cluster_mapping[v]]]   
-        else:
-            node_colors[x.uid] = colors[community_color_map[cluster_mapping[v]]]   
-    return node_colors
 
 
 def modularity_maximisation(network: Network,

@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : __init__.py -- Initialize statistics methods for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-08-31 07:16 juergen>
+# Time-stamp: <Sun 2021-05-02 03:13 ingo>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -19,6 +19,7 @@ from pathpy.statistics.degrees import (degree_sequence,
                                        degree_generating_function,
                                        mean_degree,
                                        mean_neighbor_degree,
+                                       molloy_reed_fraction
                                        )
 
 from pathpy.statistics.clustering import (local_clustering_coefficient,
@@ -30,6 +31,10 @@ from pathpy.statistics.modularity import (Q_modularity,
                                           Q_max_modularity,
                                           Q_assortativity_coefficient,
                                           )
+
+from pathpy.statistics import likelihoods
+
+from pathpy.statistics.reciprocity import edge_reciprocity
 
 # =============================================================================
 # eof

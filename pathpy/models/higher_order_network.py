@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sun 2020-09-06 11:33 juergen>
+# Time-stamp: <Wed 2021-03-31 11:02 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -18,7 +18,7 @@ from pathpy import logger
 from pathpy.core.node import Node, NodeCollection
 from pathpy.core.edge import Edge, EdgeCollection, EdgeSet
 from pathpy.core.path import Path, PathCollection
-from pathpy.core.network import Network
+from pathpy.models.network import Network
 
 from pathpy.models.models import ABCHigherOrderNetwork
 from pathpy.statistics.subpaths import SubPathCollection
@@ -320,6 +320,61 @@ class HigherOrderNodeCollection(PathCollection):
 
         # class of objects
         self._path_class = HigherOrderNode
+
+    @singledispatchmethod
+    def __contains__(self, item) -> bool:
+        """Returns if item is in path collection."""
+        return super().__contains__(item)
+
+    @__contains__.register(HigherOrderNode)  # type: ignore
+    def _(self, item: HigherOrderNode) -> bool:
+        _contain: bool = False
+        if item in self.values():
+            _contain = True
+        return _contain
+
+    @singledispatchmethod
+    def add(self, *path, **kwargs: Any) -> None:
+        """Add multiple paths."""
+        super().add(*path, **kwargs)
+
+    @add.register(HigherOrderNode)  # type: ignore
+    def _(self, *path: HigherOrderNode, **kwargs: Any) -> None:
+
+        # if checking is disabed add path directly to the collection
+        if not kwargs.pop('checking', True):
+            self._add(path[0], indexing=kwargs.pop('indexing', True))
+            return
+
+        # check if more then one path is given raise an AttributeError
+        if len(path) != 1:
+            for _path in path:
+                self.add(_path)
+            return
+
+        # get path object
+        _path = path[0]
+
+        # update path attributes
+        _path.update(**kwargs)
+
+        # check if path already exists
+        if _path not in self and _path.uid not in self.keys():
+
+            # if path has len zero add single node
+            if len(_path) == 0 and _path.start not in self.nodes:
+                self.nodes.add(_path.start)
+
+            # check if edges exists already
+            for edge in _path.edges:
+                if edge not in self.edges:
+                    self.edges.add(edge)
+
+            # add path to the paths
+            self._add(_path)
+        else:
+            # raise error if path already exists
+            self._if_exist(_path, **kwargs)
 
     def _if_exist(self, path: Any, **kwargs: Any) -> None:
         """If the node already exists"""

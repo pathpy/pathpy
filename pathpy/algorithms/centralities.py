@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : centralities.py -- Module to calculate node centrality measures
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Sun 2020-09-06 12:51 juergen>
+# Time-stamp: <Mon 2021-03-29 17:15 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -21,15 +21,15 @@ from pathpy import logger
 from pathpy.algorithms import shortest_paths
 from pathpy.algorithms.matrices import adjacency_matrix
 
-from pathpy.core.base import BaseModel, BaseCollection
+from pathpy.core.collections import BaseCollection
+from pathpy.models.classes import BaseModel
 from pathpy.models.models import ABCHigherOrderNetwork
-
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
-    from pathpy.core.path import PathCollection
-    from pathpy.core.network import Network
-    from pathpy.models.higher_order_network import HigherOrderNetwork
+    from pathpy.core.api import PathCollection
+    from pathpy.models.api import Network
+    from pathpy.models.api import HigherOrderNetwork
 
 # create logger
 LOG = logger(__name__)

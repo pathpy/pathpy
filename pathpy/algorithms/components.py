@@ -16,7 +16,7 @@ from pathpy import logger, tqdm
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
-    from pathpy.core.network import Network
+    from pathpy.models.api import Network
 
 LOG = logger(__name__)
 

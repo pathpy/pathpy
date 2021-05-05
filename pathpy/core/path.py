@@ -4,19 +4,20 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-09-07 14:04 juergen>
+# Time-stamp: <Mon 2021-03-29 18:14 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
 from typing import Any, Optional, Union, cast
 from collections import defaultdict
+from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
 
 from pathpy import logger
-from pathpy.core.base import BasePath, BaseCollection
+from pathpy.core.classes import BasePath
+from pathpy.core.collections import BaseCollection
 from pathpy.core.node import Node, NodeCollection
 from pathpy.core.edge import Edge, EdgeCollection
-import pathpy.io
 
 # create logger for the Path class
 LOG = logger(__name__)
@@ -38,9 +39,6 @@ class Path(BasePath):
         # start node of the path
         self._start: Node
 
-        # add attributes to the path
-        self.attributes.update(**kwargs)
-
         # only the start node is given
         if len(args) == 1 and isinstance(args[0], Node):
             self._start = args[0]
@@ -60,11 +58,16 @@ class Path(BasePath):
                     self._start = edge.v
 
                 # check if edges are consecutive
-                elif self._path[-1].w == edge.v:
+                elif self._path[-1].w.uid == edge.v.uid:
                     self._path.append(edge)
                 else:
                     LOG.error('Path object needs consecutive edges!')
-                    raise AttributeError
+                    raise AttributeError('Edges in Path must be consecutive.')
+
+    def tolist(self) -> list:
+        """Return a list of node uids representing the path.
+        """
+        return [x.uid for x in self.nodes]
 
     def __str__(self) -> str:
         """Print a summary of the path.
@@ -166,6 +169,7 @@ class Path(BasePath):
         {'a': Node a, 'b': Node b, 'c': Node c}
 
         """
+        # TODO: Bug here for undirected edges!
         return [self._start] + [e.w for e in self._path]
 
     @property
@@ -371,9 +375,11 @@ class PathCollection(BaseCollection):
             self._nodes = edges.nodes
 
         # collection of edges
-        self._edges: EdgeCollection = EdgeCollection(directed=directed,
-                                                     multiedges=multiedges,
-                                                     nodes=self._nodes)
+        self._edges: EdgeCollection = EdgeCollection(
+            directed=directed,
+            multiedges=multiedges,
+            nodes=self._nodes
+        )
         if edges is not None:
             self._edges = edges
 
@@ -392,33 +398,53 @@ class PathCollection(BaseCollection):
         # class of objects
         self._path_class: Any = Path
 
+        self._added: set = set()
+        self._removed: set = set()
+
+    @singledispatchmethod
     def __contains__(self, item) -> bool:
-        """Returns if item is in path."""
+        """Returns if item is in path collection."""
         _contain: bool = False
-        if isinstance(item, self._path_class) and item in self._map.values():
+
+        return _contain
+
+    @__contains__.register(Path)  # type: ignore
+    def _(self, item: Path) -> bool:
+        _contain: bool = False
+        if item in self.values():
             _contain = True
-        elif isinstance(item, str) and item in self._map:
+        return _contain
+
+    @__contains__.register(str)  # type: ignore
+    def _(self, item: str) -> bool:
+        _contain: bool = False
+        if item in self.keys():
             _contain = True
-        elif isinstance(item, (tuple, list)):
+        return _contain
 
-            _contain_nodes: bool = False
-            _contain_edges: bool = False
-            try:
-                if tuple(self.nodes[i].uid for i in item) in self._nodes_map:
-                    _contain_nodes = _contain = True
-            except KeyError:
-                pass
+    @__contains__.register(tuple)  # type: ignore
+    @__contains__.register(list)
+    def _(self, item: Union[tuple, list]) -> bool:
+        _contain: bool = False
+        _contain_nodes: bool = False
+        _contain_edges: bool = False
 
-            try:
-                if (tuple(cast(Edge, self.edges[i]).uid for i in item)
-                        in self._edges_map):
-                    _contain_edges = _contain = True
-            except KeyError:
-                pass
+        try:
+            if tuple(self.nodes[i].uid for i in item) in self._nodes_map:
+                _contain_nodes = _contain = True
+        except KeyError:
+            pass
 
-            if _contain_nodes and _contain_edges:
-                LOG.warning('Matching node sequence as well as '
-                            'edge sequence was found!')
+        try:
+            if (tuple(cast(Edge, self.edges[i]).uid for i in item)
+                    in self._edges_map):
+                _contain_edges = _contain = True
+        except KeyError:
+            pass
+
+        if _contain_nodes and _contain_edges:
+            LOG.warning('Matching node sequence as well as '
+                        'edge sequence was found!')
         return _contain
 
     def __getitem__(self, key: Union[str, tuple, Path]) -> Path:
@@ -433,9 +459,9 @@ class PathCollection(BaseCollection):
                 try:
                     paths = self._edges_map[
                         tuple(cast(Edge, self.edges[i]).uid for i in key)]
-                except KeyError:
+                except KeyError as edges_not_exist:
                     LOG.error('No path with the given sequence available!')
-                    raise KeyError
+                    raise KeyError from edges_not_exist
 
             if self.multipaths:
                 path = paths
@@ -444,9 +470,20 @@ class PathCollection(BaseCollection):
 
         elif isinstance(key, self._path_class) and key in self:
             path = key
+
         else:
             path = self._map[key]
         return path
+
+    def __lshift__(self, path: Path) -> None:
+        """Quick assigment of a path"""
+        self[path.uid] = path
+        self._added.add(path)
+
+    def __rshift__(self, path: Path) -> None:
+        """Quick removal of an edge"""
+        self.pop(path.uid, None)
+        self._removed.add(path)
 
     @property
     def nodes(self) -> NodeCollection:
@@ -473,188 +510,254 @@ class PathCollection(BaseCollection):
         """Return if edges are directed. """
         return self._multipaths
 
-    def add(self, *paths: Union[str, tuple, list, Node, Edge, Path],
-            **kwargs: Any) -> None:
+    @singledispatchmethod
+    def add(self, *path, **kwargs: Any) -> None:
         """Add multiple paths."""
+        raise NotImplementedError
 
-        uid: Optional[str] = kwargs.pop('uid', None)
-        nodes: bool = kwargs.pop('nodes', True)
+    @add.register(Path)  # type: ignore
+    def _(self, *path: Path, **kwargs: Any) -> None:
 
-        if all(isinstance(arg, (str, Node, Edge))for arg in paths):
-            paths = tuple([paths])
+        # if checking is disabed add path directly to the collection
+        if not kwargs.pop('checking', True):
+            self._add(path[0], indexing=kwargs.pop('indexing', True))
+            return
 
-        if isinstance(paths[0], list) and len(paths) == 1:
-            paths = tuple(paths[0])
+        # check if more then one path is given raise an AttributeError
+        if len(path) != 1:
+            for _path in path:
+                self.add(_path)
+            return
 
-        for path in paths:
-            self._add_path(path, uid=uid, nodes=nodes, **kwargs)
+        # get path object
+        _path = path[0]
 
-    def _add_path(self, *path: Union[str, tuple, list, Node, Edge, Path],
-                  uid: Optional[str] = None, nodes: bool = True,
-                  **kwargs: Any) -> None:
-        """Add a single path."""
+        # update path attributes
+        _path.update(**kwargs)
 
-        if len(path) == 1 and isinstance(path[0], self._path_class):
-            _path = path[0]
-            # check if path exists already
-            if not self.contain(_path):
+        # check if path already exists
+        if _path not in self and _path.uid not in self.keys():
 
-                # if path is zero
-                if len(_path) == 0 and _path.start not in self.nodes:
-                    self.nodes.add(_path.start)
+            # if path has len zero add single node
+            if len(_path) == 0 and _path.start not in self.nodes:
+                self.nodes.add(_path.start)
 
-                # check if edges exists already
-                for edge in _path.edges:
-                    if edge not in self.edges:
-                        self.edges.add(edge)
+            # check if edges exists already
+            for edge in _path.edges:
+                if edge not in self.edges:
+                    self.edges.add(edge)
 
-                # add path to the paths
-                self._add(_path)
-
-            else:
-                # raise error if path already exists
-                self._if_exist(_path, **kwargs)
-
-        elif len(path) == 1 and isinstance(path[0], (tuple, list)):
-            self._add_path(*path[0], uid=uid, nodes=nodes, **kwargs)
-
-        elif all(isinstance(arg, (str, Node)) for arg in path) and nodes:
-            _nodes = [cast(Union[str, Node], node) for node in path]
-            self._add_path_from_nodes(*_nodes, uid=uid, **kwargs)
-
-        elif (all(isinstance(arg, Edge) for arg in path) or
-              (all(isinstance(arg, (str, Edge)) for arg in path) and not nodes)):
-            _edges = [cast(Union[str, Edge], edge) for edge in path]
-            self._add_path_from_edges(*_edges, uid=uid, **kwargs)
-
-        # otherwise raise error
+            # add path to the paths
+            self._add(_path)
         else:
-            LOG.error('The provided path "%s" is of the wrong type!', path)
+            # raise error if path already exists
+            self._if_exist(_path, **kwargs)
+
+    @add.register(Edge)  # type: ignore
+    def _(self, *path: Edge, **kwargs: Any) -> None:
+
+        # get additional parameters
+        uid: Optional[str] = kwargs.pop('uid', None)
+
+        # check if all objects are edges
+        if not all(isinstance(arg, (Edge, str)) for arg in path):
+            LOG.error('All objects have to be Edge objects!')
             raise TypeError
 
-    def _add_path_from_nodes(self, *nodes: Union[str, Node],
-                             uid: Optional[str] = None, **kwargs: Any) -> None:
-        """Helper function to add a path from nodes."""
+        # generate edge list
+        _edges: list = []
+
+        # get edges
+        for edge in path:
+            if edge not in self.edges or self.multiedges:
+                self.edges.add(edge, nodes=False)
+            _edges.append(self.edges[edge])
+
+        # create path based on single objects
+        _path = _edges
+        if _path not in self or self.multipaths:
+            self.add(self._path_class(*_path, uid=uid, **kwargs))
+        else:
+            # raise error if path already exists
+            self._if_exist(_path, **kwargs)
+
+    @add.register(Node)  # type: ignore
+    def _(self, *path: Node, **kwargs: Any) -> None:
+
+        # get additional parameters
+        uid: Optional[str] = kwargs.pop('uid', None)
+
+        # check if all objects are nodes
+        if not all(isinstance(arg, Node) for arg in path):
+            LOG.error('All objects have to be Node objects!')
+            raise TypeError
+
+        # initialize temporal lists
         _nodes: list = []
         _edges: list = []
         _path: list = []
-        for node in nodes:
+
+        # get nodes
+        for node in path:
             if node not in self.nodes:
                 self.nodes.add(node)
             _nodes.append(self.nodes[node])
 
+        # get edges
         for edge in zip(_nodes[:-1], _nodes[1:]):
             if edge not in self.edges or self.multiedges:
                 self.edges.add(edge)
             _edges.append(self.edges[edge])
 
+        # create path based on single objects
         if len(_edges) == 0:
             _path.append(_nodes[0])
         else:
             _path = _edges
 
         if _path not in self or self.multipaths:
-            self._add_path(self._path_class(*_path, uid=uid, **kwargs))
+            self._add(self._path_class(*_path, uid=uid, **kwargs))
         else:
             # raise error if node already exists
             self._if_exist(_path, **kwargs)
 
-    def _add_path_from_edges(self, *edges: Union[str, Edge],
-                             uid: Optional[str] = None, **kwargs: Any) -> None:
-        """Helper function to add a path from edges."""
-        _edges: list = []
-        for edge in edges:
-            if edge not in self.edges or self.multiedges:
-                if isinstance(edge, str) and len(_edges) > 0:
-                    self.edges.add(Edge(_edges[-1].w, Node(), uid=edge))
-                else:
-                    self.edges.add(edge, nodes=False)
-            _edges.append(self.edges[edge])
+    @add.register(str)  # type: ignore
+    def _(self, *path: str, **kwargs: Any) -> None:
 
-        _path = _edges
+        # get additional parameters
+        uid: Optional[str] = kwargs.pop('uid', None)
+        nodes: bool = kwargs.pop('nodes', True)
+
+        # check if all objects are str
+        if not all(isinstance(arg, str) for arg in path):
+            LOG.error('All objects have to be str objects!')
+            raise TypeError
+
+        _path = []
+        if nodes:
+            for node in path:
+                if node not in self.nodes:
+                    self.nodes.add(node)
+                _path.append(self.nodes[node])
+
+        else:
+            for edge in path:
+                if edge not in self.edges or self.multiedges:
+                    if len(_path) > 0:
+                        self.edges.add(_path[-1].w, Node(), uid=edge)
+                    else:
+                        self.edges.add(edge, nodes=False)
+                _path.append(self.edges[edge])
+
         if _path not in self or self.multipaths:
-            self._add_path(self._path_class(*_path, uid=uid, **kwargs))
+            self.add(*_path, uid=uid, **kwargs)
         else:
-            # raise error if node already exists
+            # raise error if path already exists
             self._if_exist(_path, **kwargs)
 
-    def _add(self, path: Path) -> None:
+    @add.register(tuple)  # type: ignore
+    @add.register(list)  # type: ignore
+    def _(self, *path: Union[tuple, list], **kwargs: Any) -> None:
+        for _path in path:
+            self.add(*_path, **kwargs)
+
+    def _add(self, path: Path, indexing: bool = True) -> None:
         """Add a node to the set of nodes."""
+        # add path to the dict
         self[path.uid] = path
-        _nodes = tuple(_n.uid for _n in path.nodes)
-        _edges = tuple(_e.uid for _e in path.edges)
-        self._nodes_map[_nodes].add(path)
-        self._edges_map[_edges].add(path)
+
+        # store new added path
+        self._added.add(path)
+
+        # update the index structure
+        if indexing:
+            self.update_index()
 
     def _if_exist(self, path: Any, **kwargs: Any) -> None:
         """Helper function if the path does already exsist."""
         # pylint: disable=no-self-use
         # pylint: disable=unused-argument
-        LOG.error('The path "%s" already exists in the Network', path)
+        LOG.error('The path "%s" already exists in the Network', path.uid)
         raise KeyError
 
-    def remove(self, *paths: Union[str, tuple, list, Node, Edge, Path],
-               **kwargs: Any) -> None:
-        """Remove multiple paths."""
+    def update_index(self) -> None:
+        """Update the index structure of the PathCollection."""
+        for path in list(self._added):
+            _nodes = tuple(_n.uid for _n in path.nodes)
+            _edges = tuple(_e.uid for _e in path.edges)
+            self._nodes_map[_nodes].add(path)
+            self._edges_map[_edges].add(path)
 
-        uid: Optional[str] = kwargs.pop('uid', None)
-        nodes: bool = kwargs.pop('nodes', True)
+            self._added.discard(path)
 
-        if all(isinstance(arg, (str, Node, Edge))for arg in paths):
-            paths = tuple([paths])
+        for path in list(self._removed):
 
-        for path in paths:
-            self._remove_path(path, uid=uid, nodes=nodes)
+            _nodes = tuple(_n.uid for _n in path.nodes)
+            _edges = tuple(_e.uid for _e in path.edges)
+            self._nodes_map[_nodes].discard(path)
+            self._edges_map[_edges].discard(path)
 
-    def _remove_path(self, *path: Union[str, tuple, list, Node, Edge, Path],
-                     uid: Optional[str] = None, nodes: bool = True) -> None:
-        """Add a single path."""
+            if len(self._nodes_map[_nodes]) == 0:
+                self._nodes_map.pop(_nodes, None)
 
-        if len(path) == 1 and isinstance(path[0], self._path_class) and path[0] in self:
-            self._remove(path[0])
+            if len(self._edges_map[_edges]) == 0:
+                self._edges_map.pop(_edges, None)
 
-        elif len(path) == 1 and isinstance(path[0], str) and path[0] in self:
-            _path = cast(Path, self[path[0]])
+            self._removed.discard(path)
+
+    @singledispatchmethod
+    def remove(self, *edge, **kwargs: Any) -> None:
+        """Remove path. """
+        raise NotImplementedError
+
+    @remove.register(Path)  # type: ignore
+    def _(self, *path: Path, **kwargs: Any) -> None:
+        # pylint: disable=unused-argument
+        for _path in path:
             self._remove(_path)
 
-        elif len(path) == 1 and isinstance(path[0], (tuple, list)):
-            self._remove_path(*path[0], uid=uid, nodes=nodes)
+    @remove.register(Edge)  # type: ignore
+    def _(self, *path: Edge, **kwargs: Any) -> None:
+        # pylint: disable=unused-argument
+        self._remove(self[path])
 
-        elif all(isinstance(arg, (str, Node, Edge)) for arg in path):
+    @remove.register(Node)  # type: ignore
+    def _(self, *path: Node, **kwargs: Any) -> None:
+        # pylint: disable=unused-argument
+        self._remove(self[path])
 
-            if all(arg in self for arg in path):
-                _paths = [cast(Path, self[cast(str, _path)])
-                          for _path in path]
-            elif self.multipaths:
-                _paths = [cast(Path, _path) for _path in cast(
-                    PathSet, self[path]).values()]
-            else:
-                _paths = [cast(Path, self[path])]
+    @remove.register(str)  # type: ignore
+    def _(self, *path: str, **kwargs: Any) -> None:
+        # pylint: disable=unused-argument
+        if len(path) == 1:
+            self._remove(self[path[0]])
+        else:
+            self._remove(self[path])
 
-            # iterate over all edges between the nodes
-            for _path in list(_paths):
-                # if dedicated uid is given
-                if uid is not None:
-                    if _path.uid == uid:
-                        self._remove_path(_path)
-                else:
-                    # remove all edges between the nodes
-                    self._remove_path(_path)
+    @remove.register(tuple)  # type: ignore
+    @remove.register(list)  # type: ignore
+    def _(self, *path: Union[tuple, list], **kwargs: Any) -> None:
+        for _path in path:
+            self.remove(*_path, **kwargs)
 
-    def _remove(self, path: Path) -> None:
-        """Remove an edge from the set of edges."""
+    def _remove(self, path: Path, indexing: bool = True) -> None:
+        """Remove a path from the path collection."""
+
+        # remove edge from the dict
         self.pop(path.uid, None)
-        _nodes = tuple(_n.uid for _n in path.nodes)
-        _edges = tuple(_e.uid for _e in path.edges)
-        self._nodes_map[_nodes].discard(path)
-        self._edges_map[_edges].discard(path)
 
-        if len(self._nodes_map[_nodes]) == 0:
-            self._nodes_map.pop(_nodes, None)
+        # store removed path
+        self._removed.add(path)
 
-        if len(self._edges_map[_edges]) == 0:
-            self._edges_map.pop(_edges, None)
+        # update the index structure
+        if indexing:
+            self.update_index()
 
+    def tolist(self) -> list:
+        """Returns a list of lists, where each path in the collection is represented by a list of node uids.
+        """
+
+        return [p.tolist() for p in self.values()]
 # =============================================================================
 # eof
 #

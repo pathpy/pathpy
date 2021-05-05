@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : config.py -- Module to read and parse configuration files
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2020-08-21 18:01 juergen>
+# Time-stamp: <Wed 2021-04-21 10:00 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -62,7 +62,8 @@ config['path']['max_name_length'] = parser.getint('path', 'max_name_length')
 config['hon']['separator'] = parser.get('hon', 'separator')
 config['hon']['replace'] = parser.get('hon', 'replace')
 
-config['temporal']['begin'] = parser.get('temporal', 'begin')
+# config['temporal']['begin'] = parser.get('temporal', 'begin')
+config['temporal']['start'] = parser.get('temporal', 'start')
 config['temporal']['end'] = parser.get('temporal', 'end')
 config['temporal']['timestamp'] = parser.get('temporal', 'timestamp')
 config['temporal']['duration'] = parser.get('temporal', 'duration')
@@ -71,8 +72,8 @@ config['temporal']['duration_value'] = parser.getfloat(
 config['temporal']['active'] = parser.get('temporal', 'active')
 config['temporal']['is_active'] = parser.getboolean('temporal', 'is_active')
 config['temporal']['unit'] = parser.get('temporal', 'unit')
-config['temporal']['begin_synonyms'] = parser.get(
-    'temporal', 'begin_synonyms').split(", ")
+config['temporal']['start_synonyms'] = parser.get(
+    'temporal', 'start_synonyms').split(", ")
 config['temporal']['end_synonyms'] = parser.get(
     'temporal', 'end_synonyms').split(", ")
 config['temporal']['timestamp_synonyms'] = parser.get(

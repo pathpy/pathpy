@@ -521,7 +521,8 @@
        // if temporal network check if nodes change
        if (temporal === true){
          consideredNodes = updateTemporalNodes(
-           filteredNodes,allData.changes);};
+           filteredNodes,allData.tnodes);
+       };
 
        // filter edges based on given nodes
        var filteredEdges = filterEdges(
@@ -530,7 +531,9 @@
 
        // if temporal network check for the correct edges
        if (temporal === true){
-         considerdEdges = filterTemporalEdges(filteredEdges);
+         activeEdges = activateTemporalEdges(filteredEdges,allData.tedges);
+         var updatedEdges = updateTemporalEdges(activeEdges,allData.tedges);
+         considerdEdges = filterTemporalEdges(updatedEdges);
        };
 
        // set the nodes of the simulation
@@ -555,9 +558,9 @@
        renderEdges(considerdEdges);
 
        // render temporal edges if given
-       if (temporal === true){
-         renderTemporalEdges();
-       };
+       /* if (temporal === true){
+        *   renderTemporalEdges();
+        * }; */
 
        // Now we need to set the alpha
        // of the simulation when we restart.
@@ -718,7 +721,7 @@
 
        // filter changes based on the current time step
        var newChanges = changesData.filter(function (d) {
-         return (d.time === time.time);
+         return (d.startTime === time.time || d.endTime === time.time);
        });
 
        var newUpdatedNodes = nodesData;
@@ -740,13 +743,104 @@
      };
 
      /*
+      * Update attributes of the temporal Nodes
+      */
+     function activateTemporalEdges(edgesData,changesData) {
+
+       //console.log(time.time)
+       var dt = time.aggregated - time.time
+
+       var newActiveEdges = edgesData;
+
+       // iterate through the changes
+       newActiveEdges.forEach(function (e){e.activeEdge=false});
+
+       //filter changes based on the current time step
+       var newChanges = changesData.filter(function (d) {
+         return (((d.startTime <= time.time && time.time <= d.endTime)||
+                 (d.startTime <= time.aggregated && time.aggregated <= d.endTime)||
+                  (time.time < d.startTime && d.endTime <= time.aggregated))&&
+                 d.active === true);
+       });
+
+
+       /* if ((d.time >= time.past && d.time < time.time)||
+        *     (d.time > time.aggregated && d.time <= time.future)){ */
+
+       // iterate through the changes
+       newChanges.forEach(function (e){
+
+         // find the index of the changed node
+         var objIndex = newActiveEdges
+           .findIndex((obj => obj.uid == e.uid));
+         if (objIndex >= 0){
+           newActiveEdges[objIndex].activeEdge=true;
+         };
+       });
+
+       //console.log(newChanges)
+       return newActiveEdges
+     };
+
+     /*
+      * Update attributes of the temporal Nodes
+      */
+     function updateTemporalEdges(edgesData,changesData) {
+
+         var newUpdatedEdges = edgesData;
+
+       //console.log(time.time)
+
+       //filter changes based on the current time step
+       var newChanges = changesData.filter(function (d) {
+         return (d.endTime === time.time || d.startTime === time.time);
+       });
+
+       // iterate through the changes
+       newChanges.forEach(function (e){
+
+         // find the index of the changed node
+         var objIndex = newUpdatedEdges
+           .findIndex((obj => obj.uid == e.uid));
+         if (objIndex >= 0){
+           // update node
+           newUpdatedEdges[objIndex] = Object.assign(
+             newUpdatedEdges[objIndex],e);
+         };
+       });
+
+
+       /* console.log('aggregated',time.aggregated)
+        * console.log('past',time.past) */
+       // iterate through the changes
+       /* newChanges.forEach(function (e){
+
+        *   // find the index of the changed node
+        *   var objIndex = newUpdatedEdges
+        *     .findIndex((obj => obj.uid == e.uid));
+        *   if (objIndex >= 0){
+        *     // update node
+        *     newUpdatedEdges[objIndex] = Object.assign(
+        *       newUpdatedEdges[objIndex],e);};
+        * });
+        */
+       //console.log(newUpdatedEdges)
+       // return the updated nodes
+       return newUpdatedEdges;
+     };
+
+     /*
       * Filter down edges based on the time frame
       */
      function filterTemporalEdges(edgesData) {
 
+       /* var newTemporalEdgesData = edgesData.filter(function (d) {
+        *   return (d.time >= time.past && d.time <= time.future);
+        * }); */
+
        var newTemporalEdgesData = edgesData.filter(function (d) {
-         return (d.time >= time.past && d.time <= time.future);
-       });
+         return (d.activeEdge === true);
+              });
 
        return newTemporalEdgesData;
      };
@@ -929,11 +1023,14 @@
        data.links.forEach(function (l) {
          l.source = nodesMap.get(l.source);
          l.target = nodesMap.get(l.target);
-         l.uid = l.source.uid + '_' + l.target.uid;
+         //l.uid = l.source.uid + '_' + l.target.uid;
 
          // linkedByIndex is used for link sorting
          linkedByIndex[l.uid] = 1;
        });
+
+       // get map for the edges
+       var linksMap = d3.map(data.links, function (d) {return d.uid;});
 
        return data;
      }
@@ -1517,7 +1614,7 @@
        formatDate = formatDateIntoYear;
      }
 
-     var startDate = new Date(config.animation.begin),
+     var startDate = new Date(config.animation.start),
          endDate = new Date(config.animation.end);
 
      // devine margin and width of the slider

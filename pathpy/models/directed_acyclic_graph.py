@@ -4,21 +4,24 @@
 # =============================================================================
 # File      : directed_acyclic_graph.py -- Network model for a DAG
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sat 2020-09-05 21:08 juergen>
+# Time-stamp: <Mon 2021-03-29 17:28 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
+from pathpy.models.temporal_network import TemporalNode, TemporalEdge
 from typing import Any, Optional, Set
 from collections import defaultdict
+
+from numpy import inf
 
 from pathpy import logger
 from pathpy.core.node import NodeCollection
 from pathpy.core.edge import EdgeCollection, Edge
 from pathpy.core.path import PathCollection, Node
-from pathpy.core.network import Network
+from pathpy.models.network import Network
 
-from pathpy.converters import to_paths
+from pathpy.algorithms import path_extraction
 
 from pathpy.models.models import ABCDirectedAcyclicGraph
 
@@ -30,7 +33,7 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
     """Base class for a directed acyclic graph."""
 
     # load external functions to the network
-    to_paths = to_paths.to_path_collection  # type: ignore
+    to_paths = path_extraction.extract_path_collection  # type: ignore
 
     def __init__(self, uid: Optional[str] = None, multiedges: bool = False,
                  **kwargs: Any) -> None:
@@ -63,7 +66,9 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
 
     @property
     def acyclic(self) -> Optional[bool]:
-        """Returns if the graph is acyclic."""
+        """Returns if the graph is acyclic or None if 
+        this is currently unknown. Call topological_sorting
+        on the network to calculate this property."""
         return self._acyclic
 
     def _add_node_properties(self):
@@ -139,7 +144,7 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
             _nodes: list = [(edge.v, edge.w), (edge.w, edge.v)]
 
             for _v, _w in _nodes:
-                print(_v.uid, _w.uid)
+                # print(_v.uid, _w.uid)
                 self._properties['successors'][_v].discard(_w)
                 self._properties['outgoing'][_v].discard(edge)
                 self._properties['predecessors'][_w].discard(_v)
@@ -180,7 +185,7 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
             'Number of roots:\t{}\n'.format(len(self.roots)),
             'Number of leafs:\t{}'.format(len(self.leafs)),
         ]
-        attr = self.attributes.to_dict()
+        attr = self.attributes
         if len(attr) > 0:
             summary.append('\n\nNetwork attributes\n')
             summary.append('------------------\n')
@@ -283,11 +288,14 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
 
         return paths
 
+
     @classmethod
     def from_temporal_network(cls, temporal_network, **kwargs: Any):
-        """Creates a time-unfolded directed acyclic graph."""
+        """Creates a time-unfolded directed acyclic graph representation of 
+        the temporal network.
+        """
 
-        delta: int = kwargs.get('delta', 1)
+        delta: float = kwargs.get('delta', 1)
 
         dag = cls()
 
@@ -295,26 +303,31 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
         node_map = {}
 
         i = 0
-        for uid, edge, begin, end in temporal_network.edges.temporal():
-            # i += 1
+        for begin, end, uid in temporal_network.tedges:
+            edge: TemporalEdge = temporal_network.edges[uid]
+            v: TemporalNode = edge.v
+            w: TemporalNode = edge.w
 
-            # if i == 300:
-            #     break
+            if delta < inf:
+                current_delta = int(delta)
+            else:
+                current_delta = temporal_network.end()-begin
+
             # create time-unfolded nodes v_t and w_{t+1}
-            v_t = "{0}_{1}".format(edge.v.uid, begin)
+            v_t = "{0}_{1}".format(v.uid, begin)
             #node_map[v_t] = edge.v.uid
 
             # create one time-unfolded link for all delta in [1, delta]
             # this implies that for delta = 2 and an edge (a,b,1) two
-            # time-unfolded links (a_1, b_2) and (a_1, b_3) will be created
-            for x in range(1, int(delta)+1):
-                w_t = "{0}_{1}".format(edge.w.uid, begin+x)
+            # time-unfolded links (a_1, b_2) and (a_1, b_3) will be created            
+            for x in range(1, int(current_delta)+1):
+                w_t = "{0}_{1}".format(w.uid, begin+x)
                 #node_map[w_t] = edge.w.uid
                 if v_t not in dag.nodes:
-                    dag.nodes._add(Node(v_t, original=edge.v))
+                    dag.nodes._add(Node(v_t, original=v))
                     #dag.add_node(v_t, original=edge.v)
                 if w_t not in dag.nodes:
-                    dag.nodes._add(Node(w_t, original=edge.w))
+                    dag.nodes._add(Node(w_t, original=w))
                     #dag.add_node(w_t, original=edge.w)
 
                 e = Edge(dag.nodes[v_t], dag.nodes[w_t], original=edge)
