@@ -2,21 +2,25 @@
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
-# File      : path_extraction.py -- Algorithms to compute paths in temporal networks
+# File      : path_extraction.py -- Algorithms to compute paths in temporal networks and DAGs
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Tue 2021-04-26 18:28 ingo>
+# Time-stamp: <Wed 2021-05-05 18:14 ingo>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
 
 from __future__ import annotations
+from pathpy.models.temporal_network import TemporalNetwork
 from typing import Any, List, Union, Optional
 from functools import singledispatch
 from collections import defaultdict, deque
+import itertools as it
+import functools as ft
+from collections import Counter
 
-from pathpy import logger
+from pathpy import logger, tqdm
 
-from pathpy.core.api import NodeCollection
+from pathpy.core.api import NodeCollection, Node
 from pathpy.core.api import EdgeCollection
 from pathpy.core.api import PathCollection
 from pathpy.models.classes import BaseTemporalNetwork
@@ -25,77 +29,294 @@ from pathpy.models.models import ABCDirectedAcyclicGraph
 # create logger
 LOG = logger(__name__)
 
-@singledispatch
-def extract_path_collection(self, **kwargs: Any) -> PathCollection:
-    raise NotImplementedError
 
-@extract_path_collection.register(ABCDirectedAcyclicGraph)
-def _dag_paths(self, **kwargs):
-    """Calculates path statistics from a directed acyclic graph
+def _remove_repetitions(path):
     """
+    Remove repeated nodes in the path
 
-    # check if dag is acyclic
-    if self.acyclic is None:
-        self.topological_sorting()
+    Parameters
+    ----------
+    path
 
-    if not self.acyclic:
+    Returns
+    -------
+
+    Examples
+    -------
+    >>> remove_repetitions((1, 2, 2, 3, 4, 1))
+    (1, 2, 3, 4, 1)
+    >>> remove_repetitions((1, 2, 2, 2, 3)) == remove_repetitions((1, 2, 2, 3, 3))
+    True
+    """
+    return tuple(p[0] for p in it.groupby(path))
+
+
+def _expand_set_paths(set_path):
+    """returns all possible paths which are consistent with the sequence of sets
+
+    Parameters
+    ----------
+    set_path: list
+        a list of sets or other iterable
+
+    Examples
+    -------
+    >>> node_path = [{1, 2}, {2, 5}, {1, 2}]
+    >>> list(expand_set_paths(node_path))
+    [(1, 2, 1), (2, 2, 1), (1, 5, 1), (2, 5, 1), (1, 2, 2), (2, 2, 2), (1, 5, 2), (2, 5, 2)]
+    >>> node_path = [{1, 2}, {5}, {2, 5}]
+    >>> list(expand_set_paths(node_path))
+    [(1, 5, 2), (2, 5, 2), (1, 5, 5), (2, 5, 5)]
+
+
+    Yields
+    ------
+    tuple
+        a possible path
+    """
+    # how many possible combinations are there
+    node_sizes = [len(n) for n in set_path]
+    num_possibilities = ft.reduce(lambda x, y: x * y, node_sizes, 1)
+
+    # create a list of lists such that each iterator is repeated the number of times
+    # his predecessors have completed their cycle
+    all_periodics = []
+    current_length = 1
+    for node_set in set_path:
+        periodic_num = []
+        for num in node_set:
+            periodic_num.extend([num] * current_length)
+        current_length *= len(node_set)
+        all_periodics.append(periodic_num)
+
+    iterator = [it.cycle(periodic) for periodic in all_periodics]
+    for i, elements in enumerate(zip(*iterator)):
+        if i >= num_possibilities:
+            break
+        yield elements
+
+
+
+def all_paths_from_dag(dag: ABCDirectedAcyclicGraph, node_mapping=None, max_subpath_length=None, separator=',', repetitions=True, unique=False) -> Counter:
+    """
+    Calculates path statistics in a directed acyclic graph.
+    All paths between all roots (nodes with zero indegree)
+    and all leafs (nodes with zero outdegree) are generated.
+
+    Parameters
+    ----------
+    dag: DAG
+        the directed acyclic graph instance for which paths are calculated
+    node_mapping: dict
+        can be a simple mapping (1-to-1) or a 1-to-many (a dict with sets as values)
+    max_subpath_length: int
+        This can be used to limit the calculation of sub path statistics to a given
+        maximum length. This is useful, as the statistics of sub paths of length k
+        are only needed to fit a higher-order model with order k. Hence, if we know
+        that the model selection is limited to a given maximum order K, we can safely
+        set the maximum sub path length to K. By default, sub paths of any length
+        will be calculated. Note that, independent of the sub path calculation
+        longest path of any length will be considered in the likelihood calculation!
+    separator: str
+        separator to use to separate nodes in the generated Paths object. Default is ','.
+    repetitions: bool
+        whether or not to remove repeated nodes in the paths. Such repeated paths can occur
+        if a non-injective node_mapping is applied. If set to True, a path a,a,b,b,c,c,d is
+        returned as a,b,c,d.
+    unique: bool
+        whether or not multiple identical mapped paths should be counted separately. For
+        DAG representations of temporal networks with delta > 1, where nodes are temporal copies,
+        we do not want to count multiple paths from the same root that pass through different
+        temporal copies of the same physical node. For instance with delta=2, time-stamped edges
+        (a,b;1), (b,c;3) are transformed into a DAG a1->b2, a1->b3, b3->c4. With the mapping to
+        physical nodes we would find two different paths a->b->c of length two, which only differ
+        in terms of WHEN they arrive in node c
+
+
+    Returns
+    -------
+    Paths
+
+    """
+    # Check whether we are doing a one-to-many mapping
+    if node_mapping is None:
+        node_mapping = { v.uid: v.uid for v in dag.nodes }
+
+    if node_mapping:
+        first_key = list(node_mapping.keys())[0]
+        ONE_TO_MANY = isinstance(node_mapping[first_key], set)
+    else:
+        ONE_TO_MANY = False
+
+    # Try to topologically sort the graph if not already sorted
+    if dag.acyclic is None:
+        dag.topological_sorting()
+    if not dag.acyclic:
         LOG.error('Cannot extract statistics from a cyclic graph')
         raise ValueError
+    else:
+        # path object which will hold the detected (projected) paths
+        paths = Counter()
+        # if max_subpath_length:
+        #     p.max_subpath_length = max_subpath_length
+        # else:
+        #     p.max_subpath_length = sys.maxsize
 
-    paths = PathCollection(edges=self.edges.copy())
+        LOG.info('Creating paths from directed acyclic graph')
 
-    for root in self.roots:
-        paths = self.routes_from(root, paths)
+        # construct all paths originating from root nodes for 1 to 1
+        if not ONE_TO_MANY:
+            for s in dag.roots:
+                extracted_paths = dag.routes_from(s.uid, node_mapping)
+                if unique:
+                    extracted_paths = set(tuple(x) for x in extracted_paths)
+                for path in extracted_paths:   # add detected paths to paths object                    
+                    if repetitions:
+                        paths[path] += 1
+                    else:
+                        paths[_remove_repetitions(path)] += 1
+        else:
+            path_counter = defaultdict(lambda: 0)
+            for root in dag.roots:
+                for set_path in dag.routes_from_node(root.uid, node_mapping):
+                    for blown_up_path in _expand_set_paths(set_path):
+                        path_counter[blown_up_path] += 1
 
-    return paths
+            for path, count in path_counter.items():
+                if repetitions:
+                    paths[path] += count
+                else:
+                    paths[path][_remove_repetitions(path)] += count
+
+        #LOG.info('Expanding Subpaths')
+        # p.expand_subpaths()
+        #LOG.info('finished.')
+        return paths
 
 
-@extract_path_collection.register(BaseTemporalNetwork)
-def _temporal_paths(self, **kwargs):
-    """Convert a temporal network to paths."""
+def all_paths_from_temporal_network(tempnet: TemporalNetwork, delta: int=1, max_subpath_length: int=-1) -> Counter:
+    """
+    Calculates the frequency of causal paths in a temporal network assuming a 
+    maximum temporal distance of delta between consecutive
+    time-stamped links on a path. This method first creates a directed and acyclic
+    time-unfolded graph based on the given parameter delta. This directed acyclic
+    graph is used to calculate all time-respecting paths for a given delta.
+    I.e., for time-stamped links (a,b,1), (b,c,5), (b,d,7) and delta = 5 the
+    time-respecting path (a,b,c) will be found.
+
+    Parameters
+    ----------
+    tempnet : pathpy.TemporalNetwork
+        TemporalNetwork to extract the time-respecting paths from
+    delta : int
+        Indicates the maximum temporal distance up to which time-stamped
+        links will be considered to contribute to a causal path.
+        For (u,v;3) and (v,w;7) a causal path (u,v,w) is generated
+        for 0 < delta <= 4, while no causal path is generated for
+        delta > 4. Every time-stamped edge is a causal path of
+        length one. Default value is 1.
+    max_subpath_length : int
+        Can be used to limit the calculation of sub path statistics to a given
+        maximum length. This is useful as statistics of sub paths of length k
+        are only needed to fit higher-order model with order k and larger. If model
+        selection is limited to a maximum order K, we can set the maximum sub path length
+        to K. Default is None, which means all subpaths are calculated.
+
+    Returns
+    -------
+    Paths
+        An instance of the class Paths, which can be used to generate higher- and multi-order
+        models of causal paths in temporal networks.
+
+    Examples
+    ---------
+    >>> t = pp.TemporalNetwork()
+    >>> t.add_edge('a', 'b', 1)
+    >>> t.add_edge('b', 'a', 3)
+    >>> t.add_edge('b', 'c', 3)
+    >>> t.add_edge('d', 'c', 4)
+    >>> t.add_edge('c', 'd', 5)
+    >>> t.add_edge('c', 'b', 6)
+
+    >>> >>>causal_paths = pp.path_extraction.paths_from_temporal_network_dag(t, delta=2)
+    >>> [Severity.INFO]	Constructing time-unfolded DAG ...
+    >>> [Severity.INFO]	finished.
+    >>> [Severity.INFO]	Generating causal trees for 2 root nodes ...
+    >>> [Severity.INFO]	finished.
+    >>> print(causal_paths)
+    >>> Total path count: 		4.0 
+    >>> [Unique / Sub paths / Total]: 	[4.0 / 24.0 / 28.0]
+    >>> Nodes:				    4 
+    >>> Edges:				    6
+    >>> Max. path length:		3
+    >>> Avg path length:		2.25 
+    >>> Paths of length k = 0		0.0 [ 0.0 / 13.0 / 13.0 ]
+    >>> Paths of length k = 1		0.0 [ 0.0 / 9.0 / 9.0 ]
+    >>> Paths of length k = 2		3.0 [ 3.0 / 2.0 / 5.0 ]
+    >>> Paths of length k = 3		1.0 [ 1.0 / 0.0 / 1.0 ]
+
+    >>> The calculated (longest) causal paths in this example are:
+    >>> (a, b, c, d), (d, c, b), (d, c, d), (a, b, a)
+    """
     from pathpy.models.directed_acyclic_graph import DirectedAcyclicGraph
-
-    #paths = PathCollection(edges=self.edges.copy())
-    paths = PathCollection()
-
-    delta : float = kwargs.get('delta', 1)
 
     # generate a single time-unfolded DAG
-    dag = DirectedAcyclicGraph.from_temporal_network(self, delta=delta)
+    LOG.info('Constructing time-unfolded DAG ...')
+    dag = DirectedAcyclicGraph.from_temporal_network(tempnet, delta)
+    node_map = { v.uid: v['original'].uid for v in dag.nodes }
+    LOG.info('finished.')
 
-    # extract causal tree for each root node
-    for root in dag.roots:
-        causal_tree = _causal_tree(dag, root)
+    # path statistics
+    causal_paths = Counter()
+    
+    # For each root in the time-unfolded DAG, we generate a
+    # causal tree and use it to count all causal paths
+    # that originate at this root
+    num_roots = len(dag.roots)
+    current_root = 1
 
-        _paths = causal_tree.to_paths()
+    LOG.info('Generating causal trees for {0} root nodes ...'.format(num_roots))
+    for root in tqdm(dag.roots):
 
-        for path in _paths:
-            edges = [e['original'] for e in path.edges]
-            if edges not in paths:
-                paths.add(*edges, frequency=1)
-            else:
-                paths[edges]['frequency'] += 1
-    return paths
+        # generate the causal tree from this root node
+        causal_tree, causal_mapping = generate_causal_tree(dag, root, node_map)
+
+        # output
+        if num_roots > 10:
+            step = num_roots/10
+            if current_root % step == 0:
+                LOG.info('Analyzing tree {0}/{1} ...'.format(current_root, num_roots))
+
+        # calculate all unique longest path in the causal tree
+        causal_paths += all_paths_from_dag(causal_tree, causal_mapping, repetitions=False, max_subpath_length=max_subpath_length)
+        current_root += 1
+
+    LOG.info('finished.')
+    
+    return causal_paths
 
 
-def _causal_tree(dag, root):
-    """ Generates a causal tree in a DAG, starting from a 
-    given root node
+def generate_causal_tree(dag, root, node_map):
     """
-    LOG.debug('Generate causal tree for root: %s', root.uid)
+    For a directed acyclic graph and a non-injective mapping of nodes,
+    this method creates a *causal tree* for a given root node.
+    This is useful for the extraction of causal paths in time-unfolded DAG
+    representations of temporal networks. The nodes "{v}_{d}" in the resulting
+    causal tree capture that - starting from the root node at step 0 - there is
+    a causal path to node v at distance d from the root. Note that the same node
+    can be represented by multiple nodes in the causal tree (at different distances d).
+    """
     from pathpy.models.directed_acyclic_graph import DirectedAcyclicGraph
+    causal_tree = DirectedAcyclicGraph()
 
-    tree = DirectedAcyclicGraph()
-    node_map = {}
-    edge_map = {}
+    causal_mapping = {}
     visited = defaultdict(lambda: False)
     queue = deque()
 
     # launch breadth-first-search at root of tree
     # root nodes are necessarily at depth 0
-    queue.append((root, 0))
+    queue.append((root.uid, 0))
     edges = []
-
     while queue:
         # take out left-most element from FIFO queue
         v, depth = queue.popleft()
@@ -105,31 +326,25 @@ def _causal_tree(dag, root):
         # the root of the causal tree. These IDs ensure
         # that the same physical nodes can occur at different
         # distances from the root
-        x = '{0}_{1}'.format(v['original'].uid, depth)
-        node_map[x] = v['original']
+        x = '{0}_{1}'.format(node_map[v], depth)
+        causal_mapping[x] = node_map[v]
 
         # process nodes at next level
-        for w in dag.successors[v.uid]:
-
-            if (w, depth+1) not in queue:
-                queue.append((w, depth+1))
+        for w in dag.successors[v]:
+            if (w.uid, depth+1) not in queue:
+                queue.append((w.uid, depth+1))
                 # only consider nodes that have not already
                 # been added to this level
-
-                if not visited[w['original'].uid, depth+1]:
+                if not visited[node_map[w.uid], depth+1]:
                     # add edge to causal tree
-                    y = '{0}_{1}'.format(w['original'].uid, depth+1)
+                    y = '{0}_{1}'.format(node_map[w.uid], depth+1)
                     edges.append((x, y))
 
-                    visited[w['original'].uid, depth+1] = True
-                    node_map[y] = w['original']
-                    edge_map[(x, y)] = dag.edges[v, w]['original']
+                    visited[node_map[w.uid], depth+1] = True
+                    causal_mapping[y] = node_map[w.uid]
+    
+    # Adding all edges at once is more efficient!
+    for e in edges:
+        causal_tree.add_edges(e)
 
-    for x, y in edges:
-        if x not in tree.nodes:
-            tree.add_node(x, original=node_map[x])
-        if y not in tree.nodes:
-            tree.add_node(y, original=node_map[y])
-        tree.add_edge(x, y, original=edge_map[(x, y)])
-
-    return tree
+    return causal_tree, causal_mapping
