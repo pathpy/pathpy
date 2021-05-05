@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-05-04 13:02 juergen>
+# Time-stamp: <Wed 2021-05-05 15:56 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -21,7 +21,176 @@ LOG = logger(__name__)
 
 
 class Edge(PathPyPath):
-    """Base class for an edge."""
+    """Base class for an edge.
+
+    An edge is (together with nodes) one of the two basic units out of which
+    networks are constructed. Each edge has two nodes to which it is attached,
+    called its endpoints. Edges may be directed or undirected; undirected edges
+    are also called lines and directed edges are also called arcs or arrows. In
+    an undirected network, an edge may be represented as the set of its nodes,
+    and in a directed network it may be represented as an ordered pair of its
+    vertices.
+
+    In ``pathpy`` the edge is referenced by its unique identifier (``uid``),
+    connects two :py:class:`PathPyObjects` and can store any arbitrary python
+    objects as attributes.
+
+    .. note::
+
+       To generate an edge, only two nodes have to be defined. ``pathpy`` will
+       automatically create a unique identifier (``uid``) for the edge.
+
+    Parameters
+    ----------
+
+    v : str or PathPyObject
+
+        This parameter defines the source of the edge (if directed),
+        i.e. v->w. Beside a py:class:`PathPyObject` object also a ``str`` node
+        uid can be entered.
+
+    w : str or PathPyObject
+
+        This parameter defines the source of the edge (if directed),
+        i.e. v->w. Beside a py:class:`PathPyObject` object also a ``str`` node
+        uid can be entered.
+
+    uid : str, optional (default = None)
+
+        The parameter ``uid`` is the unique identifier for the edge. Every edge
+        should have an uid. The uid is converted to a string value and is used
+        as a key value for all dict which saving edge objects. If no edge uid
+        is specified the edge ``uid`` will be defined by pathpy based on the
+        internal object id.
+
+    directed : bool, optional (default = True)
+
+        If ``True`` the edge is directed, i.e. quantities can only transmited
+        from the source node ``v`` to the traget node ``w``. If ``False`` the
+        edge is undirected, i.e. quantities can be transmited in both
+        directions. Per default edges in ``pathpy`` are directed.
+
+    kwargs : Any
+
+        Keyword arguments to store edge attributes. Attributes are added to the
+        edge as ``key=value`` pairs.
+
+    Examples
+    --------
+    From the ``pathpy`` import the :py:class:`Node` and :py:class:`Edge` classes.
+
+    >>> from pathpy import Node, Edge
+
+    Create an edge ``e`` with given nodes.
+
+    >>> v = Node('w')
+    >>> w = Node('v')
+    >>> e = Edge(v, w, uid='e')
+    >>> e.uid
+    e
+
+    Create an edge with given node uids and no edge uid.
+
+    >>> ab = Edge('a', 'b', uid = 'a-b')
+    >>> ab.uid
+    a-b
+
+    Show the associated node objects
+
+    >>> ab.objects
+    {'a': Node a, 'b': Node b}
+
+    Create an edge with attached attribute.
+
+    >>> ab = Edge('a','b', length=10)
+
+    Add attribute to the edge.
+
+    >>> ab['capacity'] = 5.5
+
+    Show attached attributes
+
+    >>> ab.attributes
+    {'length': 10, 'capacity': 5}
+
+    Change attribute.
+
+    >>> ab['length'] = 5
+
+    Update attributes (and add new).
+
+    >>> ab.update(length = 2, capacity = 3, speed = 10)
+    >>> ab.attributes
+    {'length': 2, 'capacity': 3, 'speed': 10}
+
+    Get the weight of the edge. Per default the attribute with the key 'weight'
+    is used as weight. Should there be no such attribute, a new one will be
+    crated with weight = 1.0.
+
+    >>> ab.weight()
+    1.0
+
+    If an other attribute should be used as weight, the option weight has to be
+    changed.
+
+    >>> ab.weight('length')
+    2
+
+    If a weight is assigned but for calculation a weight of 1.0 is needed, the
+    weight can be disabled with ``False`` or None.
+
+    >>> ab['weight'] = 4
+    >>> ab.weight()
+    4.0
+    >>> ab.weight(False)
+    1.0
+
+    Make copy of the edge.
+
+    >>> ef = ab.copy()
+    >>> ef.uid
+    'a-b'
+
+    Make a plot element and plot the edge as a png image.
+
+    .. todo::
+
+        Make a single plot command for plotting edges.
+        The code below is not working yet!
+
+    >>> plt = ab.plot()
+    >>> plt.show('png')
+
+    .. plot::
+
+       import pathpy as pp
+       ab = pp.Edge('a','b')
+       net = pp.Network()
+       net.add_edge(ab)
+       plt = net.plot()
+       plt.show('png')
+
+    Create an undirected edge.
+
+    >>> cd = Edge('c', 'd', directed=False)
+    >>> plt = ab.plot()
+    >>> plt.show('png')
+
+    .. plot::
+
+       import pathpy as pp
+       cd = pp.Edge('c','d',directed=False)
+       net = pp.Network(directed=False)
+       net.add_edge(cd)
+       plt = net.plot()
+       plt.show('png')
+
+
+    See Also
+    --------
+    Node
+
+    """
 
     def __init__(self, v: Union[str, PathPyObject],
                  w: Union[str, PathPyObject],
