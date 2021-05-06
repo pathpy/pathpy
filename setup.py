@@ -19,6 +19,7 @@ See setup.cfg.template for more information.
 """
 import sys
 import os
+import incremental
 from setuptools import setup, find_packages
 
 about = {}
@@ -46,7 +47,7 @@ if sys.version_info[:2] < min_version:
 # Initialize setup parameters
 DISTNAME = 'pathpy3'
 
-#VERSION = version
+VERSION = version
 
 PYTHON_REQUIRES = '>={}'.format('.'.join(map(str, min_version)))
 
@@ -114,7 +115,7 @@ setup(
     license=LICENSE,
     url=URL,
     project_urls=PROJECT_URLS,
-    #version=VERSION,
+    version=VERSION,
     download_url=DOWNLOAD_URL,
     install_requires=INSTALL_REQUIRES,
     packages=PACKAGES,
