@@ -36,35 +36,23 @@ def to_state_file(paths: Counter, file: str, max_memory: int=1) -> None:
 
     Create a state file from a PathCollection with three paths
 
-    >>> pc = pp.PathCollection()
-    >>> a = pp.Node('a')
-    >>> b = pp.Node('b')
-    >>> c = pp.Node('c')
-    >>> d = pp.Node('d')
-    >>> e1 = pp.Edge(a, b, uid='a-b')
-    >>> e2 = pp.Edge(b, c, uid='b-c')
-    >>> e3 = pp.Edge(c, d, uid='c-d')
-    >>> pc.add(pp.Path(e1, frequency=15))
-    >>> pc.add(pp.Path(e1, e2, frequency=42))
-    >>> pc.add(pp.Path(e1, e2, e3, frequency=41))
-    >>> pp.converters.to_state_file(pc, 'paths.state', weight='frequency')
-    >>> with open('test.state', 'r') as f:
-    >>> print(f.read())
-    *Vertices 4
-    1 "b"
-    2 "d"
-    3 "a"
-    4 "c"
+    >>> pc = Counter( {('a', 'b'): 1, ('a', 'b', 'c'): 1} )
+    >>> pp.io.infomap.to_state_file(pc, 'paths.state', max_memory=1)
+    >>> with open('paths.state', 'r') as f:
+    >>>     print(f.read())
+    *Vertices 3
+    1 "a"
+    3 "c"
+    2 "b"
     *States
-    1 1 "{a}_b"
-    2 4 "{b}_c"
-    3 4 "{a-b}_c"
-    4 2 "{b-c}_d"
-    5 1  "{}_a"
+    1 1 "{}_a"
+    2 2 "{}_b"
+    3 2 "{a}_b"
+    4 3 "{}_c"
     *Links
-    1 2 42
-    3 4 41
-    5 1 15
+    1 2 1
+    1 3 1
+    3 4 1
     """
     # node set
     nodes = set()    
@@ -123,26 +111,6 @@ def to_state_file(paths: Counter, file: str, max_memory: int=1) -> None:
                     states_to_index[next_state] = i
                     i += 1
                 links[(current_state, next_state)] += paths[p]
-            # for i in range(1, len(p.nodes)):
-            #     # extract pair of connected state nodes and associated nodes
-            #     node = p.nodes[-2].uid
-            #     state = '{' + '-'.join([v.uid for v in p.nodes[:-2]]) + '}_' + node
-            #     next_node = p.nodes[-1].uid
-            #     next_state = '{' + '-'.join([v.uid for v in p.nodes[i:-1]]) + '}_' + next_node
-
-            #     # add state nodes with indices
-            #     if state not in states_to_index:
-            #         states_by_index[i] = (node, state)
-            #         states_to_index[state] = i
-            #         i += 1
-            #     if next_state not in states_to_index:
-            #         states_by_index[i] = (next_node, next_state)
-            #         states_to_index[next_state] = i
-            #         i += 1
-            #     if weight:
-            #         links.append((state, next_state, paths[p][weight]))
-            #     else:
-            #         links.append((state, next_state))
 
         for index, item in states_by_index.items():
             state_file.append('{0} {1} "{2}"'.format(index, nodes_to_index[item[0]], item[1]))
