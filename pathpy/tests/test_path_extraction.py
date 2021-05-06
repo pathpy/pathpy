@@ -37,21 +37,6 @@ def dag():
 
 
 
-@pytest.fixture
-def tn1():
-    """Temporal test Network 1"""
-    tn1 = TemporalNetwork(directed=True)
-    tn1.add_edge("a", "b", t=1)  # 0
-    tn1.add_edge("a", "b", t=2)  # 1
-    tn1.add_edge("b", "a", t=3)  # 2
-    tn1.add_edge("b", "c", t=3)  # 3
-    tn1.add_edge("d", "c", t=3)  # 4
-    tn1.add_edge("d", "c", t=4)  # 5
-    tn1.add_edge("c", "d", t=5)  # 6
-    tn1.add_edge("c", "b", t=6)  # 7
-    tn1.add_edge("b", "c", t=7)  # 8
-    return(tn1)
-
 pathdata = [
     (1, Counter({('a', 'b', 'c'): 1, ('b', 'd'): 1, ('c', 'd'): 1} )),
     (2, Counter({('a', 'b', 'c'): 1, ('b', 'd'): 1, ('c', 'd'): 1} )),
@@ -83,19 +68,36 @@ def test_temporal_net_to_dag(tempnet, delta, expected_edges):
     for e in expected_edges:
         assert e in dag.edges
 
+
+@pytest.fixture
+def tn1():
+    """Temporal test Network 1"""
+    tn1 = TemporalNetwork(directed=True)
+    tn1.add_edge("a", "b", timestamp=1)  # 0
+    tn1.add_edge("a", "b", timestamp=2)  # 1
+    tn1.add_edge("b", "a", timestamp=3)  # 2
+    tn1.add_edge("b", "c", timestamp=3)  # 3
+    tn1.add_edge("d", "c", timestamp=3)  # 4
+    tn1.add_edge("d", "c", timestamp=4)  # 5
+    tn1.add_edge("c", "d", timestamp=5)  # 6
+    tn1.add_edge("c", "b", timestamp=6)  # 7
+    tn1.add_edge("b", "c", timestamp=7)  # 8
+    return(tn1)
+
+
 @pytest.fixture
 def tn2():
     """Temporal test Network 2"""
     tn2 = TemporalNetwork(directed=False)
-    tn2.add_edge("a", "b", t=1)  # 0
-    tn2.add_edge("a", "c", t=2)  # 1
-    tn2.add_edge("b", "c", t=2)  # 2
-    tn2.add_edge("c", "d", t=3)  # 3
-    tn2.add_edge("b", "d", t=4)  # 4
-    tn2.add_edge("d", "c", t=4)  # 5
-    tn2.add_edge("d", "c", t=5)  # 6
-    tn2.add_edge("d", "a", t=5)  # 7
-    tn2.add_edge("c", "b", t=6)  # 8
+    tn2.add_edge("a", "b", timestamp=1)  # 0
+    tn2.add_edge("a", "c", timestamp=2)  # 1
+    tn2.add_edge("b", "c", timestamp=2)  # 2
+    tn2.add_edge("c", "d", timestamp=3)  # 3
+    tn2.add_edge("b", "d", timestamp=4)  # 4
+    tn2.add_edge("d", "c", timestamp=4)  # 5
+    tn2.add_edge("d", "c", timestamp=5)  # 6
+    tn2.add_edge("d", "a", timestamp=5)  # 7
+    tn2.add_edge("c", "b", timestamp=6)  # 8
     return(tn2)
 
 
@@ -199,35 +201,18 @@ def tn2_delta2():
             5: {('a', 'b', 'c', 'd', 'c', 'b'): 2}}
 
 
-def test_paco(tn, delta, solution):
-    """Test the paco algorithm"""
-    print('test paco')
-    print(tn1)
-    print(tn2)
-
-    correct = tn1_delta3
-    PaCo_paths = PaCo(tn1, 3, skip_first=0, up_to_k=10)
-
-    for l in correct:
-        for path in correct[l]:
-            assert PaCo_paths[path]["frequency"] == correct[l][path], f"Mismatch in counts for path {path}, correct counter is {correct[l][path]}, PaCo computed {PaCo_paths[path]["frequency"]}."
-            PaCo_paths.remove(path)
-    assert len(PaCo_paths) == 0 f"PaCo found some non-existing paths."
-    
-    # for l in correct:
-    #     for path in correct[l]:
-    #         bug = True
-    #         if path in paths:
-    #             if paths[path]['frequency'] == correct[l][path]:
-    #                 bug = False
-    #         if bug:
-    #             print("Error:")
-    #             print(path)
-    #             print(correct[l][path])
-    #             if path in paths:
-    #                 print(paths[path]["frequency"])
-    #             else:
-    #                 print(0)
+def test_PaCo():
+    """
+    Test the PaCo algorithm
+    """
+    for tn, delta, solution in [ (tn1, 3, tn1_delta3), (tn1, 3, tn1_delta3), (tn2, 1, tn2_delta1), (tn2, 2, tn2_delta2)]: 
+        PaCo_paths = PaCo(tn, delta, skip_first=0, up_to_k=10)
+        for l in solution:
+            for path in solution[l]:
+                assert PaCo_paths[path]["frequency"] == solution[l][path], f"Mismatch in counts for path {path}, correct counter is {solution[l][path]}, PaCo computed {PaCo_paths[path]["frequency"]}."
+                PaCo_paths.remove(path)
+        assert len(PaCo_paths) == 0, f"PaCo found some non-existing paths."
+        
 # =============================================================================
 # eof
 #
