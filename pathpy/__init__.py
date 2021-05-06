@@ -11,7 +11,7 @@
 # flake8: noqa
 # pylint: disable=unused-import
 
-__version__ = "3.0.21"
+__version__ = "3.0.22"
 
 # import os
 import sys
