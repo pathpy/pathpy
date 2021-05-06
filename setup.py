@@ -122,10 +122,9 @@ setup(
     zip_safe=False,
     include_package_data=True,
     python_requires=PYTHON_REQUIRES,
-    setup_requires=['pytest-runner', 'flake8'],
+    setup_requires=['pytest-runner', 'flake8', 'incremental'],
     tests_require=['pytest'],
     use_incremental=True,
-    setup_requires=['incremental'],
     install_requires=['incremental']
 )
 
