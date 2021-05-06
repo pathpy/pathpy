@@ -8,15 +8,16 @@
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 
-__version__ = '3.0.0a2'
+from pathpy._version import __version__ as v
 
 __title__ = 'pathpy: path data analysis'
 __author__ = u'Ingo Scholtes, Jürgen Hackl'
 __email__ = 'info@pathpy.net'
-__copyright__ = u'Copyright (c) 2016-2020 Pathpy Developers'
+__copyright__ = u'Copyright (c) 2016-2021 Pathpy Developers'
 __license__ = u'AGPL-3.0+'
 __maintainer__ = u'Ingo Scholtes, Jürgen Hackl'
 __status__ = 'Development Status :: 2 - Pre-Alpha'
+__version__ = v.public()
 
 __all__ = [
     '__title__',
