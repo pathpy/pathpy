@@ -27,11 +27,11 @@ def paths():
 
 def test_state_file_export(paths):
     print(paths)
-    pp.io.infomap.to_state_file(paths, 'test.state', max_memory=1)
-    with io.open('test.state', 'r') as f:
+    pp.io.infomap.to_state_file(paths, 'pathpy/tests/data/test.state', max_memory=1)
+    with io.open('pathpy/tests/data/test.state', 'r') as f:
         lines1 = f.readlines()
     # cross check with ground truth for toy example
-    with io.open('correct.state', 'r') as f:
+    with io.open('pathpy/tests/data/correct.state', 'r') as f:
         lines2 = f.readlines()
     assert sorted(lines1) == sorted(lines2)
         
