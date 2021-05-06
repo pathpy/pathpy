@@ -58,7 +58,7 @@ Installation
 
 The latest stable release (and older versions) can be installed from PyPI:
 
-    pip install pathpy
+    pip install pathpy3
 
 You may instead want to use the development version from Github:
 
