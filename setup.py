@@ -26,8 +26,8 @@ base_dir = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(base_dir, 'pathpy', '__about__.py'), 'rb') as f:
     exec(f.read(), about)
 
-#version = about['__version__']
-from .pathpy._version import __version__
+version = about['__version__']
+#from .pathpy._version import __version__
 
 # Minimum required python version
 min_version = (3, 7)
