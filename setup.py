@@ -19,7 +19,6 @@ See setup.cfg.template for more information.
 """
 import sys
 import os
-import incremental
 from setuptools import setup, find_packages
 
 about = {}
