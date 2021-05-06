@@ -79,7 +79,7 @@ INSTALL_REQUIRES = [
     'tqdm>=4.36.1',  # TODO: Get rid of this dependency!
     'pandas>=0.25.2',
     'singledispatchmethod>=1.0',  # TODO: this is not needed for python 3.8 remove late
-    'incremental'
+    'incremental',
 ]
 
 PACKAGES = find_packages()
