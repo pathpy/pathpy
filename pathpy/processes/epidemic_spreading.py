@@ -13,6 +13,7 @@
 from __future__ import annotations
 import abc
 import operator
+from pathpy.models.temporal_network import TemporalNetwork
 
 from typing import Any, Iterable, Optional, Union, Dict, Set, Tuple
 
@@ -66,7 +67,7 @@ class EpidemicSIR(BaseProcess):
 
     """
 
-    def __init__(self, network: Network, 
+    def __init__(self, network: Union[Network, TemporalNetwork], 
                         recovery_time: int,
                         infection_prob: float) -> None:
         """
@@ -92,9 +93,13 @@ class EpidemicSIR(BaseProcess):
 
         # infection times
         self.infection_times: Dict[str, int] = dict()
-        self._time = 0
 
-        # Set all nodes in network to susceptible   
+        if isinstance(self._network, TemporalNetwork):
+            self._time = self._network.start()
+        else:
+            self._time = 0
+
+        # Set all nodes in network to susceptible
         for v in self.network.nodes.uids:
             self.susceptible.add(v)
         
@@ -113,27 +118,57 @@ class EpidemicSIR(BaseProcess):
             if self._time-self.infection_times[v] > self.recovery_time:
                 self.infected.remove(v)
                 self.recovered.add(v)
+                
+                # record nodes with changed state
                 newly_recovered.add(v)
         
-        # # stop of no infected or susceptible nodes are left
+    
+        # stop if no infected or susceptible nodes are left
         # if not self.infected or not self.susceptible:
-        #     return newly_recovered
-        
-        # infection of neighbors        
-        for v in self.infected:
-            for w in self.network.successors[v]:
-                if w.uid in self.susceptible and random.uniform()<=self.infection_prob:
-                    self.susceptible.remove(w.uid)
-                    newly_infected.add(w.uid)            
-        # update state and time of newly infected nodes
+        #     return newly_recovered        
+
+        # infection of neighbors
+        if isinstance(self._network, TemporalNetwork):
+            # for all infected nodes v
+            for v in self.infected:
+                # for all susceptible neighbors w
+                for w in self.network.successors[v]:
+                    if w.uid in self.susceptible:
+                        # check if link (v,w) is active at current time
+                        for start, end, _ in self.network.edges[(v,w)].activities:
+                            if self.time >= start and self.time <= end:
+                                # print('found active neighbor')
+                                # infection probability
+                                if random.uniform()<=self.infection_prob:
+                                    
+                                    # record node with changed state
+                                    newly_infected.add(w.uid)
+        else:
+            # for all infected nodes v
+            for v in self.infected:
+                # for all neighbors w
+                for w in self.network.successors[v]:
+                    if w.uid in self.susceptible and random.uniform()<=self.infection_prob:
+
+                        # record node with changed state
+                        newly_infected.add(w.uid)
+
+
+        # update compartments and infection time of all newly infected nodes
         for w in newly_infected:
             self.infection_times[w] = self.time
             self.infected.add(w)
+            self.susceptible.remove(w)
 
         self._time += 1
+
+        # return list of nodes with changed state
         return newly_infected.union(newly_recovered)
 
     def node_state(self, v:str) -> int:
+        """
+        Returns the current status of a node
+        """
         if v in self.susceptible:
             return 0
         elif v in self.infected:
