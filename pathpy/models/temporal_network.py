@@ -530,7 +530,8 @@ class TemporalNetwork(BaseTemporalNetwork, Network):
             'Number of unique edges:\t{}\n'.format(self.number_of_edges()),
             'Number of temp nodes:\t{}\n'.format(len(tnodes)),
             'Number of temp edges:\t{}\n'.format(len(tedges)),
-            'Observation periode:\t{} - {}'.format(start, end)
+            'Observation period:\t{} - {}\n'.format(start, end),
+            'Observation length:\t{}'.format(end-start)
         ]
         attr = self.attributes
         if len(attr) > 0:
