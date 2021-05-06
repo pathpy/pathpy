@@ -9,13 +9,13 @@
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
 from typing import Optional
+from collections import Counter
 
 from pathpy import logger
-from pathpy.core.api import PathCollection
 
-def to_state_file(paths: PathCollection, file: str, weight: Optional[str]=None) -> None:
+def to_state_file(paths: Counter, file: str, weight: Optional[str]=None) -> None:
     """
-    Writes paths from a PathCollection instance into a state file that can be read by InfoMap.
+    Writes paths from a PathCollection instance into a state file that can be read by InfoMap [1].
 
     .. [1] M. Rosvall, Daniel Axelsson, Carl T. Bergstrom, "The map equation" The European Physical Journal Special Topics 178.1 (2009): 13-23.
 
@@ -65,15 +65,20 @@ def to_state_file(paths: PathCollection, file: str, weight: Optional[str]=None) 
     3 4 41
     5 1 15
     """
+    # node set
+    nodes = set()    
+    for p in paths:
+        nodes.update(p)
+
     state_file = []
     with open(file, mode='w') as f:        
         # total number of nodes traversed by paths
-        n = len(paths.nodes)
+        n = len(nodes)
 
         # generate list of nodes with 1-based index
         state_file.append('*Vertices {0}'.format(n))
-        nodes_to_index = { i[0]: i[1] for i in zip(paths.nodes.uids, range(1, n+1)) }
-        for v in paths.nodes.uids:
+        nodes_to_index = { i[0]: i[1] for i in zip(nodes, range(1, n+1)) }
+        for v in nodes:
             state_file.append('{0} "{1}"'.format(nodes_to_index[v], v))
 
         # use paths to generate list of state nodes (with 1-based index) as well as links
@@ -84,15 +89,15 @@ def to_state_file(paths: PathCollection, file: str, weight: Optional[str]=None) 
         i = 1
         for p in paths:
             # print(' -> '.join(v.uid for v in p.nodes))
-            for k in range(len(p.nodes)-1):
-                current_node = p.nodes[k].uid
+            for k in range(len(p)-1):
+                current_node = p[k]
                 if k == 0:
                     # map first edge (v, w) to transition {eps}_v -> {v}_w
                     current_state = '{eps}_' + current_node
                 else:
-                    current_state = '{' + '-'.join([v.uid for v in p.nodes[:k]]) + '}_' + current_node
-                next_node = p.nodes[k+1].uid
-                next_state = '{' + '-'.join([v.uid for v in p.nodes[:k+1]]) + '}_' + next_node
+                    current_state = '{' + '-'.join([v for v in p[:k]]) + '}_' + current_node
+                next_node = p[k+1]
+                next_state = '{' + '-'.join([v for v in p[:k+1]]) + '}_' + next_node
 
                 # add state nodes with indices
                 if current_state not in states_to_index:
@@ -104,7 +109,7 @@ def to_state_file(paths: PathCollection, file: str, weight: Optional[str]=None) 
                     states_to_index[next_state] = i
                     i += 1
                 if weight:
-                    links.append((current_state, next_state, paths[p][weight]))
+                    links.append((current_state, next_state, paths[p]))
                 else:
                     links.append((current_state, next_state))
             # for i in range(1, len(p.nodes)):
@@ -141,7 +146,7 @@ def to_state_file(paths: PathCollection, file: str, weight: Optional[str]=None) 
         f.write('\n'.join(state_file))
 
 
-def from_state_file(file: str) -> PathCollection:
+def from_state_file(file: str) -> Counter:
     """
     Reads path statistics from a state file
     """ 

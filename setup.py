@@ -26,7 +26,8 @@ base_dir = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(base_dir, 'pathpy', '__about__.py'), 'rb') as f:
     exec(f.read(), about)
 
-version = about['__version__']
+#version = about['__version__']
+from ._version import __version__
 
 # Minimum required python version
 min_version = (3, 7)
@@ -45,7 +46,7 @@ if sys.version_info[:2] < min_version:
 # Initialize setup parameters
 DISTNAME = 'pathpy3'
 
-VERSION = version
+#VERSION = version
 
 PYTHON_REQUIRES = '>={}'.format('.'.join(map(str, min_version)))
 
@@ -78,6 +79,7 @@ INSTALL_REQUIRES = [
     'tqdm>=4.36.1',  # TODO: Get rid of this dependency!
     'pandas>=0.25.2',
     'singledispatchmethod>=1.0',  # TODO: this is not needed for python 3.8 remove late
+    'incremental'
 ]
 
 PACKAGES = find_packages()
@@ -112,7 +114,7 @@ setup(
     license=LICENSE,
     url=URL,
     project_urls=PROJECT_URLS,
-    version=VERSION,
+    #version=VERSION,
     download_url=DOWNLOAD_URL,
     install_requires=INSTALL_REQUIRES,
     packages=PACKAGES,
@@ -121,8 +123,9 @@ setup(
     zip_safe=False,
     include_package_data=True,
     python_requires=PYTHON_REQUIRES,
-    setup_requires=['pytest-runner', 'flake8'],
+    setup_requires=['pytest-runner', 'flake8', 'incremental'],
     tests_require=['pytest'],
+    use_incremental=True
 )
 
 # =============================================================================
