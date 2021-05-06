@@ -7,5 +7,5 @@ Provides pathpy version information.
 
 from incremental import Version
 
-__version__ = Version("pathpy", 3, 0, 0, dev=8)
+__version__ = Version("pathpy", 3, 0, 0, dev=10)
 __all__ = ["__version__"]
