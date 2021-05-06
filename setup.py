@@ -79,6 +79,7 @@ INSTALL_REQUIRES = [
     'tqdm>=4.36.1',  # TODO: Get rid of this dependency!
     'pandas>=0.25.2',
     'singledispatchmethod>=1.0',  # TODO: this is not needed for python 3.8 remove late
+    'incremental'
 ]
 
 PACKAGES = find_packages()
@@ -124,8 +125,7 @@ setup(
     python_requires=PYTHON_REQUIRES,
     setup_requires=['pytest-runner', 'flake8', 'incremental'],
     tests_require=['pytest'],
-    use_incremental=True,
-    install_requires=['incremental']
+    use_incremental=True
 )
 
 # =============================================================================
