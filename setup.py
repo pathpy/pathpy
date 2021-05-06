@@ -27,7 +27,6 @@ with open(os.path.join(base_dir, 'pathpy', '__about__.py'), 'rb') as f:
     exec(f.read(), about)
 
 version = about['__version__']
-#from .pathpy._version import __version__
 
 # Minimum required python version
 min_version = (3, 7)
@@ -79,7 +78,6 @@ INSTALL_REQUIRES = [
     'tqdm>=4.36.1',  # TODO: Get rid of this dependency!
     'pandas>=0.25.2',
     'singledispatchmethod>=1.0',  # TODO: this is not needed for python 3.8 remove late
-    'incremental',
 ]
 
 PACKAGES = find_packages()
@@ -123,9 +121,8 @@ setup(
     zip_safe=False,
     include_package_data=True,
     python_requires=PYTHON_REQUIRES,
-    setup_requires=['pytest-runner', 'flake8', 'incremental'],
+    setup_requires=['pytest-runner', 'flake8'],
     tests_require=['pytest'],
-    use_incremental=True
 )
 
 # =============================================================================
