@@ -29,6 +29,7 @@ jobs:
         pip install -U -r requirements/test.txt
         pip install zstandard
         pip install jupyter
+        pip install incremental
     - name: Test with pytest
       run: |
         pip install pytest
