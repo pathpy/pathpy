@@ -4,15 +4,15 @@
 # =============================================================================
 # File      : api.py -- API for public functions of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-05-04 11:41 juergen>
+# Time-stamp: <Mon 2020-10-05 09:41 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 # flake8: noqa
 # pylint: disable=unused-import
 
-from pathpy.core.node import Node, NodeCollection
-from pathpy.core.edge import Edge, EdgeCollection
+from pathpy.core.node import Node, NodeSet, NodeCollection
+from pathpy.core.edge import Edge, HyperEdge, EdgeSet, EdgeCollection
 from pathpy.core.path import Path, PathSet, PathCollection
 
 # =============================================================================
