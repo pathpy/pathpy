@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_node.py -- Test environment for the Node class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-07 10:39 juergen>
+# Time-stamp: <Fri 2021-05-07 13:24 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -154,6 +154,7 @@ def test_NodeCollection():
     nodes.remove([('e', 'f', 'g'), 'h', ['i']])
 
     assert len(nodes) == 2
+
 
 # =============================================================================
 # eof

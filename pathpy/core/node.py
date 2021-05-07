@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : node.py -- Base class for a node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-07 10:39 juergen>
+# Time-stamp: <Fri 2021-05-07 13:24 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -145,40 +145,27 @@ class NodeCollection(PathPyCollection):
         super().__init__(*args, **kwargs)
 
         # class of objects
-        self._node_class: Any = Node
+        self._default_class: Any = Node
 
     @singledispatchmethod
-    def add(self, *node, **kwargs: Any) -> None:
+    def add(self, *args, **kwargs: Any) -> None:
         """Add multiple nodes. """
         raise NotImplementedError
 
     @add.register(Node)  # type: ignore
-    def _(self, *node: Node, **kwargs: Any) -> None:
-        super().add(node[0], **kwargs)
+    def _(self, *args: Node, **kwargs: Any) -> None:
+        super().add(args[0], **kwargs)
 
     @add.register(str)  # type: ignore
-    def _(self, *node: Node, **kwargs: Any) -> None:
-
-        # get node uid
-        _uid: str = str(node[0])
-
-        # check if node with given uid str exists already
-        if _uid not in self:
-            # if not add new node with provided uid str
-            super().add(self._node_class(_uid, uid=_uid, **kwargs))
-        else:
-            # raise error if node already exists
-            super()._if_exist(_uid, **kwargs)
-
     @add.register(int)  # type: ignore
-    def _(self, *node: int, **kwargs: Any) -> None:
-        self.add(str(node[0]), **kwargs)
+    def _(self, *args: str, **kwargs: Any) -> None:
+        super().add(args[0], **kwargs)
 
     @add.register(tuple)  # type: ignore
     @add.register(list)  # type: ignore
-    def _(self, *node: tuple, **kwargs: Any) -> None:
-        for _n in node[0]:
-            self.add(_n, **kwargs)
+    def _(self, *args: tuple, **kwargs: Any) -> None:
+        for arg in args[0]:
+            self.add(arg, **kwargs)
 
     @singledispatchmethod
     def remove(self, *node, **kwargs):
