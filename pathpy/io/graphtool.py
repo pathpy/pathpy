@@ -161,8 +161,8 @@ def parse_graphtool_format(data: bytes, ignore_temporal: bool=False, multiedges:
 
     Returns
     -------
-
-    An instance of Network or TemporalNetwork
+    Network or TemporalNetwork
+        a static or temporal network object
     """
 
     # check magic bytes

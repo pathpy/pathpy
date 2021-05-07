@@ -39,6 +39,10 @@ Official pathpy tutorial
 
 .. toctree::
 
+   tutorial/pandas
+   tutorial/csv   
+   tutorial/graphml
+   tutorial/sql
    tutorial/netzschleuder
    tutorial/konect
    tutorial/infomap

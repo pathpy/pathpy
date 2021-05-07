@@ -54,13 +54,12 @@ def read_network(filename: Optional[str] = None,
                  header: bool = True,
                  names: Optional[list] = None,
                  **kwargs: Any) -> Network:
-    """Read network from a csv database."""
+    """Reads a network from a csvfile."""
     # pylint: disable=too-many-arguments
 
     frame = read_dataframe(filename=filename, sep=sep,
                            header=header, names=names)
 
-    print(frame)
     net = to_network(frame, loops=loops, directed=directed,
                      multiedges=multiedges, **kwargs)
 
