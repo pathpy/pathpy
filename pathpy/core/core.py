@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-07 13:00 juergen>
+# Time-stamp: <Fri 2021-05-07 13:34 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -491,7 +491,7 @@ class PathPyCollection(MutableMapping):
         self._relations: defaultdict = defaultdict(set)
 
         # use the free update to set keys
-        self.update(dict(*args, **kwargs))
+        # self.update(dict(*args, **kwargs))
 
         # class of objects to be stored
         self._default_class: Any = PathPyPath

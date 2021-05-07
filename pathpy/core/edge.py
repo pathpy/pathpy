@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-05 16:58 juergen>
+# Time-stamp: <Fri 2021-05-07 14:36 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -203,16 +203,16 @@ class Edge(PathPyPath):
         super().__init__(v, w, uid=uid, directed=directed, **kwargs)
 
     @property
-    def v(self) -> PathPyObject:
+    def v(self) -> str:
         """Return the uid of the source node v. """
         # pylint: disable=invalid-name
-        return self.objects[self.relations[0]]
+        return self.relations[0]
 
     @property
-    def w(self) -> PathPyObject:
+    def w(self) -> str:
         """Return the uid of the target node w. """
         # pylint: disable=invalid-name
-        return self.objects[self.relations[-1]]
+        return self.relations[-1]
 
     @property
     def nodes(self) -> dict:
@@ -235,184 +235,90 @@ class EdgeCollection(PathPyCollection):
     """A collection of edges"""
     # pylint: disable=too-many-ancestors
 
-    def __init__(self, directed: bool = True,
-                 multiedges: bool = False,
-                 nodes: Optional[NodeCollection] = None) -> None:
+    def __init__(self, *args, **kwargs) -> None:
         """Initialize the EdgeCollection object."""
 
         # initialize the base class
-        super().__init__(directed=directed)
-
-        # collection of nodes
-        self._nodes: Any = NodeCollection()
-        if nodes is not None:
-            self._nodes = nodes
+        super().__init__(*args, **kwargs)
 
         # indicator whether the network has multi-edges
-        self._multiedges: bool = multiedges
+        self._multiple: bool = kwargs.pop('multiedges', False)
 
         # class of objects
-        self._node_class: Any = Node
-        self._edge_class: Any = Edge
-
-    @singledispatchmethod
-    def __getitem__(self, key):
-        return super().__getitem__(key)
-
-    @__getitem__.register(tuple)  # type: ignore
-    def _(self, key):
-        if any((isinstance(i, (self._node_class)) for i in key)):
-            key = tuple(self.nodes[i].uid for i in key)
-
-        edge = super().__getitem__(key)
-        if not self.multiedges and isinstance(edge, set):
-            edge = next(iter(edge))
-        return edge
-
-    @singledispatchmethod
-    def __contains__(self, item) -> bool:
-        """Returns if item is in edges."""
-        return super().__contains__(item)
-
-    @__contains__.register(tuple)  # type: ignore
-    def _(self, item: tuple) -> bool:
-        return PathPyTuple((self.nodes[i].uid for i in item),
-                           directed=self.directed) in self._relations \
-            if any((isinstance(i, (self._node_class)) for i in item)) \
-            else super().__contains__(item)
+        self._default_class: Any = Edge
 
     @property
     def multiedges(self) -> bool:
         """Return if edges are multiedges. """
-        return self._multiedges
+        return self._multiple
 
     @property
-    def nodes(self) -> NodeCollection:
+    def nodes(self) -> dict:
         """Return the associated nodes. """
-        return self._nodes
+        return self._objects
 
     @singledispatchmethod
-    def add(self, *edge, **kwargs: Any) -> None:
+    def add(self, *args, **kwargs: Any) -> None:
         """Add multiple nodes. """
         raise NotImplementedError
 
     @add.register(Edge)  # type: ignore
-    def _(self, *edge: Edge, **kwargs: Any) -> None:
-
-        if not kwargs.pop('checking', True):
-            super().add(edge[0], **kwargs)
-            return
-
-        _edge = edge[0]
-
-        if _edge.directed != self.directed:
-            _text = {True: 'directed', False: 'undirected'}
-            LOG.warning('An %s edge was added to an %s edge collection!',
-                        _text[_edge.directed], _text[self.directed])
-
-        # check if node exists already
-        for node in _edge.nodes.values():
-            if node not in self.nodes.values():
-                self.nodes.add(node)
-
-        # check if other edge exists between v and w
-        if _edge.relations not in self or self.multiedges:
-            super().add(edge[0], **kwargs)
-        else:
-            self._if_exist(_edge, **kwargs)
+    def _(self, *args: Edge, **kwargs: Any) -> None:
+        super().add(args[0], **kwargs)
 
     @add.register(str)  # type: ignore
-    @add.register(Node)  # type: ignore
-    def _(self, *edge: Union[str, Node], **kwargs: Any) -> None:
+    @add.register(int)  # type: ignore
+    @add.register(PathPyObject)  # type: ignore
+    def _(self, *args: str, **kwargs: Any) -> None:
 
         # get additional parameters
         uid: Optional[str] = kwargs.pop('uid', None)
-        nodes: bool = kwargs.pop('nodes', True)
 
-        # check if all objects are node or str
-        if not all(isinstance(arg, (Node, str)) for arg in edge):
-            LOG.error('All objects have to be Node objects or str uids!')
-            raise TypeError
-
-        # if nodes is true add nodes
-        if nodes:
-            _nodes: tuple = ()
-            for node in edge:
-                if node not in self.nodes:
-                    self.nodes.add(node)
-                _nodes += (self.nodes[node],)
-
-            _node_uids = tuple((n.uid for n in _nodes))
-            # create new edge object and add it to the network
-            if _node_uids not in self._relations or self.multiedges:
-                self.add(self._edge_class(*_nodes, uid=uid,
-                         directed=self.directed, **kwargs))
-            # raise error if edge already exists
-            else:
-                self._if_exist(_nodes, **kwargs)
-
-        # add edge with unknown nodes
+        if len(args) == 2:
+            obj = self._default_class(
+                *args, uid=uid, directed=self.directed, **kwargs)
+            super().add(obj)
         else:
-            self.add(self._edge_class(self._node_class(), self._node_class(),
-                                      uid=edge[0], directed=self.directed, **kwargs))
+            LOG.error('Only two objects can be linked with an edge')
+            raise KeyError
 
     @add.register(tuple)  # type: ignore
     @add.register(list)  # type: ignore
-    def _(self, *edge: Union[tuple, list], **kwargs: Any) -> None:
-
-        # check length of the input
-        if len(edge) == 1:
-            self.add(*edge[0], **kwargs)
-        # convert to set and add hyperedge
-        elif len(edge) > 1:
-            for _edge in edge:
-                self.add(_edge, **kwargs)
-        else:
-            LOG.error('The provided edge "%s" is of the wrong format!', edge)
-            raise AttributeError
+    def _(self, *args: tuple, **kwargs: Any) -> None:
+        for arg in args:
+            if len(arg) == 2:
+                self.add(*arg, **kwargs)
+            else:
+                LOG.error('The provided edge "%s" is of the wrong format!', arg)
+                raise AttributeError
 
     @singledispatchmethod
-    def remove(self, *edge, **kwargs):
+    def remove(self, *args, **kwargs):
         """Remove objects"""
-        super().remove(*edge, **kwargs)
+        super().remove(*args, **kwargs)
 
     @remove.register(str)  # type: ignore
     @remove.register(Node)  # type: ignore
-    def _(self, *edge: Union[str, Node], **kwargs: Any) -> None:
+    def _(self, *args: Union[str, Node], **kwargs: Any) -> None:
 
         # get additional parameters
         uid: Optional[str] = kwargs.pop('uid', None)
 
-        if len(edge) == 1 and edge[0] in self:
-            self.remove(self[edge[0]])
+        if len(args) == 1 and args[0] in self:
+            self.remove(self[args[0]])
         elif uid is not None:
             self.remove(uid)
-        elif edge in self._relations:
-            for uid in list(self._relations[edge]):
+        elif args in self._relations:
+            for uid in list(self._relations[args]):
                 self.remove(self[uid])
-            # self.remove(_edge)
-            # if isinstance(_edge, self._edge_class):
-            #     self._remove(_edge)
-            # elif isinstance(_edge, EdgeSet):
-            #     for _e in list(_edge):
-            #         self._remove(_e)
-            # else:
-            #     raise NotImplementedError
         else:
             LOG.warning('No edge was removed!')
 
     @remove.register(tuple)  # type: ignore
     @remove.register(list)  # type: ignore
-    def _(self, *edge: Union[tuple, list], **kwargs: Any) -> None:
-
-        # check length of the input
-        if len(edge) == 1:
-            self.remove(*edge[0], **kwargs)
-        # convert to set and add hyperedge
-        # elif len(edge) == 2 and self.hyperedges:
-        #     self.remove(set(edge[0]), set(edge[1]), **kwargs)
-        else:
-            LOG.warning('No edge was removed!')
+    def _(self, *args: Union[tuple, list], **kwargs: Any) -> None:
+        for arg in args:
+            self.remove(*arg, **kwargs)
 
 
 # =============================================================================
