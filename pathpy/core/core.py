@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-05-04 12:30 juergen>
+# Time-stamp: <Fri 2021-05-07 10:40 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -33,7 +33,7 @@ class PathPyObject:
 
         # assign node identifier
         if uid is not None:
-            self._uid = str(uid)
+            self._uid = uid
             self._is_python_uid = False
         else:
             self._uid = hex(id(self))
@@ -352,7 +352,7 @@ class PathPyPath(PathPyObject):
         # iterate over args and create structure and map
         for arg in args:
             # check if arg is a str (i.e. an uid)
-            if isinstance(arg, str):
+            if isinstance(arg, (int, str)):
                 _uid = arg
                 _obj = None
 
@@ -506,8 +506,9 @@ class PathPyCollection(MutableMapping):
 
     @__getitem__.register(tuple)  # type: ignore
     def _(self, key):
+        new = tuple(k.uid if isinstance(k, PathPyObject) else k for k in key)
         return {self._store[uid] for uid in self._relations[
-            PathPyTuple(key, directed=self.directed)]}
+            PathPyTuple(new, directed=self.directed)]}
 
     def __setitem__(self, key, value):
         self._store[key] = value
@@ -539,7 +540,8 @@ class PathPyCollection(MutableMapping):
 
     @__contains__.register(tuple)  # type: ignore
     def _(self, item: tuple) -> bool:
-        return PathPyTuple(item, directed=self.directed) in self._relations
+        new = tuple(k.uid if isinstance(k, PathPyObject) else k for k in item)
+        return PathPyTuple(new, directed=self.directed) in self._relations
 
     @property
     def uids(self) -> set:
@@ -604,7 +606,11 @@ class PathPyCollection(MutableMapping):
     @_add.register(PathPyPath)  # type: ignore
     def _(self, obj: PathPyObject) -> None:
         self[obj.uid] = obj
-        self._objects.update(obj.objects)
+
+        for key, value in obj.objects.items():
+            if key not in self._objects or \
+                    (self._objects[key] is None and value is not None):
+                self._objects[key] = value
 
         for uid in obj.objects:
             self._mapping[uid].add(obj.uid)

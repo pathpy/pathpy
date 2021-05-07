@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : node.py -- Base class for a node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-05-04 11:38 juergen>
+# Time-stamp: <Fri 2021-05-07 10:39 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -128,7 +128,7 @@ class Node(PathPyPath):
         # If only one string argument is given and no uid is defined
         # use the string argument as uid
         uid = node[0] if node and isinstance(
-            node[0], str) and uid is None else uid
+            node[0], (int, str)) and uid is None else uid
 
         # initialize the parent class
         super().__init__(*node, uid=uid, **kwargs)
