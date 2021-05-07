@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-07 10:40 juergen>
+# Time-stamp: <Fri 2021-05-07 11:26 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -492,6 +492,9 @@ class PathPyCollection(MutableMapping):
         # use the free update to set keys
         self.update(dict(*args, **kwargs))
 
+        # class of objects to be stored
+        self._default_class: Any = PathPyPath
+
     @singledispatchmethod
     def __getitem__(self, key):
         return None
@@ -569,6 +572,11 @@ class PathPyCollection(MutableMapping):
         """
         return dict(zip(self._store, range(len(self))))
 
+    # @property
+    # def nodes(self) -> dict:
+    #     """Return the associated objects (i.e. nodes). """
+    #     return self._objects
+
     @singledispatchmethod
     def add(self, *args, **kwargs) -> None:
         """Add objects"""
@@ -594,6 +602,21 @@ class PathPyCollection(MutableMapping):
             else:
                 self._if_exist(obj, **kwargs)
 
+    @add.register(str)  # type: ignore
+    def _(self, *args: str, **kwargs: Any) -> None:
+
+        # get additional parameters
+        uid: Optional[str] = kwargs.pop('uid', None)
+
+        # check if all objects are str
+        if not all(isinstance(arg, str) for arg in args):
+            LOG.error('All objects have to be str objects!')
+            raise TypeError
+
+        obj = self._default_class(
+            *args, uid=uid, directed=self.directed, **kwargs)
+        self.add(obj)
+
     @singledispatchmethod
     def _add(self, obj: Any) -> None:
         """Add an edge to the set of edges."""
@@ -612,10 +635,10 @@ class PathPyCollection(MutableMapping):
                     (self._objects[key] is None and value is not None):
                 self._objects[key] = value
 
-        for uid in obj.objects:
-            self._mapping[uid].add(obj.uid)
-
         if self._indexed:
+            for uid in obj.objects:
+                self._mapping[uid].add(obj.uid)
+
             self._relations[obj.relations].add(obj.uid)
 
     def _if_exist(self, obj: Any, **kwargs: Any) -> None:
@@ -670,13 +693,13 @@ class PathPyCollection(MutableMapping):
         """Add an edge to the set of edges."""
         self.pop(obj.uid, None)
 
-        for uid in obj.objects:
-            self._mapping[uid].discard(obj.uid)
-            if len(self._mapping[uid]) == 0:
-                self._mapping.pop(uid, None)
-                self._objects.pop(uid, None)
-
         if self._indexed:
+            for uid in obj.objects:
+                self._mapping[uid].discard(obj.uid)
+                if len(self._mapping[uid]) == 0:
+                    self._mapping.pop(uid, None)
+                    self._objects.pop(uid, None)
+
             self._relations[obj.relations].discard(obj.uid)
             if len(self._relations[obj.relations]) == 0:
                 self._relations.pop(obj.relations, None)
