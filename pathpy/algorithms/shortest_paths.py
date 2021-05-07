@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : shortest_paths.py -- Module to calculate shortest paths and diameter
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Mon 2021-03-29 16:33 juergen>
+# Time-stamp: <Wed 2021-05-05 13:21 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -118,7 +118,7 @@ def all_shortest_paths(network: Network,
     dist: defaultdict = defaultdict(lambda: defaultdict(lambda: np.inf))
     s_p: defaultdict = defaultdict(lambda: defaultdict(set))
 
-    for e in network.edges:
+    for e in network.edges.values():
         cost = 1
 
         if weight is True:
@@ -157,8 +157,8 @@ def all_shortest_paths(network: Network,
     if return_distance_matrix:
         dist_arr = np.ndarray(
             shape=(network.number_of_nodes(), network.number_of_nodes()))
-        for v in network.nodes:
-            for w in network.nodes:
+        for v in network.nodes.values():
+            for w in network.nodes.values():
                 dist_arr[network.nodes.index[v.uid],
                          network.nodes.index[w.uid]] = dist[v.uid][w.uid]
         return s_p, dist_arr
@@ -177,7 +177,7 @@ def single_source_shortest_paths(network: Network,
     prev = dict()
     dist[source] = 0
 
-    for v in network.nodes.uids:
+    for v in network.nodes.keys():
         if v != source:
             dist[v] = np.inf
             prev[v] = None
@@ -212,7 +212,7 @@ def single_source_shortest_paths(network: Network,
 
     # construct shortest paths
     s_p: dict = dict()
-    for dest in network.nodes:
+    for dest in network.nodes.values():
         if dest.uid != source:
             path = [dest.uid]
             x = dest.uid
@@ -240,7 +240,7 @@ def shortest_path_tree(network: Network,
     prev = dict()
     dist[source] = 0
 
-    for v in network.nodes.uids:
+    for v in network.nodes.keys():
         if v != source:
             dist[v] = np.inf
             prev[v] = None
