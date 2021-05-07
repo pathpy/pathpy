@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-07 12:43 juergen>
+# Time-stamp: <Fri 2021-05-07 12:59 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -484,6 +484,7 @@ class PathPyCollection(MutableMapping):
         # inidcator whether the network is directed or undirected
         self._directed: bool = kwargs.pop('directed', True)
 
+        self._multiple: bool = kwargs.pop('multiple', True)
         # dict to store the relationships between objects
         # IMPORTANT key has to be hashable
         # i.e. if the structure changes the mapping has to be updated
@@ -599,6 +600,22 @@ class PathPyCollection(MutableMapping):
 
                 # add edge to the collection
                 self._add(obj)
+            else:
+                self._if_exist(obj, **kwargs)
+
+    @add.register(PathPyPath)  # type: ignore
+    def _(self, *args: PathPyPath, **kwargs: Any) -> None:
+        for obj in args:
+
+            # check if object exists already
+            if obj not in self.values() and obj.uid not in self.keys():
+                if obj.relations not in self or self._multiple:
+                    if kwargs:
+                        obj.update(**kwargs)
+
+                    self._add(obj)
+                else:
+                    self._if_exist(obj, **kwargs)
             else:
                 self._if_exist(obj, **kwargs)
 
