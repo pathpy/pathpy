@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-07 11:26 juergen>
+# Time-stamp: <Fri 2021-05-07 12:43 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -603,13 +603,14 @@ class PathPyCollection(MutableMapping):
                 self._if_exist(obj, **kwargs)
 
     @add.register(str)  # type: ignore
-    def _(self, *args: str, **kwargs: Any) -> None:
+    @add.register(int)  # type: ignore
+    def _(self, *args: Union[str, int], **kwargs: Any) -> None:
 
         # get additional parameters
         uid: Optional[str] = kwargs.pop('uid', None)
 
         # check if all objects are str
-        if not all(isinstance(arg, str) for arg in args):
+        if not all(isinstance(arg, (str, int)) for arg in args):
             LOG.error('All objects have to be str objects!')
             raise TypeError
 
@@ -670,13 +671,15 @@ class PathPyCollection(MutableMapping):
         """Remove object from the collection"""
 
         # check if more then one object is given raise an AttributeError
-        if len(args) != 1:
-            LOG.error('More then one object was given.')
-            raise AttributeError
-
-        # check if object exists already
-        if args[0] in self.keys():
-            self._remove(self[args[0]], **kwargs)
+        if len(args) == 1:
+            # check if object exists already
+            if args[0] in self.keys():
+                self._remove(self[args[0]], **kwargs)
+        elif len(args) > 1 and args in self:
+            for obj in list(self[args]):
+                self.remove(obj)
+        else:
+            LOG.warning('No edge was removed!')
 
     @singledispatchmethod
     def _remove(self, obj) -> None:
