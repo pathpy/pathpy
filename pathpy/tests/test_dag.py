@@ -71,13 +71,11 @@ def test_from_temporal_network():
 
     tn.add_edge('a', 'b', timestamp=7)
     tn.add_edge('b', 'a', timestamp=8)
-    # dag = DirectedAcyclicGraph.from_temporal_network(tn)
-    # print(dag.roots)
-
-    # paths = tn.to_paths(delta=2)
-
-    # for path in paths:
-    #     print(path.nodes)
+    dag = DirectedAcyclicGraph.from_temporal_network(tn)
+    dag.topological_sorting()
+    assert dag.acyclic is True
+    assert dag.number_of_nodes() == 13
+    assert dag.number_of_edges() == 8
 # =============================================================================
 # eof
 #

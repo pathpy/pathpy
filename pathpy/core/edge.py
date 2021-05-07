@@ -696,7 +696,7 @@ class EdgeCollection(BaseCollection):
 
                 # update edge attributes
                 if kwargs:
-                    print(kwargs)
+                    # print(kwargs)
                     _edge.update(**kwargs)
 
                 # add edge to the network

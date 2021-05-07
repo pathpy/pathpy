@@ -171,11 +171,11 @@ def write(network: Union[Network, TemporalNetwork],
           table: str,
           filename: Optional[str] = None,
           con: Optional[sqlite3.Connection] = None,
-          exclude_edge_uid: bool = False,
+          include_edge_uid: bool = False,
           export_indices: bool = False,
           **pdargs: Any) -> None:
     """Stores all edges including edge attributes in a sql file."""
-    frame = to_dataframe(network=network, exclude_edge_uid=exclude_edge_uid,
+    frame = to_dataframe(network=network, include_edge_uid=include_edge_uid,
                          export_indices=export_indices)
 
     return write_dataframe(frame, table=table, filename=filename,

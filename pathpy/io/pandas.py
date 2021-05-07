@@ -292,7 +292,7 @@ def to_temporal_network(df: pd.DataFrame, loops: Optional[bool] = True,
 
     nodes = {str(n): TemporalNode(n) for n in node_set}
 
-    net = TemporalNetwork(directed=directed, multiedges=multiedges, **kwargs)
+    net = TemporalNetwork(directed=directed, multiedges=False, **kwargs)
 
     # add nodes to the network
     for node in nodes.values():

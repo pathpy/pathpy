@@ -72,10 +72,6 @@ def test_repr():
 
     assert u.__repr__() == 'Node u'
 
-    v = Node()
-
-    assert v.__repr__().replace('>', '').split(' ')[-1] == v.uid
-
 
 def test_update():
     """Test update node attributes."""

@@ -140,6 +140,7 @@ Official pathpy tutorial
    tutorial/random_walks
    tutorial/higher_order_random_walks
    tutorial/epidemic_spreading
+   tutorial/temporal_spreading
 
 .. raw:: html
 

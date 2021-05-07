@@ -66,6 +66,7 @@ Reading and writing network data
     io.graphtool
     io.graphml
     io.konect
+    io.infomap
     
 
 .. _generators_api:

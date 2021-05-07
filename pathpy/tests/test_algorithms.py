@@ -17,7 +17,7 @@ import pathpy as pp
 # @pytest.mark.parametrize('weighted', (True, False))
 @pytest.fixture(params=[True, False])
 def net(request):
-    net = pp.Network(directed=False)
+    net = pp.Network(directed=request.param)
     net.add_edge('a', 'b')
     net.add_edge('b', 'c')
     net.add_edge('c', 'a')
@@ -100,11 +100,11 @@ def test_avg_path_length():
 
 def test_betweenness_centrality_network(net):
     """Test the betweenness centrality of a network."""
-    net = pp.Network(directed=False)
-    net.add_edge('a', 'x')
-    net.add_edge('x', 'b')
     c = pp.algorithms.centralities.betweenness_centrality(net)
-    assert c['x'] == 2
+    if net.directed == True:
+        assert c['a'] == 5
+    else:
+        assert c['a'] == 0
 
     # print(net.adjacency_matrix().todense())
     # c = pp.algorithms.centralities.betweenness_centrality(net)
