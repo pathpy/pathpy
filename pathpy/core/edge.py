@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-07 14:36 juergen>
+# Time-stamp: <Fri 2021-05-07 15:03 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -13,8 +13,7 @@ from typing import Any, Optional, Union
 from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
 
 from pathpy import logger
-from pathpy.core.core import PathPyTuple, PathPyObject, PathPyPath, PathPyCollection
-from pathpy.core.node import Node, NodeCollection
+from pathpy.core.core import PathPyObject, PathPyPath, PathPyCollection
 
 # create logger for the Path class
 LOG = logger(__name__)
@@ -297,9 +296,14 @@ class EdgeCollection(PathPyCollection):
         """Remove objects"""
         super().remove(*args, **kwargs)
 
+    @remove.register(Edge)  # type: ignore
+    def _(self, *args: Edge, **kwargs: Any) -> None:
+        super().remove(*args, **kwargs)
+
     @remove.register(str)  # type: ignore
-    @remove.register(Node)  # type: ignore
-    def _(self, *args: Union[str, Node], **kwargs: Any) -> None:
+    @remove.register(int)  # type: ignore
+    @remove.register(PathPyObject)  # type: ignore
+    def _(self, *args: Union[int, str, PathPyObject], **kwargs: Any) -> None:
 
         # get additional parameters
         uid: Optional[str] = kwargs.pop('uid', None)
@@ -308,9 +312,9 @@ class EdgeCollection(PathPyCollection):
             self.remove(self[args[0]])
         elif uid is not None:
             self.remove(uid)
-        elif args in self._relations:
-            for uid in list(self._relations[args]):
-                self.remove(self[uid])
+        elif args in self:
+            for obj in list(self[args]):
+                super().remove(obj)
         else:
             LOG.warning('No edge was removed!')
 

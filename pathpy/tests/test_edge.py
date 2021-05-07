@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_edge.py -- Test environment for the Edge class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-07 14:37 juergen>
+# Time-stamp: <Fri 2021-05-07 15:02 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -243,10 +243,9 @@ def test_EdgeCollection():
 
     assert len(edges) == 3
 
-    print(edges._objects)
-
-    edges.remove(ab, 'c-d')
-    assert len(edges) == 2
+    edges.remove(ab)
+    edges.remove('c-d')
+    assert len(edges) == 1
     # assert len(edges.nodes) == 10
 
     edges = EdgeCollection()
