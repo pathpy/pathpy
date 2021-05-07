@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : __init__.py -- pathpy init file
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-04-27 10:56 ingo>
+# Time-stamp: <Tue 2021-05-04 11:41 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -27,7 +27,7 @@ from pathpy.utils.errors import FileFormatError, NetworkError, MissingModuleErro
 from pathpy.core.api import (
     Node,
     Edge,
-    HyperEdge,
+    # HyperEdge,
     Path,
     NodeCollection,
     EdgeCollection,
@@ -93,16 +93,6 @@ Network.local_clustering_coefficient = statistics.local_clustering_coefficient
 
 Network.plot = plot
 
-from .__about__ import (
-    __title__,
-    __version__,
-    __author__,
-    __email__,
-    __copyright__,
-    __license__,
-    __maintainer__,
-    __status__
-)
 
 # create logger for the the init file
 LOG = logger(__name__)

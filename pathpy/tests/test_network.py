@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-03-29 16:18 juergen>
+# Time-stamp: <Tue 2021-05-04 13:45 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -160,6 +160,7 @@ def test_add_edge():
     net = Network()
     net.add_edge(e)
     net.add_edge(f)
+
     with pytest.raises(Exception):
         net.add_edge(g)
 
@@ -395,15 +396,17 @@ def test_remove_edge():
     assert isinstance(net.edges['e'], Edge)
     assert g not in net.edges
     assert net.edges['a', 'b'] in net.edges
-    assert net.successors['a'] == {b}
-    assert net.outgoing['a'] == {e}
-    assert net.incident_edges['a'] == {e, f}
+
+    assert net.successors['a'] == {'b'}
+    assert net.outgoing['a'] == {'e'}
+    assert net.incident_edges['a'] == {'e', 'f'}
+
     net.remove_edge(e)
 
     assert net.number_of_edges() == 1
     assert net.successors['a'] == set()
     assert net.outgoing['a'] == set()
-    assert net.incident_edges['a'] == {f}
+    assert net.incident_edges['a'] == {'f'}
 
     net.remove_edge('f')
 
@@ -475,8 +478,8 @@ def test_network_properties():
     net.add_edge('b', 'c', uid='b-c')
     net.add_edge('c', 'a', uid='c-a')
 
-    assert net.successors['c'] == {net.nodes['a']}
-    assert net.incoming['a'] == {net.edges['c-a']}
+    assert net.successors['c'] == {'a'}
+    assert net.incoming['a'] == {'c-a'}
 
     net.remove_edge('c-a')
 
