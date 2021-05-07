@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-05 15:56 juergen>
+# Time-stamp: <Wed 2021-05-05 16:58 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -203,14 +203,14 @@ class Edge(PathPyPath):
         super().__init__(v, w, uid=uid, directed=directed, **kwargs)
 
     @property
-    def v(self) -> Node:
-        """Return the source node v uid of the edge. """
+    def v(self) -> PathPyObject:
+        """Return the uid of the source node v. """
         # pylint: disable=invalid-name
         return self.objects[self.relations[0]]
 
     @property
-    def w(self) -> Node:
-        """Return the target node w uid of the edge. """
+    def w(self) -> PathPyObject:
+        """Return the uid of the target node w. """
         # pylint: disable=invalid-name
         return self.objects[self.relations[-1]]
 
@@ -316,7 +316,7 @@ class EdgeCollection(PathPyCollection):
                 self.nodes.add(node)
 
         # check if other edge exists between v and w
-        if (_edge.v, _edge.w) not in self or self.multiedges:
+        if _edge.relations not in self or self.multiedges:
             super().add(edge[0], **kwargs)
         else:
             self._if_exist(_edge, **kwargs)
