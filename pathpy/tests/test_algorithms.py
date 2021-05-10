@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_algorithms.py -- Test environment for basic algorithms
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-05 13:17 juergen>
+# Time-stamp: <Mon 2021-05-10 16:24 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -77,25 +77,25 @@ def test_all_shortest_paths():
     assert paths['a']['c'] == {('a', 'x', 'c'), ('a', 'y', 'c')}
 
 
-# def test_diameter():
-#     """Test the diameter of the network."""
-#     net = pp.Network(directed=False)
-#     net.add_edge('a', 'x')
-#     net.add_edge('x', 'c')
-#     assert pp.algorithms.shortest_paths.diameter(net) == 2
-#     assert net.diameter() == 2
+def test_diameter():
+    """Test the diameter of the network."""
+    net = pp.Network(directed=False)
+    net.add_edge('a', 'x')
+    net.add_edge('x', 'c')
+    assert pp.algorithms.shortest_paths.diameter(net) == 2
+    assert net.diameter() == 2
 
-#     net.add_edge('a', 'c')
-#     assert pp.algorithms.shortest_paths.diameter(net) == 1
-#     assert net.diameter() == 1
+    net.add_edge('a', 'c')
+    assert pp.algorithms.shortest_paths.diameter(net) == 1
+    assert net.diameter() == 1
 
 
-# def test_avg_path_length():
-#     """Test the average path length of the network."""
-#     net = pp.Network(directed=False)
-#     net.add_edge('a', 'x')
-#     net.add_edge('x', 'c')
-#     assert pp.algorithms.shortest_paths.avg_path_length(net) == 8/6
+def test_avg_path_length():
+    """Test the average path length of the network."""
+    net = pp.Network(directed=False)
+    net.add_edge('a', 'x')
+    net.add_edge('x', 'c')
+    assert pp.algorithms.shortest_paths.avg_path_length(net) == 8/6
 
 
 # def test_betweenness_centrality_network(net):
@@ -136,25 +136,26 @@ def test_all_shortest_paths():
 #     assert bc['c'] == 3
 
 
-# def test_closeness_centrality():
-#     """Test the betweenness centrality of a network."""
-#     net = pp.Network(directed=False)
-#     net.add_edge('a', 'x')
-#     net.add_edge('x', 'b')
-#     c = pp.algorithms.centralities.closeness_centrality(net)
-#     assert c['a'] == 1/3
+def test_closeness_centrality():
+    """Test the betweenness centrality of a network."""
+    net = pp.Network(directed=False)
+    net.add_edge('a', 'x')
+    net.add_edge('x', 'b')
+    c = pp.algorithms.centralities.closeness_centrality(net)
+    assert c['a'] == 1/3
 
 
-# def test_degree_centrality():
-#     """Test the betweenness centrality of a network."""
-#     net = pp.Network(directed=True)
-#     net.add_edge('a', 'x')
-#     net.add_edge('x', 'b')
-#     c = pp.algorithms.centralities.degree_centrality(net)
-#     assert c['a'] == 1
+def test_degree_centrality():
+    """Test the betweenness centrality of a network."""
+    net = pp.Network(directed=True)
+    net.add_edge('a', 'x')
+    net.add_edge('x', 'b')
 
-#     c = pp.algorithms.centralities.degree_centrality(net, mode='indegree')
-#     assert c['a'] == 0
+    c = pp.algorithms.centralities.degree_centrality(net)
+    assert c['a'] == 1
+
+    c = pp.algorithms.centralities.degree_centrality(net, mode='indegree')
+    assert c['a'] == 0
 
 
 # def test_rank_centralities():

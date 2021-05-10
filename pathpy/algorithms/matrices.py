@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : matrices.py -- Module to calculate various matrices
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-05 13:13 juergen>
+# Time-stamp: <Mon 2021-05-10 16:08 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -138,15 +138,15 @@ def _adjacency_matrix(self, weight: Union[str, bool, None] = None,
     for e in self.edges.values():
 
         # directed network
-        rows.append(index[e.v.uid])
-        cols.append(index[e.w.uid])
+        rows.append(index[e.v])
+        cols.append(index[e.w])
         entries.append(e.weight(weight))
 
         # add additional nodes if not directed
         if directed is False or not self.directed:
-            if e.v.uid != e.w.uid or loops == 2:
-                rows.append(index[e.w.uid])
-                cols.append(index[e.v.uid])
+            if e.v != e.w or loops == 2:
+                rows.append(index[e.w])
+                cols.append(index[e.v])
                 entries.append(e.weight(weight))
 
     A = sparse.csr_matrix((entries, (rows, cols)), shape=(n, n))
