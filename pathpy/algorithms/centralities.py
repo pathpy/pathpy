@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : centralities.py -- Module to calculate node centrality measures
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Mon 2021-03-29 17:15 juergen>
+# Time-stamp: <Mon 2021-05-10 16:31 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -22,7 +22,7 @@ from pathpy.algorithms import shortest_paths
 from pathpy.algorithms.matrices import adjacency_matrix
 
 from pathpy.core.collections import BaseCollection
-from pathpy.models.classes import BaseModel
+from pathpy.models.classes import BaseNetwork
 from pathpy.models.models import ABCHigherOrderNetwork
 
 # pseudo load class for type checking
@@ -118,7 +118,7 @@ def _bw_paths(self: PathCollection, normalized: bool = False) -> Dict:
     return bw
 
 
-@betweenness_centrality.register(BaseModel)
+@betweenness_centrality.register(BaseNetwork)
 def _bw_network(self: Network, normalized: bool = False) -> Dict:
     """Betweenness Centrality for Networks."""
 

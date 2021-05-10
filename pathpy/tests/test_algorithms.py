@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_algorithms.py -- Test environment for basic algorithms
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-10 16:24 juergen>
+# Time-stamp: <Mon 2021-05-10 16:29 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -98,17 +98,17 @@ def test_avg_path_length():
     assert pp.algorithms.shortest_paths.avg_path_length(net) == 8/6
 
 
-# def test_betweenness_centrality_network(net):
-#     """Test the betweenness centrality of a network."""
-#     net = pp.Network(directed=False)
-#     net.add_edge('a', 'x')
-#     net.add_edge('x', 'b')
-#     c = pp.algorithms.centralities.betweenness_centrality(net)
-#     assert c['x'] == 2
+def test_betweenness_centrality_network():
+    """Test the betweenness centrality of a network."""
+    net = pp.Network(directed=False)
+    net.add_edge('a', 'x')
+    net.add_edge('x', 'b')
+    c = pp.algorithms.centralities.betweenness_centrality(net)
+    assert c['x'] == 2
 
-#     # print(net.adjacency_matrix().todense())
-#     # c = pp.algorithms.centralities.betweenness_centrality(net)
-#     # print(c['b'])
+    # print(net.adjacency_matrix().todense())
+    # c = pp.algorithms.centralities.betweenness_centrality(net)
+    # print(c['b'])
 
 
 # # def test_betweenness_centrality_hon():
@@ -158,31 +158,31 @@ def test_degree_centrality():
     assert c['a'] == 0
 
 
-# def test_rank_centralities():
-#     """Test the betweenness centrality of a network."""
-#     centralities = {'a': .2, 'b': .8, 'c': .5}
-#     rc = pp.algorithms.centralities.rank_centralities(centralities)
-#     assert rc == [('b', 0.8), ('c', 0.5), ('a', 0.2)]
+def test_rank_centralities():
+    """Test the betweenness centrality of a network."""
+    centralities = {'a': .2, 'b': .8, 'c': .5}
+    rc = pp.algorithms.centralities.rank_centralities(centralities)
+    assert rc == [('b', 0.8), ('c', 0.5), ('a', 0.2)]
 
 
-# def test_find_connected_components():
-#     """Test to find the connected components."""
-#     net = Network(directed=False)
-#     net.add_edge('a', 'b')
-#     net.add_edge('b', 'c')
-#     net.add_edge('x', 'y')
-#     cn = pp.algorithms.components.find_connected_components(net)
-#     # print(cn)
+def test_find_connected_components():
+    """Test to find the connected components."""
+    net = Network(directed=False)
+    net.add_edge('a', 'b')
+    net.add_edge('b', 'c')
+    net.add_edge('x', 'y')
+    cn = pp.algorithms.components.find_connected_components(net)
+    # print(cn)
 
 
-# def test_largest_connected_component():
-#     """Test to find the largest connected component."""
-#     net = Network(directed=False)
-#     net.add_edge('a', 'b')
-#     net.add_edge('b', 'c')
-#     net.add_edge('x', 'y')
-#     lcc = pp.algorithms.components.largest_connected_component(net)
-#     # print(lcc)
+def test_largest_connected_component():
+    """Test to find the largest connected component."""
+    net = Network(directed=False)
+    net.add_edge('a', 'b')
+    net.add_edge('b', 'c')
+    net.add_edge('x', 'y')
+    lcc = pp.algorithms.components.largest_connected_component(net)
+    # print(lcc)
 
 # =============================================================================
 # eof
