@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-10 13:46 juergen>
+# Time-stamp: <Mon 2021-05-10 14:57 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -511,8 +511,9 @@ class PathPyCollection():
     @__getitem__.register(tuple)  # type: ignore
     def _(self, key):
         new = tuple(k.uid if isinstance(k, PathPyObject) else k for k in key)
-        return {self._store[uid] for uid in self._relations[
+        values = {self._store[uid] for uid in self._relations[
             PathPyTuple(new, directed=self.directed)]}
+        return values if self._multiple else next(iter(values))
 
     def __setitem__(self, key, value):
         self._store[key] = value

@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_core.py -- Test environment for the core classes
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-07 13:22 juergen>
+# Time-stamp: <Mon 2021-05-10 14:52 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -58,6 +58,9 @@ def test_PathPyCollection_add_str():
     print(paths._relations)
     print(paths._mapping)
 
+    paths = PathPyCollection(multiple=False)
+    paths.add('a', 'b', uid='ab')
+    print(paths['a', 'b'])
     # col.add(p)
     # col.add(q)
 
