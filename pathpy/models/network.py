@@ -5,7 +5,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-10 16:03 juergen>
+# Time-stamp: <Mon 2021-05-10 16:24 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -514,11 +514,11 @@ class Network(BaseNetwork):
         """Helper function to calculate the degrees."""
         _degrees: dict = {}
         if weight is None:
-            _degrees = {node.uid: _dict[node] for node in self.nodes.values()}
+            _degrees = {node: _dict[node] for node in self.nodes.keys()}
         else:
-            for node in self.nodes.values():
-                _degrees[node.uid] = sum([e.weight(weight)
-                                          for e in _dict[node]])
+            for node in self.nodes.keys():
+                _degrees[node] = sum([self.edges[e].weight(weight)
+                                      for e in _dict[node]])
         return _degrees
 
     def indegrees(self, weight: Weight = None) -> Dict[str, float]:
