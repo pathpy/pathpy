@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-07 15:03 juergen>
+# Time-stamp: <Mon 2021-05-10 14:45 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -243,6 +243,9 @@ class EdgeCollection(PathPyCollection):
         # indicator whether the network has multi-edges
         self._multiple: bool = kwargs.pop('multiedges', False)
 
+        # collection of nodes
+        self._nodes: PathPyCollection = kwargs.pop('nodes', PathPyCollection())
+
         # class of objects
         self._default_class: Any = Edge
 
@@ -291,6 +294,21 @@ class EdgeCollection(PathPyCollection):
                 LOG.error('The provided edge "%s" is of the wrong format!', arg)
                 raise AttributeError
 
+    def _add(self, obj: Any) -> None:
+        """Add an edge to the set of edges."""
+        super()._add(obj)
+        # update shared collection of nodes
+        for uid, node in self._objects.items():
+            # if Node not linked update edge objects
+            if node is None and uid in self._nodes:
+                self._objects[uid] = self._nodes[uid]
+
+            # add new nodes to the shared node colection
+            if uid not in self._nodes and node is None:
+                self._nodes.add(uid)
+            elif uid not in self._nodes and node is not None:
+                self._nodes.add(node)
+
     @singledispatchmethod
     def remove(self, *args, **kwargs):
         """Remove objects"""
@@ -323,7 +341,6 @@ class EdgeCollection(PathPyCollection):
     def _(self, *args: Union[tuple, list], **kwargs: Any) -> None:
         for arg in args:
             self.remove(*arg, **kwargs)
-
 
 # =============================================================================
 # eof
