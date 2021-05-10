@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-07 13:34 juergen>
+# Time-stamp: <Mon 2021-05-10 13:46 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -464,7 +464,7 @@ class PathPyPath(PathPyObject):
         return ''.join(summary)
 
 
-class PathPyCollection(MutableMapping):
+class PathPyCollection():
     """Base collection for PathPyObjects"""
 
     def __init__(self, *args, **kwargs):
@@ -521,13 +521,20 @@ class PathPyCollection(MutableMapping):
         del self._store[key]
 
     def __iter__(self):
-        return iter(self._store)
+        return self._store.values().__iter__()
 
     def __len__(self):
         return len(self._store)
 
     def __repr__(self):
-        return self._store.__repr__()
+        return set(self._store.values()).__repr__()
+
+    def __str__(self) -> str:
+        return set(self._store.values()).__str__()
+
+    def __eq__(self, other) -> bool:
+        """Return if two collections are equal"""
+        return self._store == other._store
 
     @singledispatchmethod
     def __contains__(self, item) -> bool:
@@ -546,6 +553,22 @@ class PathPyCollection(MutableMapping):
     def _(self, item: tuple) -> bool:
         new = tuple(k.uid if isinstance(k, PathPyObject) else k for k in item)
         return PathPyTuple(new, directed=self.directed) in self._relations
+
+    def items(self):
+        """Return a new view of the container’s items ((key, value) pairs)."""
+        return self._store.items()
+
+    def keys(self):
+        """Return a new view of the container’s keys. """
+        return self._store.keys()
+
+    def values(self):
+        """Return a new view of the container’s values."""
+        return self._store.values()
+
+    def pop(self, key, default: Any = KeyError) -> Any:
+        """Pop item form dict"""
+        self._store.pop(key, default)
 
     @property
     def uids(self) -> set:

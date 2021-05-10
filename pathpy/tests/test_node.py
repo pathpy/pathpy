@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_node.py -- Test environment for the Node class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-07 15:04 juergen>
+# Time-stamp: <Mon 2021-05-10 13:51 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -154,6 +154,25 @@ def test_NodeCollection():
     nodes.remove([('e', 'f', 'g'), 'h', ['i']])
 
     assert len(nodes) == 2
+
+
+def test_NodeCollection_iter():
+    """Test iter trough the node collection"""
+    nodes = NodeCollection()
+    nodes.add(['a', 'b', 'c', 'd'])
+
+    for node in nodes:
+        assert isinstance(node.uid, str)
+
+    for uid, node in nodes.items():
+        assert isinstance(uid, str)
+        assert isinstance(node, Node)
+
+    for uid in nodes.keys():
+        assert isinstance(uid, str)
+
+    for node in nodes.values():
+        assert isinstance(node, Node)
 
 
 # =============================================================================
