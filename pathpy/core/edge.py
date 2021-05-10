@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-10 14:45 juergen>
+# Time-stamp: <Mon 2021-05-10 15:50 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -304,8 +304,8 @@ class EdgeCollection(PathPyCollection):
                 self._objects[uid] = self._nodes[uid]
 
             # add new nodes to the shared node colection
-            if uid not in self._nodes and node is None:
-                self._nodes.add(uid)
+            elif uid not in self._nodes and node is None:
+                self._nodes.add(uid, uid=uid)
             elif uid not in self._nodes and node is not None:
                 self._nodes.add(node)
 
@@ -330,9 +330,11 @@ class EdgeCollection(PathPyCollection):
             self.remove(self[args[0]])
         elif uid is not None:
             self.remove(uid)
-        elif args in self:
+        elif args in self and self.multiedges:
             for obj in list(self[args]):
                 super().remove(obj)
+        elif args in self and not self.multiedges:
+            super().remove(self[args])
         else:
             LOG.warning('No edge was removed!')
 
