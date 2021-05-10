@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_core.py -- Test environment for the core classes
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-10 14:52 juergen>
+# Time-stamp: <Mon 2021-05-10 17:08 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -41,26 +41,29 @@ def test_PathPyCollection_add_PathPyPath():
 def test_PathPyCollection_add_str():
     """Test the PathPyCollection"""
 
-    paths = PathPyCollection(directed=False, multiple=True)
-    paths.add('a', 'b', 'c', uid='p1')
-    paths.add('c', 'b', 'a', uid='p2')
+    paths = PathPyCollection(directed=False, multiple=False)
+    paths.add('a', 'b', 'c', uid='p1', frequency=44)
+    paths.add('c', 'b', 'a', uid='p2', frequency=11)
 
     assert 'p1' in paths
     assert ('a', 'b', 'c') in paths
 
+    print(paths.counter)
     #paths.add(1, 2, 3, 4)
 
     #paths.remove('a', 'b', 'c')
     # paths.remove('p1')
-    paths.add('a')
-    print(paths)
-    print(paths._objects)
-    print(paths._relations)
-    print(paths._mapping)
+    # paths.add('a')
+    # print(paths)
+    # print(paths._objects)
+    # print(paths._relations)
+    # print(paths._mapping)
 
-    paths = PathPyCollection(multiple=False)
-    paths.add('a', 'b', uid='ab')
-    print(paths['a', 'b'])
+    # paths = PathPyCollection(multiple=False)
+    # paths.add('a', 'b', uid='ab')
+    # print(paths['a', 'b'])
+
+    # print(paths.counter)
     # col.add(p)
     # col.add(q)
 

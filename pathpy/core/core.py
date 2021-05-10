@@ -4,17 +4,16 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-10 14:57 juergen>
+# Time-stamp: <Mon 2021-05-10 17:09 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
 from typing import Any, Optional, Union, Dict
 from copy import deepcopy
-from collections import defaultdict
-from collections.abc import MutableMapping
+from collections import defaultdict, Counter
 from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
 
-from pathpy import logger
+from pathpy import logger, config
 
 # create logger for the Path class
 LOG = logger(__name__)
@@ -478,20 +477,22 @@ class PathPyCollection():
         # mapping between the child and the parten {child.uid: {parten.uids}}
         self._mapping: defaultdict = defaultdict(set)
 
+        # initialize object counter
+        self._counter: Counter = Counter()
+
         # enable indexing of the structures
         self._indexed: bool = kwargs.pop('indexed', True)
 
         # inidcator whether the network is directed or undirected
         self._directed: bool = kwargs.pop('directed', True)
 
+        # indicator if multipaths/edges are allowed
         self._multiple: bool = kwargs.pop('multiple', False)
+
         # dict to store the relationships between objects
         # IMPORTANT key has to be hashable
         # i.e. if the structure changes the mapping has to be updated
         self._relations: defaultdict = defaultdict(set)
-
-        # use the free update to set keys
-        # self.update(dict(*args, **kwargs))
 
         # class of objects to be stored
         self._default_class: Any = PathPyPath
@@ -582,6 +583,11 @@ class PathPyCollection():
         return self._directed
 
     @property
+    def counter(self) -> Counter:
+        """Return a counter of the objects. """
+        return self._counter
+
+    @property
     def index(self) -> Dict[str, int]:
         """Returns a dictionary that maps object uids to  integer indices.
 
@@ -597,10 +603,10 @@ class PathPyCollection():
         """
         return dict(zip(self._store, range(len(self))))
 
-    # @property
-    # def nodes(self) -> dict:
-    #     """Return the associated objects (i.e. nodes). """
-    #     return self._objects
+    @property
+    def nodes(self) -> dict:
+        """Return the associated objects (i.e. nodes). """
+        return self._objects
 
     @singledispatchmethod
     def add(self, *args, **kwargs) -> None:
@@ -623,7 +629,7 @@ class PathPyCollection():
                     obj.update(**kwargs)
 
                 # add edge to the collection
-                self._add(obj)
+                self._add(obj, **kwargs)
             else:
                 self._if_exist(obj, **kwargs)
 
@@ -637,7 +643,7 @@ class PathPyCollection():
                     if kwargs:
                         obj.update(**kwargs)
 
-                    self._add(obj)
+                    self._add(obj, **kwargs)
                 else:
                     self._if_exist(obj, **kwargs)
             else:
@@ -657,20 +663,25 @@ class PathPyCollection():
 
         obj = self._default_class(
             *args, uid=uid, directed=self.directed, **kwargs)
-        self.add(obj)
+        self.add(obj, **kwargs)
 
     @singledispatchmethod
-    def _add(self, obj: Any) -> None:
+    def _add(self, obj: Any, **kwargs: Any) -> None:
         """Add an edge to the set of edges."""
         raise NotImplementedError
 
     @_add.register(PathPyObject)  # type: ignore
-    def _(self, obj: PathPyObject) -> None:
+    def _(self, obj: PathPyObject, **kwargs: Any) -> None:
         self[obj.uid] = obj
+        self.counter[obj.uid] += kwargs.get(
+            config['attributes']['frequency'], 1)
 
     @_add.register(PathPyPath)  # type: ignore
-    def _(self, obj: PathPyObject) -> None:
+    def _(self, obj: PathPyObject, **kwargs: Any) -> None:
         self[obj.uid] = obj
+
+        self.counter[obj.uid] += kwargs.get(
+            config['attributes']['frequency'], 1)
 
         for key, value in obj.objects.items():
             if key not in self._objects or \
@@ -687,8 +698,10 @@ class PathPyCollection():
         """Helper function if the edge does already exsist."""
         # pylint: disable=no-self-use
         # pylint: disable=unused-argument
-        LOG.error('The object "%s" already exists in the Collection', obj)
-        raise KeyError
+        uid = self[obj.relations].uid
+        self.counter[uid] += kwargs.get(config['attributes']['frequency'], 1)
+        # LOG.error('The object "%s" already exists in the Collection', obj)
+        # raise KeyError
 
     @singledispatchmethod
     def remove(self, *args, **kwargs) -> None:
@@ -731,11 +744,13 @@ class PathPyCollection():
     def _(self, obj: PathPyObject) -> None:
         """Add an edge to the set of edges."""
         self.pop(obj.uid, None)
+        self.counter.pop(obj.uid, None)
 
     @_remove.register(PathPyPath)  # type: ignore
     def _(self, obj: PathPyPath) -> None:
         """Add an edge to the set of edges."""
         self.pop(obj.uid, None)
+        self.counter.pop(obj.uid, None)
 
         if self._indexed:
             for uid in obj.objects:
