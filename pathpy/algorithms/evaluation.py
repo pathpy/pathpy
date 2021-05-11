@@ -12,7 +12,7 @@ from __future__ import annotations
 from typing import Optional, Union
 from functools import singledispatch
 
-from numpy.random import choice
+from numpy.random import choice, shuffle
 
 from pathpy import logger
 from pathpy.models.api import Network
@@ -154,3 +154,27 @@ def _(network: TemporalNetwork, test_size: Optional[float]=0.25, train_size: Opt
 
 def adjusted_mutual_information(clustering_1: dict, clustering_2: dict):
     raise NotImplementedError('Adjusted mutual information is not implemented')
+
+
+def shuffle_temporal_network(net: TemporalNetwork):
+    """
+    Randomly reassigns timestamps (start, end, duration) of edges in a temporal network.
+    This is useful to generate a random baseline for temporal patterns in temporal networks.
+    """
+    timestamps = []
+    edges = []
+
+    for start, end, uid in net.tedges:
+        timestamps.append((start, end))
+        edges.append(uid)
+
+    shuffled_net = TemporalNetwork(directed=net.directed, multiedges=net.multiedges, uid='{0}_shuffled'.format(net.uid), **net.attributes)
+
+    shuffle(timestamps)
+    
+    for i in range(len(timestamps)):
+        ts = timestamps[i]
+        e = net.edges[edges[i]]
+        shuffled_net.add_edge(e.v, e.w, start=ts[0], end=ts[1], **{k:v for (b,e,k),v in e.attributes.items()})
+
+    return shuffled_net
