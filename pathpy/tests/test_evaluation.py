@@ -9,7 +9,6 @@
 # =============================================================================
 
 import pytest
-from pathpy import Network, PathCollection  # , HigherOrderNetwork, NullModel
 import pathpy as pp
 
 @pytest.fixture(params=[True, False])
