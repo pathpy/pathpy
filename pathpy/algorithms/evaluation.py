@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : centralities.py -- Module to calculate node centrality measures
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Sun 2021-04-17 01:07 ingo>
+# Time-stamp: <Tue 2021-05-11 23:31 ingo>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -12,7 +12,7 @@ from __future__ import annotations
 from typing import Optional, Union
 from functools import singledispatch
 
-from numpy.random import choice, shuffle
+from numpy.random import choice, shuffle, permutation
 
 from pathpy import logger
 from pathpy.models.api import Network
@@ -170,11 +170,13 @@ def shuffle_temporal_network(net: TemporalNetwork):
 
     shuffled_net = TemporalNetwork(directed=net.directed, multiedges=net.multiedges, uid='{0}_shuffled'.format(net.uid), **net.attributes)
 
-    shuffle(timestamps)
+    permute = permutation(len(timestamps))
     
     for i in range(len(timestamps)):
-        ts = timestamps[i]
+        ots = timestamps[i]
+        nts = timestamps[permute[i]]
         e = net.edges[edges[i]]
-        shuffled_net.add_edge(e.v, e.w, start=ts[0], end=ts[1], **{k:v for (b,e,k),v in e.attributes.items()})
+        atts = { k:v for (b,e,k),v in e.attributes.items() if b==ots[0] }
+        shuffled_net.add_edge(e.v, e.w, start=nts[0], end=nts[1], **atts)
 
     return shuffled_net
