@@ -459,8 +459,8 @@ def from_temporal_network(network: TemporalNetwork,
     """
     frame = pd.DataFrame()
 
-    # TODO: temporal() is a deprecated method in the old TemporalEdgeCollection 
-    for uid, edge, begin, end in network.edges.temporal():
+    for begin, end, uid in network.tedges:
+        edge = network.edges[uid]
         v = edge.v.uid
         w = edge.w.uid
         if export_indices:
