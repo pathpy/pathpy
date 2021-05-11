@@ -52,7 +52,7 @@ def train_test_split(network: Network, test_size: Optional[float]=0.25, train_si
     Returns
     -------
 
-    Tuple (n1, n2) where n1 is the test network and n2 is the training network
+    Tuple (n1, n2) where n1 is the training network and n2 is the test network
 
     Examples
     --------
@@ -62,9 +62,9 @@ def train_test_split(network: Network, test_size: Optional[float]=0.25, train_si
     >>> n.add_edge('b', 'c')
     >>> n.add_edge('c', 'd')
     >>> n.add_edge('d', 'a')
-    >>> test, train = train_test_split(n, test_size=0.25)
-    >>> print(test)    
+    >>> train, test = train_test_split(n, test_size=0.25)
     >>> print(train)
+    >>> print(test)
     Network with one node
     Network with three nodes
 
@@ -103,7 +103,7 @@ def train_test_split(network: Network, test_size: Optional[float]=0.25, train_si
     else:
         raise NotImplementedError('Unsupported split method "{0}" for instance of type Network'.format(split))
 
-    return test_network, train_network
+    return train_network, test_network
 
 
 @train_test_split.register(TemporalNetwork)
@@ -149,7 +149,7 @@ def _(network: TemporalNetwork, test_size: Optional[float]=0.25, train_size: Opt
     else:
         raise NotImplementedError('Unsupported split method "{0}" for instance of type TemporalNetwork'.format(split))
 
-    return test_network, train_network
+    return train_network, test_network
 
 
 def adjusted_mutual_information(clustering_1: dict, clustering_2: dict):
