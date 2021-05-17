@@ -326,13 +326,12 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
             else:
                 current_delta = temporal_network.end()-begin
 
-            # create time-unfolded nodes v_t and w_{t+1}
             v_t = "{0}_{1}".format(v.uid, begin)
-            #node_map[v_t] = edge.v.uid
 
             # create one time-unfolded link for all delta in [1, delta]
             # this implies that for delta = 2 and an edge (a,b,1) two
-            # time-unfolded links (a_1, b_2) and (a_1, b_3) will be created            
+            # time-unfolded links (a_1, b_2) and (a_1, b_3) will be created 
+            # TODO: Check directedness
             for x in range(1, int(current_delta)+1):
                 w_t = "{0}_{1}".format(w.uid, begin+x)
                 #node_map[w_t] = edge.w.uid
@@ -341,6 +340,19 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
                 if w_t not in dag.nodes:
                     dag.add_node(w_t, original=w)
                 dag.add_edge(v_t, w_t, original=edge)
+
+            if not temporal_network.directed:
+                # add reverse edge for undirected edge
+                v_t = "{0}_{1}".format(w.uid, begin)
+
+                for x in range(1, int(current_delta)+1):
+                    w_t = "{0}_{1}".format(v.uid, begin+x)
+                    #node_map[w_t] = edge.w.uid
+                    if w_t not in dag.nodes:
+                        dag.add_node(w_t, original=v)
+                    if v_t not in dag.nodes:
+                        dag.add_node(v_t, original=w)
+                    dag.add_edge(v_t, w_t, original=edge)
         #dag.add_edge(v_t, w_t , original=edge)
 
         return dag

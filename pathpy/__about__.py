@@ -15,7 +15,7 @@ __copyright__ = u'Copyright (c) 2016-2021 Pathpy Developers'
 __license__ = u'AGPL-3.0+'
 __maintainer__ = u'Ingo Scholtes, Jürgen Hackl'
 __status__ = 'Development Status :: 2 - Pre-Alpha'
-__version__ = "3.0.22"
+__version__ = "3.0.25"
 
 __all__ = [
     '__title__',
