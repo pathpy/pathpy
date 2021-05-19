@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : directed_acyclic_graph.py -- Network model for a DAG
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-03-29 17:28 juergen>
+# Time-stamp: <Wed 2021-05-19 10:26 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -17,8 +17,8 @@ from numpy import inf
 
 from pathpy import logger
 from pathpy.core.node import NodeCollection
-from pathpy.core.edge import EdgeCollection, Edge
-from pathpy.core.path import PathCollection, Node
+from pathpy.core.edge import EdgeCollection
+from pathpy.core.path import PathCollection
 from pathpy.models.network import Network
 
 from pathpy.algorithms import path_extraction
@@ -288,7 +288,6 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
 
         return paths
 
-
     @classmethod
     def from_temporal_network(cls, temporal_network, **kwargs: Any):
         """Creates a time-unfolded directed acyclic graph representation of 
@@ -319,7 +318,7 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
 
             # create one time-unfolded link for all delta in [1, delta]
             # this implies that for delta = 2 and an edge (a,b,1) two
-            # time-unfolded links (a_1, b_2) and (a_1, b_3) will be created            
+            # time-unfolded links (a_1, b_2) and (a_1, b_3) will be created
             for x in range(1, int(current_delta)+1):
                 w_t = "{0}_{1}".format(w.uid, begin+x)
                 #node_map[w_t] = edge.w.uid
