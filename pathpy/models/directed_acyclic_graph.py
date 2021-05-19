@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : directed_acyclic_graph.py -- Network model for a DAG
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-19 10:26 juergen>
+# Time-stamp: <Wed 2021-05-19 11:30 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -16,8 +16,7 @@ from collections import defaultdict
 from numpy import inf
 
 from pathpy import logger
-from pathpy.core.node import NodeCollection
-from pathpy.core.edge import EdgeCollection
+from pathpy.core.node import NodeCollectionfrom pathpy.core.edge import EdgeCollection
 from pathpy.core.path import PathCollection
 from pathpy.models.network import Network
 
