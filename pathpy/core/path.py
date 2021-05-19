@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-19 10:15 juergen>
+# Time-stamp: <Wed 2021-05-19 10:49 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -70,7 +70,7 @@ class PathCollection(PathPyCollection):
 
     @add.register(Path)  # type: ignore
     def _(self, *args: Path, **kwargs: Any) -> None:
-        super().add(args[0], **kwargs)
+        super().add(*args, **kwargs)
 
     @add.register(int)  # type: ignore
     @add.register(str)  # type: ignore
@@ -83,6 +83,12 @@ class PathCollection(PathPyCollection):
         obj = self._default_class(
             *args, uid=uid, directed=self.directed, **kwargs)
         super().add(obj)
+
+    @add.register(tuple)  # type: ignore
+    @add.register(list)  # type: ignore
+    def _(self, *args: Union[tuple, list], **kwargs: Any) -> None:
+        for arg in args:
+            self.add(*arg, **kwargs)
 
     @singledispatchmethod
     def remove(self, *args, **kwargs):

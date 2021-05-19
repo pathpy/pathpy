@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_path.py -- Test environment for the Path class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-03-29 14:22 juergen>
+# Time-stamp: <Wed 2021-05-19 11:21 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -40,11 +40,11 @@ def test_PathCollection_add_path():
     paths = PathCollection()
     paths.add(p1)
 
-    with pytest.raises(Exception):
-        paths.add(p1)
+    paths.add(p1)
+    assert paths.counter['p1'] == 2
 
-    assert len(paths.nodes) == 3
-    assert len(paths.edges) == 2
+    assert len(paths.nodes) == 2
+    # assert len(paths.edges) == 2
     assert len(paths) == 1
     assert p1 in paths
 
@@ -66,16 +66,22 @@ def test_PathCollection_add_edges():
     paths = PathCollection()
     paths.add(e, f, uid='p1')
 
-    assert len(paths.nodes) == 3
-    assert len(paths.edges) == 2
+    assert len(paths.nodes) == 2
+#     assert len(paths.edges) == 2
     assert len(paths) == 1
     assert 'p1' in paths
 
-    with pytest.raises(Exception):
-        paths.add(e, f, uid='p1')
+    paths.add(e, f, uid='p1')
+    assert paths.counter['p1'] == 2
 
-    with pytest.raises(Exception):
-        paths.add(e, f)
+    paths.add(e, f)
+    assert paths.counter['p1'] == 3
+
+    # TODO: Should this raise an Exception?
+    # with pytest.raises(Exception):
+    paths.add(e, f, uid='p2')
+
+    assert paths.counter['p1'] == 4
 
 
 def test_PathCollection_add_nodes():
@@ -88,15 +94,15 @@ def test_PathCollection_add_nodes():
     paths.add(a, b, c, uid='p1')
 
     assert len(paths.nodes) == 3
-    assert len(paths.edges) == 2
+    # assert len(paths.edges) == 2
     assert len(paths) == 1
     assert 'p1' in paths
 
-    with pytest.raises(Exception):
-        paths.add(a, b, c, uid='p1')
+    paths.add(a, b, c, uid='p1')
+    assert paths.counter['p1'] == 2
 
-    with pytest.raises(Exception):
-        paths.add(a, b, c)
+    paths.add(a, b, c)
+    assert paths.counter['p1'] == 3
 
 
 def test_PathCollection_add_str():
@@ -106,24 +112,24 @@ def test_PathCollection_add_str():
     paths.add('a', 'b', 'c', uid='p1')
 
     assert len(paths.nodes) == 3
-    assert len(paths.edges) == 2
+    # assert len(paths.edges) == 2
     assert len(paths) == 1
     assert 'p1' in paths
 
-    with pytest.raises(Exception):
-        paths.add('a', 'b', 'c', uid='p1')
+    paths.add('a', 'b', 'c', uid='p1')
+    assert paths.counter['p1'] == 2
 
-    with pytest.raises(Exception):
-        paths.add('a', 'b', 'c')
+    paths.add('a', 'b', 'c')
+    assert paths.counter['p1'] == 3
 
-    paths = PathCollection()
-    paths.add('e1', 'e2', uid='p1', nodes=False)
+    # paths = PathCollection()
+    # paths.add('e1', 'e2', uid='p1', nodes=False)
 
-    assert len(paths) == 1
-    assert len(paths.edges) == 2
-    assert len(paths.nodes) == 3
-    assert 'p1' in paths
-    assert 'e1' and 'e2' in paths.edges
+    # assert len(paths) == 1
+    # assert len(paths.edges) == 2
+    # assert len(paths.nodes) == 3
+    # assert 'p1' in paths
+    # assert 'e1' and 'e2' in paths.edges
 
 
 def test_PathCollection_add_tuple():
@@ -133,11 +139,11 @@ def test_PathCollection_add_tuple():
     paths.add(('a', 'b'), ('a', 'b', 'c'))
 
     assert len(paths.nodes) == 3
-    assert len(paths.edges) == 2
+    # assert len(paths.edges) == 2
     assert len(paths) == 2
 
-    with pytest.raises(Exception):
-        paths.add('a', 'b', 'c')
+    paths.add('a', 'b', 'c')
+    assert paths.counter[paths['a', 'b', 'c'].uid] == 2
 
 
 def test_PathCollection_remove_path():
@@ -157,8 +163,8 @@ def test_PathCollection_remove_path():
 
     paths.remove(p1)
 
-    assert len(paths.nodes) == 3
-    assert len(paths.edges) == 2
+    assert len(paths.nodes) == 0
+    # assert len(paths.edges) == 2
     assert len(paths) == 0
     assert p1 not in paths
 
@@ -180,12 +186,15 @@ def test_PathCollection_remove_edges():
 
     paths.add(e, f, uid='p1')
     paths.remove('p1')
+    assert len(paths) == 0
 
     paths.add(e, f, uid='p1')
     paths.remove(e, f)
+    assert len(paths) == 0
 
     paths.add(e, f, uid='p1')
     paths.remove('e', 'f')
+    assert len(paths) == 0
 
 
 def test_PathCollection():
@@ -205,11 +214,11 @@ def test_PathCollection():
     paths.add(p2)
     paths.add(p3)
 
-    with pytest.raises(Exception):
-        paths.add(p1)
+    paths.add(p1)
+    assert paths.counter['p1'] == 2
 
     assert len(paths.nodes) == 3
-    assert len(paths.edges) == 2
+    # assert len(paths.edges) == 2
     assert len(paths) == 3
     assert p1 in paths
     assert p2 in paths
@@ -221,8 +230,23 @@ def test_PathCollection():
 
     assert (e, f) in paths
     assert ('e', 'f') in paths
-    assert [e] in paths
-    assert ['e'] in paths
+    assert (e,) in paths
+    assert ('e',) in paths
+    assert (a,) in paths
+    assert ('a',) in paths
+
+    a = Node('a')
+    b = Node('b')
+    c = Node('c')
+
+    p1 = Path(a, b, c, uid='p1')
+    p2 = Path(a, b, uid='p2')
+    p3 = Path(a, uid='p3')
+
+    paths = PathCollection()
+    paths.add(p1)
+    paths.add(p2)
+    paths.add(p3)
 
     assert(a, b, c) in paths
     assert('a', 'b', 'c') in paths
@@ -231,31 +255,26 @@ def test_PathCollection():
 
     assert (a,) in paths
     assert ('a', ) in paths
-    assert [a] in paths
-    assert ['a'] in paths
-
-    # print(paths['p1'] == p1)
-    #print(paths[p1] == p1)
+    # assert [a] in paths
+    # assert ['a'] in paths
 
     assert paths['a', 'b', 'c'] == p1
-    assert paths['e', 'f'] == p1
+    assert paths['a', 'b'] == p2
 
     with pytest.raises(Exception):
         p = paths['x', 'y']
 
-    g = Edge(b, c, uid='a')
-    p4 = Path(g, uid='p4')
-    with pytest.raises(Exception):
-        paths.add(p4)
-
-    # # issue warning
-    # assert ['a'] in paths
+    p4 = Path(b, c, uid='p4')
+    # with pytest.raises(Exception):
+    paths.add(p4)
+    assert paths.counter['p4'] == 1
 
     paths = PathCollection()
     paths.add(a, b)
 
-    with pytest.raises(Exception):
-        paths.add(a, b)
+    # with pytest.raises(Exception):
+    paths.add(a, b)
+    assert paths.counter[paths['a', 'b'].uid] == 2
 
     paths = PathCollection()
     paths.add('a', 'b', 'c', uid='a-b-c')
@@ -263,7 +282,6 @@ def test_PathCollection():
     assert len(paths) == 1
     assert 'a-b-c' in paths
     assert 'a' and 'b' and 'c' in paths.nodes
-    assert ('a', 'b') and ('b', 'c') in paths.edges
 
     paths = PathCollection()
     paths.add(p1, p2)
@@ -274,65 +292,64 @@ def test_PathCollection():
     paths.add(('a', 'b', 'c'), ('a', 'b'))
 
     assert len(paths.nodes) == 3
-    assert len(paths.edges) == 2
+    #assert len(paths.edges) == 2
     assert len(paths) == 2
 
     paths = PathCollection()
     paths.add(e, f, uid='p1')
 
     assert len(paths) == 1
-    assert len(paths.edges) == 2
-    assert len(paths.nodes) == 3
+    #assert len(paths.edges) == 2
+    assert len(paths.nodes) == 2
 
     assert (e, f) in paths
-    assert ('a', 'b', 'c') in paths
+    #assert ('a', 'b', 'c') in paths
 
-    with pytest.raises(Exception):
-        paths.add(f, e, uid='p2')
+    # with pytest.raises(Exception):
+    paths.add(f, e, uid='p2')
 
-    paths = PathCollection()
-    paths.add('e1', uid='p1', nodes=False)
+#     paths = PathCollection()
+#     paths.add('e1', uid='p1', nodes=False)
 
-    assert len(paths) == 1
-    assert len(paths.edges) == 1
-    assert len(paths.nodes) == 2
-    assert 'p1' in paths
-    assert 'e1' in paths.edges
+#     assert len(paths) == 1
+#     assert len(paths.edges) == 1
+#     assert len(paths.nodes) == 2
+#     assert 'p1' in paths
+#     assert 'e1' in paths.edges
 
-    paths = PathCollection()
-    paths.add('e1', 'e2', uid='p1', nodes=False)
+#     paths = PathCollection()
+#     paths.add('e1', 'e2', uid='p1', nodes=False)
 
-    assert len(paths) == 1
-    assert len(paths.edges) == 2
-    assert len(paths.nodes) == 3
-    assert 'p1' in paths
-    assert 'e1' and 'e2' in paths.edges
+#     assert len(paths) == 1
+#     assert len(paths.edges) == 2
+#     assert len(paths.nodes) == 3
+#     assert 'p1' in paths
+#     assert 'e1' and 'e2' in paths.edges
 
-    assert paths.edges['e1'].w == paths.edges['e2'].v
+#     assert paths.edges['e1'].w == paths.edges['e2'].v
 
-    paths = PathCollection()
-    paths.add(('e1', 'e2'), ('e3', 'e4'), nodes=False)
+#     paths = PathCollection()
+#     paths.add(('e1', 'e2'), ('e3', 'e4'), nodes=False)
 
-    assert len(paths.nodes) == 6
-    assert len(paths.edges) == 4
-    assert len(paths) == 2
+#     assert len(paths.nodes) == 6
+#     assert len(paths.edges) == 4
+#     assert len(paths) == 2
 
     paths = PathCollection()
     paths.add(p1, p2, p3)
 
     assert len(paths.nodes) == 3
-    assert len(paths.edges) == 2
     assert len(paths) == 3
 
     paths.remove(p3)
     assert len(paths.nodes) == 3
-    assert len(paths.edges) == 2
+    #assert len(paths.edges) == 2
     assert len(paths) == 2
     assert p3 not in paths
 
     paths.remove('p1')
-    assert len(paths.nodes) == 3
-    assert len(paths.edges) == 2
+    assert len(paths.nodes) == 2
+    #assert len(paths.edges) == 2
     assert len(paths) == 1
     assert p1 not in paths
 
@@ -354,17 +371,17 @@ def test_PathCollection():
     assert ('b', 'c') not in paths
     assert ('c', 'd') in paths
 
-    paths = PathCollection()
-    paths.add(('e1', 'e2'), ('e2', 'e3'), ('e3', 'e4'), nodes=False)
+#     paths = PathCollection()
+#     paths.add(('e1', 'e2'), ('e2', 'e3'), ('e3', 'e4'), nodes=False)
 
-    assert len(paths) == 3
-    assert len(paths.edges) == 4
+#     assert len(paths) == 3
+#     assert len(paths.edges) == 4
 
-    paths.remove('e1', 'e2')
-    assert len(paths) == 2
+#     paths.remove('e1', 'e2')
+#     assert len(paths) == 2
 
-    paths.remove(('e2', 'e3'), ('e3', 'e4'))
-    assert len(paths) == 0
+#     paths.remove(('e2', 'e3'), ('e3', 'e4'))
+#     assert len(paths) == 0
 
     paths = PathCollection()
     paths.add('a', 'b', uid='p1')
@@ -378,7 +395,7 @@ def test_PathCollection():
 
     assert len(paths) == 3
 
-    # paths.remove(('p2', 'p3'))
+    paths.remove(('p2', 'p3'))
 
     # assert len(paths) == 1
 
