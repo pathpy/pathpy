@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_node.py -- Test environment for the Node class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-10 17:11 juergen>
+# Time-stamp: <Wed 2021-05-19 11:22 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -120,7 +120,6 @@ def test_NodeCollection():
 
     nodes.add(('b', 'c'))
 
-    print(nodes)
     assert len(nodes) == 3
 
     # with pytest.raises(Exception):
