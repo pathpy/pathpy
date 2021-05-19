@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-10 16:04 juergen>
+# Time-stamp: <Wed 2021-05-19 10:12 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -268,7 +268,7 @@ class EdgeCollection(PathPyCollection):
     @add.register(str)  # type: ignore
     @add.register(int)  # type: ignore
     @add.register(PathPyObject)  # type: ignore
-    def _(self, *args: str, **kwargs: Any) -> None:
+    def _(self, *args: Union[int, str, PathPyObject], **kwargs: Any) -> None:
 
         # get additional parameters
         uid: Optional[str] = kwargs.pop('uid', None)
@@ -283,7 +283,7 @@ class EdgeCollection(PathPyCollection):
 
     @add.register(tuple)  # type: ignore
     @add.register(list)  # type: ignore
-    def _(self, *args: tuple, **kwargs: Any) -> None:
+    def _(self, *args: Union[tuple, list], **kwargs: Any) -> None:
         for arg in args:
             if len(arg) == 2:
                 self.add(*arg, **kwargs)
