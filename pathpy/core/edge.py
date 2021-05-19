@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-19 10:12 juergen>
+# Time-stamp: <Wed 2021-05-19 11:42 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -250,11 +250,6 @@ class EdgeCollection(PathPyCollection):
     def multiedges(self) -> bool:
         """Return if edges are multiedges. """
         return self._multiple
-
-    @property
-    def nodes(self) -> dict:
-        """Return the associated nodes. """
-        return self._objects
 
     @singledispatchmethod
     def add(self, *args, **kwargs: Any) -> None:
