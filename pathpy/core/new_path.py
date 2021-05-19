@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-05 17:37 juergen>
+# Time-stamp: <Wed 2021-05-19 10:15 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -12,8 +12,7 @@ from typing import Any, Optional, Union
 from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
 
 from pathpy import logger
-from pathpy.core.core import PathPyTuple, PathPyPath, PathPyCollection
-from pathpy.core.node import Node, NodeCollection
+from pathpy.core.core import PathPyObject, PathPyTuple, PathPyPath, PathPyCollection
 
 # create logger for the Path class
 LOG = logger(__name__)
@@ -41,123 +40,84 @@ class Path(PathPyPath):
 
 class PathCollection(PathPyCollection):
     """A collection of edges"""
-    # pylint: disable=too-many-ancestors
 
-    def __init__(self, directed: bool = True,
-                 multipaths: bool = False,
-                 nodes: Optional[NodeCollection] = None) -> None:
-        """Initialize the PathCollection object."""
+    def __init__(self, *args, **kwargs) -> None:
+        """Initialize the EdgeCollection object."""
 
         # initialize the base class
-        super().__init__(directed=directed)
-
-        # collection of nodes
-        self._nodes: Any = NodeCollection()
-        if nodes is not None:
-            self._nodes = nodes
+        super().__init__(*args, **kwargs)
 
         # indicator whether the network has multi-edges
-        self._multipaths: bool = multipaths
+        self._multiple: bool = kwargs.pop('multipaths', False)
 
         # class of objects
-        self._node_class: Any = Node
-        self._path_class: Any = Path
-
-    @singledispatchmethod
-    def __getitem__(self, key):
-        return super().__getitem__(key)
-
-    @__getitem__.register(tuple)  # type: ignore
-    def _(self, key):
-        if any((isinstance(i, (self._node_class)) for i in key)):
-            key = tuple(self.nodes[i].uid for i in key)
-
-        path = super().__getitem__(key)
-        if not self.multipaths and isinstance(path, set):
-            path = next(iter(path))
-        return path
-
-    @singledispatchmethod
-    def __contains__(self, item) -> bool:
-        """Returns if item is in edges."""
-        return super().__contains__(item)
-
-    @__contains__.register(tuple)  # type: ignore
-    def _(self, item: tuple) -> bool:
-        return PathPyTuple((self.nodes[i].uid for i in item),
-                           directed=self.directed) in self._relations \
-            if any((isinstance(i, (self._node_class)) for i in item)) \
-            else super().__contains__(item)
+        self._default_class: Any = Path
 
     @property
     def multipaths(self) -> bool:
         """Return if edges are multiedges. """
-        return self._multipaths
+        return self._multiple
 
     @property
-    def nodes(self) -> NodeCollection:
+    def nodes(self) -> dict:
         """Return the associated nodes. """
-        return self._nodes
+        return self._objects
 
     @singledispatchmethod
-    def add(self, *path, **kwargs: Any) -> None:
+    def add(self, *args, **kwargs: Any) -> None:
         """Add multiple nodes. """
         raise NotImplementedError
 
     @add.register(Path)  # type: ignore
-    def _(self, *path: Path, **kwargs: Any) -> None:
+    def _(self, *args: Path, **kwargs: Any) -> None:
+        super().add(args[0], **kwargs)
 
-        if not kwargs.pop('checking', True):
-            super().add(path[0], **kwargs)
-            return
-
-        _path = path[0]
-
-        if _path.directed != self.directed:
-            _text = {True: 'directed', False: 'undirected'}
-            LOG.warning('A %s path was added to a %s path collection!',
-                        _text[_path.directed], _text[self.directed])
-
-        # check if node exists already
-        for node in _path.nodes.values():
-            if node not in self.nodes.values():
-                self.nodes.add(node)
-
-        # check if other edge exists between v and w
-        if _path.relations not in self or self.multipaths:
-            super().add(path[0], **kwargs)
-        else:
-            self._if_exist(_path, **kwargs)
-
+    @add.register(int)  # type: ignore
     @add.register(str)  # type: ignore
-    @add.register(Node)  # type: ignore
-    def _(self, *path: Union[str, Node], **kwargs: Any) -> None:
+    @add.register(PathPyObject)  # type: ignore
+    def _(self, *args: Union[int, str, PathPyObject], **kwargs: Any) -> None:
 
         # get additional parameters
         uid: Optional[str] = kwargs.pop('uid', None)
-        nodes: bool = kwargs.pop('nodes', True)
 
-        # check if all objects are node or str
-        if not all(isinstance(arg, (Node, str)) for arg in edge):
-            LOG.error('All objects have to be Node objects or str uids!')
-            raise TypeError
+        obj = self._default_class(
+            *args, uid=uid, directed=self.directed, **kwargs)
+        super().add(obj)
 
-        # if nodes is true add nodes
-        if nodes:
-            _nodes: tuple = ()
-            for node in edge:
-                if node not in self.nodes:
-                    self.nodes.add(node)
-                _nodes += (self.nodes[node],)
+    @singledispatchmethod
+    def remove(self, *args, **kwargs):
+        """Remove objects"""
+        super().remove(*args, **kwargs)
 
-            _node_uids = tuple((n.uid for n in _nodes))
-            # create new edge object and add it to the network
-            if _node_uids not in self._relations or self.multiedges:
-                self.add(self._edge_class(*_nodes, uid=uid,
-                         directed=self.directed, **kwargs))
-            # raise error if edge already exists
-            else:
-                self._if_exist(_nodes, **kwargs)
+    @remove.register(Path)  # type: ignore
+    def _(self, *args: Path, **kwargs: Any) -> None:
+        super().remove(*args, **kwargs)
+
+    @remove.register(str)  # type: ignore
+    @remove.register(int)  # type: ignore
+    @remove.register(PathPyObject)  # type: ignore
+    def _(self, *args: Union[int, str, PathPyObject], **kwargs: Any) -> None:
+
+        # get additional parameters
+        uid: Optional[str] = kwargs.pop('uid', None)
+
+        if len(args) == 1 and args[0] in self:
+            self.remove(self[args[0]])
+        elif uid is not None:
+            self.remove(uid)
+        elif args in self and self.multipaths:
+            for obj in list(self[args]):
+                super().remove(obj)
+        elif args in self and not self.multipaths:
+            super().remove(self[args])
+        else:
+            LOG.warning('No path was removed!')
+
+    @remove.register(tuple)  # type: ignore
+    @remove.register(list)  # type: ignore
+    def _(self, *args: Union[tuple, list], **kwargs: Any) -> None:
+        for arg in args:
+            self.remove(*arg, **kwargs)
 
 
 # =============================================================================
