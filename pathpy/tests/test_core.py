@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_core.py -- Test environment for the core classes
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-10 17:08 juergen>
+# Time-stamp: <Thu 2021-05-20 12:12 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -48,7 +48,13 @@ def test_PathPyCollection_add_str():
     assert 'p1' in paths
     assert ('a', 'b', 'c') in paths
 
-    print(paths.counter)
+
+def test_PathPyIter():
+    """Test the Object iterator"""
+    path = PathPyPath('a', 'b', 'c', 'd', 'a', 'b', uid='p1')
+    # print(path.relations)
+    # print(path.objects)
+    # print(path.items())
     #paths.add(1, 2, 3, 4)
 
     #paths.remove('a', 'b', 'c')
