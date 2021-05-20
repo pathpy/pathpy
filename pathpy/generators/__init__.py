@@ -20,7 +20,8 @@ from pathpy.generators.random_graphs import (ER_nm,
                                              Molloy_Reed,
                                              Molloy_Reed_randomize,
                                              max_edges,
-                                             generate_degree_sequence
+                                             generate_degree_sequence,
+                                             k_regular_random
                                              )
 from pathpy.generators.lattice import (lattice_network)
 
