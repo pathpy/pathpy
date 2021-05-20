@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-20 16:32 juergen>
+# Time-stamp: <Thu 2021-05-20 17:30 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -15,7 +15,7 @@ from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
 # import pandas as pd
 # import numpy as np
 
-from intervaltree import Interval, IntervalTree
+from intervaltree import IntervalTree
 
 from collections.abc import MutableMapping
 
@@ -185,6 +185,7 @@ class TemporalNode(Node):
 
         # add new events
         self.event(**kwargs)
+
         # variable to store changes in the events
         self._len_events = len(self._events)
 
@@ -199,16 +200,25 @@ class TemporalNode(Node):
             self._attributes = {**{'start': start, 'end': end}, **attributes}
             yield self
 
-    def __getitem__(self, key):
-        return self._store[self._keytransform(key)]
+    @singledispatchmethod
+    def __getitem__(self, key: Any) -> Any:
+        self._clean_events()
 
-    def start(self, total=False):
-        """start of the object"""
-        return self._events.begin() if total else self._start
+        # get the last element
+        *_, last = iter(self._events)
+        return last.data.get(key, None)
 
-    def end(self, total=False):
-        """end of the object"""
-        return self._events.end() if total else self._end
+    @__getitem__.register(tuple)  # type: ignore
+    def _(self, key: tuple) -> Any:
+        return self.__getitem__(key[0])[key[1]] if (
+            len(key) == 2 and isinstance(key[0], (int, float, slice))) else None
+
+    @__getitem__.register(slice)  # type: ignore
+    @__getitem__.register(int)  # type: ignore
+    @__getitem__.register(float)  # type: ignore
+    def _(self, key: Union[int, float, slice]) -> dict:
+        return {k: v for d in sorted(
+            self._events[key]) for k, v in d.data.items()}
 
     def _clean_events(self):
         """helper function to clean events"""
@@ -238,6 +248,14 @@ class TemporalNode(Node):
             self._events[self._start:self._end] = kwargs
         else:
             self._events.chop(self._start, self._end)
+
+    def start(self, total=False):
+        """start of the object"""
+        return self._events.begin() if total else self._start
+
+    def end(self, total=False):
+        """end of the object"""
+        return self._events.end() if total else self._end
 
 
 class TemporalEdge(Edge):
@@ -522,7 +540,7 @@ class OldTemporalEdgeCollection(EdgeCollection):
             return self.temporal()
 
     def __getitem__(self, key: Union[str, tuple, Edge]
-                    ) -> Union[Edge, EdgeSet, TemporalEdgeCollection]:
+                    ) -> Union[Edge, TemporalEdgeCollection]:
         """Returns a edge object."""
         _item: Any
         if isinstance(key, (int, float, slice)):
