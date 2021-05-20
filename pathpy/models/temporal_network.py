@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-20 18:24 juergen>
+# Time-stamp: <Thu 2021-05-20 18:51 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -12,7 +12,7 @@ from __future__ import annotations
 from typing import Any, Optional, Union, cast, Tuple
 from collections import defaultdict
 from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
-# import pandas as pd
+import pandas as pd
 # import numpy as np
 
 from intervaltree import IntervalTree
@@ -116,7 +116,7 @@ class TemporalDict(MutableMapping):
         return self
 
 
-def _get_start_end(*args, **kwargs) -> Tuple[int, int, dict]:
+def _get_start_end(*args, **kwargs) -> tuple:
     """Helper function to extract the start and end time"""
 
     # get keywords defined in the config file
@@ -125,14 +125,25 @@ def _get_start_end(*args, **kwargs) -> Tuple[int, int, dict]:
     timestamp = kwargs.pop(config['temporal']['timestamp'], None)
     duration = kwargs.pop(config['temporal']['duration'], None)
 
+    if isinstance(start, str):
+        start = pd.Timestamp(start)
+    if isinstance(end, str):
+        end = pd.Timestamp(end)
+
     # check if timestamp is given
     if isinstance(timestamp, (int, float)):
+        start = timestamp
         if isinstance(duration, (int, float)):
-            start = timestamp
             end = timestamp + duration
         else:
-            start = timestamp
             end = timestamp + config['temporal']['duration_value']
+    elif isinstance(timestamp, str):
+        start = pd.Timestamp(timestamp)
+        if isinstance(duration, str):
+            end = start + pd.Timedelta(duration)
+        else:
+            end = start + pd.Timedelta(config['temporal']['duration_value'],
+                                       unit=config['temporal']['unit'])
 
     if args:
         if len(args) == 1 and isinstance(args[0], slice):
