@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-19 10:49 juergen>
+# Time-stamp: <Thu 2021-05-20 10:09 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -28,7 +28,7 @@ class PathPyObject:
         # declare variable
         self._uid: str
         self._is_python_uid: bool
-        self.attributes: Any
+        self._attributes: Any
 
         # assign node identifier
         if uid is not None:
@@ -39,7 +39,7 @@ class PathPyObject:
             self._is_python_uid = True
 
         # update attributes
-        self.attributes = kwargs
+        self._attributes = kwargs
 
     def __setitem__(self, key: Any, value: Any) -> None:
         """Add a specific attribute to the object.
@@ -69,7 +69,7 @@ class PathPyObject:
 
         """
 
-        self.attributes[key] = value
+        self._attributes[key] = value
 
     def __getitem__(self, key: Any) -> Any:
         """Returns a specific attribute of the object.
@@ -104,7 +104,7 @@ class PathPyObject:
         'blue'
 
         """
-        return self.attributes.get(key, None)
+        return self._attributes.get(key, None)
 
     def __repr__(self) -> str:
         """Return the description of the object.
@@ -161,6 +161,28 @@ class PathPyObject:
         """
         return self._uid
 
+    @property
+    def attributes(self) -> dict:
+        """Return the attributes of the object as a dict.
+
+        Returns
+        -------
+        dict
+
+            Return the attributes as a dict.
+
+        Examples
+        --------
+        Generate a single node and print the attribute.
+
+        >>> from pathpy import Node
+        >>> u = Node('u', color='red')
+        >>> u.attributes['color']
+        'red'
+
+        """
+        return self._attributes
+
     def update(self, **kwargs: Any) -> None:
         """Update the attributes of the object.
 
@@ -187,7 +209,7 @@ class PathPyObject:
 
         """
 
-        self.attributes.update(**kwargs)
+        self._attributes.update(**kwargs)
 
     def copy(self):
         """Return a copy of the node.
