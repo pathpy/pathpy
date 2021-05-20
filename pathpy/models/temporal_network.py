@@ -4,12 +4,12 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-20 09:52 juergen>
+# Time-stamp: <Thu 2021-05-20 09:56 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, Optional, Union, cast
+from typing import Any, Optional, Union, cast, Tuple
 from collections import defaultdict
 from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
 # import pandas as pd
@@ -113,7 +113,7 @@ class TemporalDict(MutableMapping):
         return self
 
 
-def _get_start_end(*args, **kwargs):
+def _get_start_end(*args, **kwargs) -> Tuple[int, int, dict]:
     """Helper function to extract the start and end time"""
 
     # get keywords defined in the config file
@@ -142,167 +142,6 @@ def _get_start_end(*args, **kwargs):
             start = args[0]
             end = args[1]
     return start, end, kwargs
-
-
-# class TemporalAttributes:
-#     """Activities of temporal objects"""
-
-#     def __init__(self):
-
-#         self.attributes = pd.DataFrame(columns=['interval', 'key', 'value'])
-#         self._dt = 1
-
-#     def __repr__(self) -> str:
-#         """Return the description of the underlying data frame."""
-#         return self.attributes.__repr__()
-
-#     @ singledispatchmethod
-#     def __setitem__(self, key, value) -> None:
-#         """Set single item."""
-#         raise NotImplementedError
-
-#     # @__setitem__.register(slice)  # type: ignore
-#     # @__setitem__.register(int)  # type: ignore
-#     # @__setitem__.register(float)  # type: ignore
-#     # def _(self, key: Union[slice, int, float], value: bool) -> None:
-#     #     start, stop = self._time(key)
-#     #     self._setitem(start, stop, 'active', value)
-
-#     @ __setitem__.register(tuple)  # type: ignore
-#     def _(self, key: tuple, value: Any) -> None:
-
-#         if isinstance(key[0], (slice, int, float)):
-#             key = (key[0], key[1])
-#         elif isinstance(key[-1], (slice, int, float)):
-#             key = (key[1], key[0])
-#         else:
-#             raise AttributeError
-
-#         start, stop = self._time(key[0])
-
-#         self._setitem(start, stop, key[1], value)
-
-#     @ __setitem__.register(str)  # type: ignore
-#     def _(self, key: str, value: Any) -> None:
-
-#         start, stop = self._time(None)
-
-#         return self._setitem(start, stop, key, value)
-
-#     def _setitem(self, start, stop, key, value) -> None:
-#         """Helper function to set the item value"""
-#         self.attributes = self.attributes.append(
-#             {'interval': pd.Interval(start, stop), 'key': key, 'value': value},
-#             ignore_index=True)
-
-#     def _time(self, time) -> tuple:
-#         """Helper function to get the start and stop time."""
-#         if isinstance(time, slice):
-#             start = time.start if time.start is not None else -float('inf')
-#             stop = time.stop if time.stop is not None else float('inf')
-#         elif isinstance(time, (int, float)):
-#             start = time
-#             stop = time + self._dt
-#         else:
-#             start = -float('inf')
-#             stop = float('inf')
-#         return start, stop
-
-#     @ singledispatchmethod
-#     def __getitem__(self, key):
-#         """Get single item."""
-#         raise NotImplementedError
-
-#     @ __getitem__.register(slice)  # type: ignore
-#     @ __getitem__.register(int)  # type: ignore
-#     @ __getitem__.register(float)  # type: ignore
-#     def _(self, key: Union[slice, int, float]) -> pd.DataFrame:
-
-#         start, stop = self._time(key)
-#         return self._getitem(start, stop, key=None)
-
-#     @ __getitem__.register(tuple)  # type: ignore
-#     def _(self, key: tuple) -> pd.DataFrame:
-
-#         if isinstance(key[0], (slice, int, float)):
-#             key = (key[0], key[1])
-#         elif isinstance(key[-1], (slice, int, float)):
-#             key = (key[1], key[0])
-#         else:
-#             raise AttributeError
-
-#         start, stop = self._time(key[0])
-
-#         return self._getitem(start, stop, key=key[1])
-
-#     @ __getitem__.register(str)  # type: ignore
-#     def _(self, key: str) -> pd.DataFrame:
-
-#         start, stop = self._time(None)
-
-#         return self._getitem(start, stop, key=key)
-
-#     def _getitem(self, start, stop, key=None):
-#         """Helper function to get the item"""
-#         data = self.attributes
-#         item = None
-
-#         if key and key in list(self.attributes['key']):
-#             data = self.attributes[self.attributes['key'] == key]
-#         elif key is not None:
-#             return pd.DataFrame(
-#                 {'interval': [pd.Interval(start, stop)],
-#                  'key': [key], 'value': [None]})
-
-#         # if key in list(self.activities['key']):
-#         item = data[
-#             (data
-#              .set_index('interval')
-#              .index.overlaps(pd.Interval(start, stop))
-#              )]
-
-#         return item
-
-#     def update(self, uid: str = None, **kwargs: Any) -> None:
-#         """Update the values"""
-
-#         if kwargs:
-#             start, end, kwargs = _time(**kwargs)
-#             # active = kwargs.pop('active', True)
-
-#             # self._setitem(start, end, 'active', active)
-
-#             for key, value in kwargs.items():
-#                 self._setitem(start, end, key, value)
-
-#     def get(self, key, default: Any = None) -> Any:
-#         """Get item from object for given key."""
-#         return self[key]
-
-
-# class TemporalActivities(TemporalAttributes):
-#     """Activities of temporal objects"""
-
-#     @ singledispatchmethod
-#     def __setitem__(self, key, value) -> None:
-#         """Set single item."""
-#         raise NotImplementedError
-
-#     @ __setitem__.register(slice)  # type: ignore
-#     @ __setitem__.register(int)  # type: ignore
-#     @ __setitem__.register(float)  # type: ignore
-#     def _(self, key: Union[slice, int, float], value: bool) -> None:
-#         start, stop = self._time(key)
-#         self._setitem(start, stop, 'active', value)
-
-#     def update(self, uid: str = None, **kwargs: Any) -> None:
-#         """Update the values"""
-
-#         if kwargs:
-#             start, end, kwargs = _time(**kwargs)
-#             active = kwargs.pop('active', True)
-
-#             self._setitem(start, end, 'active', active)
 
 
 class TemporalNode(Node):
