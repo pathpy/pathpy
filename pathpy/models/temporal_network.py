@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-20 18:04 juergen>
+# Time-stamp: <Thu 2021-05-20 18:24 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -210,15 +210,24 @@ class TemporalNode(Node):
 
     @__getitem__.register(tuple)  # type: ignore
     def _(self, key: tuple) -> Any:
-        return self.__getitem__(key[0]).get(key[1], None) if (
-            len(key) == 2 and isinstance(key[0], (int, float, slice))) else None
+        return {k: v for o in self.__getitem__(key[0]) for
+                k, v in o.attributes}.get(key[1], None) if (
+                    len(key) == 2 and isinstance(
+                        key[0], (int, float, slice))) else None
 
     @__getitem__.register(slice)  # type: ignore
     @__getitem__.register(int)  # type: ignore
     @__getitem__.register(float)  # type: ignore
-    def _(self, key: Union[int, float, slice]) -> dict:
-        return {k: v for d in sorted(
-            self._events[key]) for k, v in d.data.items()}
+    def _(self, key: Union[int, float, slice]) -> Any:
+
+        for start, end, attributes in sorted(self._events[key]):
+            # update start and end time as well as attributes
+            self._start, self._end = start, end
+            self._attributes = {**{'start': start, 'end': end}, **attributes}
+            yield self
+
+        # return {k: v for d in sorted(
+        #     self._events[key]) for k, v in d.data.items()}
 
     @singledispatchmethod
     def __setitem__(self, key: Any, value: Any) -> None:
@@ -237,9 +246,6 @@ class TemporalNode(Node):
                 raise KeyError
         else:
             raise KeyError
-
-        return self.__getitem__(key[0]).get(key[1], None) if (
-            len(key) == 2 and isinstance(key[0], (int, float, slice))) else None
 
     def _clean_events(self):
         """helper function to clean events"""
