@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_temporal_network.py -- Test environment for temp networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-20 09:23 juergen>
+# Time-stamp: <Thu 2021-05-20 09:49 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -78,6 +78,7 @@ def test_temporal_dict():
 
     assert len(d) == 6
 
+    print(d)
 
 # def test_temporal_node():
 #     """Test temporal nodes"""

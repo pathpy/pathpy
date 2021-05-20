@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-20 09:46 juergen>
+# Time-stamp: <Thu 2021-05-20 09:52 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -44,29 +44,29 @@ class TemporalDict(MutableMapping):
        function before accessing the keys"""
 
     def __init__(self, *args, **kwargs):
-        self.store = dict()
+        self._store = dict()
         self._start = kwargs.pop('start', float('-inf'))
         self._end = kwargs.pop('end', float('inf'))
         self._dt = kwargs.pop('delta', 1)
         self.update(dict(*args, **kwargs))  # use the free update to set keys
 
     def __getitem__(self, key):
-        return self.store[self._keytransform(key)]
+        return self._store[self._keytransform(key)]
 
     def __setitem__(self, key, value):
-        self.store[self._keytransform(key)] = value
+        self._store[self._keytransform(key)] = value
 
     def __delitem__(self, key):
-        del self.store[self._keytransform(key)]
+        del self._store[self._keytransform(key)]
 
     def __iter__(self):
-        return iter(self.store)
+        return iter(self._store)
 
     def __len__(self):
-        return len(self.store)
+        return len(self._store)
 
     def __repr__(self):
-        return self.store.__repr__()
+        return self._store.__repr__()
 
     @singledispatchmethod
     def _keytransform(self, key):
@@ -108,7 +108,8 @@ class TemporalDict(MutableMapping):
 
     def sort(self):
         """Sort the keys"""
-        self.store = dict(sorted(self.store.items(), key=lambda item: item[0]))
+        self._store = dict(
+            sorted(self._store.items(), key=lambda item: item[0]))
         return self
 
 
