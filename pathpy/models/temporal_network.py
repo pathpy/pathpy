@@ -4,16 +4,16 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-04-21 20:52 juergen>
+# Time-stamp: <Thu 2021-05-20 09:46 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Optional, Union, cast
-from collections import defaultdict, ChainMap
+from collections import defaultdict
 from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
-import pandas as pd
-import numpy as np
+# import pandas as pd
+# import numpy as np
 
 from collections.abc import MutableMapping
 
@@ -26,9 +26,9 @@ from pathpy.models.network import Network
 
 from pathpy.models.classes import BaseTemporalNetwork
 
-# pseudo load class for type checking
-if TYPE_CHECKING:
-    from pathpy.core.edge import EdgeSet
+# # pseudo load class for type checking
+# if TYPE_CHECKING:
+#     from pathpy.core.edge import EdgeSet
 
 
 # create logger for the Network class
@@ -45,9 +45,9 @@ class TemporalDict(MutableMapping):
 
     def __init__(self, *args, **kwargs):
         self.store = dict()
-        self._start = float('-inf')
-        self._end = float('inf')
-        self._dt = 1
+        self._start = kwargs.pop('start', float('-inf'))
+        self._end = kwargs.pop('end', float('inf'))
+        self._dt = kwargs.pop('delta', 1)
         self.update(dict(*args, **kwargs))  # use the free update to set keys
 
     def __getitem__(self, key):
