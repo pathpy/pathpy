@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-20 17:30 juergen>
+# Time-stamp: <Thu 2021-05-20 18:04 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -210,7 +210,7 @@ class TemporalNode(Node):
 
     @__getitem__.register(tuple)  # type: ignore
     def _(self, key: tuple) -> Any:
-        return self.__getitem__(key[0])[key[1]] if (
+        return self.__getitem__(key[0]).get(key[1], None) if (
             len(key) == 2 and isinstance(key[0], (int, float, slice))) else None
 
     @__getitem__.register(slice)  # type: ignore
@@ -219,6 +219,27 @@ class TemporalNode(Node):
     def _(self, key: Union[int, float, slice]) -> dict:
         return {k: v for d in sorted(
             self._events[key]) for k, v in d.data.items()}
+
+    @singledispatchmethod
+    def __setitem__(self, key: Any, value: Any) -> None:
+        self.event(start=self.start(total=True),
+                   end=self.end(total=True), **{key: value})
+
+    @__setitem__.register(tuple)  # type: ignore
+    def _(self, key: tuple, value: Any) -> None:
+        if len(key) == 2:
+            if isinstance(key[0], (int, float)):
+                self.event(timestamp=key[0], **{key[1]: value})
+            elif isinstance(key[0], slice):
+                self.event(start=key[0].start,
+                           end=key[0].stop, **{key[1]: value})
+            else:
+                raise KeyError
+        else:
+            raise KeyError
+
+        return self.__getitem__(key[0]).get(key[1], None) if (
+            len(key) == 2 and isinstance(key[0], (int, float, slice))) else None
 
     def _clean_events(self):
         """helper function to clean events"""

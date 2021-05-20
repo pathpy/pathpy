@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_temporal_network.py -- Test environment for temp networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-20 17:22 juergen>
+# Time-stamp: <Thu 2021-05-20 18:03 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -90,7 +90,7 @@ def test_temporal_node():
     a.event(start=3, end=14, shape='circle')
 
     a.event(timestamp=8, color='blue')
-    a.event(start=2, end=3, active=False)
+    a.event(start=2, end=4, active=False)
 
     print(a._events)
     # print(a._temp_attributes)
@@ -108,7 +108,26 @@ def test_temporal_node():
 
     print(a[5:10])
 
-    print(a[5, 'shape'])
+    print(a[3, 'shape'])
+
+    b = TemporalNode('b', start=0)
+    print('start')
+    for i in range(1, 10000):
+        b.event(timestamp=i)
+
+    print('end')
+
+    print(len(b._events))
+
+    a['auto'] = 33
+
+    a[18, 'huhu'] = 123
+
+    a[22:23, 'jjj'] = 145
+
+    for n in a:
+        print(n.attributes)
+
     # # print(a._itree)
     # for i in a._events:
     #     print(i)
