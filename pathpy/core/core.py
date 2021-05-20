@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-20 12:13 juergen>
+# Time-stamp: <Thu 2021-05-20 16:32 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -445,17 +445,17 @@ class PathPyPath(PathPyObject):
 
     def items(self):
         """Return a new view of the container’s items ((key, value) pairs)."""
-        for key in self:
+        for key in self.relations:
             yield key, self.objects[key]
 
     def keys(self):
         """Return a new view of the container’s keys. """
-        for key in self:
+        for key in self.relations:
             yield key
 
     def values(self):
         """Return a new view of the container’s values."""
-        for key in self:
+        for key in self.relations:
             yield self.objects[key]
 
     @staticmethod
