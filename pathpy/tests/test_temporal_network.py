@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_temporal_network.py -- Test environment for temp networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-20 09:49 juergen>
+# Time-stamp: <Thu 2021-05-20 16:16 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -78,20 +78,47 @@ def test_temporal_dict():
 
     assert len(d) == 6
 
-    print(d)
 
-# def test_temporal_node():
-#     """Test temporal nodes"""
+def test_temporal_node():
+    """Test temporal nodes"""
 
-#     a = TemporalNode('a', start=1, end=4, color='red')
+    a = TemporalNode('a', start=1, end=4, color='red')
 
-#     assert a[1, 4, 'color'] == 'red'
-#     assert len(a.activities) == 1
+    # a.event(start=5, end=7, active=True)
+    # a.event(start=12, end=14)
 
-#     a.active(start=7, end=9)
-#     assert len(a.activities) == 2
+    a.event(start=3, end=14, shape='circle')
 
-#     # print(a['color'])
+    a.event(timestamp=8, color='blue')
+    a.event(start=2, end=3, active=False)
+
+    print(a._events)
+    # print(a._temp_attributes)
+    print(a.attributes)
+
+    for node in a:
+        print(node.attributes)
+        print(node.start, node.end)
+
+    print(a.start)
+
+    print(a._events.at(2.5))
+    # # print(a._itree)
+    # for i in a._events:
+    #     print(i)
+    # # print(node.attributes)
+
+    # a['color']
+    # a['color', 1:3]
+    # a[5:8]
+
+    # assert a[1, 4, 'color'] == 'red'
+    # assert len(a.activities) == 1
+
+    # a.active(start=7, end=9)
+    # assert len(a.activities) == 2
+
+    # print(a['color'])
 
 
 # def test_temporal_edge():

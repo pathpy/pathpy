@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-20 09:56 juergen>
+# Time-stamp: <Thu 2021-05-20 16:21 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -15,9 +15,12 @@ from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
 # import pandas as pd
 # import numpy as np
 
+from intervaltree import Interval, IntervalTree
+
 from collections.abc import MutableMapping
 
 from pathpy import logger, config
+from pathpy.core.core import PathPyObject
 from pathpy.core.node import Node, NodeCollection
 from pathpy.core.edge import Edge, EdgeCollection
 from pathpy.models.network import Network
@@ -144,32 +147,97 @@ def _get_start_end(*args, **kwargs) -> Tuple[int, int, dict]:
     return start, end, kwargs
 
 
+class TemporalIterator:
+
+    def __init__(self, obj):
+        # object reference
+        self._obj = obj
+
+        # iterator over the temporal relations
+        self._iter = iter(obj._temp_relations)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        ''''Returns the next value from the temporal relations object '''
+        # if self._index < self._stop:
+        start, end, uid = next(self._iter)
+
+        return self._obj
+
+
 class TemporalNode(Node):
     """Base class of a temporal node."""
 
-    def __init__(self, uid: Optional[str] = None, **kwargs: Any) -> None:
+    def __init__(self, *node: Union[str, PathPyObject],
+                 uid: Optional[str] = None, **kwargs: Any) -> None:
         """Initialize the node object."""
 
         # initialize the parent class
-        super().__init__(uid=uid)
+        super().__init__(*node, uid=uid)
 
-        self.attributes = TemporalDict()
-        self.activities = TemporalDict()
-        self.update(active=True, **kwargs)
+        self._start = 1
+        self._end = 2
+        self._active = True
 
-    def update(self, *args, active: bool = False, **kwargs: Any) -> None:
-        """Update the attributes of the object. """
+        # initialize an intervaltree to save events
+        self._events = IntervalTree()
 
+        # add new events
+        self.event(**kwargs)
+        # variable to store changes in the events
+        self._len_events = len(self._events)
+
+    def __iter__(self):
+        # clean events
+        self._clean_events()
+
+        # create generator
+        for start, end, attributes in sorted(self._events):
+            # update start and end time as well as attributes
+            self._start, self._end = start, end
+            self._attributes = {**{'start': start, 'end': end}, **attributes}
+            yield self
+
+    @property
+    def start(self):
+        """start of the object"""
+        return self._start
+
+    @property
+    def end(self):
+        """end of the object"""
+        return self._end
+
+    def _clean_events(self):
+        """helper function to clean events"""
+        def reducer(old, new):
+            return {**old, **new}
+
+        if len(self._events) != self._len_events:
+            # split overlapping intervals
+            self._events.split_overlaps()
+
+            # combine the dict of the overlapping intervals
+            self._events.merge_equals(data_reducer=reducer)
+
+            # update the length of the events
+            self._len_events = len(self._events)
+
+    def event(self, *args, **kwargs) -> None:
+        """Add a temporal event."""
+
+        # check if object is avtive or inactive
+        active = kwargs.pop('active', True)
+
+        # get start and end time of the even
         start, end, kwargs = _get_start_end(*args, **kwargs)
 
-        self.attributes.update(start, end, **kwargs)
         if active:
-            self.activities[start, end, self.uid] = self
-
-    def active(self, *args, **kwargs) -> None:
-        """Activate node."""
-        start, end, kwargs = _get_start_end(*args, **kwargs)
-        self.activities[start, end, self.uid] = self
+            self._events[start:end] = kwargs
+        else:
+            self._events.chop(start, end)
 
 
 class TemporalEdge(Edge):
