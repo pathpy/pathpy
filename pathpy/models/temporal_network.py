@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-20 16:21 juergen>
+# Time-stamp: <Thu 2021-05-20 16:32 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -177,9 +177,8 @@ class TemporalNode(Node):
         # initialize the parent class
         super().__init__(*node, uid=uid)
 
-        self._start = 1
-        self._end = 2
-        self._active = True
+        self._start = float('-inf')
+        self._end = float('inf')
 
         # initialize an intervaltree to save events
         self._events = IntervalTree()
@@ -200,15 +199,16 @@ class TemporalNode(Node):
             self._attributes = {**{'start': start, 'end': end}, **attributes}
             yield self
 
-    @property
-    def start(self):
-        """start of the object"""
-        return self._start
+    def __getitem__(self, key):
+        return self._store[self._keytransform(key)]
 
-    @property
-    def end(self):
+    def start(self, total=False):
+        """start of the object"""
+        return self._events.begin() if total else self._start
+
+    def end(self, total=False):
         """end of the object"""
-        return self._end
+        return self._events.end() if total else self._end
 
     def _clean_events(self):
         """helper function to clean events"""
@@ -232,12 +232,12 @@ class TemporalNode(Node):
         active = kwargs.pop('active', True)
 
         # get start and end time of the even
-        start, end, kwargs = _get_start_end(*args, **kwargs)
+        self._start, self._end, kwargs = _get_start_end(*args, **kwargs)
 
         if active:
-            self._events[start:end] = kwargs
+            self._events[self._start:self._end] = kwargs
         else:
-            self._events.chop(start, end)
+            self._events.chop(self._start, self._end)
 
 
 class TemporalEdge(Edge):

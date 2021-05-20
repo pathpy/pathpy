@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_temporal_network.py -- Test environment for temp networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-20 16:16 juergen>
+# Time-stamp: <Thu 2021-05-20 16:29 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -98,9 +98,9 @@ def test_temporal_node():
 
     for node in a:
         print(node.attributes)
-        print(node.start, node.end)
+        print(node.start(), node.end())
 
-    print(a.start)
+    print(a.start(total=True))
 
     print(a._events.at(2.5))
     # # print(a._itree)
