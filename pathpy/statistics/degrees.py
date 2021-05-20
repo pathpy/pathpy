@@ -126,7 +126,7 @@ def degree_distribution(degrees: Union[Network, Iterable],
 def mean_degree(network, weight: Weight = None) -> float:
     """Calculates the mean (weighted degree of a network)
     """
-    return degree_raw_moment(network, k=1, weight=weight)
+    return np.mean(degree_sequence(network, weight=weight))
 
 
 def mean_neighbor_degree(network, weight: Weight = None, exclude_neighbor=False) -> float:
