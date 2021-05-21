@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal.py -- Classes to make PathPyObject temporal
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-21 13:41 juergen>
+# Time-stamp: <Fri 2021-05-21 13:52 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -127,11 +127,6 @@ class TemporalPathPyObject(PathPyObject):
             self._events.chop(start, end)
 
         # update start and end times
-        self._start = self._events.begin()
-        self._end = self._events.end()
-
-    def reset(self):
-        """Reset the start and end time"""
         self._start = self._events.begin()
         self._end = self._events.end()
 
