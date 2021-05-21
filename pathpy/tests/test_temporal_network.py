@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_temporal_network.py -- Test environment for temp networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-21 13:08 juergen>
+# Time-stamp: <Fri 2021-05-21 13:23 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -83,29 +83,34 @@ def test_TemporalPathPyObject():
     assert t.start == 0
     assert t.end == 30
     assert t.attributes == {'color': 'blue'}
-    assert t.start == 0
-    assert t.end == 30
 
-    # objs = iter(t)
-    # assert next(objs).attributes['color'] == 'red'
-    # assert next(objs).attributes['color'] == 'blue'
+    objs = iter(t)
+    assert next(objs).attributes['color'] == 'red'
+    assert next(objs).attributes['color'] == 'blue'
 
     # add new attribute (for all exsiting time stamps)
     t['shape'] = 'circle'
 
-    print(t[3])
-    # print(t[3].end())
-    # print(t[3].attributes)
-    print(t._events[2:3])
+    objs = iter(t)
+    assert next(objs).attributes['shape'] == 'circle'
+    assert next(objs).attributes['shape'] == 'circle'
 
-    print('dddddddddd')
-    for n in t[2:3]:
-        print(n.attributes)
+    # get attributes
+    print(t[3, 'shape'])
+    print(t.start)
+    # print(t[3])
+    # # print(t[3].end())
+    # # print(t[3].attributes)
+    # print(t._events[2:3])
+
+    # print('dddddddddd')
+    # for n in t[2:3]:
     #     print(n.attributes)
+    # #     print(n.attributes)
 
-    print('ssssssssss')
-    print(t[2:30].attributes)
-    # print(t[3].attributes)
+    # print('ssssssssss')
+    # print(t[2:30].attributes)
+    # # print(t[3].attributes)
     # print('dddddd')
     # for n in t:
     #     print(n.attributes)

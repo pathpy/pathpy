@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal.py -- Classes to make PathPyObject temporal
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-21 13:13 juergen>
+# Time-stamp: <Fri 2021-05-21 13:41 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -43,57 +43,48 @@ class TemporalPathPyObject(PathPyObject):
         self._len_events = len(self._events)
 
     def __iter__(self):
-        # clean events
         self._clean_events()
 
         # create generator
-        for start, end, attributes in sorted(self._events[self._start:self._end]):
+        for start, end, attributes in sorted(self._events):
             self._attributes = {**{'start': start, 'end': end}, **attributes}
             yield self
 
     @singledispatchmethod
     def __getitem__(self, key: Any) -> Any:
         self._clean_events()
-
         # get the last element
         *_, last = iter(self._events)
         return last.data.get(key, None)
 
     @__getitem__.register(tuple)  # type: ignore
     def _(self, key: tuple) -> Any:
-        return {k: v for o in self.__getitem__(key[0]) for
-                k, v in o.attributes}.get(key[1], None) if (
-                    len(key) == 2 and isinstance(
-                        key[0], (int, float, slice))) else None
+        start, end, _ = _get_start_end(key[0])
+        values = {k: v for _, _, o in sorted(
+            self._events[start:end]) for k, v in o.items()}
+        return values.get(key[1], None) if len(key) == 2 else values
 
     @__getitem__.register(slice)  # type: ignore
     @__getitem__.register(int)  # type: ignore
     @__getitem__.register(float)  # type: ignore
     def _(self, key: Union[int, float, slice]) -> Any:
+        start, end, _ = _get_start_end(key)
+        self._clean_events()
 
-        self._start, self._end, _ = _get_start_end(key)
-        self._attributes = {k: v for _, _, o in sorted(
-            self._events[key]) for k, v in o.items()}
-
-        return self
+        # create generator
+        for start, end, attributes in sorted(self._events[start, end]):
+            self._attributes = {**{'start': start, 'end': end}, **attributes}
+            yield self
 
     @singledispatchmethod
     def __setitem__(self, key: Any, value: Any) -> None:
-        self.event(start=self.start,
-                   end=self.end, **{key: value})
+        self.event(start=self._events.begin(),
+                   end=self._events.end(), **{key: value})
 
     @__setitem__.register(tuple)  # type: ignore
     def _(self, key: tuple, value: Any) -> None:
-        if len(key) == 2:
-            if isinstance(key[0], (int, float)):
-                self.event(timestamp=key[0], **{key[1]: value})
-            elif isinstance(key[0], slice):
-                self.event(start=key[0].start,
-                           end=key[0].stop, **{key[1]: value})
-            else:
-                raise KeyError
-        else:
-            raise KeyError
+        start, end, _ = _get_start_end(key[0])
+        self.event(start=start, end=end, **{key[1]: value})
 
     @property
     def start(self):
