@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_temporal_network.py -- Test environment for temp networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-21 12:48 juergen>
+# Time-stamp: <Fri 2021-05-21 13:08 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -30,61 +30,61 @@ def test_TemporalPathPyObject():
     # create a basic temporal object
     t = TemporalPathPyObject(uid='t')
 
-    assert t.start() == float('-inf')
-    assert t.end() == float('inf')
+    assert t.start == float('-inf')
+    assert t.end == float('inf')
 
     # create a basic temporal object with int time
     t = TemporalPathPyObject(uid='t', start=0, end=20)
 
-    assert t.start() == 0
-    assert t.end() == 20
+    assert t.start == 0
+    assert t.end == 20
 
     # create a basic temporal object with float time
     t = TemporalPathPyObject(uid='t', start=0.1, end=2.0)
 
-    assert t.start() == 0.1
-    assert t.end() == 2.0
+    assert t.start == 0.1
+    assert t.end == 2.0
 
     # create a basic temporal object with timestamp
     t = TemporalPathPyObject(uid='t', timestamp=1)
 
-    assert t.start() == 1
-    assert t.end() == 2.0
+    assert t.start == 1
+    assert t.end == 2.0
 
     # create a basic temporal object with str time
     t = TemporalPathPyObject(uid='t', start='2021-01-01', end='2021-02-01')
 
-    assert t.start() == pd.Timestamp('2021-01-01')
-    assert t.end() == pd.Timestamp('2021-02-01')
+    assert t.start == pd.Timestamp('2021-01-01')
+    assert t.end == pd.Timestamp('2021-02-01')
 
     # create a basic temporal object with str duration
     t = TemporalPathPyObject(
         uid='t', timestamp='2021-01-01', duration='1 days')
 
-    assert t.start() == pd.Timestamp('2021-01-01')
-    assert t.end() == pd.Timestamp('2021-01-02')
+    assert t.start == pd.Timestamp('2021-01-01')
+    assert t.end == pd.Timestamp('2021-01-02')
 
     # create a basic temporal object with str duration
     t = TemporalPathPyObject(
         uid='t', timestamp='2021-01-01', duration=1, unit='D')
 
-    assert t.start() == pd.Timestamp('2021-01-01')
-    assert t.end() == pd.Timestamp('2021-01-02')
+    assert t.start == pd.Timestamp('2021-01-01')
+    assert t.end == pd.Timestamp('2021-01-02')
 
     # create a basic temporal object with attributes
     t = TemporalPathPyObject(uid='t', start=0, end=20, color='red')
 
-    assert t.start() == 0
-    assert t.end() == 20
+    assert t.start == 0
+    assert t.end == 20
     assert t.attributes == {'color': 'red'}
 
     # add attribute to a later time
     t.event(start=25, end=30, color='blue')
-    assert t.start() == 0
-    assert t.end() == 30
+    assert t.start == 0
+    assert t.end == 30
     assert t.attributes == {'color': 'blue'}
-    assert t.start(total=True) == 0
-    assert t.end(total=True) == 30
+    assert t.start == 0
+    assert t.end == 30
 
     # objs = iter(t)
     # assert next(objs).attributes['color'] == 'red'

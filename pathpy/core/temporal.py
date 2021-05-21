@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal.py -- Classes to make PathPyObject temporal
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-21 12:50 juergen>
+# Time-stamp: <Fri 2021-05-21 13:13 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -79,8 +79,8 @@ class TemporalPathPyObject(PathPyObject):
 
     @singledispatchmethod
     def __setitem__(self, key: Any, value: Any) -> None:
-        self.event(start=self.start(total=True),
-                   end=self.end(total=True), **{key: value})
+        self.event(start=self.start,
+                   end=self.end, **{key: value})
 
     @__setitem__.register(tuple)  # type: ignore
     def _(self, key: tuple, value: Any) -> None:
@@ -94,6 +94,16 @@ class TemporalPathPyObject(PathPyObject):
                 raise KeyError
         else:
             raise KeyError
+
+    @property
+    def start(self):
+        """start of the object"""
+        return self._start
+
+    @property
+    def end(self):
+        """end of the object"""
+        return self._end
 
     def _clean_events(self):
         """helper function to clean events"""
@@ -129,13 +139,10 @@ class TemporalPathPyObject(PathPyObject):
         self._start = self._events.begin()
         self._end = self._events.end()
 
-    def start(self, total=False):
-        """start of the object"""
-        return self._events.begin() if total else self._start
-
-    def end(self, total=False):
-        """end of the object"""
-        return self._events.end() if total else self._end
+    def reset(self):
+        """Reset the start and end time"""
+        self._start = self._events.begin()
+        self._end = self._events.end()
 
 
 def _get_start_end(*args, **kwargs) -> tuple:
