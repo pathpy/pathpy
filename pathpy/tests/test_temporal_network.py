@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_temporal_network.py -- Test environment for temp networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-21 15:17 juergen>
+# Time-stamp: <Fri 2021-05-21 15:35 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -15,7 +15,7 @@ import pandas as pd
 import numpy as np
 
 from pathpy.models.temporal_network import (
-    TemporalDict,
+    # TemporalDict,
     TemporalNode,
     TemporalEdge,
     TemporalNetwork
@@ -114,27 +114,38 @@ def test_temporal_node():
 
     a = TemporalNode('a', start=1, end=4, color='red')
 
-    print(a.attributes)
-    print(a.relations)
-    print(a.objects)
-    print(a._events)
+    # print(a.attributes)
+    # print(a.relations)
+    # print(a.objects)
+    # print(a._events)
 
-    print(a)
+    # print(a)
 
     e = TemporalEdge('a', 'b', uid='ab', start=1, end=4, color='blue')
-    print(e.attributes)
+    # print(e.attributes)
 
     nodes = TemporalNodeCollection()
     nodes.add('a', start=5, end=7)
     nodes.add('a', start=9, end=10)
 
-    print(nodes['a'])
+    # print(nodes['a'])
 
     edges = TemporalEdgeCollection()
     edges.add('a', 'b', uid='ab', start=3, end=7, color='blue')
     edges.add('a', 'b', uid='ab', start=8, end=10, color='red')
 
-    print(edges['ab'])
+    # print(edges['ab'])
+
+
+def test_temporal_network():
+    """Test a temporal network"""
+
+    net = TemporalNetwork()
+    net.add_edge('a', 'b', uid='ab', start=1, end=4, color='blue')
+    net.add_edge('b', 'c', uid='bc', start=3, end=6, color='red')
+    net.add_edge('a', 'b', uid='ab', start=7, end=9, color='green')
+    print(net)
+    print(net.edges['ab'])
 #     # a.event(start=5, end=7, active=True)
 #     # a.event(start=12, end=14)
 
