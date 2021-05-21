@@ -18,6 +18,7 @@ import scipy
 from pathpy import logger, tqdm
 from pathpy.core.api import Node, Edge
 from pathpy.models.api import Network
+from pathpy.utils.errors import ParameterError
 
 # create logger
 LOG = logger(__name__)
@@ -293,6 +294,10 @@ def Watts_Strogatz(n: int, s: int, p: float = 0.0, loops: bool = False,
 
         The rewiring probability
 
+    node_uids : list
+
+        Optional list of node uids that will be used.
+
     Examples
     --------
     Generate a Watts-Strogatz network with 100 nodes
@@ -459,6 +464,10 @@ def Molloy_Reed(degrees: Union[np.array, Dict[int, float]], multiedge: bool = Fa
         have exactly sum(degrees)/2 links, but it ensures that the algorithm
         always finishes.
 
+    node_uids : list
+
+        Optional list of node uids that will be used.
+
     Examples
     --------
     Generate random undirected network with given degree sequence
@@ -522,7 +531,8 @@ def Molloy_Reed(degrees: Union[np.array, Dict[int, float]], multiedge: bool = Fa
 
 
 def Molloy_Reed_randomize(network: Network) -> Optional[Network]:
-
+    """Generates a random realization of a given network based on the observed degree sequence.
+    """
     # degrees are listed in order of node indices 
     degrees = network.degree_sequence()    
 
@@ -532,3 +542,51 @@ def Molloy_Reed_randomize(network: Network) -> Optional[Network]:
         node_uids[network.nodes.index[v]] = v
 
     return Molloy_Reed(degrees, node_uids=node_uids)
+
+
+
+
+
+def k_regular_random(k: int, n: Optional[int] = None, node_uids: Optional[list] = None) -> Optional[Network]:
+    """Generates a random graph in which all nodes have exactly degree k.
+
+    Parameters
+    ----------
+    k : int
+
+        degree of all nodes in the generated network.
+
+    node_uids : list
+
+        Optional list of node uids that will be used.
+
+    Examples
+    --------
+    Generate random undirected network with given degree sequence
+
+    >>> import pathpy as pp
+    >>> random_network = pp.algorithms.random_graphs.Molloy_Reed([1,0])
+    >>> print(random_network.summary())
+    ...
+
+    Network generation fails for non-graphic sequences
+
+    >>> import pathpy as pp
+    >>> random_network = pp.algorithms.random_graphs.Molloy_Reed([1,0])
+    >>> print(random_network)
+    None
+
+    """
+    if k<0:
+        msg = 'Degree parameter k must be non-negative'
+        LOG.error(msg)
+        raise ParameterError(msg)
+    if n is None and node_uids is None:
+        msg = 'You must either pass a list of node uids or a number of nodes to generate'
+        LOG.error(msg)
+        raise ParameterError(msg)
+
+    if n is None:
+        n = len(node_uids)
+    
+    return Molloy_Reed([k]*n, multiedge=False, relax=False, node_uids=node_uids)

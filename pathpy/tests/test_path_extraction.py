@@ -26,6 +26,17 @@ def tempnet():
     tn.add_edge('c', 'd', timestamp=5)
     return tn
 
+
+# TODO: add unit test with undirected edge
+@pytest.fixture
+def tempnet2():
+    tn = pp.TemporalNetwork(directed=False)
+    tn.add_edge('a', 'b', timestamp=1)
+    tn.add_edge('b', 'c', timestamp=2)
+    tn.add_edge('a', 'c', timestamp=3)
+    tn.add_edge('b', 'a', timestamp=3)
+    return tn
+
 @pytest.fixture
 def dag():
     dag = pp.DirectedAcyclicGraph()
@@ -56,6 +67,14 @@ def test_path_extraction_temporal_network(tempnet, delta, path_counts):
     paths = pp.algorithms.path_extraction.all_paths_from_temporal_network(tempnet, delta=delta)
     assert paths == path_counts
 
+
+def test_path_extraction_temporal_network_undirected(tempnet2):
+    paths = pp.algorithms.path_extraction.all_paths_from_temporal_network(tempnet2, delta=1)
+    assert paths == Counter({('a', 'b', 'c', 'a'): 1,
+         ('b', 'a'): 1,
+         ('a', 'b'): 1,
+         ('a', 'c'): 1,
+         ('c', 'b', 'a'): 1})
 
 def test_path_extraction_dag(dag):
     paths = pp.algorithms.path_extraction.all_paths_from_dag(dag)

@@ -42,7 +42,7 @@ def test_sql_write_network():
     pp.io.sql.write(net, filename='network.db',
                     table='test', if_exists='replace')
 
-    net = pp.io.sql.read_network(filename='network.db', table='test')
+    net = pp.io.sql.read_network(db_file='network.db', table='test')
 
     assert isinstance(net, Network)
     assert net.number_of_nodes() == 3
