@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_temporal_network.py -- Test environment for temp networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-21 13:23 juergen>
+# Time-stamp: <Fri 2021-05-21 14:06 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -96,84 +96,21 @@ def test_TemporalPathPyObject():
     assert next(objs).attributes['shape'] == 'circle'
 
     # get attributes
-    print(t[3, 'shape'])
-    print(t.start)
-    # print(t[3])
-    # # print(t[3].end())
-    # # print(t[3].attributes)
-    # print(t._events[2:3])
+    assert t[3, 'shape'] == 'circle'
+    assert isinstance(t[3, ], dict)
+    assert 'color' and 'shape' in t[3, ]
 
-    # print('dddddddddd')
-    # for n in t[2:3]:
-    #     print(n.attributes)
-    # #     print(n.attributes)
+    # iterator
+    assert len([x for x in t]) == 3
 
-    # print('ssssssssss')
-    # print(t[2:30].attributes)
-    # # print(t[3].attributes)
-    # print('dddddd')
-    # for n in t:
-    #     print(n.attributes)
-    # print(t._events[15:30])
+    # remove parts from the temporal object
+    t.event(start=2, end=29, active=False)
+    assert len([x for x in t]) == 2
 
-    # print(t.start())
-# def test_temporal_dict():
-#     """Test the temporal dict"""
-
-#     d = TemporalDict()
-
-#     assert len(d) == 0
-
-#     d['a'] = 'first value'
-
-#     assert len(d) == 1
-#     for key, value in d.items():
-#         assert isinstance(key, tuple)
-#         assert value == 'first value'
-
-#         assert len(key) == 3
-#         assert key[0] == float('-inf')
-#         assert key[1] == float('inf')
-#         assert key[2] == 'a'
-
-#     d = TemporalDict()
-#     d[1, 3, 'color'] = 'red'
-
-#     assert (1, 3, 'color') in d
-#     assert d[1, 3, 'color'] == 'red'
-
-#     for key, value in d.items():
-#         assert key[0] == 1
-#         assert key[1] == 3
-#         assert key[2] == 'color'
-
-#     d[2:4, 'color'] = 'blue'
-#     d['color', 1:5] = 'green'
-#     d[2, 'color'] = 'pink'
-#     d['color', 5] = 'yellow'
-
-#     assert len(d) == 5
-#     assert 'yellow' in d.values()
-
-#     d[5, 'color'] = 'black'
-
-#     assert 'yellow' not in d.values()
-#     assert 'black' in d.values()
-
-#     d.update(2, 4, color='orange')
-
-#     assert d[2, 4, 'color'] == 'orange'
-#     assert 'blue' not in d.values()
-
-#     d.update(1, 5, color='magenta', shape='rectangle')
-
-#     assert d[1, 5, 'color'] == 'magenta'
-#     assert d[1, 5, 'shape'] == 'rectangle'
-#     assert 'green' not in d.values()
-
-#     assert len(d) == 6
-
-
+    # for i in t[63]:
+    #     print(i)
+    # for obj in t[3]:
+    #     print(obj)
 # def test_temporal_node():
 #     """Test temporal nodes"""
 

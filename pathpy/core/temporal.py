@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal.py -- Classes to make PathPyObject temporal
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-21 13:52 juergen>
+# Time-stamp: <Fri 2021-05-21 14:31 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -72,7 +72,7 @@ class TemporalPathPyObject(PathPyObject):
         self._clean_events()
 
         # create generator
-        for start, end, attributes in sorted(self._events[start, end]):
+        for start, end, attributes in sorted(self._events[start:end]):
             self._attributes = {**{'start': start, 'end': end}, **attributes}
             yield self
 
@@ -134,46 +134,45 @@ class TemporalPathPyObject(PathPyObject):
 def _get_start_end(*args, **kwargs) -> tuple:
     """Helper function to extract the start and end time"""
 
-    # get keywords defined in the config file
+    # initialize start and end time
     start = kwargs.pop(config['temporal']['start'], float('-inf'))
     end = kwargs.pop(config['temporal']['end'], float('inf'))
-    timestamp = kwargs.pop(config['temporal']['timestamp'], None)
-    duration = kwargs.pop(config['temporal']['duration'], None)
-    unit = kwargs.pop('unit', None)
 
+    # convert str to pandas timestamp
     if isinstance(start, str):
         start = pd.Timestamp(start)
     if isinstance(end, str):
         end = pd.Timestamp(end)
 
-    # check if timestamp is given
-    if isinstance(timestamp, (int, float)):
-        start = timestamp
-        if isinstance(duration, (int, float)):
-            end = timestamp + duration
-        else:
-            end = timestamp + config['temporal']['duration_value']
-    elif isinstance(timestamp, str):
-        start = pd.Timestamp(timestamp)
-        print(start)
-        if isinstance(duration, str):
-            end = start + pd.Timedelta(duration)
-        elif isinstance(duration, (float, int)) and isinstance(unit, str):
-            end = start + pd.Timedelta(duration, unit=unit)
-        else:
-            end = start + pd.Timedelta(config['temporal']['duration_value'],
-                                       unit=config['temporal']['unit'])
+    # check kwargs
+    if kwargs:
+        # get keywords defined in the config file
+        timestamp = kwargs.pop(config['temporal']['timestamp'], None)
+        duration = kwargs.pop(config['temporal']['duration'],
+                              config['temporal']['duration_value'])
+        unit = kwargs.pop('unit', config['temporal']['unit'])
 
+        # check if timestamp is given
+        if timestamp:
+            if isinstance(timestamp, str):
+                timestamp = pd.Timestamp(timestamp)
+                if isinstance(duration, str):
+                    duration = pd.Timedelta(duration)
+                else:
+                    duration = pd.Timedelta(duration, unit=unit)
+            start = timestamp
+            end = timestamp + duration
+
+    # check args
     if args:
         if len(args) == 1 and isinstance(args[0], slice):
-            start = args[0].start if args[0].start is not None else start
-            end = args[0].stop if args[0].stop is not None else end
-        elif len(args) == 1 and isinstance(args[0], (int, float)):
-            start = args[0]
-            end = args[0] + config['temporal']['duration_value']
-        elif len(args) == 2 and all(isinstance(a, (int, float)) for a in args):
-            start = args[0]
-            end = args[1]
+            start, end, _ = _get_start_end(
+                start=args[0].start, end=args[0].stop)
+        elif len(args) == 1:
+            start, end, _ = _get_start_end(timestamp=args[0])
+        elif len(args) == 2:
+            start, end, _ = _get_start_end(start=args[0], end=args[1])
+
     return start, end, kwargs
 # =============================================================================
 # eof
