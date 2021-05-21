@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-20 18:51 juergen>
+# Time-stamp: <Fri 2021-05-21 15:19 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -21,6 +21,8 @@ from collections.abc import MutableMapping
 
 from pathpy import logger, config
 from pathpy.core.core import PathPyObject
+from pathpy.core.temporal import TemporalPathPyObject
+
 from pathpy.core.node import Node, NodeCollection
 from pathpy.core.edge import Edge, EdgeCollection
 from pathpy.models.network import Network
@@ -178,215 +180,84 @@ class TemporalIterator:
         return self._obj
 
 
-class TemporalNode(Node):
+class TemporalNode(Node, TemporalPathPyObject):
     """Base class of a temporal node."""
 
     def __init__(self, *node: Union[str, PathPyObject],
                  uid: Optional[str] = None, **kwargs: Any) -> None:
         """Initialize the node object."""
 
-        # initialize the parent class
-        super().__init__(*node, uid=uid)
+        # initializing the parent classes
+        Node.__init__(self, *node, uid=uid, **kwargs)
+        TemporalPathPyObject.__init__(self, uid=self.uid, **kwargs)
 
-        self._start = float('-inf')
-        self._end = float('inf')
+    def summary(self) -> str:
+        """Object summary. """
+        summary = [
+            'Observation periode:\t{} - {}'.format(self.start, self.end)
+        ]
 
-        # initialize an intervaltree to save events
-        self._events = IntervalTree()
-
-        # add new events
-        self.event(**kwargs)
-
-        # variable to store changes in the events
-        self._len_events = len(self._events)
-
-    def __iter__(self):
-        # clean events
-        self._clean_events()
-
-        # create generator
-        for start, end, attributes in sorted(self._events):
-            # update start and end time as well as attributes
-            self._start, self._end = start, end
-            self._attributes = {**{'start': start, 'end': end}, **attributes}
-            yield self
-
-    @singledispatchmethod
-    def __getitem__(self, key: Any) -> Any:
-        self._clean_events()
-
-        # get the last element
-        *_, last = iter(self._events)
-        return last.data.get(key, None)
-
-    @__getitem__.register(tuple)  # type: ignore
-    def _(self, key: tuple) -> Any:
-        return {k: v for o in self.__getitem__(key[0]) for
-                k, v in o.attributes}.get(key[1], None) if (
-                    len(key) == 2 and isinstance(
-                        key[0], (int, float, slice))) else None
-
-    @__getitem__.register(slice)  # type: ignore
-    @__getitem__.register(int)  # type: ignore
-    @__getitem__.register(float)  # type: ignore
-    def _(self, key: Union[int, float, slice]) -> Any:
-
-        for start, end, attributes in sorted(self._events[key]):
-            # update start and end time as well as attributes
-            self._start, self._end = start, end
-            self._attributes = {**{'start': start, 'end': end}, **attributes}
-            yield self
-
-        # return {k: v for d in sorted(
-        #     self._events[key]) for k, v in d.data.items()}
-
-    @singledispatchmethod
-    def __setitem__(self, key: Any, value: Any) -> None:
-        self.event(start=self.start(total=True),
-                   end=self.end(total=True), **{key: value})
-
-    @__setitem__.register(tuple)  # type: ignore
-    def _(self, key: tuple, value: Any) -> None:
-        if len(key) == 2:
-            if isinstance(key[0], (int, float)):
-                self.event(timestamp=key[0], **{key[1]: value})
-            elif isinstance(key[0], slice):
-                self.event(start=key[0].start,
-                           end=key[0].stop, **{key[1]: value})
-            else:
-                raise KeyError
-        else:
-            raise KeyError
-
-    def _clean_events(self):
-        """helper function to clean events"""
-        def reducer(old, new):
-            return {**old, **new}
-
-        if len(self._events) != self._len_events:
-            # split overlapping intervals
-            self._events.split_overlaps()
-
-            # combine the dict of the overlapping intervals
-            self._events.merge_equals(data_reducer=reducer)
-
-            # update the length of the events
-            self._len_events = len(self._events)
-
-    def event(self, *args, **kwargs) -> None:
-        """Add a temporal event."""
-
-        # check if object is avtive or inactive
-        active = kwargs.pop('active', True)
-
-        # get start and end time of the even
-        self._start, self._end, kwargs = _get_start_end(*args, **kwargs)
-
-        if active:
-            self._events[self._start:self._end] = kwargs
-        else:
-            self._events.chop(self._start, self._end)
-
-    def start(self, total=False):
-        """start of the object"""
-        return self._events.begin() if total else self._start
-
-    def end(self, total=False):
-        """end of the object"""
-        return self._events.end() if total else self._end
+        return super().summary() + ''.join(summary)
 
 
-class TemporalEdge(Edge):
+class TemporalEdge(Edge, TemporalPathPyObject):
     """Base class of an temporal edge."""
 
-    def __init__(self, v: TemporalNode, w: TemporalNode,
-                 uid: Optional[str] = None, **kwargs: Any) -> None:
+    def __init__(self, v: Union[str, PathPyObject],
+                 w: Union[str, PathPyObject],
+                 uid: Optional[str] = None,
+                 directed: bool = True,
+                 **kwargs: Any) -> None:
+        """Initialize the node object."""
 
-        # initializing the parent class
-        super().__init__(v=v, w=w, uid=uid)
+        # initialize the parent class
+        Edge.__init__(self, v, w, uid=uid, directed=directed, **kwargs)
+        TemporalPathPyObject.__init__(self, uid=self.uid, **kwargs)
 
-        self.attributes = TemporalDict()
-        self.activities = TemporalDict()
-        self.update(active=True, **kwargs)
+    def summary(self) -> str:
+        """Object summary. """
+        summary = [
+            'Observation periode:\t{} - {}'.format(self.start, self.end)
+        ]
 
-    def update(self, *args, active: bool = False, **kwargs: Any) -> None:
-        """Update the attributes of the object. """
-
-        start, end, kwargs = _get_start_end(*args, **kwargs)
-
-        self.attributes.update(start, end, **kwargs)
-        if active:
-            self.activities[start, end, self.uid] = self
-
-    def active(self, *args, **kwargs) -> None:
-        """Activate edge"""
-        start, end, kwargs = _get_start_end(*args, **kwargs)
-        self.activities[start, end, self.uid] = self
+        return super().summary() + ''.join(summary)
 
 
 class TemporalNodeCollection(NodeCollection):
     """A collection of temporal nodes"""
 
-    def __init__(self) -> None:
+    def __init__(self, *args, **kwargs) -> None:
         """Initialize the NodeCollection object."""
 
         # initialize the base class
-        super().__init__()
+        super().__init__(*args, **kwargs)
 
         # class of objects
-        self._node_class: Any = TemporalNode
+        self._default_class: Any = TemporalNode
 
     def _if_exist(self, node: Any, **kwargs: Any) -> None:
         """Helper function if node already exists."""
-        # get the node
-        if isinstance(node, str):
-            _node = cast(TemporalNode, self[node])
-            _node.update(active=True, **kwargs)
-        elif isinstance(node, TemporalNode):
-            pass
-        else:
-            raise KeyError
-
-        # update the node
+        self[node].event(**kwargs)
 
 
 class TemporalEdgeCollection(EdgeCollection):
     """A collection of temporal edges"""
 
-    def __init__(self, directed: bool = True, multiedges: bool = False,
-                 nodes: Optional[TemporalNodeCollection] = None) -> None:
-        """Initialize the network object."""
-
-        # collection of nodes
-        self._nodes: TemporalNodeCollection = TemporalNodeCollection()
-        if nodes is not None:
-            self._nodes = nodes
+    def __init__(self, *args, **kwargs) -> None:
+        """Initialize the EdgeCollection object."""
 
         # initialize the base class
-        super().__init__(directed=directed, multiedges=multiedges,
-                         nodes=nodes)
+        super().__init__(*args, **kwargs)
+
+        # indicator whether the network has multi-edges
+        self._multiple: bool = kwargs.pop('multiedges', False)
 
         # class of objects
-        self._node_class: Any = TemporalNode
-        self._edge_class: Any = TemporalEdge
+        self._default_class: Any = TemporalEdge
 
     def _if_exist(self, edge: Any, **kwargs: Any) -> None:
-        """Helper function if edge already exists."""
-        # get the edge
-
-        if isinstance(edge, (tuple, list)):
-            _edge = cast(TemporalEdge, self[edge[0], edge[1]])
-            _edge.update(active=True, **kwargs)
-        elif isinstance(edge, str):
-            _edge = cast(TemporalEdge, self[edge])
-            _edge.update(active=True, **kwargs)
-        elif isinstance(edge, TemporalEdge):
-            _edge = cast(TemporalEdge, self[edge.v, edge.w])
-            _edge.attributes.update(edge.attributes)
-            for key in edge.activities:
-                _edge.activities[key[0], key[1], _edge.uid] = _edge
-        else:
-            raise KeyError
+        """Helper function if node already exists."""
+        self[edge].event(**kwargs)
 
 
 class TemporalNetwork(BaseTemporalNetwork, Network):
