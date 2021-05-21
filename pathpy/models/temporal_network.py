@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-21 16:47 juergen>
+# Time-stamp: <Fri 2021-05-21 17:00 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -122,6 +122,11 @@ class TemporalNodeCollection(NodeCollection):
         """Temporal events"""
         return self._events
 
+    @singledispatchmethod
+    def add(self, *args, **kwargs: Any) -> None:
+        """Add multiple nodes. """
+        super().add(*args, **kwargs)
+
     def _add(self, obj: Any, **kwargs: Any) -> None:
         """Add an node to the set of nodes."""
         super()._add(obj, **kwargs)
@@ -133,6 +138,13 @@ class TemporalNodeCollection(NodeCollection):
         self[obj].event(**kwargs)
         start, end, _ = obj.last()
         self._events[start:end] = obj.uid
+
+    def _remove(self, obj) -> None:
+        """Add an edge to the set of edges."""
+        for interval in sorted(self._events):
+            if interval.data == obj.uid:
+                self._events.remove(interval)
+        super()._remove(obj)
 
 
 class TemporalEdgeCollection(EdgeCollection):
@@ -182,6 +194,11 @@ class TemporalEdgeCollection(EdgeCollection):
         """Temporal events"""
         return self._events
 
+    @singledispatchmethod
+    def add(self, *args, **kwargs: Any) -> None:
+        """Add multiple nodes. """
+        super().add(*args, **kwargs)
+
     def _add(self, obj: Any, **kwargs: Any) -> None:
         """Add an edge to the set of edges."""
         super()._add(obj, **kwargs)
@@ -193,6 +210,13 @@ class TemporalEdgeCollection(EdgeCollection):
         self[obj].event(**kwargs)
         start, end, _ = obj.last()
         self._events[start:end] = obj.uid
+
+    def _remove(self, obj) -> None:
+        """Add an edge to the set of edges."""
+        for interval in sorted(self._events):
+            if interval.data == obj.uid:
+                self._events.remove(interval)
+        super()._remove(obj)
 
 
 class TemporalNetwork(BaseTemporalNetwork, Network):
