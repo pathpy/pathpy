@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal.py -- Classes to make PathPyObject temporal
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-21 14:31 juergen>
+# Time-stamp: <Fri 2021-05-21 15:59 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -129,6 +129,11 @@ class TemporalPathPyObject(PathPyObject):
         # update start and end times
         self._start = self._events.begin()
         self._end = self._events.end()
+
+    def last(self):
+        """return the last added intervall"""
+        interval = sorted(self._events)[-1]
+        return interval.begin, interval.end, interval.data
 
 
 def _get_start_end(*args, **kwargs) -> tuple:
