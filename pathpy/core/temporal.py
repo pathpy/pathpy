@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal.py -- Classes to make PathPyObject temporal
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-21 10:27 juergen>
+# Time-stamp: <Fri 2021-05-21 12:50 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -47,9 +47,7 @@ class TemporalPathPyObject(PathPyObject):
         self._clean_events()
 
         # create generator
-        for start, end, attributes in sorted(self._events):
-            # update start and end time as well as attributes
-            self._start, self._end = start, end
+        for start, end, attributes in sorted(self._events[self._start:self._end]):
             self._attributes = {**{'start': start, 'end': end}, **attributes}
             yield self
 
@@ -73,14 +71,11 @@ class TemporalPathPyObject(PathPyObject):
     @__getitem__.register(float)  # type: ignore
     def _(self, key: Union[int, float, slice]) -> Any:
 
-        for start, end, attributes in sorted(self._events[key]):
-            # update start and end time as well as attributes
-            self._start, self._end = start, end
-            self._attributes = {**{'start': start, 'end': end}, **attributes}
-            yield self
+        self._start, self._end, _ = _get_start_end(key)
+        self._attributes = {k: v for _, _, o in sorted(
+            self._events[key]) for k, v in o.items()}
 
-        # return {k: v for d in sorted(
-        #     self._events[key]) for k, v in d.data.items()}
+        return self
 
     @singledispatchmethod
     def __setitem__(self, key: Any, value: Any) -> None:
@@ -122,12 +117,17 @@ class TemporalPathPyObject(PathPyObject):
         active = kwargs.pop('active', True)
 
         # get start and end time of the even
-        self._start, self._end, kwargs = _get_start_end(*args, **kwargs)
+        start, end, kwargs = _get_start_end(*args, **kwargs)
 
         if active:
-            self._events[self._start:self._end] = kwargs  # type: ignore
+            self._events[start:end] = kwargs  # type: ignore
+            self._attributes = kwargs
         else:
-            self._events.chop(self._start, self._end)
+            self._events.chop(start, end)
+
+        # update start and end times
+        self._start = self._events.begin()
+        self._end = self._events.end()
 
     def start(self, total=False):
         """start of the object"""
@@ -146,6 +146,7 @@ def _get_start_end(*args, **kwargs) -> tuple:
     end = kwargs.pop(config['temporal']['end'], float('inf'))
     timestamp = kwargs.pop(config['temporal']['timestamp'], None)
     duration = kwargs.pop(config['temporal']['duration'], None)
+    unit = kwargs.pop('unit', None)
 
     if isinstance(start, str):
         start = pd.Timestamp(start)
@@ -161,8 +162,11 @@ def _get_start_end(*args, **kwargs) -> tuple:
             end = timestamp + config['temporal']['duration_value']
     elif isinstance(timestamp, str):
         start = pd.Timestamp(timestamp)
+        print(start)
         if isinstance(duration, str):
             end = start + pd.Timedelta(duration)
+        elif isinstance(duration, (float, int)) and isinstance(unit, str):
+            end = start + pd.Timedelta(duration, unit=unit)
         else:
             end = start + pd.Timedelta(config['temporal']['duration_value'],
                                        unit=config['temporal']['unit'])

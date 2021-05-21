@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_temporal_network.py -- Test environment for temp networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-21 10:03 juergen>
+# Time-stamp: <Fri 2021-05-21 12:48 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -21,129 +21,219 @@ from pathpy.models.temporal_network import (
     TemporalNetwork
 )
 
-
-def test_temporal_dict():
-    """Test the temporal dict"""
-
-    d = TemporalDict()
-
-    assert len(d) == 0
-
-    d['a'] = 'first value'
-
-    assert len(d) == 1
-    for key, value in d.items():
-        assert isinstance(key, tuple)
-        assert value == 'first value'
-
-        assert len(key) == 3
-        assert key[0] == float('-inf')
-        assert key[1] == float('inf')
-        assert key[2] == 'a'
-
-    d = TemporalDict()
-    d[1, 3, 'color'] = 'red'
-
-    assert (1, 3, 'color') in d
-    assert d[1, 3, 'color'] == 'red'
-
-    for key, value in d.items():
-        assert key[0] == 1
-        assert key[1] == 3
-        assert key[2] == 'color'
-
-    d[2:4, 'color'] = 'blue'
-    d['color', 1:5] = 'green'
-    d[2, 'color'] = 'pink'
-    d['color', 5] = 'yellow'
-
-    assert len(d) == 5
-    assert 'yellow' in d.values()
-
-    d[5, 'color'] = 'black'
-
-    assert 'yellow' not in d.values()
-    assert 'black' in d.values()
-
-    d.update(2, 4, color='orange')
-
-    assert d[2, 4, 'color'] == 'orange'
-    assert 'blue' not in d.values()
-
-    d.update(1, 5, color='magenta', shape='rectangle')
-
-    assert d[1, 5, 'color'] == 'magenta'
-    assert d[1, 5, 'shape'] == 'rectangle'
-    assert 'green' not in d.values()
-
-    assert len(d) == 6
+from pathpy.core.temporal import TemporalPathPyObject
 
 
-def test_temporal_node():
-    """Test temporal nodes"""
+def test_TemporalPathPyObject():
+    """Test the basic temporal object"""
 
-    a = TemporalNode('a', start=1, end=4, color='red')
+    # create a basic temporal object
+    t = TemporalPathPyObject(uid='t')
 
-    # a.event(start=5, end=7, active=True)
-    # a.event(start=12, end=14)
+    assert t.start() == float('-inf')
+    assert t.end() == float('inf')
 
-    a.event(start=3, end=14, shape='circle')
+    # create a basic temporal object with int time
+    t = TemporalPathPyObject(uid='t', start=0, end=20)
 
-    a.event(timestamp=8, color='blue')
-    a.event(start=2, end=4, active=False)
+    assert t.start() == 0
+    assert t.end() == 20
 
-    print(a._events)
-    # print(a._temp_attributes)
-    print(a.attributes)
+    # create a basic temporal object with float time
+    t = TemporalPathPyObject(uid='t', start=0.1, end=2.0)
 
-    for node in a:
-        print(node.attributes)
-        print(node.start(), node.end())
+    assert t.start() == 0.1
+    assert t.end() == 2.0
 
-    print(a.start(total=True))
+    # create a basic temporal object with timestamp
+    t = TemporalPathPyObject(uid='t', timestamp=1)
 
-    print(a._events.at(2.5))
+    assert t.start() == 1
+    assert t.end() == 2.0
 
-    print(a['shape'])
+    # create a basic temporal object with str time
+    t = TemporalPathPyObject(uid='t', start='2021-01-01', end='2021-02-01')
 
-    print(a[5:10])
+    assert t.start() == pd.Timestamp('2021-01-01')
+    assert t.end() == pd.Timestamp('2021-02-01')
 
-    print(a[3, 'shape'])
+    # create a basic temporal object with str duration
+    t = TemporalPathPyObject(
+        uid='t', timestamp='2021-01-01', duration='1 days')
 
-    b = TemporalNode('b', start=0)
-    print('start')
-    # for i in range(1, 10000):
-    #     b.event(timestamp=i)
+    assert t.start() == pd.Timestamp('2021-01-01')
+    assert t.end() == pd.Timestamp('2021-01-02')
 
-    print('end')
+    # create a basic temporal object with str duration
+    t = TemporalPathPyObject(
+        uid='t', timestamp='2021-01-01', duration=1, unit='D')
 
-    print(len(b._events))
+    assert t.start() == pd.Timestamp('2021-01-01')
+    assert t.end() == pd.Timestamp('2021-01-02')
 
-    a['auto'] = 33
+    # create a basic temporal object with attributes
+    t = TemporalPathPyObject(uid='t', start=0, end=20, color='red')
 
-    a[18, 'huhu'] = 123
+    assert t.start() == 0
+    assert t.end() == 20
+    assert t.attributes == {'color': 'red'}
 
-    a[22:23, 'jjj'] = 145
+    # add attribute to a later time
+    t.event(start=25, end=30, color='blue')
+    assert t.start() == 0
+    assert t.end() == 30
+    assert t.attributes == {'color': 'blue'}
+    assert t.start(total=True) == 0
+    assert t.end(total=True) == 30
 
-    for n in a:
+    # objs = iter(t)
+    # assert next(objs).attributes['color'] == 'red'
+    # assert next(objs).attributes['color'] == 'blue'
+
+    # add new attribute (for all exsiting time stamps)
+    t['shape'] = 'circle'
+
+    print(t[3])
+    # print(t[3].end())
+    # print(t[3].attributes)
+    print(t._events[2:3])
+
+    print('dddddddddd')
+    for n in t[2:3]:
         print(n.attributes)
+    #     print(n.attributes)
 
-    a1 = a[1:7]
-    a2 = a[8:10]
+    print('ssssssssss')
+    print(t[2:30].attributes)
+    # print(t[3].attributes)
+    # print('dddddd')
+    # for n in t:
+    #     print(n.attributes)
+    # print(t._events[15:30])
 
-    print(a1)
-    print(a2)
+    # print(t.start())
+# def test_temporal_dict():
+#     """Test the temporal dict"""
 
-    for n in a1:
-        print(n.attributes)
+#     d = TemporalDict()
 
-    for n in a2:
-        print(n.attributes)
+#     assert len(d) == 0
 
-    c = TemporalNode('c', start="2012-05-01", end="2012-05-03", color='blue')
-    print(c._events[pd.Timestamp("2012-05-02")])
+#     d['a'] = 'first value'
 
-    print(slice('a', 'b'))
+#     assert len(d) == 1
+#     for key, value in d.items():
+#         assert isinstance(key, tuple)
+#         assert value == 'first value'
+
+#         assert len(key) == 3
+#         assert key[0] == float('-inf')
+#         assert key[1] == float('inf')
+#         assert key[2] == 'a'
+
+#     d = TemporalDict()
+#     d[1, 3, 'color'] = 'red'
+
+#     assert (1, 3, 'color') in d
+#     assert d[1, 3, 'color'] == 'red'
+
+#     for key, value in d.items():
+#         assert key[0] == 1
+#         assert key[1] == 3
+#         assert key[2] == 'color'
+
+#     d[2:4, 'color'] = 'blue'
+#     d['color', 1:5] = 'green'
+#     d[2, 'color'] = 'pink'
+#     d['color', 5] = 'yellow'
+
+#     assert len(d) == 5
+#     assert 'yellow' in d.values()
+
+#     d[5, 'color'] = 'black'
+
+#     assert 'yellow' not in d.values()
+#     assert 'black' in d.values()
+
+#     d.update(2, 4, color='orange')
+
+#     assert d[2, 4, 'color'] == 'orange'
+#     assert 'blue' not in d.values()
+
+#     d.update(1, 5, color='magenta', shape='rectangle')
+
+#     assert d[1, 5, 'color'] == 'magenta'
+#     assert d[1, 5, 'shape'] == 'rectangle'
+#     assert 'green' not in d.values()
+
+#     assert len(d) == 6
+
+
+# def test_temporal_node():
+#     """Test temporal nodes"""
+
+#     a = TemporalNode('a', start=1, end=4, color='red')
+
+#     # a.event(start=5, end=7, active=True)
+#     # a.event(start=12, end=14)
+
+#     a.event(start=3, end=14, shape='circle')
+
+#     a.event(timestamp=8, color='blue')
+#     a.event(start=2, end=4, active=False)
+
+#     print(a._events)
+#     # print(a._temp_attributes)
+#     print(a.attributes)
+
+#     for node in a:
+#         print(node.attributes)
+#         print(node.start(), node.end())
+
+#     print(a.start(total=True))
+
+#     print(a._events.at(2.5))
+
+#     print(a['shape'])
+
+#     print(a[5:10])
+
+#     print(a[3, 'shape'])
+
+#     b = TemporalNode('b', start=0)
+#     print('start')
+#     # for i in range(1, 10000):
+#     #     b.event(timestamp=i)
+
+#     print('end')
+
+#     print(len(b._events))
+
+#     a['auto'] = 33
+
+#     a[18, 'huhu'] = 123
+
+#     a[22:23, 'jjj'] = 145
+
+#     for n in a:
+#         print(n.attributes)
+
+#     a1 = a[1:7]
+#     a2 = a[8:10]
+
+#     print(a1)
+#     print(a2)
+
+#     for n in a1:
+#         print(n.attributes)
+
+#     for n in a2:
+#         print(n.attributes)
+
+#     c = TemporalNode('c', start="2012-05-01", end="2012-05-03", color='blue')
+#     print(c._events[pd.Timestamp("2012-05-02")])
+
+#     print(slice('a', 'b'))
     # # print(a._itree)
     # for i in a._events:
     #     print(i)
