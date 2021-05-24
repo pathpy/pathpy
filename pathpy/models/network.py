@@ -5,7 +5,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 11:27 juergen>
+# Time-stamp: <Mon 2021-05-24 12:38 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -185,9 +185,8 @@ class Network(BaseNetwork):
         self._nodes: NodeCollection = NodeCollection()
 
         # a container for edge objects
-        self._edges: EdgeCollection = EdgeCollection(directed=directed,
-                                                     multiedges=multiedges,
-                                                     nodes=self._nodes)
+        self._edges: EdgeCollection = EdgeCollection(
+            directed=directed, multiedges=multiedges)
 
         # add network properties
         self._properties['edges'] = set()

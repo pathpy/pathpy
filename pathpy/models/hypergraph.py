@@ -5,7 +5,7 @@
 # =============================================================================
 # File      : hypergraph.py -- Base class for a hypergraph
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 12:07 juergen>
+# Time-stamp: <Mon 2021-05-24 12:39 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -48,8 +48,7 @@ class HyperGraph(BaseHyperGraph):
 
         # a container for edge objects
         self._edges: HyperEdgeCollection = HyperEdgeCollection(
-            multiedges=multiedges,
-            nodes=self._nodes)
+            multiedges=multiedges)
 
         # add network properties
         self._properties['edges'] = set()
