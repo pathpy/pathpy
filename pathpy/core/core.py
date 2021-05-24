@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 09:51 juergen>
+# Time-stamp: <Mon 2021-05-24 10:09 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -317,10 +317,13 @@ class PathPyObject:
 
 class PathPySet(frozenset):
     """Class to store unordered relationships between objects."""
-    def __new__(cls, args):
+    def __new__(cls, args, **kwargs):
         """Create a new PathPySet object."""
         # pylint: disable=unused-argument
         return super(PathPySet, cls).__new__(cls, args)
+
+    def __repr__(self):
+        return super().__repr__()[10:-1]
 
 
 class PathPyTuple(tuple):
@@ -346,6 +349,14 @@ class PathPyTuple(tuple):
 
     def __repr__(self):
         return super().__repr__() if self.directed else '|'+super().__repr__()[1:-1]+'|'
+
+
+class PathPyRelation():
+    """Relations object."""
+
+    def __new__(cls, args, directed=True, ordered=True):
+        """Create a new PathPySet object."""
+        return PathPyTuple(args) if ordered else PathPySet(args, directed=directed)
 
 
 class PathPyPath(PathPyObject):

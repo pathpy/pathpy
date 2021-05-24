@@ -3,14 +3,14 @@
 # =============================================================================
 # File      : test_core.py -- Test environment for the core classes
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-20 12:12 juergen>
+# Time-stamp: <Mon 2021-05-24 10:09 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
 
 import pytest
 
-from pathpy.core.core import PathPyPath, PathPyCollection
+from pathpy.core.core import PathPyPath, PathPyCollection, PathPySet, PathPyRelation
 
 
 def test_PathPyPath():
@@ -49,15 +49,34 @@ def test_PathPyCollection_add_str():
     assert ('a', 'b', 'c') in paths
 
 
+def test_PathPySet():
+    """Test the set for pathpy objects"""
+
+    s = PathPySet(('a', 'b', 'c', 'd'))
+    f = frozenset(('a', 'c', 'b', 'd'))
+
+    assert s == f
+    assert 'a' and 'b' and 'c' and 'd' in s
+    assert len(s) == 4
+
+
+def test_PathPyRelation():
+    """Test relational object"""
+
+    r = PathPyRelation(('a', 'b', 'c'), ordered=True, directed=False)
+    print(r)
+    print(type(r))
+
+
 def test_PathPyIter():
     """Test the Object iterator"""
     path = PathPyPath('a', 'b', 'c', 'd', 'a', 'b', uid='p1')
     # print(path.relations)
     # print(path.objects)
     # print(path.items())
-    #paths.add(1, 2, 3, 4)
+    # paths.add(1, 2, 3, 4)
 
-    #paths.remove('a', 'b', 'c')
+    # paths.remove('a', 'b', 'c')
     # paths.remove('p1')
     # paths.add('a')
     # print(paths)
