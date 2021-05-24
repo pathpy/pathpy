@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_core.py -- Test environment for the core classes
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 10:09 juergen>
+# Time-stamp: <Mon 2021-05-24 11:24 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================

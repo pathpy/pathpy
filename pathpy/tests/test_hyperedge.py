@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_hyperedge.py -- Test environment for the HyperEdge class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 11:04 juergen>
+# Time-stamp: <Mon 2021-05-24 11:06 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -37,6 +37,10 @@ def test_HyperEdgeCollection():
     assert edges['b', 'a', 'c'].uid == 'h1'
     assert edges['a', 'b', 'c'].uid == 'h1'
     assert edges['c', 'a', 'b'].uid == 'h1'
+
+    edges.remove('a', 'c', 'b')
+    assert len(edges) == 0
+    assert 'h1' not in edges
 
     #print(h0 == h1)
 #     assert e.uid == 'ab-cd'
