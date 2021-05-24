@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 10:09 juergen>
+# Time-stamp: <Mon 2021-05-24 10:20 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -333,7 +333,7 @@ class PathPyTuple(tuple):
         # pylint: disable=unused-argument
         return super(PathPyTuple, cls).__new__(cls, args)
 
-    def __init__(self, _, directed=False):
+    def __init__(self, _, directed=True):
         """ Initialize the new tuple class."""
         # pylint: disable=super-init-not-called
         # self._reversed = self[::-1]
@@ -351,12 +351,19 @@ class PathPyTuple(tuple):
         return super().__repr__() if self.directed else '|'+super().__repr__()[1:-1]+'|'
 
 
-class PathPyRelation():
+class PathPyRelation(tuple):
     """Relations object."""
 
     def __new__(cls, args, directed=True, ordered=True):
         """Create a new PathPySet object."""
         return PathPyTuple(args) if ordered else PathPySet(args, directed=directed)
+
+    def __init__(self, _, directed=True, ordered=True):
+        """ Initialize the new tuple class."""
+        # pylint: disable=super-init-not-called
+        # self._reversed = self[::-1]
+        self.directed = directed
+        self.ordered = ordered
 
 
 class PathPyPath(PathPyObject):
@@ -365,6 +372,7 @@ class PathPyPath(PathPyObject):
     def __init__(self, *args: Union[str, PathPyObject],
                  uid: Optional[str] = None,
                  directed: bool = True,
+                 ordered: bool = True,
                  **kwargs: Any) -> None:
         """Initialize the path object."""
 
@@ -374,15 +382,19 @@ class PathPyPath(PathPyObject):
         # variable to indicate if path is directed or not
         self._directed: bool = directed
 
+        # variable to indicate if path is ordered or not
+        self._ordered: bool = ordered
+
         # a storage containing structure of the objects
-        self._relations: PathPyTuple
+        self._relations: PathPyRelation
 
         # map to the associated objects
         self._objects: dict = dict()
 
         # if checking is disabled create path directly from args of str
         if not kwargs.pop('checking', True):
-            self._relations = PathPyTuple(args, directed=directed)
+            self._relations = PathPyRelation(
+                args, directed=directed, ordered=ordered)
             self._objects = {uid: None for uid in args}
             return
 
@@ -418,7 +430,8 @@ class PathPyPath(PathPyObject):
                 self._objects[_uid] = self
 
         # save relationships
-        self._relations = PathPyTuple(_uids, directed=directed)
+        self._relations = PathPyRelation(
+            _uids, directed=directed, ordered=ordered)
 
     def __len__(self) -> int:
         """Lenght of the object."""
@@ -442,7 +455,7 @@ class PathPyPath(PathPyObject):
         return self._objects
 
     @property
-    def relations(self) -> PathPyTuple:
+    def relations(self) -> PathPyRelation:
         """Return the associated relations of the path. """
         return self._relations
 
@@ -546,6 +559,9 @@ class PathPyCollection():
         # inidcator whether the network is directed or undirected
         self._directed: bool = kwargs.pop('directed', True)
 
+        # inidcator whether the network is ordered or unordered
+        self._ordered: bool = kwargs.pop('ordered', True)
+
         # indicator if multipaths/edges are allowed
         self._multiple: bool = kwargs.pop('multiple', False)
 
@@ -573,7 +589,7 @@ class PathPyCollection():
     def _(self, key):
         new = tuple(k.uid if isinstance(k, PathPyObject) else k for k in key)
         values = {self._store[uid] for uid in self._relations[
-            PathPyTuple(new, directed=self.directed)]}
+            PathPyRelation(new, directed=self.directed, ordered=self._ordered)]}
         return values if self._multiple else next(iter(values))
 
     def __setitem__(self, key, value):
@@ -614,7 +630,8 @@ class PathPyCollection():
     @__contains__.register(tuple)  # type: ignore
     def _(self, item: tuple) -> bool:
         new = tuple(k.uid if isinstance(k, PathPyObject) else k for k in item)
-        return PathPyTuple(new, directed=self.directed) in self._relations
+        return PathPyRelation(new, directed=self.directed,
+                              ordered=self._ordered) in self._relations
 
     def items(self):
         """Return a new view of the container’s items ((key, value) pairs)."""
