@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 17:09 juergen>
+# Time-stamp: <Mon 2021-05-24 17:28 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -362,10 +362,9 @@ class PathPyEmpty(str):
         """Add uid property"""
         return self
 
-    @property
     def __repr__(self) -> str:
         """Add uid property"""
-        return 'Empty '+self
+        return 'Empty ' + super().__repr__()[1:-1]
 
 
 class PathPyRelation(tuple):
