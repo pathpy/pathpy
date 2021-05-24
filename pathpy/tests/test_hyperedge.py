@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_hyperedge.py -- Test environment for the HyperEdge class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 10:42 juergen>
+# Time-stamp: <Mon 2021-05-24 11:04 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -12,7 +12,7 @@ import pytest
 
 from pathpy import Node, Edge
 
-from pathpy.core.hyperedge import HyperEdge
+from pathpy.core.hyperedge import HyperEdge, HyperEdgeCollection
 
 
 def test_HyperEdge():
@@ -27,7 +27,17 @@ def test_HyperEdge():
     h1 = HyperEdge(a, c, d, uid='h1')
     h2 = HyperEdge(b, d, e, uid='h2')
 
-    print(h0)
+
+def test_HyperEdgeCollection():
+    """Test the HyperEdgeCollection."""
+
+    edges = HyperEdgeCollection()
+    edges.add('a', 'b', 'c', uid='h1')
+
+    assert edges['b', 'a', 'c'].uid == 'h1'
+    assert edges['a', 'b', 'c'].uid == 'h1'
+    assert edges['c', 'a', 'b'].uid == 'h1'
+
     #print(h0 == h1)
 #     assert e.uid == 'ab-cd'
 #     assert len(e.nodes) == 4

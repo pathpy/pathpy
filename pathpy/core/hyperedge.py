@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : hyperedge.py -- Base class for a hyperedge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 10:54 juergen>
+# Time-stamp: <Mon 2021-05-24 11:03 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -26,7 +26,8 @@ class HyperEdge(PathPyPath):
     def __init__(self, *nodes: Union[str, PathPyObject],
                  uid: Optional[str] = None, **kwargs: Any) -> None:
         """Initialize the node object."""
-
+        _ = kwargs.pop('directed', None)
+        _ = kwargs.pop('ordered', None)
         # initialize the parent class
         super().__init__(*nodes, uid=uid, directed=False, ordered=False, **kwargs)
 
@@ -54,7 +55,7 @@ class HyperEdgeCollection(PathPyCollection):
         """Initialize the EdgeCollection object."""
 
         # initialize the base class
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, directed=False, ordered=False, **kwargs)
 
         # indicator whether the network has multi-edges
         self._multiple: bool = kwargs.pop('multiedges', False)
