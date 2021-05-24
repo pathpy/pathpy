@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_higher_order_network.py -- Test environment for HONs
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 13:14 juergen>
+# Time-stamp: <Mon 2021-05-24 16:28 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -45,23 +45,18 @@ def test_higher_order_node():
     assert ('a', 'b', 'c') in nodes
 
 
-# def test_higher_order_edge():
-#     """Test higher order edges."""
+def test_higher_order_edge():
+    """Test higher order edges."""
 
-#     a = Node('a', color='azure')
-#     b = Node('b', color='blue')
-#     c = Node('c', color='cyan')
-#     d = Node('d', color='desert')
+    a = Node('a', color='azure')
+    b = Node('b', color='blue')
+    c = Node('c', color='cyan')
+    d = Node('d', color='desert')
 
-#     ab = Edge(a, b, uid='a-b')
-#     bc = Edge(b, c, uid='b-c')
-#     cd = Edge(c, d, uid='c-d')
+    abc = HigherOrderNode(a, b, c, uid='abc')
+    bcd = HigherOrderNode(b, c, d, uid='bcd')
 
-#     abc = HigherOrderNode(ab, bc, uid='abc')
-#     bcd = HigherOrderNode(bc, cd, uid='bcd')
-
-#     abc_bcd = HigherOrderEdge(abc, bcd, uid='abc-bcd')
-
+    e1 = HigherOrderEdge(abc, bcd, uid='abc-bcd')
 
 # def test_higher_order_edge_collection():
 #     """Test HigherOrderEdgeCollection."""
@@ -113,29 +108,37 @@ def test_higher_order_node():
 #     assert (('a-b', 'b-c'), ('b-c', 'c-d')) in edges
 
 
-# def test_higher_order_network():
-#     """Default test for development"""
-#     hon = HigherOrderNetwork()
+def test_higher_order_network():
+    """Default test for development"""
+    hon = HigherOrderNetwork()
 
-#     hon.add_node('a', 'b', 'c', uid='abc')
-#     hon.add_node('b', 'c', 'd', uid='bcd')
-#     hon.add_edge('abc', 'bcd', uid='abc-bcd')
-# #     print(hon.nodes)
-# #     #hon.add_edge('a', 'b', uid='e1')
-#     # print(hon)
-#     # print(len(hon.nodes.edges))
-#     # print(hon.edges)
+    hon.add_node('a', 'b', 'c', uid='abc')
+    hon.add_node('b', 'c', 'd', uid='bcd')
+    hon.add_edge('abc', 'bcd', uid='abc-bcd')
+    # print(hon)
+#     #hon.add_edge('a', 'b', uid='e1')
+    # print(hon)
+    # print(len(hon.nodes.edges))
+    # print(hon.edges)
 
 
-# def test_fit_path_collection():
-#     """Fit PathCollection to a HON"""
-#     paths = PathCollection()
-#     paths.add('a', 'c', 'd', uid='acd', frequency=10)
-#     paths.add('b', 'c', 'e', uid='bce', frequency=10)
+def test_fit_path_collection():
+    """Fit PathCollection to a HON"""
+    paths = PathCollection()
+    c = Node('c')
+    paths.add('a', c, 'd', uid='acd', frequency=10)
+    paths.add('b', c, 'e', uid='bce', frequency=10)
 
-#     hon = HigherOrderNetwork()
-#     hon.fit(paths, order=0)
+    print(paths.counter)
+    hon = HigherOrderNetwork()
+    hon.fit(paths, order=1)
 
+    # print(hon.nodes['xxx'].objects)
+    print(hon.nodes.counter)
+    for e in hon.edges:
+        print(e.relations)
+
+        # print(hon.edges.counter)
 #     assert hon.order == 0
 #     assert hon.number_of_nodes() == 5
 #     assert hon.number_of_edges() == 0
