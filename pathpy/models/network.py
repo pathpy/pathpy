@@ -5,15 +5,13 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-10 16:24 juergen>
+# Time-stamp: <Mon 2021-05-24 11:27 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Tuple, Optional, Union, Dict, Set, cast
 from collections import defaultdict
-
-from numpy import short
 
 from pathpy import logger
 from pathpy.models.classes import BaseNetwork
@@ -27,7 +25,6 @@ Weight = Union[str, bool, None]
 if TYPE_CHECKING:
     from pathpy.core.path import PathCollection
     from pathpy.models.temporal_network import TemporalNetwork
-    pass
 
 # create logger for the Network class
 LOG = logger(__name__)
