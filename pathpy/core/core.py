@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 16:33 juergen>
+# Time-stamp: <Mon 2021-05-24 17:09 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -527,7 +527,8 @@ class PathPyPath(PathPyObject):
         queue = objects
 
         while queue:
-            result.append([node.nodes for node in queue])
+            result.append([node.relations for node in queue])
+
             if len(result) == depth and depth:
                 break
 
