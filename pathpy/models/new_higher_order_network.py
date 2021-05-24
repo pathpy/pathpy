@@ -4,23 +4,22 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 13:07 juergen>
+# Time-stamp: <Mon 2021-05-24 13:13 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from typing import Any, Optional, Union
 
 from pathpy import logger
-from pathpy.core import PathPyPath
 from pathpy.core.edge import Edge, EdgeCollection
-from pathpy.core.path import PathCollection
+from pathpy.core.path import Path, PathCollection
 from pathpy.models.classes import BaseHigherOrderNetwork
 from pathpy.models.network import Network
 # create logger for the Network class
 LOG = logger(__name__)
 
 
-class HigherOrderNode(PathPyPath):
+class HigherOrderNode(Path):
     """Base class of a higher-order node."""
 
     @property
