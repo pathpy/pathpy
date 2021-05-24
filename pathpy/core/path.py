@@ -2,9 +2,9 @@
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
-# File      : network.py -- Base class for a path
+# File      : path.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 10:22 juergen>
+# Time-stamp: <Mon 2021-05-24 10:29 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
