@@ -5,7 +5,7 @@
 # =============================================================================
 # File      : hypergraph.py -- Base class for a hypergraph
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 11:49 juergen>
+# Time-stamp: <Mon 2021-05-24 12:06 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -232,39 +232,21 @@ class HyperGraph(BaseHyperGraph):
         edges = set(self.edges.values()).difference(self._properties['edges'])
 
         for edge in edges:
-            pass
-            # _v, _w = edge.relations
-            # uid = edge.uid
+            relations = edge.relations
+            uid = edge.uid
 
-            # _nodes: list = [(_v, _w), (_w, _v)]
+            for node in relations:
+                self._properties['incident_edges'][node].add(uid)
+                self._properties['degrees'][node] = len(
+                    self._properties['incident_edges'][node])
 
-            # for _v, _w in _nodes:
-            #     self._properties['successors'][_v].add(_w)
-            #     self._properties['outgoing'][_v].add(uid)
-            #     self._properties['predecessors'][_w].add(_v)
-            #     self._properties['incoming'][_w].add(uid)
-
-            #     if self.directed:
-            #         break
-
-            # for _v, _w in _nodes:
-            #     self._properties['neighbors'][_v].add(_w)
-            #     self._properties['incident_edges'][_v].add(uid)
-
-            #     self._properties['indegrees'][_v] = len(
-            #         self._properties['incoming'][_v])
-            #     self._properties['outdegrees'][_v] = len(
-            #         self._properties['outgoing'][_v])
-            #     self._properties['degrees'][_v] = len(
-            #         self._properties['incident_edges'][_v])
-
-            # for uid, node in edge.nodes.items():
-            #     if node is None and uid in self._nodes:
-            #         self.nodes[uid] = self.nodes[uid]
-            #     elif uid not in self.nodes and node is None:
-            #         self.nodes.add(uid, uid=uid)
-            #     elif uid not in self.nodes and node is not None:
-            #         self.nodes.add(node)
+            for uid, node in edge.nodes.items():
+                if node is None and uid in self._nodes:
+                    self.nodes[uid] = self.nodes[uid]
+                elif uid not in self.nodes and node is None:
+                    self.nodes.add(uid, uid=uid)
+                elif uid not in self.nodes and node is not None:
+                    self.nodes.add(node)
 
             self._properties['edges'].add(edge)
 
@@ -274,30 +256,13 @@ class HyperGraph(BaseHyperGraph):
         edges = self._properties['edges'].difference(set(self.edges.values()))
 
         for edge in edges:
-            pass
-            # _v, _w = edge.relations
-            # uid = edge.uid
-            # _nodes: list = [(_v, _w), (_w, _v)]
+            relations = edge.relations
+            uid = edge.uid
 
-            # for _v, _w in _nodes:
-            #     self._properties['successors'][_v].discard(_w)
-            #     self._properties['outgoing'][_v].discard(uid)
-            #     self._properties['predecessors'][_w].discard(_v)
-            #     self._properties['incoming'][_w].discard(uid)
-
-            #     if self.directed:
-            #         break
-
-            # for _v, _w in _nodes:
-            #     self._properties['neighbors'][_v].discard(_w)
-            #     self._properties['incident_edges'][_v].discard(uid)
-
-            #     self._properties['indegrees'][_v] = len(
-            #         self._properties['incoming'][_v])
-            #     self._properties['outdegrees'][_v] = len(
-            #         self._properties['outgoing'][_v])
-            #     self._properties['degrees'][_v] = len(
-            #         self._properties['incident_edges'][_v])
+            for node in relations:
+                self._properties['incident_edges'][node].discard(uid)
+                self._properties['degrees'][node] = len(
+                    self._properties['incident_edges'][node])
 
             self._properties['edges'].discard(edge)
 
