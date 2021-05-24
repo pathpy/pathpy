@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 16:02 juergen>
+# Time-stamp: <Mon 2021-05-24 16:33 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -351,16 +351,21 @@ class PathPyTuple(tuple):
         return super().__repr__() if self.directed else '|'+super().__repr__()[1:-1]+'|'
 
 
-class PathPyStr(str):
+class PathPyEmpty(str):
     """Empty element"""
 
     def __new__(cls, args):
-        return super(PathPyStr, cls).__new__(cls, args)
+        return super(PathPyEmpty, cls).__new__(cls, args)
 
     @property
     def uid(self) -> str:
         """Add uid property"""
         return self
+
+    @property
+    def __repr__(self) -> str:
+        """Add uid property"""
+        return 'Empty '+self
 
 
 class PathPyRelation(tuple):
@@ -412,14 +417,14 @@ class PathPyPath(PathPyObject):
 
         # helper variable for path assignment
         _uids = []
-        _obj: Union[PathPyStr, PathPyObject]
+        _obj: Union[PathPyEmpty, PathPyObject]
 
         # iterate over args and create structure and map
         for arg in args:
             # check if arg is a str (i.e. an uid)
             if isinstance(arg, (int, str)):
                 _uid = arg
-                _obj = PathPyStr(arg)
+                _obj = PathPyEmpty(arg)
 
             # check if arg is already a pathpy opject
             elif isinstance(arg, PathPyObject):
