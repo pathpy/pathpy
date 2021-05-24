@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : classes.py -- Base classes for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 11:45 juergen>
+# Time-stamp: <Mon 2021-05-24 13:04 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -25,6 +25,10 @@ class BaseHyperGraph(PathPyObject):
 
 class BaseTemporalNetwork(PathPyObject):
     """Base class for a temporal network model."""
+
+
+class BaseHigherOrderNetwork(PathPyObject):
+    """Base class for a higher-order network model."""
 
 # =============================================================================
 # eof
