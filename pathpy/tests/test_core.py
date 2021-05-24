@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_core.py -- Test environment for the core classes
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 17:07 juergen>
+# Time-stamp: <Mon 2021-05-24 17:47 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -86,16 +86,25 @@ def test_PathPyIter():
 def test_PathPyPath_subobjects():
     """Get subobjects of a path"""
 
-    a = PathPyPath('a', uid='a')
-    b = PathPyPath('b', uid='b')
-    c = PathPyPath('c', uid='c')
+    # a = PathPyPath('a', uid='a')
+    # b = PathPyPath('b', uid='b')
+    # c = PathPyPath('c', uid='c')
 
+    a = PathPyPath('a')
+    b = PathPyPath('b')
+    c = PathPyPath('c')
+
+    print(a.objects)
+    print(a.relations)
     e1 = PathPyPath(a, b, uid='e1')
     e2 = PathPyPath(b, c, uid='e2')
 
     p = PathPyPath(e1, e2, uid='p1')
+
+    print(e1.relations)
+    print(e1.objects)
     # print(PathPyPath.max_depth(p))
-    print(p.subobjects())
+    # print(p.subobjects())
 
     # print(p.objects)
     # print(path.relations)

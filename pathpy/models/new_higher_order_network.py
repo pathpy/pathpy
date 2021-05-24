@@ -4,12 +4,13 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 16:32 juergen>
+# Time-stamp: <Mon 2021-05-24 17:55 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from typing import Any, Optional
 from itertools import islice
+from collections import Counter
 from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
 
 from pathpy import logger
@@ -47,6 +48,12 @@ class HigherOrderNodeCollection(PathCollection):
 class HigherOrderEdge(Edge):
     """Base class of an higher-order edge."""
 
+    def first_order_relations(self):
+        """converts edge relations to first order"""
+        _v = self.objects[self.v].relations
+        _w = self.objects[self.w].relations
+        return _v, _w
+
 
 class HigherOrderEdgeCollection(EdgeCollection):
     """A collection of edges"""
@@ -80,10 +87,26 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
         # a container for edge objects
         self._edges: Any = HigherOrderEdgeCollection()
 
+        # a counter for observed paths
+        self._observed: Counter = Counter()
+
+        # a counter for possible paths
+        self._possible: Counter = Counter()
+
     @property
     def order(self) -> int:
         """Return the order of the higher-order network."""
         return self._order
+
+    @property
+    def possible(self) -> Counter:
+        """Return a counter of possible paths."""
+        return self._possible
+
+    @property
+    def observed(self) -> Counter:
+        """Return a counter of observed paths."""
+        return self._observed
 
     @singledispatchmethod
     def fit(self, data, order: Optional[int] = None,
@@ -112,7 +135,7 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
                     self.nodes.counter[node] += data.counter[uid]
 
             elif 1 <= self.order <= len(path):
-                for subpath in self.window(path, size=self.order+1):
+                for subpath in self.window(path.relations, size=self.order+1):
                     nodes.append(subpath)
 
             elif self.order == len(path)+1:
@@ -139,10 +162,14 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
                 if (_v, _w) not in self.edges:
                     edge = HigherOrderEdge(_v, _w)
                     self.add_edge(edge, frequency=0)
-                    edges.append(edge.uid)
+                    edges.append(edge)
 
             for edge in edges:
-                self.edges.counter[edge] += data.counter[uid]
+                self.edges.counter[edge.uid] += data.counter[uid]
+                if order == len(path):
+                    self._observed[edge.relations] += data.counter[uid]
+                else:
+                    self._possible[edge.relations] += data.counter[uid]
 
                 # for edge in _edges:
                 # edge['frequency'] += frequency

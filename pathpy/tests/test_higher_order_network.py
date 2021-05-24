@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_higher_order_network.py -- Test environment for HONs
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 16:28 juergen>
+# Time-stamp: <Mon 2021-05-24 17:55 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -125,9 +125,18 @@ def test_higher_order_network():
 def test_fit_path_collection():
     """Fit PathCollection to a HON"""
     paths = PathCollection()
+    a = Node('a')
+    b = Node('b')
     c = Node('c')
+    d = Node('d')
+    e = Node('e')
+    # paths.add(a, c, d, uid='acd', frequency=10)
+    # paths.add(b, c, e, uid='bce', frequency=10)
     paths.add('a', c, 'd', uid='acd', frequency=10)
     paths.add('b', c, 'e', uid='bce', frequency=10)
+
+    # paths.add('a', 'c', 'd', uid='acd', frequency=10)
+    # paths.add('b', 'c', 'e', uid='bce', frequency=10)
 
     print(paths.counter)
     hon = HigherOrderNetwork()
@@ -136,9 +145,9 @@ def test_fit_path_collection():
     # print(hon.nodes['xxx'].objects)
     print(hon.nodes.counter)
     for e in hon.edges:
-        print(e.relations)
-
-        # print(hon.edges.counter)
+        print(e.first_order_relations())
+        break
+    # print(hon.edges.counter)
 #     assert hon.order == 0
 #     assert hon.number_of_nodes() == 5
 #     assert hon.number_of_edges() == 0

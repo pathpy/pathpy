@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 17:28 juergen>
+# Time-stamp: <Mon 2021-05-24 17:55 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -426,7 +426,7 @@ class PathPyPath(PathPyObject):
                 _obj = PathPyEmpty(arg)
 
             # check if arg is already a pathpy opject
-            elif isinstance(arg, PathPyObject):
+            elif isinstance(arg, (PathPyObject, PathPyEmpty)):
                 _uid = arg.uid
                 _obj = arg
 
