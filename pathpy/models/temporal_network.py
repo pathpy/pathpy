@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-21 17:00 juergen>
+# Time-stamp: <Mon 2021-05-24 12:41 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -235,9 +235,7 @@ class TemporalNetwork(BaseTemporalNetwork, Network):
 
         # a container for edge objects
         self._edges: TemporalEdgeCollection = TemporalEdgeCollection(
-            directed=directed,
-            multiedges=multiedges,
-            nodes=self._nodes)
+            directed=directed, multiedges=multiedges)
 
     @property
     def nodes(self) -> TemporalNodeCollection:
