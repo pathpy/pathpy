@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 18:15 juergen>
+# Time-stamp: <Mon 2021-05-24 18:27 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -122,8 +122,9 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
         raise NotImplementedError
 
     @fit.register(PathCollection)
-    def _(self, data: PathCollection, order: Optional[int] = None,
-          subpaths: bool = True) -> None:
+    def _(self, data: PathCollection,
+          order: Optional[int] = None,
+          subpaths: bool = False) -> None:
 
         if order is not None:
             self._order = order
@@ -179,14 +180,8 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
                 else:
                     self._possible[edge.first_order_relations] += data.counter[uid]
 
-                # for edge in _edges:
-                # edge['frequency'] += frequency
-                # if order == len(path):
-                #     edge['observed'] += frequency
-                # else:
-                #     edge['possible'] += frequency
-
-                # print(_v, _w)
+            if subpaths:
+                raise NotImplementedError
 
     @staticmethod
     def window(iterable, size=2):
