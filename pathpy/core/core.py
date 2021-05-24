@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 11:24 juergen>
+# Time-stamp: <Mon 2021-05-24 16:02 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -12,8 +12,8 @@ from typing import Any, Optional, Union, Dict
 from copy import deepcopy
 from collections import defaultdict, Counter
 from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
-
 from pathpy import logger, config
+
 
 # create logger for the Path class
 LOG = logger(__name__)
@@ -351,6 +351,18 @@ class PathPyTuple(tuple):
         return super().__repr__() if self.directed else '|'+super().__repr__()[1:-1]+'|'
 
 
+class PathPyStr(str):
+    """Empty element"""
+
+    def __new__(cls, args):
+        return super(PathPyStr, cls).__new__(cls, args)
+
+    @property
+    def uid(self) -> str:
+        """Add uid property"""
+        return self
+
+
 class PathPyRelation(tuple):
     """Relations object."""
 
@@ -400,13 +412,14 @@ class PathPyPath(PathPyObject):
 
         # helper variable for path assignment
         _uids = []
+        _obj: Union[PathPyStr, PathPyObject]
 
         # iterate over args and create structure and map
         for arg in args:
             # check if arg is a str (i.e. an uid)
             if isinstance(arg, (int, str)):
                 _uid = arg
-                _obj = None
+                _obj = PathPyStr(arg)
 
             # check if arg is already a pathpy opject
             elif isinstance(arg, PathPyObject):
@@ -447,7 +460,8 @@ class PathPyPath(PathPyObject):
 
     def __iter__(self):
         """Iterates of the Relations"""
-        return iter(self._relations)  # PathPyIter(self)
+        for key in self._relations:
+            yield self._objects[key]
 
     @property
     def objects(self) -> dict:
