@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_core.py -- Test environment for the core classes
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 11:24 juergen>
+# Time-stamp: <Mon 2021-05-24 13:58 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -17,6 +17,10 @@ def test_PathPyPath():
     """Test the PathPyPath"""
 
     p = PathPyPath('a')
+
+    p = PathPyPath()
+
+    p = PathPyPath(uid='a')
 
 
 def test_PathPyCollection_add_PathPyPath():

@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : path.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 10:29 juergen>
+# Time-stamp: <Mon 2021-05-24 14:12 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -77,6 +77,16 @@ class PathCollection(PathPyCollection):
 
         obj = self._default_class(
             *args, uid=uid, directed=self.directed, **kwargs)
+        super().add(obj)
+
+    @add.register(type(None))  # type: ignore
+    def _(self, *args: None, **kwargs: Any) -> None:
+
+        # get additional parameters
+        uid: Optional[str] = kwargs.pop('uid', None)
+
+        obj = self._default_class(
+            uid, uid=uid, directed=self.directed, **kwargs)
         super().add(obj)
 
     @add.register(tuple)  # type: ignore
