@@ -5,7 +5,7 @@
 # =============================================================================
 # File      : hypergraph.py -- Base class for a hypergraph
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 12:06 juergen>
+# Time-stamp: <Mon 2021-05-24 12:07 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -53,14 +53,7 @@ class HyperGraph(BaseHyperGraph):
 
         # add network properties
         self._properties['edges'] = set()
-        self._properties['successors'] = defaultdict(set)
-        self._properties['predecessors'] = defaultdict(set)
-        self._properties['outgoing'] = defaultdict(set)
-        self._properties['incoming'] = defaultdict(set)
-        self._properties['neighbors'] = defaultdict(set)
         self._properties['incident_edges'] = defaultdict(set)
-        self._properties['indegrees'] = defaultdict(float)
-        self._properties['outdegrees'] = defaultdict(float)
         self._properties['degrees'] = defaultdict(float)
 
     def __str__(self) -> str:
@@ -205,8 +198,6 @@ class HyperGraph(BaseHyperGraph):
     def remove_edge(self, *edge: Union[str, tuple, Node, HyperEdge],
                     uid: Optional[str] = None) -> None:
         """Remove a single edge from the hypergraph. """
-        # check if the right object is provided.
-        # if edge obect is given
         self.edges.remove(*edge, uid=uid)
         self._remove_edge_properties()
 
