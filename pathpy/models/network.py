@@ -13,7 +13,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Tuple, Optional, Union, Dict, Set, cast
 from collections import defaultdict
 
-from numpy import short
+from numpy import short, inf
 
 from pathpy import logger
 from pathpy.models.classes import BaseNetwork
@@ -989,20 +989,23 @@ class Network(BaseNetwork):
         return network
 
     @classmethod
-    def from_temporal_network(cls, temporal_network: TemporalNetwork,
-                              **kwargs: Any):
+    def from_temporal_network(cls, temporal_network: TemporalNetwork, min_time=-inf, max_time=inf, **kwargs: Any):
         uid: Optional[str] = kwargs.pop('uid', None)
         directed: bool = kwargs.pop('directed', temporal_network.directed)
-        multiedges: bool = kwargs.pop('multiedges',  temporal_network.directed)
+        multiedges: bool = kwargs.pop('multiedges',  temporal_network.multiedges)
+        """
+        """
 
         network = cls(uid=uid, directed=directed,
                       multiedges=multiedges, **kwargs)
 
-        for node in temporal_network.nodes.values():
-            network.nodes.add(node)
-        for edge in temporal_network.edges.values():
-            network.edges._add(edge)
-        network._add_edge_properties()
+        for start, end, node in temporal_network.tnodes:
+            if not (start >= max_time or end <= min_time) and node not in network.nodes:
+                network.add_node(node, **{ k[2]: v for k,v in temporal_network.nodes[node].attributes.items()})
+        for start, end, e in temporal_network.tedges:
+            if not (start >= max_time or end <= min_time):
+                edge = temporal_network.edges[e]
+                network.add_edge(edge.v.uid, edge.w.uid, **{ k[2]: v for k, v in edge.attributes.items()})
         return network
 
     @classmethod
