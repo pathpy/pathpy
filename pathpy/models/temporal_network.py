@@ -381,14 +381,38 @@ class TemporalNetwork(BaseTemporalNetwork, Network):
 
         return ''.join(summary)
 
-    def to_continuous_time(self, sampling_frequency: int) -> TemporalNetwork:
+
+    def to_continuous_time(self, sampling_period: int) -> TemporalNetwork:
         """
         Returns a temporal network with start/end/duration information 
         on temporal edges.
         """
         tn = TemporalNetwork(directed=self.directed, multiedges=self.multiedges, **self.attributes)
 
-        # TODO: find maximum intervals (start, end) such that an edge (v,w) exists for timestamps t where t=start+k*1/sampling_frequency
+        # collect all activities for edges
+        edge_activities = defaultdict(list)
+        for start, end, e in self.tedges:
+            edge = self.edges[e]
+            edge_activities[edge].append((start, end))
+
+        for e in edge_activities:
+            # find all activity intervals for this edge
+            current_interval = None
+            for start, _ in edge_activities[e]:
+                if current_interval is None:
+                    current_interval = [start, start+sampling_period]
+                elif start == current_interval[1] :# expand current activity interval
+                    current_interval[1] += sampling_period
+                else: # conclude current activity interval
+                    tn.add_edge(e.v.uid, e.w.uid, start=current_interval[0], end=current_interval[1])
+                    current_interval = [start, start+sampling_period]
+            # flush current activity
+            if current_interval is not None:
+                tn.add_edge(e.v.uid, e.w.uid, start=current_interval[0], end=current_interval[1])
+        return tn
+
+
+            
 
 
 
