@@ -28,10 +28,10 @@ def to_networkx(network: Network) -> Any:
         G = DiGraph()
     else:
         G = Graph()
-    G.add_nodes_from([(v, network.nodes[v].attributes.to_dict())
+    G.add_nodes_from([(v, network.nodes[v].attributes)
                      for v in network.nodes.uids])
     G.add_edges_from([(network.edges[e].v.uid, network.edges[e].w.uid,
-                     network.edges[e].attributes.to_dict()) for e in network.edges.uids])
+                     network.edges[e].attributes) for e in network.edges.uids])
     return G
 
 def from_networkx(graph: Any) -> Network:
