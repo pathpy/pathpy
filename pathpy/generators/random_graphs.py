@@ -1,4 +1,4 @@
-"""Methhods to generate random graphs according to different models"""
+"""Methods to generate random graphs according to different models"""
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
