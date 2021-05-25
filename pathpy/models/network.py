@@ -1003,8 +1003,8 @@ class Network(BaseNetwork):
             if not (start >= max_time or end <= min_time) and node not in network.nodes:
                 network.add_node(node, **{ k[2]: v for k,v in temporal_network.nodes[node].attributes.items()})
         for start, end, e in temporal_network.tedges:
-            if not (start >= max_time or end <= min_time):
-                edge = temporal_network.edges[e]
+            edge = temporal_network.edges[e]
+            if not (start >= max_time or end <= min_time) and (edge.v.uid, edge.w.uid) not in network.edges:                
                 network.add_edge(edge.v.uid, edge.w.uid, **{ k[2]: v for k, v in edge.attributes.items()})
         return network
 
