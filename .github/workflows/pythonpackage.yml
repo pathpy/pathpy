@@ -30,6 +30,7 @@ jobs:
         pip install zstandard
         pip install jupyter        
         pip install networkx
+        pip install pickle5
     - name: Test with pytest
       run: |        
         pip install pytest
