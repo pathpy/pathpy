@@ -62,6 +62,8 @@ def _parse_property_value(data: bytes, ptr: int, type_index: int, endianness: st
 
     Tuple (v, n) consisting of the property value v and the number of bytes n processed
     """
+    import pickle5 as pickle
+    
     if type_index == 0:
         return (bool(data[ptr]), 1)
     elif type_index == 1:
@@ -163,7 +165,7 @@ def parse_graphtool_format(data: bytes, ignore_temporal: bool=False, multiedges:
     -------
     Network or TemporalNetwork
         a static or temporal network object
-    """
+    """    
 
     # check magic bytes
     if data[0:6] != b'\xe2\x9b\xbe\x20\x67\x74':
