@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : path.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-26 16:37 juergen>
+# Time-stamp: <Wed 2021-05-26 16:45 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -43,7 +43,7 @@ class Path(PathPyPath):
 
         # get min and max length
         min_length = max(min_length, 0)
-        max_length = min(len(self), max_length) if (
+        max_length = min(len(self), max(max_length, 0)) if (
             max_length is not None) else len(self)
 
         relations: list = []
