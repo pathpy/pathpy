@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-26 16:51 juergen>
+# Time-stamp: <Wed 2021-05-26 17:09 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -132,33 +132,26 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
         # iterate over all paths
         for uid, path in data.items():
 
+            # generate subpaths of order-1 for higher-order nodes
             nodes = path.subpaths(min_length=self.order-1,
                                   max_length=self.order-1,
                                   include_self=True, paths=False)
+            # add higher-order nodes to the network
             for node in nodes:
                 if node not in self.nodes:
                     self.add_node(*node, frequency=0)
                 self.nodes.counter[self.nodes[node].uid] += data.counter[uid]
 
-            edges: list = []
-
+            # generat higher-order edges
             for _v, _w in zip(nodes[:-1], nodes[1:]):
+                _v, _w = self.nodes[_v], self.nodes[_w]
 
-                if _v not in self.nodes:
-                    self.nodes.add(_v)
-
-                if _w not in self.nodes:
-                    self.nodes.add(_w)
-
-                _v = self.nodes[_v]
-                _w = self.nodes[_w]
-
+                # check if edge exist otherwise add new edge
                 if (_v, _w) not in self.edges:
-                    edge = HigherOrderEdge(_v, _w)
-                    self.add_edge(edge, frequency=0)
-                    edges.append(edge)
+                    self.add_edge(_v, _w, frequency=0)
 
-            for edge in edges:
+                # get edge and update counters
+                edge = self.edges[_v, _w]
                 self.edges.counter[edge.uid] += data.counter[uid]
 
                 if order == len(path):
@@ -170,7 +163,7 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
         if subpaths and self.order > 1:
             for node in self.possible_relations(data, self.order-1):
                 if node not in self.nodes:
-                    self.nodes.add(node)
+                    self.add_node(*node, frequency=0)
 
     def possible_relations(self, collection, length: int) -> list:
         """Return a list of paths of given length."""
