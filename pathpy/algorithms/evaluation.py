@@ -78,12 +78,12 @@ def train_test_split(network: Network, test_size: Optional[float]=0.25, train_si
         ts = 1.0 - train_size
 
     if split == 'node':
-        test_nodes = choice([v for v in network.nodes], size=int(ts*network.number_of_nodes()), replace=False)
+        test_nodes = choice([v.uid for v in network.nodes], size=int(ts*network.number_of_nodes()), replace=False)
         for v in test_nodes:
-            test_network.add_node(v)
-        train_nodes = [v for v in network.nodes if v.uid not in test_network.nodes.uids]
+            test_network.add_node(network.nodes[v])
+        train_nodes = [v.uid for v in network.nodes if v.uid not in test_network.nodes.uids]
         for v in train_nodes:
-            train_network.add_node(v)
+            train_network.add_node(network.nodes[v])
         for e in network.edges:
             if e.v.uid in test_network.nodes.uids and e.w.uid in test_network.nodes.uids:
                 test_network.add_edge(e)
@@ -94,12 +94,12 @@ def train_test_split(network: Network, test_size: Optional[float]=0.25, train_si
         for v in network.nodes:
             test_network.add_node(v)
             train_network.add_node(v)
-        test_edges = choice([e for e in network.edges], size=int(ts*network.number_of_edges()), replace=False)
+        test_edges = choice([e.uid for e in network.edges], size=int(ts*network.number_of_edges()), replace=False)
         for e in test_edges:
-            test_network.add_edge(e)
-        train_edges = [e for e in network.edges if e.uid not in test_network.edges.uids]
+            test_network.add_edge(network.edges[e])
+        train_edges = [e.uid for e in network.edges if e.uid not in test_network.edges.uids]
         for e in train_edges:
-            train_network.add_edge(e)
+            train_network.add_edge(network.edges[e])
     else:
         raise NotImplementedError('Unsupported split method "{0}" for instance of type Network'.format(split))
 
