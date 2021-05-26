@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : path.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 14:17 juergen>
+# Time-stamp: <Wed 2021-05-26 10:50 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -36,6 +36,29 @@ class Path(PathPyPath):
     def nodes(self) -> dict:
         """Return the nodes of the path."""
         return self.objects
+
+    def subpaths(self, min_length: int = 0, max_length: int = None,
+                 include_self: bool = False, paths: bool = True) -> list:
+        """A list with all possible subpaths"""
+
+        # get min and max length
+        min_length = max(min_length, 0)
+        max_length = min(len(self), max_length) if max_length else len(self)
+
+        relations: list = []
+
+        # get subpaths
+        for i in range(min_length, max_length+1):
+
+            # do not include self if not given
+            if i == len(self) and not include_self:
+                break
+            for j in range(len(self)-i+1):
+                relations.append(self.relations[j:j+i+1])
+
+        return [Path(*[self.objects[key] for key in obj],
+                     directed=self.directed,
+                     **self.attributes) for obj in relations] if paths else relations
 
 
 class PathCollection(PathPyCollection):
@@ -129,7 +152,6 @@ class PathCollection(PathPyCollection):
     def _(self, *args: Union[tuple, list], **kwargs: Any) -> None:
         for arg in args:
             self.remove(*arg, **kwargs)
-
 
 # =============================================================================
 # eof
