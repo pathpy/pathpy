@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-26 15:59 juergen>
+# Time-stamp: <Wed 2021-05-26 16:51 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -122,37 +122,23 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
         raise NotImplementedError
 
     @fit.register(PathCollection)
-    def _(self, data: PathCollection,
-          order: Optional[int] = None,
+    def _(self, data: PathCollection, order: Optional[int] = None,
           subpaths: bool = True) -> None:
 
+        # update
         if order is not None:
             self._order = order
 
         # iterate over all paths
         for uid, path in data.items():
 
-            nodes: list = []
-
-            if self.order == 0:
-                for node, obj in path.nodes.items():
-                    if node not in self.nodes:
-                        self.add_node(obj, uid=node, frequency=0)
-
-                for node in path.nodes:
-                    self.nodes.counter[node] += data.counter[uid]
-
-            elif 1 <= self.order <= len(path):
-                for subpath in self.window(path.relations, size=self.order):
-                    nodes.append(subpath)
-
-            elif self.order == len(path)+1:
-                if path.relations not in self.nodes:
-                    self.add_node(*path, frequency=0)
-                self.nodes.counter[self.nodes[path.relations].uid] += data.counter[uid]
-
-            else:
-                pass
+            nodes = path.subpaths(min_length=self.order-1,
+                                  max_length=self.order-1,
+                                  include_self=True, paths=False)
+            for node in nodes:
+                if node not in self.nodes:
+                    self.add_node(*node, frequency=0)
+                self.nodes.counter[self.nodes[node].uid] += data.counter[uid]
 
             edges: list = []
 
