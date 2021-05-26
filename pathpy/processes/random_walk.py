@@ -365,13 +365,13 @@ class RandomWalk(BaseProcess):
         walk_steps = list(data.loc[(data['run_id']==run_id) & (data['state']==True)]['node'].values)        
 
         # generate Path
-        walk = Path(self._network.nodes[walk_steps[0]])
-        for i in range(1, len(walk_steps)):
-            v = walk_steps[i-1]
-            w = walk_steps[i]
-            traversed_edge = self._network.edges[v, w]            
-            walk._path.append(traversed_edge)
-        return walk        
+        return Path(*[walk_steps[i] for i in range(len(walk_steps))], directed=True, ordered=True)
+        # for i in range(1, len(walk_steps)):
+        #     v = walk_steps[i-1]
+        #     w = walk_steps[i]
+        #     traversed_edge = self._network.edges[v, w]            
+        #     walk._path.append(traversed_edge)
+        # return walk        
 
 
     def get_paths(self, data: DataFrame, run_ids: Optional[Iterable]=None) -> PathCollection:
