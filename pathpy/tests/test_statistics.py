@@ -97,6 +97,13 @@ def test_degree_assortativity():
     # # print(s)
 
 
+def test_mean_degree():
+    """Test the mean degree calculation."""
+    net = pp.generators.Molloy_Reed([2]*500)
+    mean_degree = pp.statistics.mean_degree(net)
+    assert mean_degree == 2.0
+
+
 def test_local_clustering_coefficient():
     """Test the degree assortativity of a network."""
     net = pp.Network(directed=False)

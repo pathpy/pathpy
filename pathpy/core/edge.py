@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-26 17:41 juergen>
+# Time-stamp: <Wed 2021-05-26 21:43 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================

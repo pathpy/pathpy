@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_hyperedge.py -- Test environment for the HyperEdge class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 11:06 juergen>
+# Time-stamp: <Wed 2021-05-26 21:51 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================

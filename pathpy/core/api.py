@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : api.py -- API for public functions of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-19 10:24 juergen>
+# Time-stamp: <Wed 2021-05-26 21:38 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================

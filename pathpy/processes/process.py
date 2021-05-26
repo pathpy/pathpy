@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : classes.py -- Base classes for processes
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Wed 2021-04-28 02:11 ingo>
+# Time-stamp: <Thu 2021-05-06 19:17 ingo>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -19,8 +19,10 @@ from pathpy.core.api import Node
 from pathpy.models.network import Network
 from pathpy.models.directed_acyclic_graph import DirectedAcyclicGraph
 from pathpy.models.temporal_network import TemporalNetwork, TemporalNode
-from pathpy import tqdm
+from pathpy import tqdm, logger
 
+# create logger
+LOG = logger(__name__)
 
 class BaseProcess:
     """Abstract base class for all implementations of discrete-time dynamical processes.
@@ -96,6 +98,7 @@ class BaseProcess:
 
             # simulate the given number of steps
             for time, updated_nodes in self.simulation_run(steps, seed):
+                # print(updated_nodes)
                 # record the new state of each changed node
                 for v in updated_nodes:
                     results.append({'run_id': run_id, 'seed': seed, 'time': time, 'node': v, 'state': self.node_state(v)})
@@ -143,23 +146,48 @@ class BaseProcess:
         """
 
         evolution: DataFrame = data.loc[data['run_id']==run_id]
-        steps = evolution.max()['time']
+
+        start_time = evolution.min()['time']
+        end_time = evolution.max()['time']
+
+        if end_time <= start_time:
+            LOG.warning('Run data does not contain time evolution')
+            return None
+
+        # print(start_time)    
+        # print(end_time)
         
         # create network with temporal attributes
         tn = TemporalNetwork(directed=self.network.directed)        
         for v in self.network.nodes:
             tn.add_node(TemporalNode(v.uid))
-        for e in self.network.edges:
-            tn.add_edge(e.v.uid, e.w.uid, start=0, end=steps*timescale)
+        
+        if isinstance(self.network, TemporalNetwork):
+            for start, end, e in self.network.tedges:
+                edge = self.network.edges[e]
+                if start >= start_time and start < end_time:
+                    tn.add_edge(edge.v.uid, edge.w.uid, start=max(start, start_time), end=min(end_time, end))
+            # # set initial state
+            # for v in tn.nodes.uids:
+            #     tn.nodes[v][start_time, 'color'] = self.state_to_color(self.node_state(v))
+            # update state
+            for index, row in evolution.iterrows():
+                tn.nodes[row['node']][row['time'], 'color'] = self.state_to_color(row['state'])
+        else:
 
-        # set initial state
-        for v in tn.nodes.uids:
-            tn.nodes[v][0, 'color'] = self.state_to_color(self.node_state(v))
-
-        # update state
-        for index, row in evolution.iterrows():            
-            tn.nodes[row['node']][row['time']*timescale, 'color'] = self.state_to_color(row['state'])
+            for e in self.network.edges:
+                tn.add_edge(e.v.uid, e.w.uid, start=start_time, end=end_time*timescale)
+            # # set initial state
+            # for v in tn.nodes.uids:
+            # for index, row in evolution.loc['time'==start_time].iterrows():
+            #     tn.nodes[v][0, 'color'] = self.state_to_color(evolution.loc['time'==start_time]['state'])
+            # update state
+            for index, row in evolution.iterrows():
+                tn.nodes[row['node']][row['time']*timescale, 'color'] = self.state_to_color(row['state'])
+        
+        
         return tn.plot(**kwargs)
+
 
     def to_directed_acylic_graph(self, data: DataFrame, run_id: Optional[int]=0, time_delta: Optional[int]=None, states: Optional[Iterable[Any]]=None) -> DirectedAcyclicGraph:
         """Returns a directed acyclic graph representation of all state changes over time.

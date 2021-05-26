@@ -16,3 +16,6 @@ class NetworkError(Exception):
 
 class MissingModuleError(Exception):
     pass
+
+class ParameterError(Exception):
+    pass

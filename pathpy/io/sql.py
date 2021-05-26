@@ -10,8 +10,13 @@
 # =============================================================================
 
 from __future__ import annotations
+from pathpy.utils.errors import ParameterError
 from typing import TYPE_CHECKING, Any, Optional, Union, cast
 import sqlite3
+import tempfile
+import os
+import urllib.request
+import shutil
 
 from pathpy import logger
 from pathpy.io.pandas import to_dataframe, to_network, to_temporal_network
@@ -27,23 +32,41 @@ if TYPE_CHECKING:
 LOG = logger(__name__)
 
 
-def read_dataframe(filename: Optional[str] = None,
+def read_dataframe(db_file: Optional[str] = None,
                    con: Optional[sqlite3.Connection] = None,
+                   uri: Optional[bool] = False,
                    sql: Optional[str] = None,
                    table: Optional[str] = None) -> pd.DataFrame:
     """Read sql database as a pandas data frame."""
 
     LOG.debug('Load sql file as pandas data frame.')
 
-    if con is None and filename is None:
-        LOG.error('Either an SQL connection or a filename is required')
-        raise IOError
+    if con is None and db_file is None:
+        msg = 'Either an SQL connection or a filename is required'
+        LOG.error(msg)
+        raise ParameterError(msg)
 
     con_close = False
+
+    # temporary file for download of DB files
+    path = tempfile.mkdtemp()
+
     # connect to database if not given
-    if con is None and filename is not None:
+    if con is None and db_file is not None:
         con_close = True
-        con = sqlite3.connect(filename)
+
+        # download Web resources to temporary file
+        if db_file.startswith('http://') or db_file.startswith('https://'):
+
+            with urllib.request.urlopen(db_file) as f:
+                data = f.read()
+                
+                file_name = os.path.join(path, 'sqlite.db')
+                with open(file_name, 'wb') as dbfile:
+                    dbfile.write(data)
+            con = sqlite3.connect(file_name)
+        else:
+            con = sqlite3.connect(db_file, uri=uri)
 
     # if sql query is not given check availabe tables
     if sql is None:
@@ -70,23 +93,28 @@ def read_dataframe(filename: Optional[str] = None,
     if con_close:
         _con = cast(sqlite3.Connection, con)
         _con.close()
+        try:
+            shutil.rmtree(path)
+        except IOError:
+            pass
 
     # return pandas data frame
     return frame
 
 
-def read_network(filename: Optional[str] = None,
+def read_network(db_file: Optional[str] = None,
                  loops: bool = True,
                  directed: bool = True,
                  multiedges: bool = False,
                  con: Optional[sqlite3.Connection] = None,
                  sql: Optional[str] = None,
                  table: Optional[str] = None,
+                 uri: Optional[bool] = False,
                  **kwargs: Any) -> Network:
     """Read network from a sqlite database."""
     # pylint: disable=too-many-arguments
 
-    frame = read_dataframe(filename=filename, con=con, sql=sql, table=table)
+    frame = read_dataframe(db_file=db_file, con=con, sql=sql, table=table, uri=uri)
 
     net = to_network(frame, loops=loops, directed=directed,
                      multiedges=multiedges, **kwargs)
@@ -94,7 +122,7 @@ def read_network(filename: Optional[str] = None,
     return net
 
 
-def read_temporal_network(filename: Optional[str] = None,
+def read_temporal_network(db_file: Optional[str] = None,
                           loops: bool = True,
                           directed: bool = True,
                           multiedges: bool = False,
@@ -105,7 +133,7 @@ def read_temporal_network(filename: Optional[str] = None,
     """Read temporal network from a sqlite database."""
     # pylint: disable=too-many-arguments
 
-    frame = read_dataframe(filename=filename, con=con, sql=sql, table=table)
+    frame = read_dataframe(db_file=db_file, con=con, sql=sql, table=table)
 
     net = to_temporal_network(frame, loops=loops, directed=directed,
                               multiedges=multiedges, **kwargs)

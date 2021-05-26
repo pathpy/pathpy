@@ -292,7 +292,7 @@ def to_temporal_network(df: pd.DataFrame, loops: Optional[bool] = True,
 
     nodes = {str(n): TemporalNode(n) for n in node_set}
 
-    net = TemporalNetwork(directed=directed, multiedges=multiedges, **kwargs)
+    net = TemporalNetwork(directed=directed, multiedges=False, **kwargs)
 
     # add nodes to the network
     for node in nodes.values():
@@ -459,8 +459,8 @@ def from_temporal_network(network: TemporalNetwork,
     """
     frame = pd.DataFrame()
 
-    # TODO: temporal() is a deprecated method in the old TemporalEdgeCollection 
-    for uid, edge, begin, end in network.edges.temporal():
+    for begin, end, uid in network.tedges:
+        edge = network.edges[uid]
         v = edge.v.uid
         w = edge.w.uid
         if export_indices:

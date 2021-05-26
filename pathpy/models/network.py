@@ -5,7 +5,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-26 17:50 juergen>
+# Time-stamp: <Wed 2021-05-26 21:48 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -997,7 +997,29 @@ class Network(BaseNetwork):
 
     #     return network
 
-    # @classmethod
+    @classmethod
+    def from_temporal_network(cls, temporal_network: TemporalNetwork, min_time=float('-inf'), max_time=float('inf'), **kwargs: Any):
+        uid: Optional[str] = kwargs.pop('uid', None)
+        directed: bool = kwargs.pop('directed', temporal_network.directed)
+        multiedges: bool = kwargs.pop(
+            'multiedges',  temporal_network.multiedges)
+        """
+        """
+
+        network = cls(uid=uid, directed=directed,
+                      multiedges=multiedges, **kwargs)
+
+        for start, end, node in temporal_network.tnodes:
+            if not (start >= max_time or end <= min_time) and node not in network.nodes:
+                network.add_node(
+                    node, **{k[2]: v for k, v in temporal_network.nodes[node].attributes.items()})
+        for start, end, e in temporal_network.tedges:
+            edge = temporal_network.edges[e]
+            if not (start >= max_time or end <= min_time) and (edge.v.uid, edge.w.uid) not in network.edges:
+                network.add_edge(edge.v.uid, edge.w.uid, **
+                                 {k[2]: v for k, v in edge.attributes.items()})
+        return network
+
     # def from_temporal_network(cls, temporal_network: TemporalNetwork,
     #                           **kwargs: Any):
     #     uid: Optional[str] = kwargs.pop('uid', None)

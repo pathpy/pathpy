@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : centralities.py -- Module to calculate node centrality measures
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Sun 2021-04-17 01:07 ingo>
+# Time-stamp: <Tue 2021-05-11 23:31 ingo>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -12,7 +12,7 @@ from __future__ import annotations
 from typing import Optional, Union
 from functools import singledispatch
 
-from numpy.random import choice
+from numpy.random import choice, shuffle, permutation
 
 from pathpy import logger
 from pathpy.models.api import Network
@@ -52,7 +52,7 @@ def train_test_split(network: Network, test_size: Optional[float]=0.25, train_si
     Returns
     -------
 
-    Tuple (n1, n2) where n1 is the test network and n2 is the training network
+    Tuple (n1, n2) where n1 is the training network and n2 is the test network
 
     Examples
     --------
@@ -62,9 +62,9 @@ def train_test_split(network: Network, test_size: Optional[float]=0.25, train_si
     >>> n.add_edge('b', 'c')
     >>> n.add_edge('c', 'd')
     >>> n.add_edge('d', 'a')
-    >>> test, train = train_test_split(n, test_size=0.25)
-    >>> print(test)    
+    >>> train, test = train_test_split(n, test_size=0.25)
     >>> print(train)
+    >>> print(test)
     Network with one node
     Network with three nodes
 
@@ -103,7 +103,7 @@ def train_test_split(network: Network, test_size: Optional[float]=0.25, train_si
     else:
         raise NotImplementedError('Unsupported split method "{0}" for instance of type Network'.format(split))
 
-    return test_network, train_network
+    return train_network, test_network
 
 
 @train_test_split.register(TemporalNetwork)
@@ -149,8 +149,34 @@ def _(network: TemporalNetwork, test_size: Optional[float]=0.25, train_size: Opt
     else:
         raise NotImplementedError('Unsupported split method "{0}" for instance of type TemporalNetwork'.format(split))
 
-    return test_network, train_network
+    return train_network, test_network
 
 
 def adjusted_mutual_information(clustering_1: dict, clustering_2: dict):
     raise NotImplementedError('Adjusted mutual information is not implemented')
+
+
+def shuffle_temporal_network(net: TemporalNetwork):
+    """
+    Randomly reassigns timestamps (start, end, duration) of edges in a temporal network.
+    This is useful to generate a random baseline for temporal patterns in temporal networks.
+    """
+    timestamps = []
+    edges = []
+
+    for start, end, uid in net.tedges:
+        timestamps.append((start, end))
+        edges.append(uid)
+
+    shuffled_net = TemporalNetwork(directed=net.directed, multiedges=net.multiedges, uid='{0}_shuffled'.format(net.uid), **net.attributes)
+
+    permute = permutation(len(timestamps))
+    
+    for i in range(len(timestamps)):
+        ots = timestamps[i]
+        nts = timestamps[permute[i]]
+        e = net.edges[edges[i]]
+        atts = { k:v for (b,e,k),v in e.attributes.items() if b==ots[0] }
+        shuffled_net.add_edge(e.v, e.w, start=nts[0], end=nts[1], **atts)
+
+    return shuffled_net
