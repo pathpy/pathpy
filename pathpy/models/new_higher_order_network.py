@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-26 17:09 juergen>
+# Time-stamp: <Wed 2021-05-26 17:15 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -97,8 +97,8 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
         # a counter for observed paths
         self._observed: Counter = Counter()
 
-        # a counter for possible paths
-        self._possible: Counter = Counter()
+        # a counter for (observed) subpaths paths
+        self._subpaths: Counter = Counter()
 
     @property
     def order(self) -> int:
@@ -106,9 +106,9 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
         return self._order
 
     @property
-    def possible(self) -> Counter:
-        """Return a counter of possible paths."""
-        return self._possible
+    def subpaths(self) -> Counter:
+        """Return a counter of (observed) subpaths."""
+        return self._subpaths
 
     @property
     def observed(self) -> Counter:
@@ -157,7 +157,7 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
                 if order == len(path):
                     self._observed[edge.first_order_relations] += data.counter[uid]
                 else:
-                    self._possible[edge.first_order_relations] += data.counter[uid]
+                    self._subpaths[edge.first_order_relations] += data.counter[uid]
 
         # create all possible higher-order nodes
         if subpaths and self.order > 1:

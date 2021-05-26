@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_higher_order_network.py -- Test environment for HONs
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-26 17:04 juergen>
+# Time-stamp: <Wed 2021-05-26 17:15 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -156,7 +156,7 @@ def test_fit_path_collection():
     # paths.add(a, 'b', 'c', 'd', 'e', 'f', uid='p1')
     # paths.add(a, 'b', 'c', 'd', 'e', 'x')
     hon = HigherOrderNetwork(uid='hon')
-    hon.fit(paths, order=1)
+    hon.fit(paths, order=2)
 
     print(hon)
 
@@ -164,8 +164,8 @@ def test_fit_path_collection():
     #     print((n, hon.indegrees()[n.uid], hon.outdegrees()[n.uid]))
     ##p = paths['p1'].subpaths(min_length=0, max_length=None, paths=True)
     # # print(paths)
-    print(hon.possible)
     print(hon.observed)
+    print(hon.subpaths)
 
     # for p in paths['abac'].subpaths(min_length=0, max_length=0, include_self=True, paths=False):
     #     print(p)
