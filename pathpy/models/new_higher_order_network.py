@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-26 17:15 juergen>
+# Time-stamp: <Wed 2021-05-26 17:42 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -57,8 +57,8 @@ class HigherOrderEdge(Edge):
     @property
     def first_order_relations(self):
         """converts edge relations to first order"""
-        return PathPyRelation(self.objects[self.v].relations +
-                              (self.objects[self.w].relations[-1],),
+        return PathPyRelation(self.v.relations +
+                              (self.w.relations[-1],),
                               directed=self.directed)
 
 
@@ -184,6 +184,68 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
             possible = new
 
         return possible
+
+    def likelihood(self, data: PathCollection, log: bool = False) -> float:
+        """Returns the likelihood given some observation data."""
+
+        # some information for debugging
+        LOG.debug('I\'m a likelihood of a HigherOrderNetwork')
+
+        # get a list of nodes for the matrix indices
+        n = self.nodes.index
+
+        # get the transition matrix
+        T = self.transition_matrix(weight='frequency', transposed=True)
+
+        print(T)
+        # # # generate hon network for the observed paths
+        # # hon = self.from_paths(data, order=self.order)
+
+        # # initialize likelihood
+        # if log:
+        #     likelihood = 0.0
+        #     _path_likelihood = 0.0
+        # else:
+        #     likelihood = 1.0
+        #     _path_likelihood = 1.0
+
+        # # iterate over observed hon paths
+        # for path in data:
+
+        #     # get frequency of the observed path
+        #     # TODO: define keyword in config file
+        #     frequency = path.attributes.get('frequency', 1)
+
+        #     # initial path likelihood
+        #     path_likelihood = _path_likelihood
+
+        #     nodes: list = []
+
+        #     if self.order == 1:
+        #         nodes.extend([tuple([n]) for n in path.nodes])
+
+        #     elif 1 < self.order <= len(path):
+
+        #         for subpath in self.window(path.edges, size=self.order-1):
+        #             nodes.append(subpath)
+
+        #     for _v, _w in zip(nodes[:-1], nodes[1:]):
+
+        #         # calculate path likelihood
+        #         if log:
+        #             path_likelihood += np.log(T[n[self.nodes[_w].uid],
+        #                                         n[self.nodes[_v].uid]])
+        #         else:
+        #             path_likelihood *= T[n[self.nodes[_w].uid],
+        #                                  n[self.nodes[_v].uid]]
+
+        #     # calculate likelihood
+        #     if log:
+        #         likelihood += path_likelihood * frequency
+        #     else:
+        #         likelihood *= path_likelihood ** frequency
+
+        # return likelihood
 
     @staticmethod
     def window(iterable, size=2):

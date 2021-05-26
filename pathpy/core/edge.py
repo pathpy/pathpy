@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-21 15:18 juergen>
+# Time-stamp: <Wed 2021-05-26 17:41 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -205,13 +205,13 @@ class Edge(PathPyPath):
     def v(self) -> str:
         """Return the uid of the source node v. """
         # pylint: disable=invalid-name
-        return self.relations[0]
+        return self.objects[self.relations[0]]
 
     @property
     def w(self) -> str:
         """Return the uid of the target node w. """
         # pylint: disable=invalid-name
-        return self.relations[-1]
+        return self.objects[self.relations[-1]]
 
     @property
     def nodes(self) -> dict:
