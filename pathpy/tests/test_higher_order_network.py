@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_higher_order_network.py -- Test environment for HONs
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 18:14 juergen>
+# Time-stamp: <Wed 2021-05-26 16:00 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -138,19 +138,34 @@ def test_fit_path_collection():
     # paths.add('a', 'c', 'd', uid='acd', frequency=10)
     # paths.add('b', 'c', 'e', uid='bce', frequency=10)
 
-    print(paths.counter)
-    hon = HigherOrderNetwork()
-    hon.fit(paths, order=3)
+    # print(paths.counter)
+    # hon = HigherOrderNetwork()
+    # hon.fit(paths, order=3)
 
     # print(hon.nodes['xxx'].objects)
-    print(hon.nodes.counter)
-    for e in hon.edges:
-        print(e.first_order_relations)
-        print()
-        break
+    # print(hon.nodes.counter)
+    # for e in hon.edges:
+    #     print(e.first_order_relations)
+    #     print()
+    #     break
 
-    print(hon.possible)
-    print(hon.observed)
+    paths = PathCollection()
+    paths.add('a', 'c', 'b', uid='acb')
+    paths.add('c', 'b', 'a', uid='cba')
+    paths.add('a', 'b', 'a', 'c', uid='abac')
+    # paths.add(a, 'b', 'c', 'd', 'e', 'f', uid='p1')
+    # paths.add(a, 'b', 'c', 'd', 'e', 'x')
+    hon = HigherOrderNetwork(uid='hon')
+    hon.fit(paths, order=3)
+
+    print(hon)
+
+    for n in hon.nodes:
+        print(n)
+    # p = paths['p1'].subpaths(min_length=0, max_length=None, paths=True)
+    # print(paths)
+    # print(hon.possible)
+    # print(hon.observed)
     # print(hon.edges.counter)
 #     assert hon.order == 0
 #     assert hon.number_of_nodes() == 5

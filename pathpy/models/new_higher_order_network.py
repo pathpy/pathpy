@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 18:27 juergen>
+# Time-stamp: <Wed 2021-05-26 15:59 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -124,7 +124,7 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
     @fit.register(PathCollection)
     def _(self, data: PathCollection,
           order: Optional[int] = None,
-          subpaths: bool = False) -> None:
+          subpaths: bool = True) -> None:
 
         if order is not None:
             self._order = order
@@ -180,8 +180,31 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
                 else:
                     self._possible[edge.first_order_relations] += data.counter[uid]
 
-            if subpaths:
-                raise NotImplementedError
+        # create all possible higher-order nodes
+        if subpaths and self.order > 1:
+            for node in self.possible_relations(data, self.order-1):
+                if node not in self.nodes:
+                    self.nodes.add(node)
+
+    def possible_relations(self, collection, length: int) -> list:
+        """Return a list of paths of given length."""
+
+        # get paths of length 1
+        edges = set(e for p in collection for e in p.subpaths(
+            min_length=1, max_length=1, paths=False))
+
+        possible = list(edges)
+        for _ in range(length - 1):
+            new = list()
+            for _v in possible:
+                for _w in edges:
+                    if _v[-1] == _w[0]:
+                        path = PathPyRelation(
+                            _v + (_w[1],), directed=self.directed)
+                        new.append(path)
+            possible = new
+
+        return possible
 
     @staticmethod
     def window(iterable, size=2):
