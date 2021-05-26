@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_edge.py -- Test environment for the Edge class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 11:19 juergen>
+# Time-stamp: <Wed 2021-05-26 17:49 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -207,7 +207,7 @@ def test_EdgeCollection():
     edges.add(c, d, uid='c-d')
 
     assert len(edges) == 2
-    assert edges['c-d'].v == 'c'
+    assert edges['c-d'].v.uid == 'c'
 
     edges.add('e', 'f', uid='e-f')
 
