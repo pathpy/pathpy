@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_core.py -- Test environment for the core classes
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-26 12:18 juergen>
+# Time-stamp: <Wed 2021-05-26 12:32 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -11,6 +11,12 @@
 import pytest
 
 from pathpy.core.core import PathPyPath, PathPyCollection, PathPySet, PathPyRelation, PathPyEmpty
+
+
+def test_PathPyEmpty():
+    """Test the PathPyEmpty"""
+    u = PathPyEmpty('u')
+    print(u.uid)
 
 
 def test_PathPyPath():

@@ -5,7 +5,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-26 12:15 juergen>
+# Time-stamp: <Wed 2021-05-26 12:21 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -924,6 +924,8 @@ class Network(BaseNetwork):
             for uid, node in edge.nodes.items():
                 if uid not in self.nodes:
                     self.nodes.add(node)
+
+                # TODO: Fix if different nodes with same uid are added
                 # elif uid not in self.nodes and node.empty:
                 #     pass
                 # if node is None and uid in self._nodes:
