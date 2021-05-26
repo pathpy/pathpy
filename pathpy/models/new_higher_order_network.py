@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-26 17:57 juergen>
+# Time-stamp: <Wed 2021-05-26 18:01 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -196,6 +196,7 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
         n = self.nodes.index
 
         # get the transition matrix
+        # TODO Fix this statement
         T = self.transition_matrix(weight='frequency', transposed=True)
 
         # initialize likelihood
