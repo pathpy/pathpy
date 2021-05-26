@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-26 10:45 juergen>
+# Time-stamp: <Wed 2021-05-26 11:03 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -450,6 +450,22 @@ class PathPyPath(PathPyObject):
         # save relationships
         self._relations = PathPyRelation(
             _uids, directed=directed, ordered=ordered)
+
+    def __repr__(self) -> str:
+        """Return the description of the object.
+        """
+        # declare variable
+        string: str
+
+        # check if python id is used as uid or not
+        if self._is_python_uid:
+            # if python id is used show the object relations
+            string = '{} {}'.format(self.__class__.__name__, self.relations)
+        else:
+            # if user uid is used show in the object description
+            string = super().__repr__()
+
+        return string
 
     def __len__(self) -> int:
         """Lenght of the object."""
