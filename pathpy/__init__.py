@@ -27,7 +27,7 @@ from pathpy.utils.errors import FileFormatError, NetworkError, MissingModuleErro
 from pathpy.core.api import (
     Node,
     Edge,
-    HyperEdge,
+    # HyperEdge,
     Path,
     NodeCollection,
     EdgeCollection,
