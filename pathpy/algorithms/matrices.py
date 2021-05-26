@@ -4,12 +4,12 @@
 # =============================================================================
 # File      : matrices.py -- Module to calculate various matrices
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-04-21 09:21 juergen>
+# Time-stamp: <Wed 2021-05-26 21:45 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import Any, List, Union, Optional
+from typing import Any, List, Union, Optional, Dict
 from functools import singledispatch
 
 import numpy as np
@@ -129,23 +129,27 @@ def _adjacency_matrix(self, weight: Union[str, bool, None] = None,
     rows: List[int] = list()
     cols: List[int] = list()
     entries: List[float] = list()
+    index: Dict[str, int] = self.nodes.index
 
     # get number of nodes
     n = self.number_of_nodes()
 
     # iterate over the edges of the network
-    for e in self.edges:
+    for e in self.edges.values():
 
         # directed network
-        rows.append(self.nodes.index[e.v.uid])
-        cols.append(self.nodes.index[e.w.uid])
-        entries.append(e.weight(weight))
+        rows.append(index[e.v.uid])
+        cols.append(index[e.w.uid])
+        if weight == 'frequency':
+            entries.append(self.edges.counter[e.uid])
+        else:
+            entries.append(e.weight(weight))
 
         # add additional nodes if not directed
         if directed is False or not self.directed:
             if e.v.uid != e.w.uid or loops == 2:
-                rows.append(self.nodes.index[e.w.uid])
-                cols.append(self.nodes.index[e.v.uid])
+                rows.append(index[e.w.uid])
+                cols.append(index[e.v.uid])
                 entries.append(e.weight(weight))
 
     A = sparse.csr_matrix((entries, (rows, cols)), shape=(n, n))

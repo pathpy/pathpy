@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : shortest_paths.py -- Module to calculate connected components
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Sun 2020-04-19 11:09 juergen>
+# Time-stamp: <Mon 2021-05-10 16:26 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -40,7 +40,7 @@ def find_connected_components(network: Network) -> Dict:
 
     """
 
-    if network.number_of_nodes()==0 or network.number_of_edges()==0:
+    if network.number_of_nodes() == 0 or network.number_of_edges() == 0:
         return dict()
 
     # these are used as nonlocal variables in tarjan
@@ -67,7 +67,7 @@ def find_connected_components(network: Network) -> Dict:
         on_stack[v] = True
 
         for node in network.successors[v]:
-            w = node.uid
+            w = node
             if indices[w] is None:
                 tarjan(w)
                 low_link[v] = min(low_link[v], low_link[w])
@@ -98,7 +98,7 @@ def mean_component_size(network: Network) -> float:
     """Returns the mean connected component size of the network.
     """
     components = find_connected_components(network)
-    component_sizes = [len(nodes) for comp, nodes in components.items() ]
+    component_sizes = [len(nodes) for comp, nodes in components.items()]
     return np.mean(component_sizes)
 
 
@@ -124,11 +124,13 @@ def largest_connected_component(network: Network) -> Network:
             lcc.remove_node(v)
     return lcc
 
+
 @property
 def is_connected(network: Network) -> bool:
     """Returns whether the network is (strongly) connected
     """
-    return largest_component_size(network)==network.number_of_nodes()
+    return largest_component_size(network) == network.number_of_nodes()
+
 
 def largest_component_size(network: Network) -> int:
     """Largest component size of the network."""
