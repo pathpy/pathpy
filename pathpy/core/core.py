@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-26 11:03 juergen>
+# Time-stamp: <Wed 2021-05-26 12:18 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -351,22 +351,6 @@ class PathPyTuple(tuple):
         return super().__repr__() if self.directed else '|'+super().__repr__()[1:-1]+'|'
 
 
-class PathPyEmpty():
-    """Empty element"""
-
-    def __init__(self, uid):
-        self._uid = uid
-
-    @property
-    def uid(self) -> str:
-        """Add uid property"""
-        return self._uid
-
-    def __repr__(self) -> str:
-        """Add uid property"""
-        return 'Empty {}'.format(self._uid)
-
-
 class PathPyRelation(tuple):
     """Relations object."""
 
@@ -416,7 +400,7 @@ class PathPyPath(PathPyObject):
 
         # helper variable for path assignment
         _uids = []
-        _obj: Union[PathPyEmpty, PathPyObject]
+        _obj: PathPyObject
 
         # iterate over args and create structure and map
         for arg in args:
@@ -424,10 +408,10 @@ class PathPyPath(PathPyObject):
             # check if arg is a str (i.e. an uid)
             if isinstance(arg, (int, str)):
                 _uid = arg
-                _obj = PathPyEmpty(arg)
+                _obj = PathPyObject(uid=arg)
 
             # check if arg is already a pathpy opject
-            elif isinstance(arg, (PathPyObject, PathPyEmpty)):
+            elif isinstance(arg, PathPyObject):
                 _uid = arg.uid
                 _obj = arg
 

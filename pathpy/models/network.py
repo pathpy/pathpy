@@ -5,7 +5,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 12:38 juergen>
+# Time-stamp: <Wed 2021-05-26 12:15 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -922,12 +922,16 @@ class Network(BaseNetwork):
                     self._properties['incident_edges'][_v])
 
             for uid, node in edge.nodes.items():
-                if node is None and uid in self._nodes:
-                    self.nodes[uid] = self.nodes[uid]
-                elif uid not in self.nodes and node is None:
-                    self.nodes.add(uid, uid=uid)
-                elif uid not in self.nodes and node is not None:
+                if uid not in self.nodes:
                     self.nodes.add(node)
+                # elif uid not in self.nodes and node.empty:
+                #     pass
+                # if node is None and uid in self._nodes:
+                #     self.nodes[uid] = self.nodes[uid]
+                # elif uid not in self.nodes and node is None:
+                #     self.nodes.add(uid, uid=uid)
+                # elif uid not in self.nodes and node is not None:
+                #     self.nodes.add(node)
 
             self._properties['edges'].add(edge)
 

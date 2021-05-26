@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : node.py -- Base class for a node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-07 13:24 juergen>
+# Time-stamp: <Wed 2021-05-26 12:17 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -158,7 +158,8 @@ class NodeCollection(PathPyCollection):
 
     @add.register(str)  # type: ignore
     @add.register(int)  # type: ignore
-    def _(self, *args: str, **kwargs: Any) -> None:
+    @add.register(PathPyObject)  # type: ignore
+    def _(self, *args: Union[int, str, PathPyObject], **kwargs: Any) -> None:
         super().add(args[0], **kwargs)
 
     @add.register(tuple)  # type: ignore
