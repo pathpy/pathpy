@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal.py -- Classes to make PathPyObject temporal
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-21 15:59 juergen>
+# Time-stamp: <Thu 2021-05-27 13:19 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -122,7 +122,7 @@ class TemporalPathPyObject(PathPyObject):
 
         if active:
             self._events[start:end] = kwargs  # type: ignore
-            self._attributes = kwargs
+            self._attributes = kwargs.copy()
         else:
             self._events.chop(start, end)
 

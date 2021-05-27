@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-27 12:26 juergen>
+# Time-stamp: <Thu 2021-05-27 13:08 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
