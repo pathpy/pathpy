@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_algorithms.py -- Test environment for basic algorithms
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-10 16:29 juergen>
+# Time-stamp: <Thu 2021-05-27 09:00 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -98,7 +98,7 @@ def test_avg_path_length():
     assert pp.algorithms.shortest_paths.avg_path_length(net) == 8/6
 
 
-def test_betweenness_centrality_network():
+def test_betweenness_centrality_network(net):
     """Test the betweenness centrality of a network."""
     c = pp.algorithms.centralities.betweenness_centrality(net)
     if net.directed == True:
