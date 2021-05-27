@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : plot.py -- Module to plot pathoy networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-27 13:32 juergen>
+# Time-stamp: <Thu 2021-05-27 14:06 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -392,7 +392,9 @@ class Parser:
         #         edge_temp_attr[edge.uid][time].update(**values)
 
         def find_nearest(array, value, index=True):
-            idx = (np.abs(array - value)).argmin()
+            value = array[0] if value == float('-inf') else value
+            value = array[-1] if value == float('inf') else value
+            idx = np.abs(array - value).argmin()
             if index:
                 result = int(idx)
             else:
@@ -403,15 +405,12 @@ class Parser:
         temporal_edges = []
         times = np.linspace(start, end, num=steps)
 
-        print(start, end)
-
         # when edge is active or not
         for edge in obj.edges[start:end]:
             for event in edge[start:end]:
                 _edge = {'uid': edge.uid}
                 _start = event.attributes.pop('start', start)
                 _end = event.attributes.pop('end', end)
-
                 _edge['startTime'] = find_nearest(times, _start)
                 _edge['endTime'] = find_nearest(times, _end)
                 _edge['active'] = True
@@ -453,7 +452,17 @@ class Parser:
         # TODO combine if change at same time
         for node in obj.nodes[start:end]:
             for event in node[start:end]:
-                print(event.attributes)
+                _node = {'uid': node.uid}
+                _start = event.attributes.pop('start', start)
+                _end = event.attributes.pop('end', end)
+                _node['startTime'] = find_nearest(times, _start)
+                _node['endTime'] = find_nearest(times, _end)
+                _node['active'] = True
+                _node.update(event.attributes)
+                if _start == float('-inf') and _end == float('inf'):
+                    continue
+                temporal_nodes.append(_node)
+
         #     for (start, end, key), value in node.attributes.items():
         #         _node = {'uid': node.uid}
         #         _node['startTime'] = find_nearest(times, start)

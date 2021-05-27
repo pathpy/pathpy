@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_plot.py -- Test environment for the Plot class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-27 13:51 juergen>
+# Time-stamp: <Thu 2021-05-27 14:09 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -188,8 +188,8 @@ def test_temporal_network():
     tn.add_edge('b', 'a', timestamp=8, color='white')
 
     tn.nodes['a'][1, 'color'] = 'green'
-    # tn.nodes['a'][3, 'color'] = 'red'
-    # tn.nodes['a'][6, 'color'] = 'yellow'
+    tn.nodes['a'][3, 'color'] = 'red'
+    tn.nodes['a'][6, 'color'] = 'yellow'
     style = {
         # 'node_color': 'gray',
         'curved': True,
@@ -198,11 +198,11 @@ def test_temporal_network():
     # print(tn)
 
     # print('\n\n')
-    #tn.plot(filename='d3js_test.html', **style)
+    tn.plot(filename='d3js_test.html', **style)
     # tn.add_node('g')
-    print(tn.nodes['a']._events)
-    for e in tn.nodes['a'][:]:
-        print(e.attributes)
+    # print(tn.nodes['a']._events)
+    # for e in tn.nodes['a'][:]:
+    #     print(e.attributes)
 # #     # for node in tn.nodes.values():
 #     #     node.update(color='gray', size=16, t=0)
 
