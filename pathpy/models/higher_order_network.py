@@ -16,7 +16,7 @@ import numpy as np
 
 from pathpy import logger
 from pathpy.core.node import Node, NodeCollection
-from pathpy.core.edge import Edge, EdgeCollection, EdgeSet
+from pathpy.core.edge import Edge, EdgeCollection#, EdgeSet
 from pathpy.core.path import Path, PathCollection
 from pathpy.models.network import Network
 

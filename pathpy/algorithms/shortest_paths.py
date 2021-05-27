@@ -1,10 +1,10 @@
-"""Algorithms for shortest paths calculations."""
+""""Algorithms for shortest paths calculations."""
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
 # File      : shortest_paths.py -- Module to calculate shortest paths and diameter
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Mon 2021-03-29 16:33 juergen>
+# Time-stamp: <Thu 2021-05-27 11:17 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -17,10 +17,11 @@ from scipy.sparse import csgraph  # pylint: disable=import-error
 
 from pathpy import logger, tqdm
 
-import pathpy.models.api as api
+from pathpy.models import network as net
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
+    # from pathpy.core.node import Node
     from pathpy.models.network import Network
 
 # from pathpy.core.path import Path
@@ -233,7 +234,7 @@ def shortest_path_tree(network: Network,
     """Computes a shortest path tree rooted at the node with the
     given source uid."""
 
-    n_tree = api.Network(directed=True)
+    n_tree = net.Network(directed=True)
 
     Q: dict = dict()
     dist = dict()

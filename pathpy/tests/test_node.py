@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_node.py -- Test environment for the Node class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sun 2020-10-04 11:18 juergen>
+# Time-stamp: <Wed 2021-05-26 21:52 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -36,10 +36,9 @@ def test_uid():
     assert isinstance(u.uid, str)
     assert u.uid == 'u'
 
+    # with pytest.raises(Exception):
     v = Node(1)
-
-    assert v.uid == '1'
-
+    assert v.uid == 1
     w = Node()
 
     assert isinstance(w, Node)
@@ -118,18 +117,16 @@ def test_NodeCollection():
     assert 'a' in nodes.keys()
     assert a in nodes.values()
     assert ('a', a) in nodes.items()
-    assert {'a': a} == nodes.dict
 
     nodes.add(('b', 'c'))
 
-    print(nodes)
     assert len(nodes) == 3
 
-    with pytest.raises(Exception):
-        nodes.add('a')
+    # with pytest.raises(Exception):
+    #     nodes.add('a')
 
-    with pytest.raises(Exception):
-        nodes.add(a)
+    # with pytest.raises(Exception):
+    #     nodes.add(a)
 
     d = Node('d', color='blue')
     nodes.add(d)
@@ -156,6 +153,26 @@ def test_NodeCollection():
     nodes.remove([('e', 'f', 'g'), 'h', ['i']])
 
     assert len(nodes) == 2
+
+
+def test_NodeCollection_iter():
+    """Test iter trough the node collection"""
+    nodes = NodeCollection()
+    nodes.add(['a', 'b', 'c', 'd'])
+
+    for node in nodes:
+        assert isinstance(node.uid, str)
+
+    for uid, node in nodes.items():
+        assert isinstance(uid, str)
+        assert isinstance(node, Node)
+
+    for uid in nodes.keys():
+        assert isinstance(uid, str)
+
+    for node in nodes.values():
+        assert isinstance(node, Node)
+
 
 # =============================================================================
 # eof

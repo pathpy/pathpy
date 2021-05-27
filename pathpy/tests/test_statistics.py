@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_algorithms.py -- Test environment for basic algorithms
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-04-20 10:11 juergen>
+# Time-stamp: <Thu 2021-05-27 09:46 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -15,6 +15,8 @@ import numpy as np
 
 # @pytest.mark.parametrize('directed', (True, False))
 # @pytest.mark.parametrize('weighted', (True, False))
+
+
 @pytest.fixture(params=[True, False])
 def net(request):
     net = pp.Network(directed=False)
@@ -99,7 +101,11 @@ def test_degree_assortativity():
 
 def test_mean_degree():
     """Test the mean degree calculation."""
-    net = pp.generators.Molloy_Reed([2]*500)
+    # net = pp.generators.Molloy_Reed([2]*500)
+
+    net = Network(directed=False)
+    net.add_edges(('a', 'b'), ('b', 'c'), ('c', 'a'))
+
     mean_degree = pp.statistics.mean_degree(net)
     assert mean_degree == 2.0
 

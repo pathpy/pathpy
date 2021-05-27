@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_algorithms.py -- Test environment for basic algorithms
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-03-29 16:18 juergen>
+# Time-stamp: <Thu 2021-05-27 09:00 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -111,29 +111,29 @@ def test_betweenness_centrality_network(net):
     # print(c['b'])
 
 
-# def test_betweenness_centrality_hon():
-#     """Test the betweenness centrality of a hon."""
+# # def test_betweenness_centrality_hon():
+# #     """Test the betweenness centrality of a hon."""
+
+# #     paths = PathCollection()
+# #     paths.add('a', 'c', 'd', 'b', uid='acd', frequency=10)
+# #     paths.add('b', 'c', 'e', 'b', uid='bce', frequency=10)
+
+# #     hon = HigherOrderNetwork.from_paths(paths, order=2)
+
+# #     bc = hon.betweenness_centrality()
+# #     assert bc['c'] == 4
+
+
+# def test_betweenness_centrality_paths():
+#     """Test the betweenness centrality of paths."""
 
 #     paths = PathCollection()
 #     paths.add('a', 'c', 'd', 'b', uid='acd', frequency=10)
 #     paths.add('b', 'c', 'e', 'b', uid='bce', frequency=10)
 
-#     hon = HigherOrderNetwork.from_paths(paths, order=2)
+#     bc = pp.algorithms.betweenness_centrality(paths)
 
-#     bc = hon.betweenness_centrality()
-#     assert bc['c'] == 4
-
-
-def test_betweenness_centrality_paths():
-    """Test the betweenness centrality of paths."""
-
-    paths = PathCollection()
-    paths.add('a', 'c', 'd', 'b', uid='acd', frequency=10)
-    paths.add('b', 'c', 'e', 'b', uid='bce', frequency=10)
-
-    bc = pp.algorithms.betweenness_centrality(paths)
-
-    assert bc['c'] == 3
+#     assert bc['c'] == 3
 
 
 def test_closeness_centrality():
@@ -150,6 +150,7 @@ def test_degree_centrality():
     net = pp.Network(directed=True)
     net.add_edge('a', 'x')
     net.add_edge('x', 'b')
+
     c = pp.algorithms.centralities.degree_centrality(net)
     assert c['a'] == 1
 
