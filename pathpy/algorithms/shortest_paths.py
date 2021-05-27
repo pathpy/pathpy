@@ -1,10 +1,10 @@
-"""Algorithms for shortest paths calculations."""
+""""Algorithms for shortest paths calculations."""
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
 # File      : shortest_paths.py -- Module to calculate shortest paths and diameter
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Mon 2021-05-10 16:11 juergen>
+# Time-stamp: <Thu 2021-05-27 11:17 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -17,10 +17,11 @@ from scipy.sparse import csgraph  # pylint: disable=import-error
 
 from pathpy import logger, tqdm
 
-import pathpy.models.api as api
+from pathpy.models import network as net
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
+    # from pathpy.core.node import Node
     from pathpy.models.network import Network
 
 # from pathpy.core.path import Path
@@ -118,7 +119,7 @@ def all_shortest_paths(network: Network,
     dist: defaultdict = defaultdict(lambda: defaultdict(lambda: np.inf))
     s_p: defaultdict = defaultdict(lambda: defaultdict(set))
 
-    for e in network.edges.values():
+    for e in network.edges:
         cost = 1
 
         if weight is True:
@@ -126,11 +127,11 @@ def all_shortest_paths(network: Network,
         elif weight is not False and weight is not None:
             cost = e.attributes[weight]
 
-        dist[e.v][e.w] = cost
-        s_p[e.v][e.w].add((e.v, e.w))
+        dist[e.v.uid][e.w.uid] = cost
+        s_p[e.v.uid][e.w.uid].add((e.v.uid, e.w.uid))
         if not network.directed:
-            dist[e.w][e.v] = cost
-            s_p[e.w][e.v].add((e.w, e.v))
+            dist[e.w.uid][e.v.uid] = cost
+            s_p[e.w.uid][e.v.uid].add((e.w.uid, e.v.uid))
 
     for k in tqdm(network.nodes.keys(),
                   desc='calculating shortest paths between all nodes'):
@@ -157,10 +158,10 @@ def all_shortest_paths(network: Network,
     if return_distance_matrix:
         dist_arr = np.ndarray(
             shape=(network.number_of_nodes(), network.number_of_nodes()))
-        for v in network.nodes.uids:
-            for w in network.nodes.uids:
-                dist_arr[network.nodes.index[v],
-                         network.nodes.index[w]] = dist[v][w]
+        for v in network.nodes:
+            for w in network.nodes:
+                dist_arr[network.nodes.index[v.uid],
+                         network.nodes.index[w.uid]] = dist[v.uid][w.uid]
         return s_p, dist_arr
     else:
         return s_p
@@ -177,7 +178,7 @@ def single_source_shortest_paths(network: Network,
     prev = dict()
     dist[source] = 0
 
-    for v in network.nodes.keys():
+    for v in network.nodes.uids:
         if v != source:
             dist[v] = np.inf
             prev[v] = None
@@ -199,31 +200,31 @@ def single_source_shortest_paths(network: Network,
 
             new_dist = dist[u] + cost
 
-            if new_dist < dist[v]:
-                dist[v] = new_dist
-                prev[v] = u
-                if v in Q:
-                    Q[v] = new_dist
+            if new_dist < dist[v.uid]:
+                dist[v.uid] = new_dist
+                prev[v.uid] = u
+                if v.uid in Q:
+                    Q[v.uid] = new_dist
 
     # calculate distance vector
     dist_arr = np.zeros(network.number_of_nodes())
     for v in network.nodes:
-        dist_arr[network.nodes.index[v]] = dist[v]
+        dist_arr[network.nodes.index[v.uid]] = dist[v.uid]
 
     # construct shortest paths
     s_p: dict = dict()
-    for dest in network.nodes.uids:
-        if dest != source:
-            path = [dest]
-            x = dest
+    for dest in network.nodes:
+        if dest.uid != source:
+            path = [dest.uid]
+            x = dest.uid
             while x is not source and x is not None:
                 x = prev[x]
                 path.append(x)
             if x is None:
-                s_p[dest] = None
+                s_p[dest.uid] = None
             else:
                 path.reverse()
-                s_p[dest] = tuple(path)
+                s_p[dest.uid] = tuple(path)
     return dist_arr, s_p
 
 
@@ -233,14 +234,14 @@ def shortest_path_tree(network: Network,
     """Computes a shortest path tree rooted at the node with the
     given source uid."""
 
-    n_tree = api.Network(directed=True)
+    n_tree = net.Network(directed=True)
 
     Q: dict = dict()
     dist = dict()
     prev = dict()
     dist[source] = 0
 
-    for v in network.nodes.keys():
+    for v in network.nodes.uids:
         if v != source:
             dist[v] = np.inf
             prev[v] = None
@@ -261,11 +262,11 @@ def shortest_path_tree(network: Network,
 
             new_dist = dist[u] + cost
 
-            if new_dist < dist[v]:
-                dist[v] = new_dist
-                prev[v] = u
-                if v in Q:
-                    Q[v] = new_dist
+            if new_dist < dist[v.uid]:
+                dist[v.uid] = new_dist
+                prev[v.uid] = u
+                if v.uid in Q:
+                    Q[v.uid] = new_dist
 
     for k, v in prev.items():
         if v is not None:
