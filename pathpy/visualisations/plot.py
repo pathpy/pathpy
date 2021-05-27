@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : plot.py -- Module to plot pathoy networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-27 12:45 juergen>
+# Time-stamp: <Thu 2021-05-27 13:29 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -401,25 +401,22 @@ class Parser:
 
         # generate temporal edges
         temporal_edges = []
-        # times = np.linspace(start, end, num=steps)
+        times = np.linspace(start, end, num=steps)
 
-        # # when edge is active or not
-        # for (start, end, uid), edge in obj.tedges.items():
-        #     _edge = {'uid': uid}
-        #     _edge['startTime'] = find_nearest(times, start)
-        #     _edge['endTime'] = find_nearest(times, end)
-        #     _edge['active'] = True
-        #     temporal_edges.append(_edge)
+        print(start, end)
 
-        # # temporal edge attributes
-        # # TODO combine if change at same time
-        # for edge in obj.edges:
-        #     for (start, end, key), value in edge.attributes.items():
-        #         _edge = {'uid': edge.uid}
-        #         _edge['startTime'] = find_nearest(times, start)
-        #         _edge['endTime'] = find_nearest(times, end)
-        #         _edge[key] = value
-        #         temporal_edges.append(_edge)
+        # when edge is active or not
+        for edge in obj.edges[start:end]:
+            for event in edge[start:end]:
+                _edge = {'uid': edge.uid}
+                _start = event.attributes.pop('start', start)
+                _end = event.attributes.pop('end', end)
+
+                _edge['startTime'] = find_nearest(times, _start)
+                _edge['endTime'] = find_nearest(times, _end)
+                _edge['active'] = True
+                _edge.update(event.attributes)
+                temporal_edges.append(_edge)
 
         # add temporal edges to the data
         self.figure['data']['tedges'] = temporal_edges

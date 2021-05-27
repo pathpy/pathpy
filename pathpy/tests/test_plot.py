@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_plot.py -- Test environment for the Plot class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-27 12:42 juergen>
+# Time-stamp: <Thu 2021-05-27 13:20 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -196,6 +196,8 @@ def test_temporal_network():
     }
 
     print(tn)
+
+    print('\n\n')
     tn.plot(filename='d3js_test.html', **style)
 
 #     # for node in tn.nodes.values():
