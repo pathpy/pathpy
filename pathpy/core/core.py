@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-27 10:08 juergen>
+# Time-stamp: <Thu 2021-05-27 11:02 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -729,8 +729,7 @@ class PathPyCollection():
         raise NotImplementedError
 
     @add.register(PathPyObject)  # type: ignore
-    @add.register(PathPyEmpty)  # type: ignore
-    def _(self, *args: Union[PathPyEmpty, PathPyObject], **kwargs: Any) -> None:
+    def _(self, *args: PathPyObject, **kwargs: Any) -> None:
         """Add object to collection"""
 
         for obj in args:
@@ -739,7 +738,7 @@ class PathPyCollection():
             if obj not in self.values() and obj.uid not in self.keys():
 
                 # update attributes
-                if kwargs and isinstance(obj, PathPyObject):
+                if kwargs:
                     obj.update(**kwargs)
 
                 # add edge to the collection
@@ -765,16 +764,19 @@ class PathPyCollection():
 
     @add.register(str)  # type: ignore
     @add.register(int)  # type: ignore
+    @add.register(PathPyEmpty)  # type: ignore
     def _(self, *args: Union[str, int], **kwargs: Any) -> None:
 
         # get additional parameters
         uid: Optional[str] = kwargs.pop('uid', None)
 
         # check if all objects are str
-        if not all(isinstance(arg, (str, int)) for arg in args):
+        if not all(isinstance(arg, (str, int, PathPyEmpty)) for arg in args):
             LOG.error('All objects have to be str objects!')
             raise TypeError
 
+        # "Convert" PathPyEmpty to normal string
+        args = (a.uid if isinstance(a, PathPyEmpty) else a for a in args)
         obj = self._default_class(
             *args, uid=uid, directed=self.directed, **kwargs)
         self.add(obj, **kwargs)
@@ -785,8 +787,7 @@ class PathPyCollection():
         raise NotImplementedError
 
     @_add.register(PathPyObject)  # type: ignore
-    @_add.register(PathPyEmpty)  # type: ignore
-    def _(self, obj: Union[PathPyEmpty, PathPyObject], **kwargs: Any) -> None:
+    def _(self, obj: PathPyObject, **kwargs: Any) -> None:
         self[obj.uid] = obj
         self.counter[obj.uid] += kwargs.get(
             config['attributes']['frequency'], 1)
@@ -826,8 +827,7 @@ class PathPyCollection():
         raise NotImplementedError
 
     @remove.register(PathPyObject)  # type: ignore
-    @remove.register(PathPyEmpty)  # type: ignore
-    def _(self, *args: Union[PathPyEmpty, PathPyObject], **kwargs: Any) -> None:
+    def _(self, *args: PathPyObject, **kwargs: Any) -> None:
         """Remove object from the collection"""
         # pylint: disable=unused-argument
         for obj in args:
@@ -857,8 +857,7 @@ class PathPyCollection():
         raise NotImplementedError
 
     @_remove.register(PathPyObject)  # type: ignore
-    @_remove.register(PathPyEmpty)  # type: ignore
-    def _(self, obj: Union[PathPyEmpty, PathPyObject]) -> None:
+    def _(self, obj: PathPyObject) -> None:
         """Add an edge to the set of edges."""
         self.pop(obj.uid, None)
         self.counter.pop(obj.uid, None)
