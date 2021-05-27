@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : shortest_paths.py -- Module to calculate connected components
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Mon 2021-05-10 16:26 juergen>
+# Time-stamp: <Thu 2021-05-27 11:08 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -16,7 +16,7 @@ from pathpy import logger, tqdm
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
-    from pathpy.models.api import Network
+    from pathpy.core.network import Network
 
 LOG = logger(__name__)
 
@@ -67,7 +67,7 @@ def find_connected_components(network: Network) -> Dict:
         on_stack[v] = True
 
         for node in network.successors[v]:
-            w = node
+            w = node.uid
             if indices[w] is None:
                 tarjan(w)
                 low_link[v] = min(low_link[v], low_link[w])
