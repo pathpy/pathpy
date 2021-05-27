@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : node.py -- Base class for a node
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-26 21:45 juergen>
+# Time-stamp: <Thu 2021-05-27 13:46 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================

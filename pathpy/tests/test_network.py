@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-27 12:29 juergen>
+# Time-stamp: <Thu 2021-05-27 13:50 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -739,6 +739,7 @@ def test_network_undirected():
     assert net.edges['a', 'b']['color'] == 'blue'
     assert net.edges['b', 'a']['size'] == 4
     assert net.edges['a', 'b']['timestamp'] == 3
+
 # =============================================================================
 # eof
 #

@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : plot.py -- Module to plot pathoy networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-27 13:29 juergen>
+# Time-stamp: <Thu 2021-05-27 13:32 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -451,7 +451,9 @@ class Parser:
 
         # temporal edge attributes
         # TODO combine if change at same time
-        # for node in obj.nodes:
+        for node in obj.nodes[start:end]:
+            for event in node[start:end]:
+                print(event.attributes)
         #     for (start, end, key), value in node.attributes.items():
         #         _node = {'uid': node.uid}
         #         _node['startTime'] = find_nearest(times, start)
