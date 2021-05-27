@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : plot.py -- Module to plot pathoy networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-27 14:06 juergen>
+# Time-stamp: <Thu 2021-05-27 14:31 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -462,7 +462,15 @@ class Parser:
                 if _start == float('-inf') and _end == float('inf'):
                     continue
                 temporal_nodes.append(_node)
+                _node = {'uid': node.uid}
+                _node['startTime'] = find_nearest(times, _end)
+                _node['endTime'] = find_nearest(times, _end)
+                _node['active'] = False
+                for key in event.attributes.keys():
+                    _node[key] = None
+                temporal_nodes.append(_node)
 
+        # print(self.figure['data']['nodes'])
         #     for (start, end, key), value in node.attributes.items():
         #         _node = {'uid': node.uid}
         #         _node['startTime'] = find_nearest(times, start)
