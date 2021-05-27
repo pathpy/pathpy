@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-26 21:49 juergen>
+# Time-stamp: <Thu 2021-05-27 12:37 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -135,9 +135,10 @@ class TemporalNodeCollection(NodeCollection):
 
     def _if_exist(self, obj: Any, **kwargs: Any) -> None:
         """Helper function if node already exists."""
-        self[obj].event(**kwargs)
+        element = self[obj.relations]
+        element.event(**kwargs)
         start, end, _ = obj.last()
-        self._events[start:end] = obj.uid
+        self._events[start:end] = element.uid
 
     def _remove(self, obj) -> None:
         """Add an edge to the set of edges."""
@@ -207,9 +208,10 @@ class TemporalEdgeCollection(EdgeCollection):
 
     def _if_exist(self, obj: Any, **kwargs: Any) -> None:
         """Helper function if node already exists."""
-        self[obj].event(**kwargs)
+        element = self[obj.relations]
+        element.event(**kwargs)
         start, end, _ = obj.last()
-        self._events[start:end] = obj.uid
+        self._events[start:end] = element.uid
 
     def _remove(self, obj) -> None:
         """Add an edge to the set of edges."""

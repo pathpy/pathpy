@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_plot.py -- Test environment for the Plot class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-27 12:26 juergen>
+# Time-stamp: <Thu 2021-05-27 12:30 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -178,8 +178,8 @@ def test_temporal_network():
     # tn.add_node('a', color='green', size=20)
     # tn.nodes['a'].update(color='blue', size=40, t=4)
     # tn.add_node('b', color='blue', t=8)
-    # tn.add_edge('a', 'b', timestamp=1, color='red', size=4)
-    # tn.add_edge('b', 'a', timestamp=3, color='blue')
+    tn.add_edge('a', 'b', timestamp=1, color='red', size=4)
+    tn.add_edge('b', 'a', timestamp=3, color='blue')
     # tn.add_edge('b', 'c', timestamp=3, color='green')
     # tn.add_edge('d', 'c', timestamp=4, color='orange')
     # tn.add_edge('c', 'd', timestamp=5, color='yellow')
