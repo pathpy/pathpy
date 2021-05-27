@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-27 12:37 juergen>
+# Time-stamp: <Thu 2021-05-27 12:40 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -290,7 +290,8 @@ class TemporalNetwork(BaseTemporalNetwork, Network):
             'Number of unique edges:\t{}\n'.format(self.number_of_edges()),
             'Number of temp nodes:\t{}\n'.format(len(self.nodes.events)),
             'Number of temp edges:\t{}\n'.format(len(self.edges.events)),
-            'Observation periode:\t{} - {}'.format(self.start, self.end)
+            'Observation periode:\t{} - {}\n'.format(self.start, self.end),
+            'Observation time:\t{}'.format(self.end - self.start)
         ]
         attr = self.attributes
         if len(attr) > 0:
