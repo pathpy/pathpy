@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-10 17:19 juergen>
+# Time-stamp: <Thu 2021-05-27 09:57 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -703,6 +703,13 @@ def test_isub_networks():
     assert net_2.number_of_edges() == 2
 
 
+def test_network_properties():
+    """test some properties"""
+
+    net = Network(directed=False)
+    net.add_edges(('a', 'b'), ('b', 'c'), ('c', 'a'))
+
+    print(net.incoming)
 # =============================================================================
 # eof
 #
