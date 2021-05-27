@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_algorithms.py -- Test environment for basic algorithms
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-27 09:38 juergen>
+# Time-stamp: <Thu 2021-05-27 09:46 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -101,8 +101,10 @@ def test_degree_assortativity():
 
 def test_mean_degree():
     """Test the mean degree calculation."""
-    net = pp.generators.Molloy_Reed([2]*500)
-    assert sum(net.degrees().values()) == 1000
+    # net = pp.generators.Molloy_Reed([2]*500)
+
+    net = Network(directed=False)
+    net.add_edges(('a', 'b'), ('b', 'c'), ('c', 'a'))
 
     mean_degree = pp.statistics.mean_degree(net)
     assert mean_degree == 2.0
