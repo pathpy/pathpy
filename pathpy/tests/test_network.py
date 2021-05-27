@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-27 09:53 juergen>
+# Time-stamp: <Thu 2021-05-27 10:09 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -725,10 +725,7 @@ def test_network_degrees():
     a = Node('a')
     net = Network(directed=False)
     net.add_edges((a, 'b'), ('b', 'c'), ('c', 'a'))
-
-    print(net.degrees())
-    print(net.incoming)
-    print(net.nodes.keys())
+    assert isinstance(list(net.nodes.keys())[0], (str, int))
 # =============================================================================
 # eof
 #

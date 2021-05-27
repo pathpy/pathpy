@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-26 12:34 juergen>
+# Time-stamp: <Thu 2021-05-27 10:08 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -729,7 +729,8 @@ class PathPyCollection():
         raise NotImplementedError
 
     @add.register(PathPyObject)  # type: ignore
-    def _(self, *args: PathPyObject, **kwargs: Any) -> None:
+    @add.register(PathPyEmpty)  # type: ignore
+    def _(self, *args: Union[PathPyEmpty, PathPyObject], **kwargs: Any) -> None:
         """Add object to collection"""
 
         for obj in args:
@@ -738,7 +739,7 @@ class PathPyCollection():
             if obj not in self.values() and obj.uid not in self.keys():
 
                 # update attributes
-                if kwargs:
+                if kwargs and isinstance(obj, PathPyObject):
                     obj.update(**kwargs)
 
                 # add edge to the collection
@@ -784,7 +785,8 @@ class PathPyCollection():
         raise NotImplementedError
 
     @_add.register(PathPyObject)  # type: ignore
-    def _(self, obj: PathPyObject, **kwargs: Any) -> None:
+    @_add.register(PathPyEmpty)  # type: ignore
+    def _(self, obj: Union[PathPyEmpty, PathPyObject], **kwargs: Any) -> None:
         self[obj.uid] = obj
         self.counter[obj.uid] += kwargs.get(
             config['attributes']['frequency'], 1)
@@ -824,7 +826,8 @@ class PathPyCollection():
         raise NotImplementedError
 
     @remove.register(PathPyObject)  # type: ignore
-    def _(self, *args: PathPyObject, **kwargs: Any) -> None:
+    @remove.register(PathPyEmpty)  # type: ignore
+    def _(self, *args: Union[PathPyEmpty, PathPyObject], **kwargs: Any) -> None:
         """Remove object from the collection"""
         # pylint: disable=unused-argument
         for obj in args:
@@ -854,7 +857,8 @@ class PathPyCollection():
         raise NotImplementedError
 
     @_remove.register(PathPyObject)  # type: ignore
-    def _(self, obj: PathPyObject) -> None:
+    @_remove.register(PathPyEmpty)  # type: ignore
+    def _(self, obj: Union[PathPyEmpty, PathPyObject]) -> None:
         """Add an edge to the set of edges."""
         self.pop(obj.uid, None)
         self.counter.pop(obj.uid, None)
