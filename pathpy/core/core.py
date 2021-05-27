@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-27 11:02 juergen>
+# Time-stamp: <Thu 2021-05-27 12:26 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -812,10 +812,16 @@ class PathPyCollection():
 
     def _if_exist(self, obj: Any, **kwargs: Any) -> None:
         """Helper function if the edge does already exsist."""
-        # pylint: disable=no-self-use
-        # pylint: disable=unused-argument
-        uid = self[obj.relations].uid
-        self.counter[uid] += kwargs.get(config['attributes']['frequency'], 1)
+
+        # get element
+        element = self[obj.relations]
+
+        # update attributes if given
+        element.update(**obj.attributes)
+
+        # increase counter
+        self.counter[element.uid] += kwargs.get(
+            config['attributes']['frequency'], 1)
         # LOG.error('The object "%s" already exists in the Collection', obj)
         # raise KeyError
 

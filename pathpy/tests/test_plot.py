@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_plot.py -- Test environment for the Plot class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-04-22 16:34 juergen>
+# Time-stamp: <Thu 2021-05-27 12:26 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -178,25 +178,25 @@ def test_temporal_network():
     # tn.add_node('a', color='green', size=20)
     # tn.nodes['a'].update(color='blue', size=40, t=4)
     # tn.add_node('b', color='blue', t=8)
-    tn.add_edge('a', 'b', timestamp=1, color='red', size=4)
-    tn.add_edge('b', 'a', timestamp=3, color='blue')
-    tn.add_edge('b', 'c', timestamp=3, color='green')
-    tn.add_edge('d', 'c', timestamp=4, color='orange')
-    tn.add_edge('c', 'd', timestamp=5, color='yellow')
-    tn.add_edge('c', 'b', timestamp=6, color='black')
-    tn.add_edge('a', 'b', timestamp=7, color='gray', size=8)
-    tn.add_edge('b', 'a', timestamp=8, color='white')
+    # tn.add_edge('a', 'b', timestamp=1, color='red', size=4)
+    # tn.add_edge('b', 'a', timestamp=3, color='blue')
+    # tn.add_edge('b', 'c', timestamp=3, color='green')
+    # tn.add_edge('d', 'c', timestamp=4, color='orange')
+    # tn.add_edge('c', 'd', timestamp=5, color='yellow')
+    # tn.add_edge('c', 'b', timestamp=6, color='black')
+    # tn.add_edge('a', 'b', timestamp=7, color='gray', size=8)
+    # tn.add_edge('b', 'a', timestamp=8, color='white')
 
-    tn.nodes['a'][1, 'color'] = 'green'
-    tn.nodes['a'][3, 'color'] = 'red'
-    tn.nodes['a'][6, 'color'] = 'yellow'
+    # tn.nodes['a'][1, 'color'] = 'green'
+    # tn.nodes['a'][3, 'color'] = 'red'
+    # tn.nodes['a'][6, 'color'] = 'yellow'
     style = {
         # 'node_color': 'gray',
         'curved': True,
     }
 
     print(tn)
-    tn.plot(filename='d3js_test.html', **style)
+    #tn.plot(filename='d3js_test.html', **style)
 
 #     # for node in tn.nodes.values():
 #     #     node.update(color='gray', size=16, t=0)
