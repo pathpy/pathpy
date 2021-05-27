@@ -111,16 +111,20 @@ def test_mean_degree():
 
 
 def test_local_clustering_coefficient():
-    """Test the degree assortativity of a network."""
-    net = pp.Network(directed=False)
-    net.add_edge('a', 'b', weight=2.1)
-    net.add_edge('b', 'c', weight=1.0)
-    net.add_edge('c', 'a', weight=1.0)
-    net.add_edge('b', 'd', weight=1.0)
-    net.add_edge('d', 'e', weight=1.0)
-    net.add_edge('e', 'b', weight=1.0)
+    """Test the local clustering coefficient of a network."""
+    n = pp.Network(directed=False)
+    n.add_edge('a', 'b')
+    n.add_edge('b', 'c')
+    n.add_edge('c', 'a')
+    n.add_edge('d', 'e')
+    n.add_edge('e', 'f')
+    n.add_edge('f', 'g')
+    n.add_edge('g', 'd')
+    n.add_edge('d', 'f')
+    n.add_edge('b', 'd')
 
-    s = pp.statistics.clustering.local_clustering_coefficient(net, 'b')
+    cc = pp.statistics.clustering.local_clustering_coefficient(n, 'f')
+    assert cc == 2/3
     # s = pp.statistics.degrees.degree_central_moment(net, weight=True)
     # # print(s)
 
