@@ -5,7 +5,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-27 09:52 juergen>
+# Time-stamp: <Thu 2021-05-27 10:40 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -456,7 +456,8 @@ class Network(BaseNetwork):
         {'v': {Node w}, 'w':{}}
 
         """
-        return {n: self._properties['successors'][n] for n in self.nodes.keys()}
+
+        return {n.uid: self._properties['successors'][n] for n in self.nodes}
 
     @property
     def predecessors(self) -> Dict[str, Set[Node]]:
@@ -483,38 +484,38 @@ class Network(BaseNetwork):
         {'v':{}, 'w': {Node v}}
 
         """
-        return {n: self._properties['predecessors'][n] for n in self.nodes.keys()}
+        return {n.uid: self._properties['predecessors'][n] for n in self.nodes}
 
     @property
     def outgoing(self) -> Dict[str, Set[Edge]]:
         """Retuns a dict with sets of outgoing edges."""
-        return {n: self._properties['outgoing'][n] for n in self.nodes.keys()}
+        return {n.uid: self._properties['outgoing'][n] for n in self.nodes}
 
     @property
     def incoming(self) -> Dict[str, Set[Edge]]:
         """Retuns a dict with sets of incoming edges."""
-        return {n: self._properties['incoming'][n] for n in self.nodes.keys()}
+        return {n.uid: self._properties['incoming'][n] for n in self.nodes}
 
     @property
     def neighbors(self) -> Dict[str, Set[Node]]:
         """Retuns a dict with sets of adjacent nodes."""
-        return {n: self._properties['neighbors'][n] for n in self.nodes.keys()}
+        return {n.uid: self._properties['neighbors'][n] for n in self.nodes}
 
     @property
     def incident_edges(self) -> Dict[str, Set[Edge]]:
         """Retuns a dict with sets of adjacent edges."""
-        return {n: self._properties['incident_edges'][n] for n in self.nodes.keys()}
+        return {n.uid: self._properties['incident_edges'][n] for n in self.nodes}
 
     def _degrees(self, _dict: defaultdict,
                  weight: Weight = None) -> Dict[str, float]:
         """Helper function to calculate the degrees."""
         _degrees: dict = {}
         if weight is None:
-            _degrees = {node: _dict[node] for node in self.nodes.keys()}
+            _degrees = {node.uid: _dict[node] for node in self.nodes}
         else:
-            for node in self.nodes.keys():
-                _degrees[node] = sum([self.edges[e].weight(weight)
-                                      for e in _dict[node]])
+            for node in self.nodes:
+                _degrees[node.uid] = sum([self.edges[e].weight(weight)
+                                          for e in _dict[node]])
         return _degrees
 
     def indegrees(self, weight: Weight = None) -> Dict[str, float]:
@@ -896,23 +897,30 @@ class Network(BaseNetwork):
         edges = set(self.edges.values()).difference(self._properties['edges'])
 
         for edge in edges:
-            _v, _w = edge.relations
+
+            # update nodes in the network
+            for uid, node in edge.nodes.items():
+                if uid not in self.nodes.keys():
+                    self.nodes.add(node)
+
+            # get node objects
+            node_v, node_w = self.nodes[edge.v.uid], self.nodes[edge.w.uid]
             uid = edge.uid
 
-            _nodes: list = [(_v, _w), (_w, _v)]
+            _nodes: list = [(node_v, node_w), (node_w, node_v)]
 
             for _v, _w in _nodes:
                 self._properties['successors'][_v].add(_w)
-                self._properties['outgoing'][_v].add(uid)
+                self._properties['outgoing'][_v].add(edge)
                 self._properties['predecessors'][_w].add(_v)
-                self._properties['incoming'][_w].add(uid)
+                self._properties['incoming'][_w].add(edge)
 
                 if self.directed:
                     break
 
             for _v, _w in _nodes:
                 self._properties['neighbors'][_v].add(_w)
-                self._properties['incident_edges'][_v].add(uid)
+                self._properties['incident_edges'][_v].add(edge)
 
                 self._properties['indegrees'][_v] = len(
                     self._properties['incoming'][_v])
@@ -920,10 +928,6 @@ class Network(BaseNetwork):
                     self._properties['outgoing'][_v])
                 self._properties['degrees'][_v] = len(
                     self._properties['incident_edges'][_v])
-
-            for uid, node in edge.nodes.items():
-                if uid not in self.nodes:
-                    self.nodes.add(node)
 
                 # TODO: Fix if different nodes with same uid are added
                 # elif uid not in self.nodes and node.empty:
@@ -943,22 +947,24 @@ class Network(BaseNetwork):
         edges = self._properties['edges'].difference(set(self.edges.values()))
 
         for edge in edges:
-            _v, _w = edge.relations
+            # get node objects
+            node_v, node_w = self.nodes[edge.v.uid], self.nodes[edge.w.uid]
             uid = edge.uid
-            _nodes: list = [(_v, _w), (_w, _v)]
+
+            _nodes: list = [(node_v, node_w), (node_w, node_v)]
 
             for _v, _w in _nodes:
                 self._properties['successors'][_v].discard(_w)
-                self._properties['outgoing'][_v].discard(uid)
+                self._properties['outgoing'][_v].discard(edge)
                 self._properties['predecessors'][_w].discard(_v)
-                self._properties['incoming'][_w].discard(uid)
+                self._properties['incoming'][_w].discard(edge)
 
                 if self.directed:
                     break
 
             for _v, _w in _nodes:
                 self._properties['neighbors'][_v].discard(_w)
-                self._properties['incident_edges'][_v].discard(uid)
+                self._properties['incident_edges'][_v].discard(edge)
 
                 self._properties['indegrees'][_v] = len(
                     self._properties['incoming'][_v])
