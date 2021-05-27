@@ -3,13 +3,15 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-26 21:51 juergen>
+# Time-stamp: <Thu 2021-05-27 09:31 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 
 import pytest
 import pathpy as pp
+import numpy as np
+import random
 from pathpy import Node, Edge, Network
 # Test network
 # ------------
@@ -703,6 +705,18 @@ def test_isub_networks():
     assert net_2.number_of_edges() == 2
 
 
+def test_network_edges():
+    """Test the edges of a network"""
+
+    net = Network(directed=False)
+    net.add_edges(('a', 'b'), ('b', 'c'), ('c', 'd'))
+    assert net.number_of_edges() == 3
+    assert isinstance(list(net.edges), list)
+
+    # np does not allow to sample from iterables
+    # edge = np.random.choice(list(net.edges.values()))
+    edge = random.choice(list(net.edges))
+    assert edge in net.edges
 # =============================================================================
 # eof
 #

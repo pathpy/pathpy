@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : random_graphs.py -- Module to generate random graphs
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Mon 2021-04-27 01:12 ingo>
+# Time-stamp: <Thu 2021-05-27 09:30 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -13,6 +13,7 @@ from __future__ import annotations
 from typing import Optional, Union, Dict
 
 import numpy as np
+import random
 import scipy
 
 from pathpy import logger, tqdm
@@ -69,7 +70,7 @@ def max_edges(n: int, directed: bool = False, multiedges: bool = False, loops: b
         return int(n*(n+1)/2)
     elif not loops and not directed:
         return int(n*(n-1)/2)
-    else: # not loops and directed:
+    else:  # not loops and directed:
         return int(n*(n-1))
 
 
@@ -134,7 +135,7 @@ def ER_nm(n: int, m: int,
         node_uids = []
         for i in range(n):
             node_uids.append(str(i))
-    
+
     for i in range(n):
         network.add_node(node_uids[i])
 
@@ -142,7 +143,7 @@ def ER_nm(n: int, m: int,
     while edges < m:
         v, w = np.random.choice(node_uids, size=2, replace=loops)
         if multiedges or network.nodes[w] not in network.successors[v]:
-            network.add_edge(v,w)
+            network.add_edge(v, w)
             edges += 1
     return network
 
@@ -151,7 +152,7 @@ def ER_nm_randomize(network: Network, loops: bool = False, multiedges: bool = Fa
     """Generates a random graph whose number of nodes, edges, edge directedness and node uids 
     match the corresponding values of a given network instance. Useful to generate a randomized 
     version of a network.
-    
+
     Parameters
     ----------
     network : pathpy.Network
@@ -189,9 +190,9 @@ def ER_nm_randomize(network: Network, loops: bool = False, multiedges: bool = Fa
 
     """
 
-    return ER_nm(network.number_of_nodes(), network.number_of_edges(), 
-                    directed=network.directed, loops=loops, multiedges=multiedges,
-                    node_uids=list(network.nodes.uids))
+    return ER_nm(network.number_of_nodes(), network.number_of_edges(),
+                 directed=network.directed, loops=loops, multiedges=multiedges,
+                 node_uids=list(network.nodes.uids))
 
 
 def ER_np(n: int, p: float, directed: bool = False, loops: bool = False,
@@ -242,7 +243,7 @@ def ER_np(n: int, p: float, directed: bool = False, loops: bool = False,
         node_uids = []
         for i in range(n):
             node_uids.append(str(i))
-    
+
     for i in range(n):
         network.add_node(node_uids[i])
 
@@ -412,8 +413,8 @@ def generate_degree_sequence(n, distribution: Union[Dict[float, float], scipy.st
     """Generates a random graphic degree sequence drawn from a given degree distribution"""
     # create rv_discrete object with custom distribution and generate degree sequence
     if isinstance(distribution, dict):
-        degrees = [ k for k in distribution ]
-        probs = [ distribution[k] for k in degrees ]
+        degrees = [k for k in distribution]
+        probs = [distribution[k] for k in degrees]
 
         dist = scipy.stats.rv_discrete(name='custom', values=(degrees, probs))
         s = [ 1 ]
@@ -516,7 +517,7 @@ def Molloy_Reed(degrees: Union[np.array, Dict[int, float]], multiedge: bool = Fa
         if v == w or (multiedge == False and relax == False and network.nodes[w] in network.successors[v]):
             # remove random edge and add stubs
             if network.number_of_edges()>0:
-                edge = np.random.choice(list(network.edges))
+                edge = random.choice(list(network.edges))
                 stubs.append(edge.v.uid)
                 stubs.append(edge.w.uid)
                 network.remove_edge(edge)
