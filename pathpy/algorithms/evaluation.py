@@ -164,9 +164,9 @@ def shuffle_temporal_network(net: TemporalNetwork):
     timestamps = []
     edges = []
 
-    for start, end, uid in net.tedges:
-        timestamps.append((start, end))
-        edges.append(uid)
+    for edge in net.edges[:]:
+        timestamps.append((edge.start, edge.end))
+        edges.append(edge.uid)
 
     shuffled_net = TemporalNetwork(directed=net.directed, multiedges=net.multiedges, uid='{0}_shuffled'.format(net.uid), **net.attributes)
 
@@ -176,7 +176,6 @@ def shuffle_temporal_network(net: TemporalNetwork):
         ots = timestamps[i]
         nts = timestamps[permute[i]]
         e = net.edges[edges[i]]
-        atts = { k:v for (b,e,k),v in e.attributes.items() if b==ots[0] }
-        shuffled_net.add_edge(e.v, e.w, start=nts[0], end=nts[1], **atts)
+        shuffled_net.add_edge(e.v, e.w, start=nts[0], end=nts[1], **e.attributes)
 
     return shuffled_net
