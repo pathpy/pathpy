@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-26 18:01 juergen>
+# Time-stamp: <Fri 2021-05-28 13:41 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -20,6 +20,7 @@ from pathpy.core.edge import Edge, EdgeCollection
 from pathpy.core.path import Path, PathCollection
 from pathpy.models.classes import BaseHigherOrderNetwork
 from pathpy.models.network import Network
+from pathpy.algorithms.matrices import transition_matrix
 
 # create logger for the Network class
 LOG = logger(__name__)
@@ -41,6 +42,7 @@ class HigherOrderNode(Path):
 
 class HigherOrderNodeCollection(PathCollection):
     """A collection of edges"""
+    # pylint: disable=abstract-method
 
     def __init__(self, *args, **kwargs) -> None:
         """Initialize the EdgeCollection object."""
@@ -65,6 +67,7 @@ class HigherOrderEdge(Edge):
 
 class HigherOrderEdgeCollection(EdgeCollection):
     """A collection of edges"""
+    # pylint: disable=abstract-method
 
     def __init__(self, *args, **kwargs) -> None:
         """Initialize the EdgeCollection object."""
@@ -196,8 +199,7 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
         n = self.nodes.index
 
         # get the transition matrix
-        # TODO Fix this statement
-        T = self.transition_matrix(weight='frequency', transposed=True)
+        T = transition_matrix(self, weight='frequency', transposed=True)
 
         # initialize likelihood
         if log:
