@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_higher_order_network.py -- Test environment for HONs
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-26 17:57 juergen>
+# Time-stamp: <Fri 2021-05-28 14:18 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -168,8 +168,10 @@ def test_fit_path_collection():
     # print(hon.subpaths)
     # print(hon.edges.counter)
 
-    print(hon.likelihood(paths, log=False))
-
+    print('no log', hon.likelihood(paths, log=False))
+    print('log', hon.likelihood(paths, log=True))
+    import numpy as np
+    print(np.exp(hon.likelihood(paths, log=True)))
     # for p in paths['abac'].subpaths(min_length=0, max_length=0, include_self=True, paths=False):
     #     print(p)
     # print(hon.edges.counter)

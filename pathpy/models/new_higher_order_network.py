@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-28 13:44 juergen>
+# Time-stamp: <Fri 2021-05-28 14:21 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -202,12 +202,7 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
         matrix = transition_matrix(self, weight='frequency', transposed=True)
 
         # initialize likelihood
-        if log:
-            likelihood = 0.0
-            _path_likelihood = 0.0
-        else:
-            likelihood = 1.0
-            _path_likelihood = 1.0
+        likelihood, _path_likelihood = (0, 0)
 
         # iterate over observed hon paths
         for uid, path in data.items():
@@ -224,22 +219,12 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
                                   include_self=True, paths=False)
 
             for _v, _w in zip(nodes[:-1], nodes[1:]):
+                path_likelihood += np.log(matrix[
+                    idx[self.nodes[_w].uid], idx[self.nodes[_v].uid]])
 
-                # calculate path likelihood
-                if log:
-                    path_likelihood += np.log(matrix[idx[self.nodes[_w].uid],
-                                                     idx[self.nodes[_v].uid]])
-                else:
-                    path_likelihood *= matrix[idx[self.nodes[_w].uid],
-                                              idx[self.nodes[_v].uid]]
+            likelihood += path_likelihood * frequency
 
-            # calculate likelihood
-            if log:
-                likelihood += path_likelihood * frequency
-            else:
-                likelihood *= path_likelihood ** frequency
-
-        return likelihood
+        return likelihood if log else np.exp(likelihood)
 
     @staticmethod
     def window(iterable, size=2):
