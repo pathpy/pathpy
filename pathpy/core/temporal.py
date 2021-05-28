@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal.py -- Classes to make PathPyObject temporal
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-27 13:19 juergen>
+# Time-stamp: <Fri 2021-05-28 11:23 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -54,8 +54,8 @@ class TemporalPathPyObject(PathPyObject):
     def __getitem__(self, key: Any) -> Any:
         self._clean_events()
         # get the last element
-        *_, last = iter(self._events)
-        return last.data.get(key, None)
+        _, _, last = self.last()
+        return last.get(key, None)
 
     @__getitem__.register(tuple)  # type: ignore
     def _(self, key: tuple) -> Any:
