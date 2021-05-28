@@ -74,7 +74,6 @@ def test_from_temporal_network():
     tn.add_edge('d', 'c', timestamp=4)
     tn.add_edge('c', 'd', timestamp=5)
     tn.add_edge('c', 'b', timestamp=6)
-
     tn.add_edge('a', 'b', timestamp=7)
     tn.add_edge('b', 'a', timestamp=8)
     dag = DirectedAcyclicGraph.from_temporal_network(tn)
