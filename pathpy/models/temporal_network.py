@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-27 13:49 juergen>
+# Time-stamp: <Fri 2021-05-28 18:41 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -13,6 +13,7 @@ from typing import Any, Optional, Union
 from collections import defaultdict
 from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
 
+import pandas as pd
 from intervaltree import IntervalTree
 
 from pathpy import logger
@@ -254,6 +255,15 @@ class TemporalNetwork(BaseTemporalNetwork, Network):
     @property
     def start(self):
         """start of the object"""
+        node = self.nodes.start
+        edge = self.edges.start
+        if isinstance(node, pd.Timestamp) and isinstance(edge, pd.Timestamp):
+            return min(node, edge)
+        elif isinstance(node, pd.Timestamp):
+            return node
+        elif isinstance(edge, pd.Timestamp):
+            return edge
+
         _min = min(self.nodes.start, self.edges.start)
         _max = max(self.nodes.start, self.edges.start)
         return _min if _min > float('-inf') else _max
@@ -261,6 +271,15 @@ class TemporalNetwork(BaseTemporalNetwork, Network):
     @property
     def end(self):
         """end of the object"""
+        node = self.nodes.end
+        edge = self.edges.end
+        if isinstance(node, pd.Timestamp) and isinstance(edge, pd.Timestamp):
+            return max(node, edge)
+        elif isinstance(node, pd.Timestamp):
+            return node
+        elif isinstance(edge, pd.Timestamp):
+            return edge
+
         _min = min(self.nodes.end, self.edges.end)
         _max = max(self.nodes.end, self.edges.end)
         return _max if _max < float('inf') else _min
