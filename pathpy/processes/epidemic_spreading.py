@@ -95,7 +95,7 @@ class EpidemicSIR(BaseProcess):
         self.infection_times: Dict[str, int] = dict()
 
         if isinstance(self._network, TemporalNetwork):
-            self._time = self._network.start()
+            self._time = self._network.start
         else:
             self._time = 0
 

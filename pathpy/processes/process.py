@@ -163,10 +163,8 @@ class BaseProcess:
             tn.add_node(TemporalNode(v.uid))
         
         if isinstance(self.network, TemporalNetwork):
-            for start, end, e in self.network.tedges:
-                edge = self.network.edges[e]
-                if start >= start_time and start < end_time:
-                    tn.add_edge(edge.v.uid, edge.w.uid, start=max(start, start_time), end=min(end_time, end))
+            for edge in self.network.edges[start_time:end_time]:
+                tn.add_edge(edge.v.uid, edge.w.uid, start=max(edge.start, start_time), end=min(end_time, edge.end))
             # # set initial state
             # for v in tn.nodes.uids:
             #     tn.nodes[v][start_time, 'color'] = self.state_to_color(self.node_state(v))
