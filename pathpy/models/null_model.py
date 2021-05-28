@@ -4,25 +4,21 @@
 # =============================================================================
 # File      : null_models.py -- Null models for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-28 14:43 juergen>
+# Time-stamp: <Fri 2021-05-28 14:47 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
-from __future__ import annotations
 from typing import Optional, Any
-import datetime
-
 from singledispatchmethod import singledispatchmethod
 
-from pathpy import logger, tqdm
-from pathpy.core.node import NodeCollection
-from pathpy.core.edge import EdgeCollection
-from pathpy.core.path import PathCollection
-from pathpy.models.network import Network
+from pathpy import logger  # , tqdm
+# from pathpy.core.node import NodeCollection
+# from pathpy.core.edge import EdgeCollection
+# from pathpy.core.path import PathCollection
+# from pathpy.models.network import Network
 
-from pathpy.models.higher_order_network import (HigherOrderNetwork,
-                                                HigherOrderNodeCollection)
-from pathpy.statistics.subpaths import SubPathCollection
+from pathpy.models.higher_order_network import HigherOrderNetwork
+# from pathpy.statistics.subpaths import SubPathCollection
 
 # create logger
 LOG = logger(__name__)
@@ -38,10 +34,11 @@ class NullModel(HigherOrderNetwork):
         # initialize the base class
         super().__init__(uid=uid, order=order, **kwargs)
 
-    # @singledispatchmethod
-    # def fit(self, data, order: Optional[int] = None) -> None:
-    #     """Fit data to a NullModel"""
-    #     raise NotImplementedError
+    @singledispatchmethod
+    def fit(self, data, order: Optional[int] = None,
+            subpaths: bool = True) -> None:
+        """Fit data to a HigherOrderNetwork"""
+        raise NotImplementedError
 
     # @fit.register(PathCollection)  # type: ignore
     # def _(self, data: PathCollection, order: Optional[int] = None) -> None:
