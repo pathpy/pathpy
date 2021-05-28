@@ -62,6 +62,8 @@ def local_clustering_coefficient(network: Network, v: str) -> float:
             return k/(o[v]*(o[v]-1))
         else:
             return 2*k/(d[v]*(d[v]-1))
+    else:
+        return 0.
 
 
 def avg_clustering_coefficient(network: Network) -> float:
