@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-28 14:33 juergen>
+# Time-stamp: <Fri 2021-05-28 16:16 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -177,7 +177,7 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
             min_length=1, max_length=1, paths=False))
 
         possible = list(edges)
-        for _ in tqdm(range(length - 1), desc='calculate possible sub-paths'):
+        for _ in tqdm(range(length - 1), desc='calculate possible paths'):
             new = list()
             for _v in possible:
                 for _w in edges:
