@@ -382,8 +382,8 @@ def PaCo(
     current_path_stack = defaultdict(lambda: defaultdict(int))
 
     # for e, current_edge in enumerate(D):
-    for e, ((timestamp, end, uid), edge) in enumerate(tn.tedges.items()):
-        current_edge = (edge.v.uid, edge.w.uid, timestamp)
+    for e, edge in enumerate(tn.edges[:]):
+        current_edge = (edge.v.uid, edge.w.uid, edge.start)
         # since we go in forward direction, delta window is back in time.
         # not every entry from delta window is important for the current
         # considered current_edge some are happening at the same time.
