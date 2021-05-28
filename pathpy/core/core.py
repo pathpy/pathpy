@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-28 13:32 juergen>
+# Time-stamp: <Fri 2021-05-28 13:37 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -781,7 +781,7 @@ class PathPyCollection():
             *args, uid=uid, directed=self.directed, **kwargs)
         self.add(obj, **kwargs)
 
-    def _add(self, obj: Any, **kwargs: Any) -> None:
+    def _add(self, obj: Union[PathPyObject, PathPyPath], **kwargs: Any) -> None:
         """Add an edge to the set of edges."""
         self[obj.uid] = obj
 
@@ -816,14 +816,14 @@ class PathPyCollection():
         # LOG.error('The object "%s" already exists in the Collection', obj)
         # raise KeyError
 
-    @ singledispatchmethod
+    @singledispatchmethod
     def remove(self, *args, **kwargs) -> None:
         """Remove objects"""
         # pylint: disable=no-self-use
         # pylint: disable=unused-argument
         raise NotImplementedError
 
-    @ remove.register(PathPyObject)  # type: ignore
+    @remove.register(PathPyObject)  # type: ignore
     def _(self, *args: PathPyObject, **kwargs: Any) -> None:
         """Remove object from the collection"""
         # pylint: disable=unused-argument
@@ -833,7 +833,7 @@ class PathPyCollection():
             if obj in self.values() and obj.uid in self.keys():
                 self._remove(obj)
 
-    @ remove.register(str)  # type: ignore
+    @remove.register(str)  # type: ignore
     def _(self, *args: str, **kwargs: Any) -> None:
         """Remove object from the collection"""
 
@@ -848,33 +848,22 @@ class PathPyCollection():
         else:
             LOG.warning('No edge was removed!')
 
-    @ singledispatchmethod
-    def _remove(self, obj) -> None:
-        """Add an edge to the set of edges."""
-        raise NotImplementedError
-
-    @ _remove.register(PathPyObject)  # type: ignore
-    def _(self, obj: PathPyObject) -> None:
+    def _remove(self, obj: Union[PathPyObject, PathPyPath]) -> None:
         """Add an edge to the set of edges."""
         self.pop(obj.uid, None)
         self.counter.pop(obj.uid, None)
 
-    @ _remove.register(PathPyPath)  # type: ignore
-    def _(self, obj: PathPyPath) -> None:
-        """Add an edge to the set of edges."""
-        self.pop(obj.uid, None)
-        self.counter.pop(obj.uid, None)
+        if isinstance(obj, PathPyPath):
+            if self._indexed:
+                for uid in obj.objects:
+                    self._mapping[uid].discard(obj.uid)
+                    if len(self._mapping[uid]) == 0:
+                        self._mapping.pop(uid, None)
+                        self._objects.pop(uid, None)
 
-        if self._indexed:
-            for uid in obj.objects:
-                self._mapping[uid].discard(obj.uid)
-                if len(self._mapping[uid]) == 0:
-                    self._mapping.pop(uid, None)
-                    self._objects.pop(uid, None)
-
-            self._relations[obj.relations].discard(obj.uid)
-            if len(self._relations[obj.relations]) == 0:
-                self._relations.pop(obj.relations, None)
+                self._relations[obj.relations].discard(obj.uid)
+                if len(self._relations[obj.relations]) == 0:
+                    self._relations.pop(obj.relations, None)
 
 
 def _get_valid_objects(item) -> list:
