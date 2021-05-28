@@ -5,7 +5,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-27 13:42 juergen>
+# Time-stamp: <Fri 2021-05-28 11:49 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -929,15 +929,9 @@ class Network(BaseNetwork):
                 self._properties['degrees'][_v] = len(
                     self._properties['incident_edges'][_v])
 
-                # TODO: Fix if different nodes with same uid are added
-                # elif uid not in self.nodes and node.empty:
-                #     pass
-                # if node is None and uid in self._nodes:
-                #     self.nodes[uid] = self.nodes[uid]
-                # elif uid not in self.nodes and node is None:
-                #     self.nodes.add(uid, uid=uid)
-                # elif uid not in self.nodes and node is not None:
-                #     self.nodes.add(node)
+            # update nodes of the edge
+            edge.objects[node_v.uid] = node_v
+            edge.objects[node_w.uid] = node_w
 
             self._properties['edges'].add(edge)
 

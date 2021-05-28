@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-28 10:46 juergen>
+# Time-stamp: <Fri 2021-05-28 11:51 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -283,7 +283,7 @@ def test_add_edge():
     net.add_edge('c', 'd', uid='c-2-d')
 
     assert net.number_of_edges() == 3
-    assert net.edges['c-2-d'].v == 'c'
+    assert net.edges['c-2-d'].v == c
 
     net.add_edge('a', 'd', uid='a-d')
     assert net.edges['a-d'].uid == 'a-d'
@@ -488,6 +488,11 @@ def test_network_properties():
     assert net.successors['c'] == set()
     assert net.incoming['a'] == set()
 
+    net = Network()
+    net.add_edge('a', 'b', uid='a-b')
+
+    assert net.edges['a-b'].w in net.successors['a']
+
 
 def test_add_networks():
     """Test to add networks together"""
@@ -509,16 +514,16 @@ def test_add_networks():
     assert net_3.number_of_edges() == 4
 
     # test same node objects
-    a = Node('a')
-    b = Node('b')
-    c = Node('c')
+    a=Node('a')
+    b=Node('b')
+    c=Node('c')
 
-    net_1 = Network()
-    net_2 = Network()
+    net_1=Network()
+    net_2=Network()
     net_1.add_edge(a, b)
     net_2.add_edge(b, c)
 
-    net_3 = net_1+net_2
+    net_3=net_1+net_2
     assert net_1.number_of_nodes() == 2
     assert net_1.number_of_edges() == 1
     assert net_2.number_of_nodes() == 2
@@ -527,8 +532,8 @@ def test_add_networks():
     assert net_3.number_of_edges() == 2
 
     # nodes with same uids but different objects
-    net_1 = Network()
-    net_2 = Network()
+    net_1=Network()
+    net_2=Network()
     net_1.add_edge(a, b)
     net_2.add_edge('b', c)
 
@@ -537,12 +542,12 @@ def test_add_networks():
 
     # test same edge objects
 
-    a = Node('a')
-    b = Node('b')
-    c = Node('c')
+    a=Node('a')
+    b=Node('b')
+    c=Node('c')
 
-    net_1 = Network()
-    net_2 = Network()
+    net_1=Network()
+    net_2=Network()
     net_1.add_edge(a, b, uid='e1')
     net_2.add_edge(a, b, uid='e2')
 
@@ -553,8 +558,8 @@ def test_add_networks():
     # assert 'e1' in net_3.edges and 'e2' in net_3.edges
 
     # edges with same uids but different objects
-    net_1 = Network()
-    net_2 = Network()
+    net_1=Network()
+    net_2=Network()
     net_1.add_edge(a, b, uid='e1')
     net_2.add_edge(a, b, uid='e1')
 
@@ -562,13 +567,13 @@ def test_add_networks():
     #     net_3 = net_1+net_2
 
     # add multiple networks
-    net_1 = Network()
-    net_2 = Network()
-    net_3 = Network()
+    net_1=Network()
+    net_2=Network()
+    net_3=Network()
     net_1.add_edge('a', 'b')
     net_2.add_edge('c', 'd')
     net_3.add_edge('e', 'f')
-    net_4 = net_1 + net_2 + net_3
+    net_4=net_1 + net_2 + net_3
 
     assert net_4.number_of_edges() == 3
     assert net_4.number_of_nodes() == 6
@@ -579,10 +584,10 @@ def test_add_networks():
 
 def test_iadd_networks():
     """Test to add networks together"""
-    net_1 = Network()
+    net_1=Network()
     net_1.add_edges(('a', 'b'), ('b', 'c'))
 
-    net_2 = Network()
+    net_2=Network()
     net_2.add_edges(('x', 'y'), ('y', 'z'))
 
     net_1 += net_2
@@ -593,12 +598,12 @@ def test_iadd_networks():
     assert net_2.number_of_edges() == 2
 
     # test same node objects
-    a = Node('a')
-    b = Node('b')
-    c = Node('c')
+    a=Node('a')
+    b=Node('b')
+    c=Node('c')
 
-    net_1 = Network()
-    net_2 = Network()
+    net_1=Network()
+    net_2=Network()
     net_1.add_edge(a, b)
     net_2.add_edge(b, c)
 
@@ -609,8 +614,8 @@ def test_iadd_networks():
     assert net_2.number_of_edges() == 1
 
     # nodes with same uids but different objects
-    net_1 = Network()
-    net_2 = Network()
+    net_1=Network()
+    net_2=Network()
     net_1.add_edge(a, b)
     net_2.add_edge('b', c)
 
@@ -618,12 +623,12 @@ def test_iadd_networks():
     #     net_1 += net_2
 
     # test same edge objects
-    a = Node('a')
-    b = Node('b')
-    c = Node('c')
+    a=Node('a')
+    b=Node('b')
+    c=Node('c')
 
-    net_1 = Network()
-    net_2 = Network()
+    net_1=Network()
+    net_2=Network()
     net_1.add_edge(a, b, uid='e1')
     net_2.add_edge(a, b, uid='e2')
 
@@ -634,8 +639,8 @@ def test_iadd_networks():
     # assert 'e1' in net_1.edges and 'e2' in net_1.edges
 
     # edges with same uids but different objects
-    net_1 = Network()
-    net_2 = Network()
+    net_1=Network()
+    net_2=Network()
     net_1.add_edge(a, b, uid='e1')
     net_2.add_edge(a, b, uid='e1')
 
@@ -643,9 +648,9 @@ def test_iadd_networks():
     #     net_1 += net_2
 
     # add multiple networks
-    net_1 = Network()
-    net_2 = Network()
-    net_3 = Network()
+    net_1=Network()
+    net_2=Network()
+    net_3=Network()
     net_1.add_edge('a', 'b')
     net_2.add_edge('c', 'd')
     net_3.add_edge('e', 'f')
@@ -657,14 +662,14 @@ def test_iadd_networks():
 
 def test_sub_networks():
     """Test to remove a network"""
-    net_1 = Network()
-    net_2 = Network()
+    net_1=Network()
+    net_2=Network()
     net_1.add_edge('a', 'b', uid='a-b')
     net_2.add_edge('c', 'd', uid='c-d')
     net_1 += net_2
     net_2.add_edge('d', 'e', uid='d-e')
 
-    net_3 = net_1 - net_2
+    net_3=net_1 - net_2
 
     assert net_3.number_of_nodes() == 2
     assert net_3.number_of_edges() == 1
@@ -675,10 +680,10 @@ def test_sub_networks():
     assert net_2.number_of_nodes() == 3
     assert net_2.number_of_edges() == 2
 
-    net_4 = Network()
+    net_4=Network()
     net_4.add_edge('x', 'y', uid='x-y')
 
-    net_5 = net_3 - net_4
+    net_5=net_3 - net_4
 
     assert net_5.number_of_nodes() == 2
     assert net_5.number_of_edges() == 1
@@ -688,8 +693,8 @@ def test_sub_networks():
 
 def test_isub_networks():
     """Test to remove a network with isub"""
-    net_1 = Network()
-    net_2 = Network()
+    net_1=Network()
+    net_2=Network()
     net_1.add_edge('a', 'b', uid='a-b')
     net_2.add_edge('c', 'd', uid='c-d')
     net_1 += net_2
@@ -708,14 +713,14 @@ def test_isub_networks():
 def test_network_edges():
     """Test the edges of a network"""
 
-    net = Network(directed=False)
+    net=Network(directed=False)
     net.add_edges(('a', 'b'), ('b', 'c'), ('c', 'd'))
     assert net.number_of_edges() == 3
     assert isinstance(list(net.edges), list)
 
     # np does not allow to sample from iterables
     # edge = np.random.choice(list(net.edges.values()))
-    edge = random.choice(list(net.edges))
+    edge=random.choice(list(net.edges))
     assert edge in net.edges
 
 
