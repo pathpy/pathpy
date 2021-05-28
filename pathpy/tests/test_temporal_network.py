@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_temporal_network.py -- Test environment for temp networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-27 10:54 juergen>
+# Time-stamp: <Fri 2021-05-28 11:24 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -114,19 +114,27 @@ def test_temporal_node():
 
     a = TemporalNode('a', start=1, end=4, color='red')
 
-    # print(a.attributes)
-    # print(a.relations)
-    # print(a.objects)
-    # print(a._events)
+    assert a.uid == 'a'
+    assert a.start == 1
+    assert a.end == 4
+    assert a['color' == 'red']
 
-    # print(a)
+
+def test_temporal_edge():
+    """Test temporal edge"""
+    e = TemporalEdge('a', 'b', 1)
+    assert 'a' and 'b' in e.nodes
+    assert e.uid == 1
+    assert e.start == float('-inf')
+    assert e.end == float('inf')
 
     e = TemporalEdge('a', 'b', uid='ab', start=1, end=4, color='blue')
-    # print(e.attributes)
 
-    nodes = TemporalNodeCollection()
-    nodes.add('a', start=5, end=7)
-    nodes.add('a', start=9, end=10)
+    assert e.uid == 'ab'
+    assert 'a' and 'b' in e.nodes
+    assert e.start == 1
+    assert e.end == 4
+    assert e['color'] == "blue"
 
     # print(nodes['a'])
 
@@ -135,6 +143,23 @@ def test_temporal_node():
     edges.add('a', 'b', uid='ab', start=8, end=10, color='red')
 
     # print(edges['ab'])
+
+
+def test_temporal_node_collection():
+    """Test the temporal node collection"""
+    nodes = TemporalNodeCollection()
+    nodes.add('a', start=5, end=7, color='blue')
+    nodes.add('a', start=9, end=10, color='red')
+
+    assert len(nodes) == 1
+    assert 'a' in nodes
+    assert isinstance(nodes['a'], TemporalNode)
+
+    assert nodes['a'].start == 5
+    assert nodes['a'].end == 10
+
+    assert nodes['a'].attributes == {'color': 'red'}
+    assert nodes['a']['color'] == 'red'
 
 
 def test_temporal_network():
@@ -146,15 +171,15 @@ def test_temporal_network():
     net.add_edge('a', 'b', uid='ab', start=7, end=9, color='green')
 
     net.remove_edge('bc')
-    print(net.edges._events)
+    # #print(net.edges._events)
 
-    # print(net.edges[1:9])
-    for e in net.edges[3:5]:
-        print(e.attributes)
+    # # print(net.edges[1:9])
+    # for e in net.edges[3:5]:
+    #     print(e.attributes)
 
-    print(net.nodes._events)
+    # print(net.nodes._events)
 
-    print(net.nodes.keys())
+    # print(net.nodes.keys())
     # print(net.edges['ab'])
 #     # a.event(start=5, end=7, active=True)
 #     # a.event(start=12, end=14)
