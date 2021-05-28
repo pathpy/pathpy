@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_temporal_network.py -- Test environment for temp networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-28 18:20 juergen>
+# Time-stamp: <Fri 2021-05-28 18:46 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -205,11 +205,11 @@ def test_temporal_network():
     # print(tn)
     # print(net.edges._events)
 
-    t_realtime = pp.TemporalNetwork()
-    t_realtime.add_edge('a', 'b', timestamp='2018-08-22 09:30:22')
-    t_realtime.add_edge('b', 'c', timestamp='2018-08-22 09:30:25')
-    t_realtime.add_edge('c', 'a', timestamp='2018-08-22 10:30:25')
-    print(t_realtime)
+    # t_realtime = pp.TemporalNetwork()
+    # t_realtime.add_edge('a', 'b', timestamp='2018-08-22 09:30:22')
+    # t_realtime.add_edge('b', 'c', timestamp='2018-08-22 09:30:25')
+    # t_realtime.add_edge('c', 'a', timestamp='2018-08-22 10:30:25')
+    # print(t_realtime)
     # # print(net.edges[1:9])
     # for e in net.edges[3:5]:
     #     print(e.attributes)
