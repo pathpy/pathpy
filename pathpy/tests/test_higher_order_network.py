@@ -3,14 +3,14 @@
 # =============================================================================
 # File      : test_higher_order_network.py -- Test environment for HONs
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-28 14:18 juergen>
+# Time-stamp: <Fri 2021-05-28 14:38 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 
 import pytest
 from pathpy import Node, Edge, Path
-from pathpy.models.new_higher_order_network import (
+from pathpy.models.higher_order_network import (
     HigherOrderNode,
     HigherOrderEdge,
     HigherOrderNodeCollection,
