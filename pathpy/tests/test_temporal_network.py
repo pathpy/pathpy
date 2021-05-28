@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_temporal_network.py -- Test environment for temp networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-28 11:40 juergen>
+# Time-stamp: <Fri 2021-05-28 18:16 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -175,8 +175,41 @@ def test_temporal_network():
     net = TemporalNetwork()
     with pytest.raises(Exception):
         net.add_edge('a', 'b', 1)
+
+    tn = TemporalNetwork()
+    tn.add_edge('a', 'b', timestamp=1, color='red')
+    tn.add_edge('x', 'y', timestamp=2, shape='circle')
+    tn.add_edge('a', 'b', timestamp=4, color='green')
+    tn.add_edge('a', 'b', timestamp=8, color='blue')
+    # tn.add_edge('b', 'c', timestamp=2)
+    # tn.add_edge('c', 'd', timestamp=4, color='green')
+    # tn.add_edge('d', 'f', timestamp=4)
+    # tn.add_edge('a', 'f', timestamp=6)
+    tn.add_edge('c', 'f', start=7, duration=3)
+    # tn.add_edge('b', 'f', start=7, end=11)
+
+    print(tn.edges['a', 'b'].start)
+
+    for edge in tn.edges[:]:
+        print(edge.start, edge.end, edge.attributes)
+        # print(edge.attributes)
+
+    for edge in tn.edges:
+        print(edge.uid)
+
+    for event in tn.edges['a', 'b'][:]:
+        print(event.start, event.end, event.attributes)
+    # for event in edge[:]:
+    #     print(event)
+
+    # print(tn)
     # print(net.edges._events)
 
+    # t_realtime = pp.TemporalNetwork()
+    # t_realtime.add_edge('a', 'b', timestamp='2018-08-22 09:30:22')
+    # t_realtime.add_edge('b', 'c', timestamp='2018-08-22 09:30:25')
+    # t_realtime.add_edge('c', 'a', timestamp='2018-08-22 10:30:25')
+    # print(t_realtime)
     # # print(net.edges[1:9])
     # for e in net.edges[3:5]:
     #     print(e.attributes)

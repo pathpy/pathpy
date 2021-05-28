@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal.py -- Classes to make PathPyObject temporal
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-28 11:23 juergen>
+# Time-stamp: <Fri 2021-05-28 18:13 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -49,6 +49,8 @@ class TemporalPathPyObject(PathPyObject):
         for start, end, attributes in sorted(self._events):
             self._attributes = {**{'start': start, 'end': end}, **attributes}
             yield self
+        self._attributes.pop('start', None)
+        self._attributes.pop('end', None)
 
     @singledispatchmethod
     def __getitem__(self, key: Any) -> Any:
@@ -75,6 +77,8 @@ class TemporalPathPyObject(PathPyObject):
         for start, end, attributes in sorted(self._events[start:end]):
             self._attributes = {**{'start': start, 'end': end}, **attributes}
             yield self
+        self._attributes.pop('start', None)
+        self._attributes.pop('end', None)
 
     @singledispatchmethod
     def __setitem__(self, key: Any, value: Any) -> None:
@@ -89,12 +93,12 @@ class TemporalPathPyObject(PathPyObject):
     @property
     def start(self):
         """start of the object"""
-        return self._start
+        return self.attributes.get('start', self._start)
 
     @property
     def end(self):
         """end of the object"""
-        return self._end
+        return self.attributes.get('end', self._end)
 
     def _clean_events(self):
         """helper function to clean events"""
@@ -151,14 +155,15 @@ def _get_start_end(*args, **kwargs) -> tuple:
 
     # check kwargs
     if kwargs:
-        # get keywords defined in the config file
         timestamp = kwargs.pop(config['temporal']['timestamp'], None)
-        duration = kwargs.pop(config['temporal']['duration'],
-                              config['temporal']['duration_value'])
-        unit = kwargs.pop('unit', config['temporal']['unit'])
+        duration = kwargs.pop(config['temporal']['duration'], None)
 
-        # check if timestamp is given
         if timestamp:
+            # get keywords defined in the config file
+            if duration is None:
+                duration = config['temporal']['duration_value']
+            unit = kwargs.pop('unit', config['temporal']['unit'])
+
             if isinstance(timestamp, str):
                 timestamp = pd.Timestamp(timestamp)
                 if isinstance(duration, str):
@@ -167,7 +172,10 @@ def _get_start_end(*args, **kwargs) -> tuple:
                     duration = pd.Timedelta(duration, unit=unit)
             start = timestamp
             end = timestamp + duration
-
+        elif duration is not None and start != float('-inf'):
+            end = start + duration
+        elif duration is not None and end != float('inf'):
+            start = end - duration
     # check args
     if args:
         if len(args) == 1 and isinstance(args[0], slice):
