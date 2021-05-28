@@ -16,6 +16,7 @@ from collections import defaultdict, Counter
 from numpy import inf
 
 from pathpy import logger
+from pathpy.utils.errors import ParameterError
 from pathpy.core.node import NodeCollection
 from pathpy.core.edge import EdgeCollection
 from pathpy.core.path import PathCollection
@@ -99,7 +100,17 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
         edges = set(self.edges).difference(self._properties['edges'])
 
         for edge in edges:
-            _nodes: list = [(edge.v, edge.w), (edge.w, edge.v)]
+
+            # update nodes in the network
+            for uid, node in edge.nodes.items():
+                if uid not in self.nodes.keys():
+                    self.nodes.add(node)
+
+            # get node objects
+            node_v, node_w = self.nodes[edge.v.uid], self.nodes[edge.w.uid]
+            uid = edge.uid
+
+            _nodes: list = [(node_v, node_w), (node_w, node_v)]
 
             for _v, _w in _nodes:
                 self._properties['successors'][_v].add(_w)
@@ -141,7 +152,11 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
         edges = self._properties['edges'].difference(set(self.edges))
 
         for edge in edges:
-            _nodes: list = [(edge.v, edge.w), (edge.w, edge.v)]
+            # get node objects
+            node_v, node_w = self.nodes[edge.v.uid], self.nodes[edge.w.uid]
+            uid = edge.uid
+
+            _nodes: list = [(node_v, node_w), (node_w, node_v)]
 
             for _v, _w in _nodes:
                 # print(_v.uid, _w.uid)
@@ -286,7 +301,7 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
 
             # successors of x expand all temporary
             # paths, currently ending in x
-            if self.successors[x]:
+            if len(self.successors[x])>0:
                 for w in self.successors[x]:
                     for p in temp_paths[x]:
                         temp_paths[w.uid].append(p + [w.uid])
@@ -305,7 +320,7 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
     @classmethod
     def from_temporal_network(cls, temporal_network, delta=1):
         """Creates a time-unfolded directed acyclic graph representation of 
-        the temporal network.
+        a temporal network with instantaneous edges.
         """
 
         dag = cls()
@@ -314,23 +329,25 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
         node_map = {}
 
         i = 0
-        for begin, end, uid in temporal_network.tedges:
-            edge: TemporalEdge = temporal_network.edges[uid]
+        for edge in temporal_network.edges[:]:
             v: TemporalNode = edge.v
             w: TemporalNode = edge.w
+
+            if edge.end - edge.start != 1:
+                raise ParameterError('Directed acyclic graphs can only be generated for temporal networks with instantaneous edges (i.e. with duration of 1 discrete time step).')
 
             if delta < inf:
                 current_delta = int(delta)
             else:
-                current_delta = temporal_network.end()-begin
+                current_delta = temporal_network.end-edge.start
 
-            v_t = "{0}_{1}".format(v.uid, begin)
+            v_t = "{0}_{1}".format(v.uid, edge.start)
 
             # create one time-unfolded link for all delta in [1, delta]
             # this implies that for delta = 2 and an edge (a,b,1) two
             # time-unfolded links (a_1, b_2) and (a_1, b_3) will be created
             for x in range(1, int(current_delta)+1):
-                w_t = "{0}_{1}".format(w.uid, begin+x)
+                w_t = "{0}_{1}".format(w.uid, edge.start+x)
                 #node_map[w_t] = edge.w.uid
                 if v_t not in dag.nodes:
                     dag.add_node(v_t, original=v)
@@ -340,10 +357,10 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
 
             if not temporal_network.directed:
                 # add reverse edge for undirected edge
-                v_t = "{0}_{1}".format(w.uid, begin)
+                v_t = "{0}_{1}".format(w.uid, edge.start)
 
                 for x in range(1, int(current_delta)+1):
-                    w_t = "{0}_{1}".format(v.uid, begin+x)
+                    w_t = "{0}_{1}".format(v.uid, edge.start+x)
                     #node_map[w_t] = edge.w.uid
                     if w_t not in dag.nodes:
                         dag.add_node(w_t, original=v)
