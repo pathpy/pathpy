@@ -1011,12 +1011,10 @@ class Network(BaseNetwork):
 
         for node in temporal_network.nodes[min_time:max_time]:
             if node not in network.nodes:
-                network.add_node(
-                    node, **{k[2]: v for k, v in node.attributes.items()})
+                network.add_node(node, **node.attributes)
         for edge in temporal_network.edges[min_time:max_time]:
             if (edge.v.uid, edge.w.uid) not in network.edges:
-                network.add_edge(edge.v.uid, edge.w.uid, **
-                                 {k[2]: v for k, v in edge.attributes.items()})
+                network.add_edge(edge.v.uid, edge.w.uid, **edge.attributes)
         return network
 
     # def from_temporal_network(cls, temporal_network: TemporalNetwork,
