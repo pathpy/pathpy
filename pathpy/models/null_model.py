@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : null_models.py -- Null models for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-28 14:47 juergen>
+# Time-stamp: <Fri 2021-05-28 14:49 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -12,12 +12,12 @@ from typing import Optional, Any
 from singledispatchmethod import singledispatchmethod
 
 from pathpy import logger  # , tqdm
+from pathpy.models.higher_order_network import HigherOrderNetwork
+from pathpy.core.path import PathCollection
 # from pathpy.core.node import NodeCollection
 # from pathpy.core.edge import EdgeCollection
-# from pathpy.core.path import PathCollection
 # from pathpy.models.network import Network
 
-from pathpy.models.higher_order_network import HigherOrderNetwork
 # from pathpy.statistics.subpaths import SubPathCollection
 
 # create logger
@@ -226,16 +226,16 @@ class NullModel(HigherOrderNetwork):
     #               (_end-_start).total_seconds())
     #     return paths
 
-    # @classmethod
-    # def from_paths(cls, paths: PathCollection, **kwargs: Any):
-    #     """Create higher oder network from paths."""
+    @classmethod
+    def from_paths(cls, paths: PathCollection, **kwargs: Any):
+        """Create higher oder network from paths."""
 
-    #     order: int = kwargs.get('order', 2)
+        order: int = kwargs.get('order', 2)
 
-    #     null = cls(order=order)
-    #     null.fit(paths)
+        null = cls(order=order)
+        null.fit(paths)
 
-    #     return null
+        return null
 
     # @classmethod
     # def from_network(cls, network: Network, **kwargs: Any):
