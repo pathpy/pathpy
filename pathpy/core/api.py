@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : api.py -- API for public functions of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-26 21:38 juergen>
+# Time-stamp: <Fri 2021-05-28 13:03 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -14,6 +14,7 @@
 from pathpy.core.node import Node, NodeCollection
 from pathpy.core.edge import Edge, EdgeCollection
 from pathpy.core.path import Path, PathCollection
+from pathpy.core.hyperedge import HyperEdge, HyperEdgeCollection
 
 # =============================================================================
 # eof

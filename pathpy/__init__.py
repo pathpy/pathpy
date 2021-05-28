@@ -4,13 +4,23 @@
 # =============================================================================
 # File      : __init__.py -- pathpy init file
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-04-27 10:56 ingo>
+# Time-stamp: <Fri 2021-05-28 13:04 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 # flake8: noqa
 # pylint: disable=unused-import
 
+from .__about__ import (
+    __title__,
+    __version__,
+    __author__,
+    __email__,
+    __copyright__,
+    __license__,
+    __maintainer__,
+    __status__
+)
 __version__ = "3.0.25"
 
 # import os
@@ -27,11 +37,12 @@ from pathpy.utils.errors import FileFormatError, NetworkError, MissingModuleErro
 from pathpy.core.api import (
     Node,
     Edge,
-    # HyperEdge,
     Path,
+    HyperEdge,
     NodeCollection,
     EdgeCollection,
-    PathCollection
+    PathCollection,
+    HyperEdgeCollection
 )
 
 # import models
@@ -93,16 +104,6 @@ Network.local_clustering_coefficient = statistics.local_clustering_coefficient
 
 Network.plot = plot
 
-from .__about__ import (
-    __title__,
-    __version__,
-    __author__,
-    __email__,
-    __copyright__,
-    __license__,
-    __maintainer__,
-    __status__
-)
 
 # create logger for the the init file
 LOG = logger(__name__)
