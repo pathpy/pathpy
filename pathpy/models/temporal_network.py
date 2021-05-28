@@ -10,6 +10,7 @@
 # =============================================================================
 from __future__ import annotations
 from typing import Any, Optional, Union
+from collections import defaultdict
 from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
 
 from intervaltree import IntervalTree
@@ -313,9 +314,8 @@ class TemporalNetwork(BaseTemporalNetwork, Network):
 
         # collect all activities for edges
         edge_activities = defaultdict(list)
-        for start, end, e in self.tedges:
-            edge = self.edges[e]
-            edge_activities[edge].append((start, end))
+        for e in self.edges[:]:
+            edge_activities[e].append((e.start, e.end))
 
         for e in edge_activities:
             # find all activity intervals for this edge

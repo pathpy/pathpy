@@ -1009,13 +1009,12 @@ class Network(BaseNetwork):
         network = cls(uid=uid, directed=directed,
                       multiedges=multiedges, **kwargs)
 
-        for start, end, node in temporal_network.tnodes:
-            if not (start >= max_time or end <= min_time) and node not in network.nodes:
+        for node in temporal_network.nodes[min_time:max_time]:
+            if node not in network.nodes:
                 network.add_node(
-                    node, **{k[2]: v for k, v in temporal_network.nodes[node].attributes.items()})
-        for start, end, e in temporal_network.tedges:
-            edge = temporal_network.edges[e]
-            if not (start >= max_time or end <= min_time) and (edge.v.uid, edge.w.uid) not in network.edges:
+                    node, **{k[2]: v for k, v in node.attributes.items()})
+        for edge in temporal_network.edges[min_time:max_time]:
+            if (edge.v.uid, edge.w.uid) not in network.edges:
                 network.add_edge(edge.v.uid, edge.w.uid, **
                                  {k[2]: v for k, v in edge.attributes.items()})
         return network

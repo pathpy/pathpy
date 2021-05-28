@@ -62,8 +62,8 @@ class RollingTimeWindow:
         self.temporal_network = temporal_net
         self.window_size = window_size
         self.step_size = step_size
-        self.current_time = temporal_net.start()
-        self.max_time = temporal_net.end()
+        self.current_time = temporal_net.start
+        self.max_time = temporal_net.end
         self.directed = temporal_net.directed
         self.return_window = return_window
 
