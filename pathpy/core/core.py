@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-27 13:08 juergen>
+# Time-stamp: <Fri 2021-05-28 13:32 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -781,34 +781,25 @@ class PathPyCollection():
             *args, uid=uid, directed=self.directed, **kwargs)
         self.add(obj, **kwargs)
 
-    @singledispatchmethod
     def _add(self, obj: Any, **kwargs: Any) -> None:
         """Add an edge to the set of edges."""
-        raise NotImplementedError
-
-    @_add.register(PathPyObject)  # type: ignore
-    def _(self, obj: PathPyObject, **kwargs: Any) -> None:
-        self[obj.uid] = obj
-        self.counter[obj.uid] += kwargs.get(
-            config['attributes']['frequency'], 1)
-
-    @_add.register(PathPyPath)  # type: ignore
-    def _(self, obj: PathPyObject, **kwargs: Any) -> None:
         self[obj.uid] = obj
 
         self.counter[obj.uid] += kwargs.get(
             config['attributes']['frequency'], 1)
 
-        for key, value in obj.objects.items():
-            if key not in self._objects or \
-                    (self._objects[key] is None and value is not None):
-                self._objects[key] = value
+        if isinstance(obj, PathPyPath):
+            for key, value in obj.objects.items():
+                if ((key not in self._objects) or
+                    (isinstance(self._objects[key], PathPyEmpty)
+                     and isinstance(value, PathPyEmpty))):
+                    self._objects[key] = value
 
-        if self._indexed:
-            for uid in obj.objects:
-                self._mapping[uid].add(obj.uid)
+            if self._indexed:
+                for uid in obj.objects:
+                    self._mapping[uid].add(obj.uid)
 
-            self._relations[obj.relations].add(obj.uid)
+                self._relations[obj.relations].add(obj.uid)
 
     def _if_exist(self, obj: Any, **kwargs: Any) -> None:
         """Helper function if the edge does already exsist."""
@@ -825,14 +816,14 @@ class PathPyCollection():
         # LOG.error('The object "%s" already exists in the Collection', obj)
         # raise KeyError
 
-    @singledispatchmethod
+    @ singledispatchmethod
     def remove(self, *args, **kwargs) -> None:
         """Remove objects"""
         # pylint: disable=no-self-use
         # pylint: disable=unused-argument
         raise NotImplementedError
 
-    @remove.register(PathPyObject)  # type: ignore
+    @ remove.register(PathPyObject)  # type: ignore
     def _(self, *args: PathPyObject, **kwargs: Any) -> None:
         """Remove object from the collection"""
         # pylint: disable=unused-argument
@@ -842,7 +833,7 @@ class PathPyCollection():
             if obj in self.values() and obj.uid in self.keys():
                 self._remove(obj)
 
-    @remove.register(str)  # type: ignore
+    @ remove.register(str)  # type: ignore
     def _(self, *args: str, **kwargs: Any) -> None:
         """Remove object from the collection"""
 
@@ -857,18 +848,18 @@ class PathPyCollection():
         else:
             LOG.warning('No edge was removed!')
 
-    @singledispatchmethod
+    @ singledispatchmethod
     def _remove(self, obj) -> None:
         """Add an edge to the set of edges."""
         raise NotImplementedError
 
-    @_remove.register(PathPyObject)  # type: ignore
+    @ _remove.register(PathPyObject)  # type: ignore
     def _(self, obj: PathPyObject) -> None:
         """Add an edge to the set of edges."""
         self.pop(obj.uid, None)
         self.counter.pop(obj.uid, None)
 
-    @_remove.register(PathPyPath)  # type: ignore
+    @ _remove.register(PathPyPath)  # type: ignore
     def _(self, obj: PathPyPath) -> None:
         """Add an edge to the set of edges."""
         self.pop(obj.uid, None)
