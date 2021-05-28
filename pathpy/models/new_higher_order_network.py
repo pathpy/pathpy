@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-28 13:41 juergen>
+# Time-stamp: <Fri 2021-05-28 13:44 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -196,10 +196,10 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
         LOG.debug('I\'m a likelihood of a HigherOrderNetwork')
 
         # get a list of nodes for the matrix indices
-        n = self.nodes.index
+        idx = self.nodes.index
 
         # get the transition matrix
-        T = transition_matrix(self, weight='frequency', transposed=True)
+        matrix = transition_matrix(self, weight='frequency', transposed=True)
 
         # initialize likelihood
         if log:
@@ -227,11 +227,11 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
 
                 # calculate path likelihood
                 if log:
-                    path_likelihood += np.log(T[n[self.nodes[_w].uid],
-                                                n[self.nodes[_v].uid]])
+                    path_likelihood += np.log(matrix[idx[self.nodes[_w].uid],
+                                                     idx[self.nodes[_v].uid]])
                 else:
-                    path_likelihood *= T[n[self.nodes[_w].uid],
-                                         n[self.nodes[_v].uid]]
+                    path_likelihood *= matrix[idx[self.nodes[_w].uid],
+                                              idx[self.nodes[_v].uid]]
 
             # calculate likelihood
             if log:
