@@ -17,7 +17,7 @@ from pathpy import config, logger
 
 from pathpy.core.api import Node
 from pathpy.core.api import Edge
-from pathpy.models.api import Network
+from pathpy.models.api import Network, TemporalNetwork
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
@@ -304,11 +304,7 @@ def to_temporal_network(df: pd.DataFrame, loops: Optional[bool] = True,
         v = str(row.pop('v'))
         w = str(row.pop('w'))
         uid = row.pop('uid', None)
-        if (v, w) not in edges:
-            edge = TemporalEdge(nodes[v], nodes[w], uid=uid, **row)
-            edges[(v, w)] = edge
-        else:
-            edges[(v, w)].update(active=True, **row)
+        net.add_edge(v, w, uid=uid, **row)
 
     # add edges to the network
     for edge in edges.values():
@@ -459,17 +455,16 @@ def from_temporal_network(network: TemporalNetwork,
     """
     frame = pd.DataFrame()
 
-    for begin, end, uid in network.tedges:
-        edge = network.edges[uid]
+    for edge in network.edges[:]:
         v = edge.v.uid
         w = edge.w.uid
         if export_indices:
             v = network.nodes.index[v]
             w = network.nodes.index[w]
         if include_edge_uid:
-            edge_frame = pd.DataFrame.from_dict({'v': [v], 'w': [w], 'uid': [uid], 'begin': [begin], 'end': [end]})
+            edge_frame = pd.DataFrame.from_dict({'v': [v], 'w': [w], 'uid': [edge.uid]})
         else:
-            edge_frame = pd.DataFrame.from_dict({'v': [v], 'w': [w], 'begin': [begin], 'end': [end]})
+            edge_frame = pd.DataFrame.from_dict({'v': [v], 'w': [w]})
         data = pd.DataFrame.from_dict({ k: [v] for k,v in edge.attributes.items()})
         edge_frame = pd.concat([edge_frame, data], axis=1)
         frame = pd.concat([edge_frame, frame], ignore_index=True)
@@ -539,15 +534,15 @@ def to_dataframe(network: Union[Network, TemporalNetwork],
     2  0  1  0x2cf752449e8    red
     """
 
-    if isinstance(network, Network):
-        frame = from_network(network, include_edge_uid=include_edge_uid,
-                             export_indices=export_indices)
-    elif isinstance(network, TemporalNetwork):
+    if isinstance(network, TemporalNetwork):
         frame = from_temporal_network(network,
                                       include_edge_uid=include_edge_uid,
                                       export_indices=export_indices)
+    elif isinstance(network, Network):
+        frame = from_network(network, include_edge_uid=include_edge_uid,
+                             export_indices=export_indices)
     else:
-        raise NotImplementedError
+        raise NotImplementedError('Export to data frame is only implemented for Network and TemporalNetwork')
 
     return frame
 
