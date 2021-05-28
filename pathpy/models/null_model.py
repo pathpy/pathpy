@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : null_models.py -- Null models for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-28 16:15 juergen>
+# Time-stamp: <Fri 2021-05-28 16:17 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -53,7 +53,6 @@ class NullModel(HigherOrderNetwork):
 
         # get node index and transition matrix
         idx = {node.relations[0]: i for i, node in enumerate(hon.nodes)}
-        print(idx)
         mat = hon.transition_matrix(weight='frequency')
 
         # generate possible paths
