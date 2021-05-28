@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-27 13:50 juergen>
+# Time-stamp: <Fri 2021-05-28 10:46 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -739,6 +739,17 @@ def test_network_undirected():
     assert net.edges['a', 'b']['color'] == 'blue'
     assert net.edges['b', 'a']['size'] == 4
     assert net.edges['a', 'b']['timestamp'] == 3
+
+
+def test_network_from_pathpyobjects():
+    """Create a network from pathpy objects"""
+    trolls = pp.Network(multiedges=True, name='Trolls', chapter='Roast Mutton')
+    tom = pp.Node(uid='t', name='Tom', age=156)
+    bert = pp.Node(uid='b', name='Bert', age=96)
+    e1 = pp.Edge(tom, bert, type='like', strength=2.0)
+
+    trolls.add_edge(e1)
+
 
 # =============================================================================
 # eof

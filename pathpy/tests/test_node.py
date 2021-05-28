@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_node.py -- Test environment for the Node class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-26 21:52 juergen>
+# Time-stamp: <Fri 2021-05-28 10:51 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -44,6 +44,11 @@ def test_uid():
     assert isinstance(w, Node)
     assert isinstance(w.uid, str)
     assert w.uid == hex(id(w))
+
+    x = Node(uid='x')
+    assert isinstance(x, Node)
+    assert isinstance(x.uid, str)
+    assert x.uid == 'x'
 
 
 def test_setitem():

@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_edge.py -- Test environment for the Edge class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-26 21:50 juergen>
+# Time-stamp: <Fri 2021-05-28 10:42 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -323,13 +323,12 @@ def test_EdgeCollection_undirected():
 
     edges = EdgeCollection(directed=False)
     edges.add('a', 'b')
-    print(len(edges))
+    edges.add('b', 'a')
+    assert len(edges) == 1
 
-    print(edges.directed)
-    print(edges['a', 'b'].directed)
-    print(edges['a', 'b'])
-    print(('a', 'b') in edges)
-    print(('b', 'a') in edges)
+    assert edges['a', 'b'].directed == False
+    assert ('a', 'b') in edges
+    assert ('b', 'a') in edges
 
 # =============================================================================
 # eof
