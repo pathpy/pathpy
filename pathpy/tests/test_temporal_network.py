@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_temporal_network.py -- Test environment for temp networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-28 11:24 juergen>
+# Time-stamp: <Fri 2021-05-28 11:40 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -136,14 +136,6 @@ def test_temporal_edge():
     assert e.end == 4
     assert e['color'] == "blue"
 
-    # print(nodes['a'])
-
-    edges = TemporalEdgeCollection()
-    edges.add('a', 'b', uid='ab', start=3, end=7, color='blue')
-    edges.add('a', 'b', uid='ab', start=8, end=10, color='red')
-
-    # print(edges['ab'])
-
 
 def test_temporal_node_collection():
     """Test the temporal node collection"""
@@ -162,6 +154,14 @@ def test_temporal_node_collection():
     assert nodes['a']['color'] == 'red'
 
 
+def test_temporal_edge_collection():
+    """Test the temporal node collection"""
+
+    edges = TemporalEdgeCollection()
+    edges.add('a', 'b', uid='ab', start=3, end=7, color='blue')
+    edges.add('a', 'b', uid='ab', start=8, end=10, color='red')
+
+
 def test_temporal_network():
     """Test a temporal network"""
 
@@ -171,7 +171,11 @@ def test_temporal_network():
     net.add_edge('a', 'b', uid='ab', start=7, end=9, color='green')
 
     net.remove_edge('bc')
-    # #print(net.edges._events)
+
+    net = TemporalNetwork()
+    with pytest.raises(Exception):
+        net.add_edge('a', 'b', 1)
+    # print(net.edges._events)
 
     # # print(net.edges[1:9])
     # for e in net.edges[3:5]:

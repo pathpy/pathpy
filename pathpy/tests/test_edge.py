@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_edge.py -- Test environment for the Edge class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-28 10:42 juergen>
+# Time-stamp: <Fri 2021-05-28 11:06 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -153,6 +153,13 @@ def test_self_loop():
 
     vv = Edge(v, v)
     assert len(vv.nodes) == 1
+
+
+def test_multiple_nodes():
+    """Test edge creation with mutliple nodes"""
+    e = Edge('a', 'b', 1)
+    assert 'a' and 'b' in e.nodes
+    assert e.uid == 1
 
 
 def test_errors():
