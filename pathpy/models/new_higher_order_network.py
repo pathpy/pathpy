@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-28 14:27 juergen>
+# Time-stamp: <Fri 2021-05-28 14:33 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -14,7 +14,7 @@ from collections import Counter
 from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
 import numpy as np
 
-from pathpy import logger
+from pathpy import logger, tqdm
 from pathpy.core.core import PathPyRelation
 from pathpy.core.edge import Edge, EdgeCollection
 from pathpy.core.path import Path, PathCollection
@@ -134,7 +134,7 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
             self._order = order
 
         # iterate over all paths
-        for uid, path in data.items():
+        for uid, path in tqdm(data.items(), desc='convert paths to hon'):
 
             # generate subpaths of order-1 for higher-order nodes
             nodes = path.subpaths(min_length=self.order-1,
@@ -177,7 +177,7 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
             min_length=1, max_length=1, paths=False))
 
         possible = list(edges)
-        for _ in range(length - 1):
+        for _ in tqdm(range(length - 1), desc='calculate possible sub-paths'):
             new = list()
             for _v in possible:
                 for _w in edges:
