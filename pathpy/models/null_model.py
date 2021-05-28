@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : null_models.py -- Null models for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-28 14:49 juergen>
+# Time-stamp: <Fri 2021-05-28 14:52 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -40,9 +40,10 @@ class NullModel(HigherOrderNetwork):
         """Fit data to a HigherOrderNetwork"""
         raise NotImplementedError
 
-    # @fit.register(PathCollection)  # type: ignore
-    # def _(self, data: PathCollection, order: Optional[int] = None) -> None:
-
+    @fit.register(PathCollection)  # type: ignore
+    def _(self, data: PathCollection, order: Optional[int] = None,
+          subpaths: bool = True) -> None:
+        pass
     #     # Check order
     #     if order is not None:
     #         self._order = order

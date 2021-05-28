@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_null_model.py -- Test environment for null models
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-28 14:42 juergen>
+# Time-stamp: <Fri 2021-05-28 14:50 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -23,10 +23,9 @@ def test_basic():
     paths.add('a', 'c', 'd', uid='a-c-d', frequency=10)
     paths.add('b', 'c', 'e', uid='b-c-e', frequency=10)
 
-    # null = NullModel()
-    # null.fit(paths, order=2)
+    null = NullModel()
+    null.fit(paths, order=2)
 
-    null = NullModel(order=2)
     # null = NullModel.from_paths(paths, order=2)
 
     # assert null.number_of_edges() == 4
