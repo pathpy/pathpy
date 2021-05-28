@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-28 18:41 juergen>
+# Time-stamp: <Fri 2021-05-28 18:59 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================

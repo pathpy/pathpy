@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal.py -- Classes to make PathPyObject temporal
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-28 18:13 juergen>
+# Time-stamp: <Fri 2021-05-28 19:01 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -158,7 +158,7 @@ def _get_start_end(*args, **kwargs) -> tuple:
         timestamp = kwargs.pop(config['temporal']['timestamp'], None)
         duration = kwargs.pop(config['temporal']['duration'], None)
 
-        if timestamp:
+        if timestamp is not None:
             # get keywords defined in the config file
             if duration is None:
                 duration = config['temporal']['duration_value']

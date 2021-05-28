@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_temporal_network.py -- Test environment for temp networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-28 18:46 juergen>
+# Time-stamp: <Fri 2021-05-28 19:00 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -199,6 +199,11 @@ def test_temporal_network():
 
     for event in tn.edges['a', 'b'][:]:
         print(event.start, event.end, event.attributes)
+
+    tn = TemporalNetwork()
+    tn.add_edge('a', 'b', timestamp=0, color='red')
+
+    print(tn)
     # for event in edge[:]:
     #     print(event)
 

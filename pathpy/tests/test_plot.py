@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_plot.py -- Test environment for the Plot class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-27 14:28 juergen>
+# Time-stamp: <Fri 2021-05-28 19:02 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -197,6 +197,17 @@ def test_temporal_network():
 
     # print(tn)
 
+    tn = pp.TemporalNetwork()
+    tn.add_edge('a', 'b', timestamp=0)
+    tn.add_edge('a', 'b', timestamp=20)
+    tn.add_edge('a', 'b', timestamp=40)
+    tn.add_edge('b', 'c', timestamp=40)
+    tn.add_edge('b', 'c', timestamp=60)
+    tn.add_edge('b', 'c', timestamp=80)
+    tn.add_edge('a', 'b', timestamp=80)
+    tn.add_edge('a', 'b', timestamp=100)
+
+    print(tn)
     # print('\n\n')
     tn.plot(filename='d3js_test.html', **style)
     # tn.add_node('g')
