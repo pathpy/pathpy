@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-28 14:21 juergen>
+# Time-stamp: <Fri 2021-05-28 14:27 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -237,6 +237,14 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
             result = result[1:] + (element,)
             yield result
 
+    @classmethod
+    def from_paths(cls, paths: PathCollection, **kwargs: Any):
+        """Create higher oder network from paths."""
+        order: int = kwargs.get('order', 1)
+        subpaths: bool = kwargs.get('subpath', True)
+        hon = cls(order=order)
+        hon.fit(paths, subpaths=subpaths)
+        return hon
 
 # =============================================================================
 # eof
