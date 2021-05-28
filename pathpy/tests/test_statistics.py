@@ -125,6 +125,8 @@ def test_local_clustering_coefficient():
 
     cc = pp.statistics.clustering.local_clustering_coefficient(n, 'f')
     assert cc == 2/3
+    cc = pp.statistics.clustering.local_clustering_coefficient(n, 'a')
+    assert cc == 1
     # s = pp.statistics.degrees.degree_central_moment(net, weight=True)
     # # print(s)
 
