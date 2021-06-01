@@ -4,13 +4,13 @@
 # =============================================================================
 # File      : null_models.py -- Null models for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-01 13:28 juergen>
+# Time-stamp: <Tue 2021-06-01 13:33 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from typing import Optional, Any
-from singledispatchmethod import singledispatchmethod
 from collections import Counter
+from singledispatchmethod import singledispatchmethod
 
 from pathpy import logger, tqdm
 from pathpy.models.higher_order_network import HigherOrderNetwork
@@ -104,14 +104,6 @@ class NullModel(HigherOrderNetwork):
 
         if self.order == 0:
             degrees_of_freedom = max(0, self.number_of_nodes()-1)
-
-        # elif mode == 'old':
-        #     # TODO : Remove this part after proper testing
-        #     A = self.network.adjacency_matrix()
-
-        #     degrees_of_freedom = int(
-        #         (A ** self.order).sum()
-        #         - np.count_nonzero((A ** self.order).sum(axis=0)))
 
         elif mode == 'ngram':
             number_of_nodes = len(self.nodes.nodes)
