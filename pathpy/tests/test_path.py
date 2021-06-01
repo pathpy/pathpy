@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_path.py -- Test environment for the Path class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-01 18:48 juergen>
+# Time-stamp: <Tue 2021-06-01 19:29 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -399,6 +399,13 @@ def test_PathCollection():
 
     # assert len(paths) == 1
 
+
+def test_PathCollection_counter():
+    """Test the counter of the path collection"""
+    paths = PathCollection()
+    paths.add('a', 'b', count=5)
+    paths.add('a', 'b', count=7)
+    assert paths.counter[paths['a', 'b'].uid] == 12
 
 # =============================================================================
 # eof
