@@ -9,11 +9,11 @@
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
 from typing import Optional
-from collections import Counter, OrderedDict
-
+from collections import OrderedDict, Counter
+from pathpy.core.api import PathCollection
 from pathpy import logger
 
-def to_state_file(paths: Counter, file: str, max_memory: int=1) -> None:
+def to_state_file(paths: PathCollection, file: str, max_memory: int=1) -> None:
     """
     Writes paths from a PathCollection instance into a state file that can be read by InfoMap [1].
 
@@ -55,9 +55,7 @@ def to_state_file(paths: Counter, file: str, max_memory: int=1) -> None:
     3 4 1
     """
     # node set
-    nodes = set()    
-    for p in paths:
-        nodes.update(p)
+    nodes = set(paths.nodes.keys())
 
     state_file = []
     with open(file, mode='w') as f:        
@@ -81,22 +79,20 @@ def to_state_file(paths: Counter, file: str, max_memory: int=1) -> None:
         links = Counter()
         i = 1
         for p in paths:
-            # print(' -> '.join(v for v in p))
-
-            for k in range(len(p)-1):
-                current_node = p[k]
-                next_node = p[k+1]
+            for k in range(len(p.relations)-1):
+                current_node = p.relations[k]
+                next_node = p.relations[k+1]
 
                 # memory of predecessor = last up to max_order nodes (or empty if first node)
                 memory_pred = []
                 for j in range(max(0, k-max_memory), k):
-                    memory_pred.append(p[j])
+                    memory_pred.append(p.relations[j])
 
                 # memory of successor = last up to max_order nodes (or empty if last node)
                 memory_succ = []
-                if k+1<len(p)-1:
+                if k+1<len(p.relations)-1:
                     for j in range(max(0, k-max_memory+1), k+1):
-                        memory_succ.append(p[j])
+                        memory_succ.append(p.relations[j])
                 
                 current_state = '{' + '-'.join(memory_pred) + '}_' + current_node
                 next_state = '{' + '-'.join(memory_succ) + '}_' + next_node
@@ -110,7 +106,7 @@ def to_state_file(paths: Counter, file: str, max_memory: int=1) -> None:
                     states_by_index[i] = (next_node, next_state)
                     states_to_index[next_state] = i
                     i += 1
-                links[(current_state, next_state)] += paths[p]
+                links[(current_state, next_state)] += paths.counter[p.uid]
 
         for index, item in states_by_index.items():
             state_file.append('{0} {1} "{2}"'.format(index, nodes_to_index[item[0]], item[1]))
