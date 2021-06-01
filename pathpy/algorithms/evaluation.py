@@ -115,36 +115,36 @@ def _(network: TemporalNetwork, test_size: Optional[float]=0.25, train_size: Opt
     train_network = TemporalNetwork(directed=network.directed, multiedges=network.multiedges, uid=network.uid+'_train')
 
     if split == 'time':
-        start_time = network.start()
-        end_time = network.end()
+        start_time = network.start
+        end_time = network.end
         split_point = start_time + (end_time-start_time) * (1-test_size)
 
-        for (start, end, uid) in network.tedges:
-            if end < split_point:
-                if uid in train_network.edges:
-                    train_network.add_edge(train_network.edges[uid], start=start, end=end)
-                else:
-                    train_network.add_edge(network.edges[uid].v, network.edges[uid].w, start=start, end=end, uid=uid)
+        for e in network.edges[start_time:split_point]:
+            if e in train_network.edges:
+                train_network.add_edge(e, start=e.start, end=e.end)
             else:
-                if uid in test_network.edges:
-                    test_network.add_edge(network.edges[uid], start=start, end=end)
-                else:
-                    test_network.add_edge(network.edges[uid].v, network.edges[uid].w, start=start, end=end, uid=uid)
+                train_network.add_edge(e.v, e.w, start=e.start, end=e.end, uid=e.uid)
+
+        for e in network.edges[split_point:end_time]:
+            if e in test_network.edges:
+                test_network.add_edge(e, start=e.start, end=e.end)
+            else:
+                test_network.add_edge(e.v, e.w, start=e.start, end=e.end, uid=e.uid)            
 
     elif split == 'interactions':
-        split_point = len(network.tedges) * (1-test_size)
+        split_point = network.number_of_edges() * (1-test_size)
         i = 0 
-        for (start, end, uid) in network.tedges:
+        for e in network.edges[:]:
             if i <= split_point:
-                if uid in train_network.edges:
-                    train_network.add_edge(train_network.edges[uid], start=start, end=end)
+                if e in train_network.edges:
+                    train_network.add_edge(e, start=e.start, end=e.end)
                 else:
-                    train_network.add_edge(network.edges[uid].v, network.edges[uid].w, start=start, end=end, uid=uid)
+                    train_network.add_edge(e.v, e.w, start=e.start, end=e.end, uid=e.uid)
             else:
-                if uid in test_network.edges:
-                    test_network.add_edge(network.edges[uid], start=start, end=end)
+                if e in test_network.edges:
+                    test_network.add_edge(e, start=e.start, end=e.end)
                 else:
-                    test_network.add_edge(network.edges[uid].v, network.edges[uid].w, start=start, end=end, uid=uid)
+                    test_network.add_edge(e.v, e.w, start=e.start, end=e.end, uid=e.uid)
             i+= 1
     else:
         raise NotImplementedError('Unsupported split method "{0}" for instance of type TemporalNetwork'.format(split))
