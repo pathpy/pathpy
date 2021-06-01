@@ -75,7 +75,7 @@ class TemporalEdge(Edge, TemporalPathPyObject):
     def summary(self) -> str:
         """Object summary. """
         summary = [
-            'Observation periode:\t{} - {}'.format(self.start, self.end)
+            'Observation period:\t{} - {}'.format(self.start, self.end)
         ]
 
         return super().summary() + ''.join(summary)
