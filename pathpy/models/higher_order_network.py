@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-28 16:16 juergen>
+# Time-stamp: <Tue 2021-06-01 13:22 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -174,7 +174,7 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
 
         # get paths of length 1
         edges = set(e for p in collection for e in p.subpaths(
-            min_length=1, max_length=1, paths=False))
+            min_length=1, max_length=1, include_self=True, paths=False))
 
         possible = list(edges)
         for _ in tqdm(range(length - 1), desc='calculate possible paths'):
@@ -240,10 +240,13 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
     @classmethod
     def from_paths(cls, paths: PathCollection, **kwargs: Any):
         """Create higher oder network from paths."""
+
         order: int = kwargs.get('order', 1)
         subpaths: bool = kwargs.get('subpath', True)
+
         hon = cls(order=order)
         hon.fit(paths, subpaths=subpaths)
+
         return hon
 
 # =============================================================================
