@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-01 13:22 juergen>
+# Time-stamp: <Tue 2021-06-01 15:35 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -146,6 +146,9 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
                     self.add_node(*node, frequency=0)
                 self.nodes.counter[self.nodes[node].uid] += data.counter[uid]
 
+            # do not create edges if order is 0
+            nodes = nodes if self.order > 0 else []
+
             # generat higher-order edges
             for _v, _w in zip(nodes[:-1], nodes[1:]):
                 _v, _w = self.nodes[_v], self.nodes[_w]
@@ -162,6 +165,12 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
                     self._observed[edge.first_order_relations] += data.counter[uid]
                 else:
                     self._subpaths[edge.first_order_relations] += data.counter[uid]
+
+        # calculate frequencies for a zero-order network
+        if self.order == 0:
+            total = sum(self.nodes.counter.values())
+            for key, value in self.nodes.counter.items():
+                self.nodes.counter[key] = value/total
 
         # create all possible higher-order nodes
         if subpaths and self.order > 1:
