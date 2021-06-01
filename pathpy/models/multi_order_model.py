@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : multi_order_models.py -- Multi order models for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sun 2020-09-06 12:02 juergen>
+# Time-stamp: <Tue 2021-06-01 13:39 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -12,14 +12,14 @@ from __future__ import annotations
 from typing import Optional, Any
 import datetime
 from itertools import islice
+from collections import defaultdict
 import numpy as np
 from scipy.stats import chi2
-from collections import defaultdict
 
 # from singledispatchmethod import singledispatchmethod
 
 from pathpy import logger
-from pathpy.models.classes import BaseModel
+from pathpy.models.classes import BaseMultiOrderModel
 from pathpy.models.higher_order_network import HigherOrderNetwork
 from pathpy.models.null_model import NullModel
 from pathpy.core.path import PathCollection
@@ -28,7 +28,7 @@ from pathpy.core.path import PathCollection
 LOG = logger(__name__)
 
 
-class MultiOrderModel(BaseModel):
+class MultiOrderModel(BaseMultiOrderModel):
     """A mulit-order model for higher order networks."""
 
     def __init__(self, uid: Optional[str] = None, max_order: int = 1,

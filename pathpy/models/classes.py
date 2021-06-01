@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : classes.py -- Base classes for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-27 09:10 juergen>
+# Time-stamp: <Tue 2021-06-01 13:38 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -29,6 +29,10 @@ class BaseTemporalNetwork(BaseModel):
 
 class BaseHigherOrderNetwork(BaseModel):
     """Base class for a higher-order network model."""
+
+
+class BaseMultiOrderModel(BaseModel):
+    """Base class for a multi-order model."""
 
 # =============================================================================
 # eof
