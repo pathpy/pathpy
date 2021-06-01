@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_path_extraction.py -- Test path extraction in temporal networks and DAGs
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Wed 2021-05-05 17:52 ingo>
+# Time-stamp: <Tue 2021-06-01 12:52 ingo>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -27,7 +27,6 @@ def tempnet():
     return tn
 
 
-# TODO: add unit test with undirected edge
 @pytest.fixture
 def tempnet2():
     tn = pp.TemporalNetwork(directed=False)
@@ -49,10 +48,10 @@ def dag():
 
 
 pathdata = [
-    (1, Counter({('a', 'b', 'c'): 1, ('b', 'd'): 1, ('c', 'd'): 1} )),
-    (2, Counter({('a', 'b', 'c'): 1, ('b', 'd'): 1, ('c', 'd'): 1} )),
-    (3, Counter({('a', 'b', 'c', 'd'): 1, ('b', 'd'): 1} )),
-    (4, Counter({('a', 'b', 'c', 'd'): 1, ('a', 'b', 'd'): 1} ))
+    (1, Counter({('a-b-c'): 1, ('b-d'): 1, ('c-d'): 1} )),
+    (2, Counter({('a-b-c'): 1, ('b-d'): 1, ('c-d'): 1} )),
+    (3, Counter({('a-b-c-d'): 1, ('b-d'): 1} )),
+    (4, Counter({('a-b-c-d'): 1, ('a-b-d'): 1} ))
 ]
 
 dagdata = [
@@ -65,20 +64,20 @@ dagdata = [
 @pytest.mark.parametrize("delta,path_counts", pathdata)
 def test_path_extraction_temporal_network(tempnet, delta, path_counts):
     paths = pp.algorithms.path_extraction.all_paths_from_temporal_network(tempnet, delta=delta)
-    assert paths == path_counts
+    assert paths.counter == path_counts
 
 
 def test_path_extraction_temporal_network_undirected(tempnet2):
     paths = pp.algorithms.path_extraction.all_paths_from_temporal_network(tempnet2, delta=1)
-    assert paths == Counter({('a', 'b', 'c', 'a'): 1,
-         ('b', 'a'): 1,
-         ('a', 'b'): 1,
-         ('a', 'c'): 1,
-         ('c', 'b', 'a'): 1})
+    assert paths.counter == Counter({('a-b-c-a'): 1,
+         ('b-a'): 1,
+         ('a-b'): 1,
+         ('a-c'): 1,
+         ('c-b-a'): 1})
 
 def test_path_extraction_dag(dag):
     paths = pp.algorithms.path_extraction.all_paths_from_dag(dag)
-    assert paths == Counter({('a', 'b', 'c', 'e'): 1, ('a', 'b', 'd'): 1})
+    assert paths.counter == Counter({('a-b-c-e'): 1, ('a-b-d'): 1})
 
 
 @pytest.mark.parametrize("delta,expected_edges", dagdata)
@@ -123,100 +122,100 @@ def tn2():
 
 def tn1_delta2():
     """Correct solution"""
-    return Counter({('a', 'b'): 2,
-                ('b', 'a'): 1,
-                ('b', 'c'): 2,
-                ('c', 'b'): 1,
-                ('c', 'd'): 1,
-                ('d', 'c'): 2,
-                ('a', 'b', 'a'): 2,
-                ('a', 'b', 'c'): 2,
-                ('b', 'c', 'd'): 1,
-                ('c', 'b', 'c'): 1,
-                ('d', 'c', 'b'): 1,
-                ('d', 'c', 'd'): 2,
-                ('a', 'b', 'c', 'd'): 2,
-                ('d', 'c', 'b', 'c'): 1})
+    return Counter({('a-b'): 2,
+                ('b-a'): 1,
+                ('b-c'): 2,
+                ('c-b'): 1,
+                ('c-d'): 1,
+                ('d-c'): 2,
+                ('a-b-a'): 2,
+                ('a-b-c'): 2,
+                ('b-c-d'): 1,
+                ('c-b-c'): 1,
+                ('d-c-b'): 1,
+                ('d-c-d'): 2,
+                ('a-b-c-d'): 2,
+                ('d-c-b-c'): 1})
 
 
 
 def tn1_delta3():
     """Correct solution"""
-    return Counter({('a', 'b'): 2,
-                ('b', 'a'): 1,
-                ('b', 'c'): 2,
-                ('c', 'b'): 1,
-                ('c', 'd'): 1,
-                ('d', 'c'): 2,
-                ('a', 'b', 'a'): 2,
-                ('a', 'b', 'c'): 2,
-                ('b', 'c', 'b'): 1,
-                ('b', 'c', 'd'): 1,
-                ('c', 'b', 'c'): 1,
-                ('d', 'c', 'b'): 2,
-                ('d', 'c', 'd'): 2,
-                ('a', 'b', 'c', 'b'): 2,
-                ('a', 'b', 'c', 'd'): 2,
-                ('b', 'c', 'b', 'c'): 1,
-                ('d', 'c', 'b', 'c'): 2,
-                ('a', 'b', 'c', 'b', 'c'): 2})
+    return Counter({('a-b'): 2,
+                ('b-a'): 1,
+                ('b-c'): 2,
+                ('c-b'): 1,
+                ('c-d'): 1,
+                ('d-c'): 2,
+                ('a-b-a'): 2,
+                ('a-b-c'): 2,
+                ('b-c-b'): 1,
+                ('b-c-d'): 1,
+                ('c-b-c'): 1,
+                ('d-c-b'): 2,
+                ('d-c-d'): 2,
+                ('a-b-c-b'): 2,
+                ('a-b-c-d'): 2,
+                ('b-c-b-c'): 1,
+                ('d-c-b-c'): 2,
+                ('a-b-c-b-c'): 2})
 
 
 
 def tn2_delta1():
     """Correct solution"""
-    return Counter({('a', 'b'): 1,
-                ('a', 'c'): 1,
-                ('b', 'c'): 1,
-                ('b', 'd'): 1,
-                ('c', 'b'): 1,
-                ('c', 'd'): 1,
-                ('d', 'a'): 1,
-                ('d', 'c'): 2,
-                ('a', 'b', 'c'): 1,
-                ('a', 'c', 'd'): 1,
-                ('b', 'c', 'd'): 1,
-                ('b', 'd', 'a'): 1,
-                ('b', 'd', 'c'): 1,
-                ('c', 'd', 'c'): 1,
-                ('d', 'c', 'b'): 1,
-                ('a', 'b', 'c', 'd'): 1,
-                ('a', 'c', 'd', 'c'): 1,
-                ('b', 'c', 'd', 'c'): 1,
-                ('b', 'd', 'c', 'b'): 1,
-                ('a', 'b', 'c', 'd', 'c'): 1})
+    return Counter({('a-b'): 1,
+                ('a-c'): 1,
+                ('b-c'): 1,
+                ('b-d'): 1,
+                ('c-b'): 1,
+                ('c-d'): 1,
+                ('d-a'): 1,
+                ('d-c'): 2,
+                ('a-b-c'): 1,
+                ('a-c-d'): 1,
+                ('b-c-d'): 1,
+                ('b-d-a'): 1,
+                ('b-d-c'): 1,
+                ('c-d-c'): 1,
+                ('d-c-b'): 1,
+                ('a-b-c-d'): 1,
+                ('a-c-d-c'): 1,
+                ('b-c-d-c'): 1,
+                ('b-d-c-b'): 1,
+                ('a-b-c-d-c'): 1})
 
 
 def tn2_delta2():
     """Correct solution"""
-    return Counter({('a', 'b'): 1,
-                ('a', 'c'): 1,
-                ('b', 'c'): 1,
-                ('b', 'd'): 1,
-                ('c', 'b'): 1,
-                ('c', 'd'): 1,
-                ('d', 'a'): 1,
-                ('d', 'c'): 2,
-                ('a', 'b', 'c'): 1,
-                ('a', 'c', 'd'): 1,
-                ('b', 'c', 'd'): 1,
-                ('c', 'd', 'c'): 2,
-                ('b', 'd', 'c'): 1,
-                ('c', 'd', 'a'): 1,
-                ('b', 'd', 'a'): 1,
-                ('d', 'c', 'b'): 2,
-                ('a', 'b', 'c', 'd'): 1,
-                ('a', 'c', 'd', 'c'): 2,
-                ('b', 'c', 'd', 'c'): 2,
-                ('b', 'd', 'c', 'b'): 1,
-                ('a', 'c', 'd', 'a'): 1,
-                ('b', 'c', 'd', 'a'): 1,
-                ('c', 'd', 'c', 'b'): 2,
-                ('a', 'b', 'c', 'd', 'a'): 1,
-                ('a', 'c', 'd', 'c', 'b'): 2,
-                ('b', 'c', 'd', 'c', 'b'): 2,
-                ('a', 'b', 'c', 'd', 'c'): 2,
-                ('a', 'b', 'c', 'd', 'c', 'b'): 2})
+    return Counter({('a-b'): 1,
+                ('a-c'): 1,
+                ('b-c'): 1,
+                ('b-d'): 1,
+                ('c-b'): 1,
+                ('c-d'): 1,
+                ('d-a'): 1,
+                ('d-c'): 2,
+                ('a-b-c'): 1,
+                ('a-c-d'): 1,
+                ('b-c-d'): 1,
+                ('c-d-c'): 2,
+                ('b-d-c'): 1,
+                ('c-d-a'): 1,
+                ('b-d-a'): 1,
+                ('d-c-b'): 2,
+                ('a-b-c-d'): 1,
+                ('a-c-d-c'): 2,
+                ('b-c-d-c'): 2,
+                ('b-d-c-b'): 1,
+                ('a-c-d-a'): 1,
+                ('b-c-d-a'): 1,
+                ('c-d-c-b'): 2,
+                ('a-b-c-d-a'): 1,
+                ('a-c-d-c-b'): 2,
+                ('b-c-d-c-b'): 2,
+                ('a-b-c-d-c'): 2,
+                ('a-b-c-d-c-b'): 2})
 
 
 paco_paths = [
@@ -231,9 +230,9 @@ def test_PaCo(tn, delta, expected_paths):
     """
     Test the PaCo algorithm
     """
-        
+
     PaCo_paths = PaCo(tn, delta, skip_first=0, up_to_k=10)
-    assert PaCo_paths == expected_paths
+    assert PaCo_paths.counter == expected_paths
 
 
 

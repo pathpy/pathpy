@@ -90,13 +90,13 @@ def test_routes_from():
     tn.add_edge('b', 'c', timestamp=2)
     tn.add_edge('b', 'd', timestamp=5)
     dag = DirectedAcyclicGraph.from_temporal_network(tn, delta=2)
-    p = dag.routes_from('a_1')
-    assert p == Counter({('a_1', 'b_3'): 1,
-         ('a_1', 'b_2', 'c_4'): 1,
-         ('a_1', 'b_2', 'c_3'): 1})
+    paths = dag.routes_from('a_1')
+    assert paths.counter == Counter({('a_1-b_3'): 1,
+         ('a_1-b_2-c_4'): 1,
+         ('a_1-b_2-c_3'): 1})
 
-    p = dag.routes_from('b_5')
-    assert p == Counter({('b_5', 'd_7'): 1, ('b_5', 'd_6'): 1})
+    paths = dag.routes_from('b_5')
+    assert paths.counter == Counter({('b_5-d_7'): 1, ('b_5-d_6'): 1})
     
 
 # =============================================================================

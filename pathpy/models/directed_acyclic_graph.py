@@ -4,22 +4,21 @@
 # =============================================================================
 # File      : directed_acyclic_graph.py -- Network model for a DAG
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-26 21:53 juergen>
+# Time-stamp: <Tue 2021-06-01 12:52 ingo>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
 from pathpy.models.temporal_network import TemporalNode, TemporalEdge
 from typing import Any, Optional, Set
-from collections import defaultdict, Counter
+from collections import defaultdict
 
 from numpy import inf
 
 from pathpy import logger
 from pathpy.utils.errors import ParameterError
-from pathpy.core.node import NodeCollection
-from pathpy.core.edge import EdgeCollection
 from pathpy.core.path import PathCollection
+from pathpy.core.api import Node
 from pathpy.models.network import Network
 
 from pathpy.algorithms import path_extraction
@@ -232,6 +231,7 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
                 self._dfs_visit(node)
         self._topsort['sorting'].reverse()
 
+
     def _dfs_visit(self, node, parent=None):
         """Recursively visits nodes in the graph.
 
@@ -265,7 +265,8 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
         self._topsort['end'][_v] = self._topsort['count']
         self._topsort['sorting'].append(_v)
 
-    def routes_from(self, v, node_mapping=None) -> Counter:
+
+    def routes_from(self, v, node_mapping=None) -> PathCollection:
         """
         Constructs all paths from node v to any leaf nodes
 
@@ -286,7 +287,7 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
         if node_mapping is None:
             node_mapping = {w.uid: w.uid for w in self.nodes}
 
-        paths = Counter()
+        paths = PathCollection()
 
         # Collect temporary paths, indexed by the target node
         temp_paths = defaultdict(list)
@@ -313,7 +314,7 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
             for path in possible_paths:
                 if node_mapping:
                     path = [node_mapping[k] for k in path]
-                paths[tuple(path)] += 1
+                paths.add(path, count=1, uid='-'.join(path))
 
         return paths
 
