@@ -3,12 +3,12 @@
 # =============================================================================
 # File      : test_mulit_order_model.py -- Test environment for MOMs
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2020-09-01 09:39 juergen>
+# Time-stamp: <Tue 2021-06-01 15:45 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 
-from pathpy import PathCollection, MultiOrderModel
+from pathpy import PathCollection, MultiOrderModel, NullModel, HigherOrderNetwork
 
 
 def test_basic():
@@ -19,7 +19,6 @@ def test_basic():
     paths.add('b', 'c', 'e', frequency=20)
 
     mom = MultiOrderModel.from_paths(paths, max_order=2)
-
     assert mom.predict() == 2
 
     paths = PathCollection()
@@ -31,6 +30,7 @@ def test_basic():
     mom = MultiOrderModel.from_paths(paths, max_order=2)
 
     assert mom.predict() == 1
+
 # =============================================================================
 # eof
 #

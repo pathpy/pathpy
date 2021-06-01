@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : multi_order_models.py -- Multi order models for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-01 13:39 juergen>
+# Time-stamp: <Tue 2021-06-01 15:42 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -269,32 +269,36 @@ class MultiOrderModel(BaseMultiOrderModel):
         # P(e|c-d) * P( d|b-c) * P(c|a-b) * [ P(b|a) * P(a) ]
 
         # get a list of nodes for the matrix indices
+        hon = self.layers[order]['hon']
         n = self.layers[order]['hon'].nodes.index
+        # idx = {n.relations[0]: i for i, n in enumerate(
+        #     self.layers[order]['hon'].nodes)}
 
         if order == 0:
             for _n in edges:
-                likelihood += np.log(self.layers[order]['hon']
-                                     .nodes[(_n,)]['frequency']) * frequency
+                likelihood += np.log(hon.nodes.counter(
+                    hon.nodes[_n].uid)) * frequency
         else:
             for _v, _w in edges:
                 # calculate the log-likelihood
                 likelihood += np.log(self.layers[order]['T'][
-                    n[self.layers[order]['hon'].nodes[_w].uid],
-                    n[self.layers[order]['hon'].nodes[_v].uid]])*frequency
+                    n[hon.nodes[_w].uid],
+                    n[hon.nodes[_v].uid]])*frequency
 
         for _order, _e in transitions.items():
+            _hon = self.layers[_order]['hon']
             if _order == 0:
-                likelihood += np.log(self.layers[_order]['hon']
-                                     .nodes[(_e,)]['frequency']) * frequency
+                likelihood += np.log(_hon.nodes.counter[
+                    _hon.nodes[_e].uid]) * frequency
             else:
                 # get a list of nodes for the matrix indices
-                n = self.layers[_order]['hon'].nodes.index
+                n = _hon.nodes.index
                 _v = _e[0]
                 _w = _e[1]
                 # calculate the log-likelihood
                 likelihood += np.log(self.layers[_order]['T'][
-                    n[self.layers[_order]['hon'].nodes[_w].uid],
-                    n[self.layers[_order]['hon'].nodes[_v].uid]])*frequency
+                    n[_hon.nodes[_w].uid],
+                    n[_hon.nodes[_v].uid]])*frequency
 
         if not log:
             likelihood = np.exp(likelihood)
@@ -304,18 +308,21 @@ class MultiOrderModel(BaseMultiOrderModel):
     def _path_to_hon(self, path, order):
         """Helper function to convert path to hon node tuples."""
 
-        nodes: list = []
-
         if order == 0:
-            return list(path.nodes)
+            return list((n,) for n in path.nodes)
 
-        elif order == 1:
-            nodes.extend([tuple([n]) for n in path.nodes])
+        else:
+            nodes = path.subpaths(min_length=order-1,
+                                  max_length=order-1,
+                                  include_self=True, paths=False)
 
-        elif 1 < order <= len(path):
+        # elif order == 1:
+        #     nodes.extend([tuple([n]) for n in path.nodes])
 
-            for subpath in self.window(path.edges, size=order-1):
-                nodes.append(subpath)
+        # elif 1 < order <= len(path):
+
+        #     for subpath in self.window(path.edges, size=order-1):
+        #         nodes.append(subpath)
 
         return list(zip(nodes[:-1], nodes[1:]))
 
