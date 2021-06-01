@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_null_model.py -- Test environment for null models
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-01 12:55 juergen>
+# Time-stamp: <Tue 2021-06-01 13:26 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -44,22 +44,21 @@ def test_possible_paths():
     assert len(null.possible_relations(paths, length=3)) == 16
 
 
-# def test_from_network():
+def test_from_network():
 
-#     net = Network()
-#     net.add_edge('a', 'c', frequency=10)
-#     net.add_edge('c', 'd', frequency=10)
-#     net.add_edge('b', 'c', frequency=10)
-#     net.add_edge('c', 'e', frequency=10)
+    net = Network()
+    net.add_edge('a', 'c', frequency=10)
+    net.add_edge('c', 'd', frequency=10)
+    net.add_edge('b', 'c', frequency=10)
+    net.add_edge('c', 'e', frequency=10)
 
-#     null = NullModel.from_network(net, order=2)
+    null = NullModel.from_network(net, order=2)
 
-#     assert null.number_of_edges() == 4
-#     assert null.number_of_nodes() == 4
+    assert null.number_of_edges() == 4
+    assert null.number_of_nodes() == 4
 
-#     for e in null.edges:
-#         assert e['frequency'] == 5.0
-
+    for e in null.edges.uids:
+        assert null.edges.counter[e] == 5.0
 
 # def test_degrees_of_reedom():
 #     """Tets degrees of freedom"""
