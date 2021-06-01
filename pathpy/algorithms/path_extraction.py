@@ -11,7 +11,7 @@
 
 from __future__ import annotations
 from pathpy.models.temporal_network import TemporalNetwork
-from typing import Any, List, Union, Optional
+from typing import Any, List, Union, Optional, Tuple
 from functools import singledispatch
 from collections import defaultdict, deque
 import itertools as it
@@ -25,6 +25,8 @@ from pathpy.core.api import EdgeCollection
 from pathpy.core.api import PathCollection
 from pathpy.models.classes import BaseTemporalNetwork
 from pathpy.models.models import ABCDirectedAcyclicGraph
+
+
 
 # create logger
 LOG = logger(__name__)
@@ -296,7 +298,7 @@ def all_paths_from_temporal_network(tempnet: TemporalNetwork, delta: int=1, max_
     return causal_paths
 
 
-def generate_causal_tree(dag, root, node_map):
+def generate_causal_tree(dag, root, node_map) -> Tuple(ABCDirectedAcyclicGraph, defaultdict):
     """
     For a directed acyclic graph and a non-injective mapping of nodes,
     this method creates a *causal tree* for a given root node.
@@ -355,7 +357,7 @@ def PaCo(
     tn: BaseTemporalNetwork,
     delta: float,
     skip_first: int = 0,
-    up_to_k: int = 10 ) -> PathCollection:
+    up_to_k: int = 10 ) -> Counter:
     """
     Path counting algorithm PaCo.
     Published at TempWeb 2021 workshop.
@@ -375,7 +377,7 @@ def PaCo(
     # all the entries that are at max distance delta away from the current entry
     delta_window = []
 
-    path_stack = PathCollection()
+    path_stack = Counter()
 
     # current_path_stack[i][p] is the number of paths p that go from
     # current_edge of index i.
@@ -450,19 +452,12 @@ def PaCo(
                             current_path_stack[e][p] += current_path_stack[enu][path]
 
                             if e >= skip_first:
-                                if p not in path_stack:
-                                    path_stack.add(
-                                        p, frequency=current_path_stack[enu][path])
-                                else:
-                                    path_stack[p]['frequency'] += current_path_stack[enu][path]
+                                path_stack[p] += current_path_stack[enu][path]
         current_path_stack[e][(current_edge[0], current_edge[1])] += 1
 
         if e >= skip_first:
             p = (current_edge[0], current_edge[1])
-            if p not in path_stack:
-                path_stack.add(p, frequency=1)
-            else:
-                path_stack[p]['frequency'] += 1
+            path_stack[p] += 1            
 
         # add this current_edge at the end of delta_window,
         # so that the next current_edge can have all the entries it needs.
