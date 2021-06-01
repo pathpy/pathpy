@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_null_model.py -- Test environment for null models
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-28 16:18 juergen>
+# Time-stamp: <Tue 2021-06-01 12:55 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -35,12 +35,13 @@ def test_basic():
         assert null.edges.counter[e] == 5.0
 
 
-# def test_possible_paths():
-#     """Test to generate all possible paths."""
-#     paths = PathCollection()
-#     paths.add('a', 'a', 'b', 'b', 'a')
+def test_possible_paths():
+    """Test to generate all possible paths."""
+    paths = PathCollection()
+    paths.add('a', 'a', 'b', 'b', 'a')
 
-#     assert len(NullModel.possible_paths(paths.edges, order=3)) == 16
+    null = NullModel()
+    assert len(null.possible_relations(paths, length=3)) == 16
 
 
 # def test_from_network():
