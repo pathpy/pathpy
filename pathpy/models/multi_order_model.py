@@ -4,14 +4,13 @@
 # =============================================================================
 # File      : multi_order_models.py -- Multi order models for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-01 16:00 juergen>
+# Time-stamp: <Tue 2021-06-01 16:01 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
 from typing import Optional, Any
 import datetime
-from itertools import islice
 from collections import defaultdict
 import numpy as np
 from scipy.stats import chi2
