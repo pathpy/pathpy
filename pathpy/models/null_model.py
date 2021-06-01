@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : null_models.py -- Null models for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-01 13:25 juergen>
+# Time-stamp: <Tue 2021-06-01 13:28 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -87,6 +87,45 @@ class NullModel(HigherOrderNetwork):
             paths.add(*edge, frequency=data.edges.counter[edge.uid])
 
         self.fit(paths, order=order)
+
+    def degrees_of_freedom(self, mode: str = 'path') -> int:
+        """Returns the degrees of freedom of the higher order network.
+
+        Since probabilities must sum to one, the effective degree of freedom is
+        one less than the number of nodes
+
+        .. math::
+
+           \\text{dof} = \\sum_{n \\in N} \\max(0,\\text{outdeg}(n)-1)
+
+        """
+        # initialize degree of freedom
+        degrees_of_freedom: int = 0
+
+        if self.order == 0:
+            degrees_of_freedom = max(0, self.number_of_nodes()-1)
+
+        # elif mode == 'old':
+        #     # TODO : Remove this part after proper testing
+        #     A = self.network.adjacency_matrix()
+
+        #     degrees_of_freedom = int(
+        #         (A ** self.order).sum()
+        #         - np.count_nonzero((A ** self.order).sum(axis=0)))
+
+        elif mode == 'ngram':
+            number_of_nodes = len(self.nodes.nodes)
+            degrees_of_freedom = (number_of_nodes ** self.order) * \
+                (number_of_nodes-1)
+
+        elif mode == 'path':
+
+            # iterate over all nodes and count outdegree
+            for outdegree in self.outdegrees().values():
+                degrees_of_freedom += max(0, int(outdegree)-1)
+
+        # return degree of freedom
+        return degrees_of_freedom
 
     @classmethod
     def from_paths(cls, paths: PathCollection, **kwargs: Any):
