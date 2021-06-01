@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : multi_order_models.py -- Multi order models for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-01 15:42 juergen>
+# Time-stamp: <Tue 2021-06-01 16:00 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -102,7 +102,7 @@ class MultiOrderModel(BaseMultiOrderModel):
                                                  subpaths=True)
 
             # calculate transition matrices for the higher-order networks
-            _T = _hon.transition_matrix(weight='frequency', transposed=True)
+            _mat = _hon.transition_matrix(weight='frequency', transposed=True)
 
             _null = None
             if null_models:
@@ -110,7 +110,7 @@ class MultiOrderModel(BaseMultiOrderModel):
                 _null = NullModel.from_paths(data, order=order)
 
             self.layers[order]['hon'] = _hon
-            self.layers[order]['T'] = _T
+            self.layers[order]['T'] = _mat
             self.layers[order]['null'] = _null
 
     def predict(self, data: Optional[PathCollection] = None, threshold=0.01):
@@ -130,20 +130,20 @@ class MultiOrderModel(BaseMultiOrderModel):
             LOG.debug('---')
             LOG.debug('> estimating order %s', order)
 
-            accept, p_value = self.likelihood_ratio_test(data, null=order-1,
-                                                         order=order,
-                                                         threshold=threshold)
+            accept, _ = self.likelihood_ratio_test(data, null=order-1,
+                                                   order=order,
+                                                   threshold=threshold)
 
             if accept:
                 max_accepted_order = order
 
         end = datetime.datetime.now()
-        LOG.debug('end estimate optiomal order:' +
-                  ' {} seconds'.format((end-start).total_seconds()))
+        LOG.debug('end estimate optiomal order: %s seconds',
+                  (end-start).total_seconds())
         return max_accepted_order
 
     def likelihood_ratio_test(self, data, null=0, order=1, threshold=0.01):
-
+        """Likelihood ration test"""
         LOG.debug('start likelihood ratio test')
         start = datetime.datetime.now()
 
@@ -175,12 +175,13 @@ class MultiOrderModel(BaseMultiOrderModel):
         LOG.debug('reject the null hypothesis = %s', accept)
 
         end = datetime.datetime.now()
-        LOG.debug('end likelihood ratio test:' +
-                  ' {} seconds'.format((end-start).total_seconds()))
+        LOG.debug('end likelihood ratio test: %s seconds',
+                  (end-start).total_seconds())
 
         return accept, p_value
 
     def likelihood(self, data, order=1, log=True):
+        """Likelihood"""
         # add log-likelihoods of multiple model layers,
         # assuming that paths are independent
 
@@ -203,7 +204,7 @@ class MultiOrderModel(BaseMultiOrderModel):
     def layer_likelihood(self, data, order=1,
                          longer_paths=True, log=True,
                          min_length=None):
-
+        """Layer Likelihood"""
         path_lengths = [len(p) for p in data]
 
         if min_length is None:
@@ -230,7 +231,7 @@ class MultiOrderModel(BaseMultiOrderModel):
         return likelihood
 
     def path_likelihood(self, path, order=1, log=True):
-
+        """Path Likelihood"""
         # initialize likelihood
         likelihood = 0
 
@@ -309,33 +310,14 @@ class MultiOrderModel(BaseMultiOrderModel):
         """Helper function to convert path to hon node tuples."""
 
         if order == 0:
-            return list((n,) for n in path.nodes)
+            nodes = list((n,) for n in path.nodes)
 
         else:
             nodes = path.subpaths(min_length=order-1,
                                   max_length=order-1,
                                   include_self=True, paths=False)
 
-        # elif order == 1:
-        #     nodes.extend([tuple([n]) for n in path.nodes])
-
-        # elif 1 < order <= len(path):
-
-        #     for subpath in self.window(path.edges, size=order-1):
-        #         nodes.append(subpath)
-
-        return list(zip(nodes[:-1], nodes[1:]))
-
-    @staticmethod
-    def window(iterable, size=2):
-        """Sliding window for path length"""
-        ite = iter(iterable)
-        result = tuple(islice(ite, size))
-        if len(result) == size:
-            yield result
-        for elem in ite:
-            result = result[1:] + (elem,)
-            yield result
+        return list(zip(nodes[:-1], nodes[1:])) if order > 0 else nodes
 
     def summary(self):
         """Returns a summary of the multi-order model."""
