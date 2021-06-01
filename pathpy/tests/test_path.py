@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_path.py -- Test environment for the Path class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-19 11:21 juergen>
+# Time-stamp: <Tue 2021-06-01 18:48 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================

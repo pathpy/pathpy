@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : multi_order_models.py -- Multi order models for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-01 16:01 juergen>
+# Time-stamp: <Tue 2021-06-01 19:12 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -101,7 +101,7 @@ class MultiOrderModel(BaseMultiOrderModel):
                                                  subpaths=True)
 
             # calculate transition matrices for the higher-order networks
-            _mat = _hon.transition_matrix(weight='frequency', transposed=True)
+            _mat = _hon.transition_matrix(count=True, transposed=True)
 
             _null = None
             if null_models:
@@ -222,20 +222,21 @@ class MultiOrderModel(BaseMultiOrderModel):
 
         for path in data.values():
             if min_length <= len(path) <= max_length:
-                likelihood += self.path_likelihood(path, order=order, log=True)
+                likelihood += self.path_likelihood(
+                    path, data.counter[path.uid], order=order, log=True)
 
         if not log:
             likelihood = np.exp(likelihood)
 
         return likelihood
 
-    def path_likelihood(self, path, order=1, log=True):
+    def path_likelihood(self, path, frequency, order=1, log=True):
         """Path Likelihood"""
         # initialize likelihood
         likelihood = 0
 
         # get path frequency
-        frequency = path.attributes.get('frequency', 1)
+        #frequency = path.attributes.get('frequency', 1)
 
         # 1.) transform the path into a sequence of (two or more)
         # l-th-order edges

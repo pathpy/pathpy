@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : path.py -- Base class for a path
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-26 16:45 juergen>
+# Time-stamp: <Tue 2021-06-01 18:44 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -98,20 +98,22 @@ class PathCollection(PathPyCollection):
 
         # get additional parameters
         uid: Optional[str] = kwargs.pop('uid', None)
-
+        count: int = kwargs.pop('count', 1)
         obj = self._default_class(
             *args, uid=uid, directed=self.directed, **kwargs)
-        super().add(obj, **kwargs)
+
+        super().add(obj, count=count, **kwargs)
 
     @add.register(type(None))  # type: ignore
     def _(self, *args: None, **kwargs: Any) -> None:
 
         # get additional parameters
         uid: Optional[str] = kwargs.pop('uid', None)
+        count: int = kwargs.pop('count', 1)
 
         obj = self._default_class(
             uid, uid=uid, directed=self.directed, **kwargs)
-        super().add(obj, **kwargs)
+        super().add(obj, count=count, **kwargs)
 
     @add.register(tuple)  # type: ignore
     @add.register(list)  # type: ignore

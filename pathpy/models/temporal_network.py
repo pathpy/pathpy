@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-28 18:59 juergen>
+# Time-stamp: <Tue 2021-06-01 19:19 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -138,6 +138,7 @@ class TemporalNodeCollection(NodeCollection):
 
     def _if_exist(self, obj: Any, **kwargs: Any) -> None:
         """Helper function if node already exists."""
+        count: int = kwargs.pop('count', 1)
         element = self[obj.relations]
         element.event(**kwargs)
         start, end, _ = obj.last()
@@ -211,6 +212,7 @@ class TemporalEdgeCollection(EdgeCollection):
 
     def _if_exist(self, obj: Any, **kwargs: Any) -> None:
         """Helper function if node already exists."""
+        count: int = kwargs.pop('count', 1)
         element = self[obj.relations]
         element.event(**kwargs)
         start, end, _ = obj.last()

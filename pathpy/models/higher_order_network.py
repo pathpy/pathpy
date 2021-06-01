@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : higher_order_network.py -- Basic class for a HON
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-01 15:35 juergen>
+# Time-stamp: <Tue 2021-06-01 18:55 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -143,7 +143,7 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
             # add higher-order nodes to the network
             for node in nodes:
                 if node not in self.nodes:
-                    self.add_node(*node, frequency=0)
+                    self.add_node(*node, count=0)
                 self.nodes.counter[self.nodes[node].uid] += data.counter[uid]
 
             # do not create edges if order is 0
@@ -155,7 +155,7 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
 
                 # check if edge exist otherwise add new edge
                 if (_v, _w) not in self.edges:
-                    self.add_edge(_v, _w, frequency=0)
+                    self.add_edge(_v, _w, count=0)
 
                 # get edge and update counters
                 edge = self.edges[_v, _w]
@@ -176,7 +176,7 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
         if subpaths and self.order > 1:
             for node in self.possible_relations(data, self.order-1):
                 if node not in self.nodes:
-                    self.add_node(*node, frequency=0)
+                    self.add_node(*node, count=0)
 
     def possible_relations(self, collection, length: int) -> list:
         """Return a list of paths of given length."""
@@ -208,7 +208,7 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
         idx = self.nodes.index
 
         # get the transition matrix
-        matrix = transition_matrix(self, weight='frequency', transposed=True)
+        matrix = transition_matrix(self, count=True, transposed=True)
 
         # initialize likelihood
         likelihood, _path_likelihood = (0, 0)

@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : null_models.py -- Null models for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-01 13:33 juergen>
+# Time-stamp: <Tue 2021-06-01 19:06 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -49,7 +49,7 @@ class NullModel(HigherOrderNetwork):
 
         # get node index and transition matrix
         idx = {node.relations[0]: i for i, node in enumerate(hon.nodes)}
-        mat = hon.transition_matrix(weight='frequency')
+        mat = hon.transition_matrix(count=True)
 
         # generate possible paths
         paths = self.possible_relations(data, self.order)
@@ -65,15 +65,15 @@ class NullModel(HigherOrderNetwork):
             # get higher-oder nodes
             _v, _w = path[:-1], path[1:]
             if _v not in self.nodes:
-                self.add_node(*_v, frequency=0)
+                self.add_node(*_v, count=0)
             if _w not in self.nodes:
-                self.add_node(*_w, frequency=0)
+                self.add_node(*_w, count=0)
             node_v, node_w = self.nodes[_v], self.nodes[_w]
 
             frequency = subpaths[_v] * mat[idx[path[-2]], idx[path[-1]]]
 
             if (node_v, node_w) not in self.edges:
-                self.add_edge(node_v, node_w, frequency=0)
+                self.add_edge(node_v, node_w, count=0)
 
             edge = self.edges[node_v, node_w]
             self.edges.counter[edge.uid] += frequency
@@ -84,7 +84,7 @@ class NullModel(HigherOrderNetwork):
         paths = PathCollection(directed=data.directed,
                                multipaths=data.multiedges)
         for edge in data.edges:
-            paths.add(*edge, frequency=data.edges.counter[edge.uid])
+            paths.add(*edge, count=data.edges.counter[edge.uid])
 
         self.fit(paths, order=order)
 

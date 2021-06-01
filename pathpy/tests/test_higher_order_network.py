@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_higher_order_network.py -- Test environment for HONs
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-28 14:38 juergen>
+# Time-stamp: <Tue 2021-06-01 19:07 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -132,8 +132,8 @@ def test_fit_path_collection():
     e = Node('e')
     # paths.add(a, c, d, uid='acd', frequency=10)
     # paths.add(b, c, e, uid='bce', frequency=10)
-    paths.add('a', c, 'd', 'f', uid='acd', frequency=10)
-    paths.add('b', c, 'e', 'g', uid='bce', frequency=10)
+    paths.add('a', c, 'd', 'f', uid='acd', count=10)
+    paths.add('b', c, 'e', 'g', uid='bce', count=10)
 
     # paths.add('a', 'c', 'd', uid='acd', frequency=10)
     # paths.add('b', 'c', 'e', uid='bce', frequency=10)
@@ -150,9 +150,9 @@ def test_fit_path_collection():
     #     break
 
     paths = PathCollection()
-    paths.add('a', 'c', 'b', uid='acb', frequency=10)
-    paths.add('c', 'b', 'a', 'c', uid='cba', frequency=20)
-    paths.add('a', 'b', 'a', 'c', uid='abac', frequency=30)
+    paths.add('a', 'c', 'b', uid='acb', count=10)
+    paths.add('c', 'b', 'a', 'c', uid='cba', count=20)
+    paths.add('a', 'b', 'a', 'c', uid='abac', count=30)
     # paths.add(a, 'b', 'c', 'd', 'e', 'f', uid='p1')
     # paths.add(a, 'b', 'c', 'd', 'e', 'x')
     hon = HigherOrderNetwork(uid='hon')

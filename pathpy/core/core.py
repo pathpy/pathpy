@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-28 13:37 juergen>
+# Time-stamp: <Tue 2021-06-01 18:48 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -732,6 +732,7 @@ class PathPyCollection():
     def _(self, *args: PathPyObject, **kwargs: Any) -> None:
         """Add object to collection"""
 
+        count: int = kwargs.pop('count', 1)
         for obj in args:
 
             # check if object exists already
@@ -742,25 +743,26 @@ class PathPyCollection():
                     obj.update(**kwargs)
 
                 # add edge to the collection
-                self._add(obj, **kwargs)
+                self._add(obj, count=count, **kwargs)
             else:
-                self._if_exist(obj, **kwargs)
+                self._if_exist(obj, count=count, **kwargs)
 
     @add.register(PathPyPath)  # type: ignore
     def _(self, *args: PathPyPath, **kwargs: Any) -> None:
-        for obj in args:
 
+        count: int = kwargs.pop('count', 1)
+        for obj in args:
             # check if object exists already
             if obj not in self.values() and obj.uid not in self.keys():
                 if obj.relations not in self or self._multiple:
                     if kwargs:
                         obj.update(**kwargs)
 
-                    self._add(obj, **kwargs)
+                    self._add(obj, count=count, **kwargs)
                 else:
-                    self._if_exist(obj, **kwargs)
+                    self._if_exist(obj, count=count, **kwargs)
             else:
-                self._if_exist(obj, **kwargs)
+                self._if_exist(obj, count=count, **kwargs)
 
     @add.register(str)  # type: ignore
     @add.register(int)  # type: ignore
@@ -769,6 +771,7 @@ class PathPyCollection():
 
         # get additional parameters
         uid: Optional[str] = kwargs.pop('uid', None)
+        count: int = kwargs.pop('count', 1)
 
         # check if all objects are str
         if not all(isinstance(arg, (str, int, PathPyEmpty)) for arg in args):
@@ -779,14 +782,13 @@ class PathPyCollection():
         args = (a.uid if isinstance(a, PathPyEmpty) else a for a in args)
         obj = self._default_class(
             *args, uid=uid, directed=self.directed, **kwargs)
-        self.add(obj, **kwargs)
+        self.add(obj, count=count, **kwargs)
 
     def _add(self, obj: Union[PathPyObject, PathPyPath], **kwargs: Any) -> None:
         """Add an edge to the set of edges."""
         self[obj.uid] = obj
 
-        self.counter[obj.uid] += kwargs.get(
-            config['attributes']['frequency'], 1)
+        self.counter[obj.uid] += kwargs.pop('count', 1)
 
         if isinstance(obj, PathPyPath):
             for key, value in obj.objects.items():
@@ -811,10 +813,7 @@ class PathPyCollection():
         element.update(**obj.attributes)
 
         # increase counter
-        self.counter[element.uid] += kwargs.get(
-            config['attributes']['frequency'], 1)
-        # LOG.error('The object "%s" already exists in the Collection', obj)
-        # raise KeyError
+        self.counter[element.uid] += kwargs.pop('count', 1)
 
     @singledispatchmethod
     def remove(self, *args, **kwargs) -> None:

@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_null_model.py -- Test environment for null models
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-01 13:29 juergen>
+# Time-stamp: <Tue 2021-06-01 19:06 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -20,8 +20,8 @@ def test_basic():
     """Test basic functions"""
 
     paths = PathCollection()
-    paths.add('a', 'c', 'd', uid='a-c-d', frequency=10)
-    paths.add('b', 'c', 'e', uid='b-c-e', frequency=10)
+    paths.add('a', 'c', 'd', uid='a-c-d', count=10)
+    paths.add('b', 'c', 'e', uid='b-c-e', count=10)
 
     null = NullModel()
     null.fit(paths, order=2)
@@ -47,10 +47,10 @@ def test_possible_paths():
 def test_from_network():
 
     net = Network()
-    net.add_edge('a', 'c', frequency=10)
-    net.add_edge('c', 'd', frequency=10)
-    net.add_edge('b', 'c', frequency=10)
-    net.add_edge('c', 'e', frequency=10)
+    net.add_edge('a', 'c', count=10)
+    net.add_edge('c', 'd', count=10)
+    net.add_edge('b', 'c', count=10)
+    net.add_edge('c', 'e', count=10)
 
     null = NullModel.from_network(net, order=2)
 

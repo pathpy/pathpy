@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_core.py -- Test environment for the core classes
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-26 12:32 juergen>
+# Time-stamp: <Tue 2021-06-01 18:34 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -46,6 +46,13 @@ def test_PathPyCollection_add_PathPyPath():
     paths.add(p2)
     assert len(paths) == 2
     assert p1 and p2 in paths
+    assert paths.counter['p1'] == 1
+
+    paths.add(p1)
+    assert paths.counter['p1'] == 2
+
+    paths.add(p1, count=8)
+    assert paths.counter['p1'] == 10
 
 
 def test_PathPyCollection_add_str():

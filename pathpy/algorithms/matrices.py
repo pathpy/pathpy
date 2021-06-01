@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : matrices.py -- Module to calculate various matrices
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-26 21:45 juergen>
+# Time-stamp: <Tue 2021-06-01 19:22 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -23,7 +23,7 @@ LOG = logger(__name__)
 
 
 @singledispatch
-def adjacency_matrix(self, weight: Union[str, bool, None] = 'weight',
+def adjacency_matrix(self, weight: Optional[str] = None, count: bool = False,
                      transposed: bool = False, directed: Optional[bool] = None,
                      **kwargs: Any) -> sparse.csr_matrix:
     """Returns a sparse adjacency matrix of the network.
@@ -79,51 +79,13 @@ def adjacency_matrix(self, weight: Union[str, bool, None] = 'weight',
 
 
 @adjacency_matrix.register(BaseNetwork)
-def _network(self, weight: Union[str, bool, None] = None,
-             transposed: bool = False, directed: Optional[bool] = None,
+def _network(self, weight: Optional[str] = None,
+             count: bool = False,
+             transposed: bool = False,
+             directed: Optional[bool] = None,
+             loops: int = 1,
              **kwargs: Any) -> sparse.csr_matrix:
     """Returns a sparse adjacency matrix of the network."""
-
-    # # update weight if frequency is chosen
-    # if weight == config['attributes']['frequency']:
-
-    #     # update edge properties with the current frequencies
-    #     for uid, frequency in self.edges.counter().items():
-    #         self.edges[uid][weight] = frequency
-
-    # return an adjacency matrix
-    return _adjacency_matrix(self, weight, transposed, directed)
-
-
-# @adjacency_matrix.register(BaseHigherOrderNetwork)
-# def _hon(self, weight: Any = None, transposed: bool = False,
-#          **kwargs: Any) -> sparse.csr_matrix:
-#     """Returns a sparse adjacency matrix of the higher order network."""
-
-#     # get additional information for HONs
-#     subpaths: bool = kwargs.get('subpaths', True)
-
-#     # get the appropriate weights
-#     if weight is None and subpaths:
-#         weight = config['attributes']['frequency']
-
-#         # update edge properties with the current frequencies
-#         for uid, frequency in self.edges.counter().items():
-#             self.edges[uid][weight] = frequency
-
-#     elif weight is None and not subpaths:
-#         weight = 'observed'
-#         print('observed')
-
-#     # return an adjacency matrix
-#     return _adjacency_matrix(self, weight, transposed)
-
-
-def _adjacency_matrix(self, weight: Union[str, bool, None] = None,
-                      transposed: bool = False,
-                      directed: Optional[bool] = None,
-                      loops: int = 1) -> sparse.csr_matrix:
-    """Function to generate the adjacency matrix."""
 
     # initializing variables
     rows: List[int] = list()
@@ -140,7 +102,7 @@ def _adjacency_matrix(self, weight: Union[str, bool, None] = None,
         # directed network
         rows.append(index[e.v.uid])
         cols.append(index[e.w.uid])
-        if weight == 'frequency':
+        if count:
             entries.append(self.edges.counter[e.uid])
         else:
             entries.append(e.weight(weight))

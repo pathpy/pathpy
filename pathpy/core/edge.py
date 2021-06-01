@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : edge.py -- Base class for an edge
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-05-26 21:43 juergen>
+# Time-stamp: <Tue 2021-06-01 18:50 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -267,11 +267,12 @@ class EdgeCollection(PathPyCollection):
 
         # get additional parameters
         uid: Optional[str] = kwargs.pop('uid', None)
+        count: int = kwargs.pop('count', 1)
 
         if len(args) == 2:
             obj = self._default_class(
                 *args, uid=uid, directed=self.directed, **kwargs)
-            super().add(obj, **kwargs)
+            super().add(obj, count=count, **kwargs)
         else:
             LOG.error('Only two objects can be linked with an edge')
             raise KeyError
