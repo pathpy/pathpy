@@ -3,14 +3,19 @@
 # =============================================================================
 # File      : test_core.py -- Test environment for the core classes
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-01 18:34 juergen>
+# Time-stamp: <Wed 2021-06-02 12:56 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
 
 import pytest
 
-from pathpy.core.core import PathPyPath, PathPyCollection, PathPySet, PathPyRelation, PathPyEmpty
+from pathpy.core.core import (
+    PathPyPath,
+    PathPyCollection,
+    PathPySet,
+    PathPyRelation,
+    PathPyEmpty)
 
 
 def test_PathPyEmpty():
@@ -80,77 +85,32 @@ def test_PathPySet():
 def test_PathPyRelation():
     """Test relational object"""
 
-    r = PathPyRelation(('a', 'b', 'c'), ordered=True, directed=False)
-    # print(r)
-    # print(type(r))
+    r1 = PathPyRelation(('a', 'b', 'c'), ordered=True, directed=False)
+    r2 = PathPyRelation(('c', 'b', 'a'), ordered=True, directed=False)
+
+    assert r1 == r2
 
 
 def test_PathPyIter():
     """Test the Object iterator"""
     path = PathPyPath('a', 'b', 'c', 'd', 'a', 'b', uid='p1')
 
+    assert [n.uid for n in path] == ['a', 'b', 'c', 'd', 'a', 'b']
+
 
 def test_PathPyPath_subobjects():
     """Get subobjects of a path"""
-
-    # a = PathPyPath('a', uid='a')
-    # b = PathPyPath('b', uid='b')
-    # c = PathPyPath('c', uid='c')
 
     a = PathPyPath('a')
     b = PathPyPath('b')
     c = PathPyPath('c')
 
-    # print(a.objects)
-    # print(a.relations)
     e1 = PathPyPath(a, b, uid='e1')
     e2 = PathPyPath(b, c, uid='e2')
 
     p = PathPyPath(e1, e2, uid='p1')
 
-    # print(e1.relations)
-    # print(e1.objects)
-    # print(PathPyPath.max_depth(p))
-    # print(p.subobjects())
-
-    # print(p.objects)
-    # print(path.relations)
-    # print(path.objects)
-    # print(path.items())
-    # paths.add(1, 2, 3, 4)
-
-    # paths.remove('a', 'b', 'c')
-    # paths.remove('p1')
-    # paths.add('a')
-    # print(paths)
-    # print(paths._objects)
-    # print(paths._relations)
-    # print(paths._mapping)
-
-    # paths = PathPyCollection(multiple=False)
-    # paths.add('a', 'b', uid='ab')
-    # print(paths['a', 'b'])
-
-    # print(paths.counter)
-    # col.add(p)
-    # col.add(q)
-
-    # # print(a.relations)
-    # # print(a.objects)
-    # # print(a.uid)
-    # # print(a.attributes)
-
-    # print('aaaaaaaaaaaaaaaaaaa')
-
-    # print(col)
-    # print('objects', col._objects)
-    # print('mapping', col._mapping)
-    # print('relations', col._relations)
-
-    # print('get ------------')
-    # print(col[(a, b)])
-
-    # print(p in col)
+    assert ('a',) in p.subobjects(depth=3)
 
 # =============================================================================
 # eof
