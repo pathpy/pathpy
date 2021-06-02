@@ -21,7 +21,7 @@ from .__about__ import (
     __maintainer__,
     __status__
 )
-__version__ = "3.0.25"
+__version__ = "3.1.0"
 
 # import os
 import sys
