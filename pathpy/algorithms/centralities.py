@@ -9,7 +9,7 @@
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import TYPE_CHECKING, Dict, List, Tuple, Union, Any
+from typing import TYPE_CHECKING, Dict, List, Tuple, Union, Any, Optional
 from functools import singledispatch
 from collections import defaultdict
 
@@ -18,10 +18,11 @@ import numpy as np
 from scipy.sparse import linalg as spl
 
 from pathpy import logger
+from pathpy.utils.errors import ParameterError
 from pathpy.algorithms import shortest_paths
 from pathpy.algorithms.matrices import adjacency_matrix
 
-from pathpy.core.core import PathPyCollection
+from pathpy.core.api import PathCollection
 from pathpy.models.classes import BaseNetwork
 from pathpy.models.models import ABCHigherOrderNetwork
 
@@ -74,39 +75,47 @@ def betweenness_centrality(self, normalized: bool = False) -> Dict:
     raise NotImplementedError
 
 
-@betweenness_centrality.register(PathPyCollection)
+@betweenness_centrality.register(PathCollection)
 def _bw_paths(self: PathCollection, normalized: bool = False) -> Dict:
     """Betweenness Centrality for Paths."""
 
     # TODO: Move sp calculation to shortest_paths
-    from pathpy.statistics.subpaths import SubPathCollection
+    # from pathpy.statistics.subpaths import SubPathCollection
 
-    s_p: defaultdict = defaultdict(lambda: defaultdict(set))
-    s_p_lengths: defaultdict = defaultdict(lambda: defaultdict(lambda: np.inf))
+    sp: defaultdict = defaultdict(lambda: defaultdict(set))
+    sp_lengths: defaultdict = defaultdict(lambda: defaultdict(lambda: np.inf))
 
     bw: defaultdict = defaultdict(float)
 
-    paths = SubPathCollection(self)
+    # paths = SubPathCollection(self)
 
-    for path in paths(include_path=True):
-        s = path.start
-        d = path.end
-        if len(path) < s_p_lengths[s][d]:
-            s_p_lengths[s][d] = len(path)
-            s_p[s][d] = set()
-            s_p[s][d].add(tuple(path.nodes))
-        elif len(path) == s_p_lengths[s][d]:
-            s_p[s][d].add(tuple(path.nodes))
+    # for path in paths(include_path=True):
+    #     s = path.start
+    #     d = path.end
+    #     if len(path) < s_p_lengths[s][d]:
+    #         s_p_lengths[s][d] = len(path)
+    #         s_p[s][d] = set()
+    #         s_p[s][d].add(tuple(path.nodes))
+    #     elif len(path) == s_p_lengths[s][d]:
+    #         s_p[s][d].add(tuple(path.nodes))
 
-    for s in s_p:
-        for d in s_p[s]:
-            for p in s_p[s][d]:
-                for x in p[1:-1]:
+    for p in self:
+        s = p.relations[0]
+        d = p.relations[-1]
+        if len(p) < sp_lengths[s][d]:
+            sp_lengths[s][d] = len(p)
+            sp[s][d] = set()
+            sp[s][d].add(p)
+
+    for s in sp:
+        for d in sp[s]:
+            for p in sp[s][d]:
+                for x in p.relations[1:-1]:
                     if s != d != x:
-                        bw[x.uid] += 1.0 / len(s_p[s][d])
+                        bw[x] += 1.0 / len(sp[s][d])
 
     # assign zero values to nodes not occurring on shortest paths
-    for v in self.nodes.uids:
+    for v in self.nodes:
         bw[v] += 0
 
     if normalized:
@@ -212,7 +221,8 @@ def _bw_hon(self: HigherOrderNetwork, normalized: bool = False) -> Dict:
     return bw
 
 
-def closeness_centrality(network: Network, normalized: bool = False) -> Dict:
+@singledispatch
+def closeness_centrality(self, normalized: bool = False, disconnected=False, weight: Optional[str]=None, count: bool=False) -> Dict:
     """Calculates the closeness centrality of all nodes.
 
     .. note::
@@ -248,28 +258,120 @@ def closeness_centrality(network: Network, normalized: bool = False) -> Dict:
     0.3333333333333333
 
     """
-    distances = shortest_paths.distance_matrix(network)
+
+    raise NotImplementedError
+
+
+@closeness_centrality.register(BaseNetwork)
+def _cl_network(network: BaseNetwork, normalized: bool = False, disconnected=False, weight: Optional[str]=None, count: bool=False) -> Dict:
+    """Calculates the closeness centrality of all nodes.
+
+    .. note::
+
+        If `normalized=False` (Default) for each node v the closeness centrality
+        is given as 1/sum_w(dist(v,w)) where dist(v,w) is the shortest path
+        distance between v and w. For `normalized=True` the counter is
+        multiplied by n-1 where n is the number of nodes in the
+        network. Shortest path distances are calculated using the function
+        `shortest_paths.distance_matrix`.
+
+    Parameters
+    ----------
+    network : Network
+
+        The :py:class:`Network` object that contains the network
+
+    normalized : bool
+
+        If True the resulting centralities will be normalized based on the
+        average shortest path length.
+
+    Examples
+    --------
+    Compute closeness centrality in a simple network
+
+    >>> import pathpy as pp
+    >>> net = pp.Network(directed=False)
+    >>> net.add_edge('a', 'x')
+    >>> net.add_edge('x', 'b')
+    >>> c = pp.algorithms.centralities.closeness_centrality(net)
+    >>> c['a']
+    0.3333333333333333
+
+    """
+    distances = shortest_paths.distance_matrix(network, weight=weight, count=count)
     cl: defaultdict = defaultdict(float)
+
+    if disconnected and normalized:
+        raise ParameterError('No meaningful definition for normalized closeness centrality in disconnected networks')
 
     mapping = {v: k for k, v in network.nodes.index.items()}
 
     n = network.number_of_nodes()
-    # calculate closeness values
-    for d in range(n):
-        for x in range(n):
-            if d != x and distances[d, x] < np.inf:
-                cl[mapping[x]] += distances[d, x]
 
-    # assign centrality zero to nodes not occurring
-    # on higher-order shortest paths
+    for v in range(n):
+        for w in range(n):
+            if v != w:
+                if disconnected:
+                    cl[mapping[v]] += 1.0 / distances[v, w]
+                else:
+                    cl[mapping[v]] += distances[v, w]
+
+
     for v in network.nodes.uids:
+        # assign centrality zero to nodes not occurring on shortest path
         cl[v] += 0.0
-        if cl[v] > 0.0:
-            cl[v] = 1.0 / cl[v]
+
+        
+        if not disconnected:
+            cl[v] = 1.0/cl[v]
+
+        # normalize
         if normalized:
             cl[v] *= n-1
 
     return cl
+
+
+@closeness_centrality.register(PathCollection)
+def _cl_paths(paths: PathCollection, normalized: bool = False, disconnected=False, weight: Optional[str]=None, count: bool=False) -> Dict:
+    """Betweenness Centrality for Paths."""
+
+    if disconnected and normalized:
+        raise ParameterError('No meaningful definition for normalized closeness centrality in disconnected networks')
+
+    node_centralities = defaultdict(lambda: 0)
+    distances = shortest_paths.distance_matrix(paths, weight=weight, count=count)
+
+    n = len(paths.nodes)
+
+    for v in paths.nodes:
+        for w in paths.nodes:
+            if v != w:
+                if w in distances[v]:
+                    dist = distances[v][w]
+                else:
+                    dist = np.inf            
+                if disconnected:                    
+                    node_centralities[v] += 1.0 / dist
+                else:
+                    node_centralities[v] += dist
+    
+    for v in paths.nodes:
+        # assign zero value to nodes not occurring
+        node_centralities[v] += 0
+        
+        if not disconnected:
+            if node_centralities[v] > 0:
+                node_centralities[v] = 1.0/node_centralities[v]
+            else:
+                node_centralities[v] = np.inf
+
+        # normalize
+        if normalized:
+            node_centralities[v] *= n-1
+
+    return node_centralities
 
 
 def degree_centrality(network: Network, mode: str = 'degree') -> dict:

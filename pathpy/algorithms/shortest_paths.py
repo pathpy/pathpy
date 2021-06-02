@@ -9,29 +9,34 @@
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
-from typing import TYPE_CHECKING, Tuple, Union
+from typing import TYPE_CHECKING, Tuple, Union, Optional, Dict
+from functools import singledispatch
 from collections import defaultdict
+
+from pathpy.core.path import PathCollection
 import numpy as np
 from scipy.sparse import csgraph  # pylint: disable=import-error
 # from queue import PriorityQueue
 
 from pathpy import logger, tqdm
 
-from pathpy.models import network as net
+from pathpy.models.classes import BaseNetwork
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
-    # from pathpy.core.node import Node
     from pathpy.models.network import Network
-
-# from pathpy.core.path import Path
 
 # create logger
 LOG = logger(__name__)
 
 
-def distance_matrix(network: Network,
-                    weight: Union[str, bool, None] = None) -> np.ndarray:
+@singledispatch
+def distance_matrix(self, weight: Optional[str]=None, count: bool=False) -> np.ndarray:
+    """Calculates shortest path distances between all pairs of nodes"""
+    raise NotImplementedError
+
+@distance_matrix.register(BaseNetwork)
+def _dm_network(network: BaseNetwork, weight: Optional[str]=None, count: bool=False) -> np.ndarray:
     """Calculates shortest path distances between all pairs of nodes
 
     .. note::
@@ -68,11 +73,29 @@ def distance_matrix(network: Network,
     2
     """
 
-    A = network.adjacency_matrix(weight=weight)
+    A = network.adjacency_matrix(weight=weight, count=count)
     dist_matrix = csgraph.floyd_warshall(
-        A, network.directed, unweighted=(not weight), overwrite=False)
+        A, network.directed, unweighted=(weight==None and not count), overwrite=False)
 
     return dist_matrix
+
+
+@distance_matrix.register(PathCollection)
+def _dm_paths(paths: PathCollection, weight: Optional[str]=None, count: bool=False) -> np.ndarray:
+    """
+    """
+    dist = defaultdict(lambda: defaultdict(lambda: np.inf))
+
+    for v in paths.nodes:
+        dist[v][v] = 0
+
+    for p in paths:
+        start = p.relations[0]
+        end = p.relations[-1]
+        if len(p) < dist[start][end]:
+            dist[start][end] = len(p)
+
+    return dist
 
 
 def all_shortest_paths(network: Network,

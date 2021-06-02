@@ -48,7 +48,7 @@ def test_adjacency_matrix():
 
 
 def test_distance_matrix():
-    """Test the disance matrix of a network."""
+    """Test the distance matrix of a network."""
     net = pp.Network()
     net.add_edges(('a', 'x'), ('x', 'y'), ('y', 'c'))
     m = pp.algorithms.shortest_paths.distance_matrix(net)
