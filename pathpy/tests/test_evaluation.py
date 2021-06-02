@@ -23,6 +23,7 @@ def temp_net(request):
     n.add_edge('a', 'b', color='red', timestamp=1)
     n.add_edge('b', 'c', color='green', timestamp=2)
     n.add_edge('c', 'd', color='yellow', timestamp=3)
+    n.add_edge('b', 'c', color='blue', timestamp=4)
 
     return n
 
@@ -49,3 +50,20 @@ def test_shuffle_temporal_network(temp_net):
 
     assert t.number_of_nodes() == temp_net.number_of_nodes()
     assert t.number_of_edges() == temp_net.number_of_edges()
+
+
+def test_train_test_split_temporalnetwork(temp_net):
+    """
+    Test train test split in temporal network
+    """
+    train, test = pp.algorithms.evaluation.train_test_split(temp_net, split='time', test_size=0.5)
+    assert train.number_of_nodes() == 3
+    assert test.number_of_nodes() == 3
+    assert train.number_of_edges() == 2
+    assert test.number_of_edges() == 2
+
+    train, test = pp.algorithms.evaluation.train_test_split(temp_net, split='interactions', test_size=0.5)
+    assert train.number_of_edges() == 2
+    assert test.number_of_edges() == 2
+    assert train.number_of_edges() == 2
+    assert test.number_of_edges() == 2

@@ -73,6 +73,7 @@ PROJECT_URLS = {
 }
 
 INSTALL_REQUIRES = [
+    'intervaltree>=3.0.0',
     'numpy>=1.17.0',
     'scipy>=1.3.1',
     'tqdm>=4.36.1',  # TODO: Get rid of this dependency!

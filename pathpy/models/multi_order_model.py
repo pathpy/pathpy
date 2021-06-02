@@ -4,22 +4,21 @@
 # =============================================================================
 # File      : multi_order_models.py -- Multi order models for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sun 2020-09-06 12:02 juergen>
+# Time-stamp: <Tue 2021-06-01 19:12 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
 from typing import Optional, Any
 import datetime
-from itertools import islice
+from collections import defaultdict
 import numpy as np
 from scipy.stats import chi2
-from collections import defaultdict
 
 # from singledispatchmethod import singledispatchmethod
 
 from pathpy import logger
-from pathpy.models.classes import BaseModel
+from pathpy.models.classes import BaseMultiOrderModel
 from pathpy.models.higher_order_network import HigherOrderNetwork
 from pathpy.models.null_model import NullModel
 from pathpy.core.path import PathCollection
@@ -28,7 +27,7 @@ from pathpy.core.path import PathCollection
 LOG = logger(__name__)
 
 
-class MultiOrderModel(BaseModel):
+class MultiOrderModel(BaseMultiOrderModel):
     """A mulit-order model for higher order networks."""
 
     def __init__(self, uid: Optional[str] = None, max_order: int = 1,
@@ -102,7 +101,7 @@ class MultiOrderModel(BaseModel):
                                                  subpaths=True)
 
             # calculate transition matrices for the higher-order networks
-            _T = _hon.transition_matrix(weight='frequency', transposed=True)
+            _mat = _hon.transition_matrix(count=True, transposed=True)
 
             _null = None
             if null_models:
@@ -110,7 +109,7 @@ class MultiOrderModel(BaseModel):
                 _null = NullModel.from_paths(data, order=order)
 
             self.layers[order]['hon'] = _hon
-            self.layers[order]['T'] = _T
+            self.layers[order]['T'] = _mat
             self.layers[order]['null'] = _null
 
     def predict(self, data: Optional[PathCollection] = None, threshold=0.01):
@@ -130,20 +129,20 @@ class MultiOrderModel(BaseModel):
             LOG.debug('---')
             LOG.debug('> estimating order %s', order)
 
-            accept, p_value = self.likelihood_ratio_test(data, null=order-1,
-                                                         order=order,
-                                                         threshold=threshold)
+            accept, _ = self.likelihood_ratio_test(data, null=order-1,
+                                                   order=order,
+                                                   threshold=threshold)
 
             if accept:
                 max_accepted_order = order
 
         end = datetime.datetime.now()
-        LOG.debug('end estimate optiomal order:' +
-                  ' {} seconds'.format((end-start).total_seconds()))
+        LOG.debug('end estimate optiomal order: %s seconds',
+                  (end-start).total_seconds())
         return max_accepted_order
 
     def likelihood_ratio_test(self, data, null=0, order=1, threshold=0.01):
-
+        """Likelihood ration test"""
         LOG.debug('start likelihood ratio test')
         start = datetime.datetime.now()
 
@@ -175,12 +174,13 @@ class MultiOrderModel(BaseModel):
         LOG.debug('reject the null hypothesis = %s', accept)
 
         end = datetime.datetime.now()
-        LOG.debug('end likelihood ratio test:' +
-                  ' {} seconds'.format((end-start).total_seconds()))
+        LOG.debug('end likelihood ratio test: %s seconds',
+                  (end-start).total_seconds())
 
         return accept, p_value
 
     def likelihood(self, data, order=1, log=True):
+        """Likelihood"""
         # add log-likelihoods of multiple model layers,
         # assuming that paths are independent
 
@@ -203,7 +203,7 @@ class MultiOrderModel(BaseModel):
     def layer_likelihood(self, data, order=1,
                          longer_paths=True, log=True,
                          min_length=None):
-
+        """Layer Likelihood"""
         path_lengths = [len(p) for p in data]
 
         if min_length is None:
@@ -222,20 +222,21 @@ class MultiOrderModel(BaseModel):
 
         for path in data.values():
             if min_length <= len(path) <= max_length:
-                likelihood += self.path_likelihood(path, order=order, log=True)
+                likelihood += self.path_likelihood(
+                    path, data.counter[path.uid], order=order, log=True)
 
         if not log:
             likelihood = np.exp(likelihood)
 
         return likelihood
 
-    def path_likelihood(self, path, order=1, log=True):
-
+    def path_likelihood(self, path, frequency, order=1, log=True):
+        """Path Likelihood"""
         # initialize likelihood
         likelihood = 0
 
         # get path frequency
-        frequency = path.attributes.get('frequency', 1)
+        #frequency = path.attributes.get('frequency', 1)
 
         # 1.) transform the path into a sequence of (two or more)
         # l-th-order edges
@@ -269,32 +270,36 @@ class MultiOrderModel(BaseModel):
         # P(e|c-d) * P( d|b-c) * P(c|a-b) * [ P(b|a) * P(a) ]
 
         # get a list of nodes for the matrix indices
+        hon = self.layers[order]['hon']
         n = self.layers[order]['hon'].nodes.index
+        # idx = {n.relations[0]: i for i, n in enumerate(
+        #     self.layers[order]['hon'].nodes)}
 
         if order == 0:
             for _n in edges:
-                likelihood += np.log(self.layers[order]['hon']
-                                     .nodes[(_n,)]['frequency']) * frequency
+                likelihood += np.log(hon.nodes.counter(
+                    hon.nodes[_n].uid)) * frequency
         else:
             for _v, _w in edges:
                 # calculate the log-likelihood
                 likelihood += np.log(self.layers[order]['T'][
-                    n[self.layers[order]['hon'].nodes[_w].uid],
-                    n[self.layers[order]['hon'].nodes[_v].uid]])*frequency
+                    n[hon.nodes[_w].uid],
+                    n[hon.nodes[_v].uid]])*frequency
 
         for _order, _e in transitions.items():
+            _hon = self.layers[_order]['hon']
             if _order == 0:
-                likelihood += np.log(self.layers[_order]['hon']
-                                     .nodes[(_e,)]['frequency']) * frequency
+                likelihood += np.log(_hon.nodes.counter[
+                    _hon.nodes[_e].uid]) * frequency
             else:
                 # get a list of nodes for the matrix indices
-                n = self.layers[_order]['hon'].nodes.index
+                n = _hon.nodes.index
                 _v = _e[0]
                 _w = _e[1]
                 # calculate the log-likelihood
                 likelihood += np.log(self.layers[_order]['T'][
-                    n[self.layers[_order]['hon'].nodes[_w].uid],
-                    n[self.layers[_order]['hon'].nodes[_v].uid]])*frequency
+                    n[_hon.nodes[_w].uid],
+                    n[_hon.nodes[_v].uid]])*frequency
 
         if not log:
             likelihood = np.exp(likelihood)
@@ -304,31 +309,15 @@ class MultiOrderModel(BaseModel):
     def _path_to_hon(self, path, order):
         """Helper function to convert path to hon node tuples."""
 
-        nodes: list = []
-
         if order == 0:
-            return list(path.nodes)
+            nodes = list((n,) for n in path.nodes)
 
-        elif order == 1:
-            nodes.extend([tuple([n]) for n in path.nodes])
+        else:
+            nodes = path.subpaths(min_length=order-1,
+                                  max_length=order-1,
+                                  include_self=True, paths=False)
 
-        elif 1 < order <= len(path):
-
-            for subpath in self.window(path.edges, size=order-1):
-                nodes.append(subpath)
-
-        return list(zip(nodes[:-1], nodes[1:]))
-
-    @staticmethod
-    def window(iterable, size=2):
-        """Sliding window for path length"""
-        ite = iter(iterable)
-        result = tuple(islice(ite, size))
-        if len(result) == size:
-            yield result
-        for elem in ite:
-            result = result[1:] + (elem,)
-            yield result
+        return list(zip(nodes[:-1], nodes[1:])) if order > 0 else nodes
 
     def summary(self):
         """Returns a summary of the multi-order model."""

@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_algorithms.py -- Test environment for basic algorithms
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2020-04-20 10:11 juergen>
+# Time-stamp: <Thu 2021-05-27 09:46 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -15,6 +15,8 @@ import numpy as np
 
 # @pytest.mark.parametrize('directed', (True, False))
 # @pytest.mark.parametrize('weighted', (True, False))
+
+
 @pytest.fixture(params=[True, False])
 def net(request):
     net = pp.Network(directed=False)
@@ -99,35 +101,50 @@ def test_degree_assortativity():
 
 def test_mean_degree():
     """Test the mean degree calculation."""
-    net = pp.generators.Molloy_Reed([2]*500)
+    # net = pp.generators.Molloy_Reed([2]*500)
+
+    net = Network(directed=False)
+    net.add_edges(('a', 'b'), ('b', 'c'), ('c', 'a'))
+
     mean_degree = pp.statistics.mean_degree(net)
     assert mean_degree == 2.0
 
 
 def test_local_clustering_coefficient():
-    """Test the degree assortativity of a network."""
-    net = pp.Network(directed=False)
-    net.add_edge('a', 'b', weight=2.1)
-    net.add_edge('b', 'c', weight=1.0)
-    net.add_edge('c', 'a', weight=1.0)
-    net.add_edge('b', 'd', weight=1.0)
-    net.add_edge('d', 'e', weight=1.0)
-    net.add_edge('e', 'b', weight=1.0)
+    """Test the local clustering coefficient of a network."""
+    n = pp.Network(directed=False)
+    n.add_edge('a', 'b')
+    n.add_edge('b', 'c')
+    n.add_edge('c', 'a')
+    n.add_edge('d', 'e')
+    n.add_edge('e', 'f')
+    n.add_edge('f', 'g')
+    n.add_edge('g', 'd')
+    n.add_edge('d', 'f')
+    n.add_edge('b', 'd')
 
-    s = pp.statistics.clustering.local_clustering_coefficient(net, 'b')
-    # s = pp.statistics.degrees.degree_central_moment(net, weight=True)
-    # # print(s)
+    cc = pp.statistics.clustering.local_clustering_coefficient(n, 'f')
+    assert cc == 2/3
+    cc = pp.statistics.clustering.local_clustering_coefficient(n, 'a')
+    assert cc == 1
 
 
-# def test_avg_clustering_coefficient():
-#     """Test the degree assortativity of a network."""
-#     net = pp.Network(directed=False)
-#     net.add_edge('a', 'b', weight=2.1)
-#     net.add_edge('b', 'c', weight=1.0)
-#     net.add_edge('b', 'd', weight=1.0)
+def test_avg_clustering_coefficient():
+    """Test the avg clustering coefficient of a network."""
+    n = pp.Network(directed=False)
+    n.add_edge('a', 'b')
+    n.add_edge('b', 'c')
+    n.add_edge('c', 'a')
+    n.add_edge('d', 'e')
+    n.add_edge('e', 'f')
+    n.add_edge('f', 'g')
+    n.add_edge('g', 'd')
+    n.add_edge('d', 'f')
+    n.add_edge('b', 'd')
 
-#     s = pp.statistics.clustering.avg_clustering_coefficient(net)
-#     print(s)
+    s = pp.statistics.clustering.avg_clustering_coefficient(n)
+    assert pytest.approx(s, 0.001) == 0.761904
+
 # =============================================================================
 # eof
 #

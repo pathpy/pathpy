@@ -1,17 +1,17 @@
-"""Algorithms to compute paths in temporal networks."""
+"""Algorithms to compute paths in temporal networks and directed acyclic graphs."""
 # !/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 # =============================================================================
-# File      : path_extraction.py -- Algorithms to compute paths in temporal networks and DAGs
+# File      : path_extraction.py -- Algorithms to compute paths in temporal networks and directed acyclic graphs
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Wed 2021-05-05 18:14 ingo>
+# Time-stamp: <Tue 2021-06-01 12:51 ingo>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
 
 from __future__ import annotations
 from pathpy.models.temporal_network import TemporalNetwork
-from typing import Any, List, Union, Optional
+from typing import Any, List, Union, Optional, Tuple
 from functools import singledispatch
 from collections import defaultdict, deque
 import itertools as it
@@ -25,6 +25,8 @@ from pathpy.core.api import EdgeCollection
 from pathpy.core.api import PathCollection
 from pathpy.models.classes import BaseTemporalNetwork
 from pathpy.models.models import ABCDirectedAcyclicGraph
+
+
 
 # create logger
 LOG = logger(__name__)
@@ -97,7 +99,7 @@ def _expand_set_paths(set_path):
 
 
 
-def all_paths_from_dag(dag: ABCDirectedAcyclicGraph, node_mapping=None, max_subpath_length=None, separator=',', repetitions=True, unique=False) -> Counter:
+def all_paths_from_dag(dag: ABCDirectedAcyclicGraph, node_mapping=None, max_subpath_length=None, separator=',', repetitions=True, unique=False) -> PathCollection:
     """
     Calculates path statistics in a directed acyclic graph.
     All paths between all roots (nodes with zero indegree)
@@ -156,7 +158,7 @@ def all_paths_from_dag(dag: ABCDirectedAcyclicGraph, node_mapping=None, max_subp
         raise ValueError
     else:
         # path object which will hold the detected (projected) paths
-        paths = Counter()
+        paths = PathCollection()
         # if max_subpath_length:
         #     p.max_subpath_length = max_subpath_length
         # else:
@@ -172,9 +174,10 @@ def all_paths_from_dag(dag: ABCDirectedAcyclicGraph, node_mapping=None, max_subp
                     extracted_paths = set(tuple(x) for x in extracted_paths)
                 for path in extracted_paths:   # add detected paths to paths object                    
                     if repetitions:
-                        paths[path] += 1
+                        p = path                                          
                     else:
-                        paths[_remove_repetitions(path)] += 1
+                        p = _remove_repetitions(path)
+                    paths.add(p, count=1, uid='-'.join(p))
         else:
             path_counter = defaultdict(lambda: 0)
             for root in dag.roots:
@@ -184,9 +187,10 @@ def all_paths_from_dag(dag: ABCDirectedAcyclicGraph, node_mapping=None, max_subp
 
             for path, count in path_counter.items():
                 if repetitions:
-                    paths[path] += count
+                    p = path
                 else:
-                    paths[path][_remove_repetitions(path)] += count
+                    p = _remove_repetitions(path)
+                paths.add(p, count=count, uid='-'.join(p))
 
         #LOG.info('Expanding Subpaths')
         # p.expand_subpaths()
@@ -194,7 +198,7 @@ def all_paths_from_dag(dag: ABCDirectedAcyclicGraph, node_mapping=None, max_subp
         return paths
 
 
-def all_paths_from_temporal_network(tempnet: TemporalNetwork, delta: int=1, max_subpath_length: int=-1) -> Counter:
+def all_paths_from_temporal_network(tempnet: TemporalNetwork, delta: int=1, max_subpath_length: int=-1) -> PathCollection:
     """
     Calculates the frequency of causal paths in a temporal network assuming a 
     maximum temporal distance of delta between consecutive
@@ -267,7 +271,7 @@ def all_paths_from_temporal_network(tempnet: TemporalNetwork, delta: int=1, max_
     LOG.info('finished.')
 
     # path statistics
-    causal_paths = Counter()
+    causal_paths = PathCollection()
     
     # For each root in the time-unfolded DAG, we generate a
     # causal tree and use it to count all causal paths
@@ -288,15 +292,18 @@ def all_paths_from_temporal_network(tempnet: TemporalNetwork, delta: int=1, max_
                 LOG.info('Analyzing tree {0}/{1} ...'.format(current_root, num_roots))
 
         # calculate all unique longest path in the causal tree
-        causal_paths += all_paths_from_dag(causal_tree, causal_mapping, repetitions=False, max_subpath_length=max_subpath_length)
+        # TODO: replace by add operator
+        paths = all_paths_from_dag(causal_tree, causal_mapping, repetitions=False, max_subpath_length=max_subpath_length)
+        for p in paths:
+            causal_paths.add(p, count=paths.counter[p.uid], uid=p.uid)
         current_root += 1
 
     LOG.info('finished.')
-    
+
     return causal_paths
 
 
-def generate_causal_tree(dag, root, node_map):
+def generate_causal_tree(dag, root, node_map) -> Tuple(ABCDirectedAcyclicGraph, defaultdict):
     """
     For a directed acyclic graph and a non-injective mapping of nodes,
     this method creates a *causal tree* for a given root node.
@@ -375,15 +382,15 @@ def PaCo(
     # all the entries that are at max distance delta away from the current entry
     delta_window = []
 
-    path_stack = PathCollection()
+    path_collection = PathCollection()
 
     # current_path_stack[i][p] is the number of paths p that go from
     # current_edge of index i.
     current_path_stack = defaultdict(lambda: defaultdict(int))
 
     # for e, current_edge in enumerate(D):
-    for e, ((timestamp, end, uid), edge) in enumerate(tn.tedges.items()):
-        current_edge = (edge.v.uid, edge.w.uid, timestamp)
+    for e, edge in enumerate(tn.edges[:]):
+        current_edge = (edge.v.uid, edge.w.uid, edge.start)
         # since we go in forward direction, delta window is back in time.
         # not every entry from delta window is important for the current
         # considered current_edge some are happening at the same time.
@@ -450,24 +457,19 @@ def PaCo(
                             current_path_stack[e][p] += current_path_stack[enu][path]
 
                             if e >= skip_first:
-                                if p not in path_stack:
-                                    path_stack.add(
-                                        p, frequency=current_path_stack[enu][path])
-                                else:
-                                    path_stack[p]['frequency'] += current_path_stack[enu][path]
+                                # path_collection[p] += current_path_stack[enu][path]
+                                path_collection.add(p, uid='-'.join(p), count=current_path_stack[enu][path])
         current_path_stack[e][(current_edge[0], current_edge[1])] += 1
 
         if e >= skip_first:
             p = (current_edge[0], current_edge[1])
-            if p not in path_stack:
-                path_stack.add(p, frequency=1)
-            else:
-                path_stack[p]['frequency'] += 1
+            path_collection.add(p[0], p[1], uid='-'.join(p), count=1)
+            # path_collection[p] += 1
 
         # add this current_edge at the end of delta_window,
         # so that the next current_edge can have all the entries it needs.
         delta_window.append((e, current_edge))
 
-    return path_stack
+    return path_collection
 
     

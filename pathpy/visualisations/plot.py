@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : plot.py -- Module to plot pathoy networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-04-22 16:34 juergen>
+# Time-stamp: <Thu 2021-05-27 14:31 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -337,8 +337,8 @@ class Parser:
         self.figure['data']['changes'] = []
 
         # get start and end time
-        start = obj.start(inf=False)
-        end = obj.end(inf=False)
+        start = obj.start
+        end = obj.end
 
         # raise error if time frame is not finite
         if start == float('-inf') or end == float('inf'):
@@ -392,7 +392,9 @@ class Parser:
         #         edge_temp_attr[edge.uid][time].update(**values)
 
         def find_nearest(array, value, index=True):
-            idx = (np.abs(array - value)).argmin()
+            value = array[0] if value == float('-inf') else value
+            value = array[-1] if value == float('inf') else value
+            idx = np.abs(array - value).argmin()
             if index:
                 result = int(idx)
             else:
@@ -404,21 +406,15 @@ class Parser:
         times = np.linspace(start, end, num=steps)
 
         # when edge is active or not
-        for (start, end, uid), edge in obj.tedges.items():
-            _edge = {'uid': uid}
-            _edge['startTime'] = find_nearest(times, start)
-            _edge['endTime'] = find_nearest(times, end)
-            _edge['active'] = True
-            temporal_edges.append(_edge)
-
-        # temporal edge attributes
-        # TODO combine if change at same time
-        for edge in obj.edges:
-            for (start, end, key), value in edge.attributes.items():
+        for edge in obj.edges[start:end]:
+            for event in edge[start:end]:
                 _edge = {'uid': edge.uid}
-                _edge['startTime'] = find_nearest(times, start)
-                _edge['endTime'] = find_nearest(times, end)
-                _edge[key] = value
+                _start = event.attributes.pop('start', start)
+                _end = event.attributes.pop('end', end)
+                _edge['startTime'] = find_nearest(times, _start)
+                _edge['endTime'] = find_nearest(times, _end)
+                _edge['active'] = True
+                _edge.update(event.attributes)
                 temporal_edges.append(_edge)
 
         # add temporal edges to the data
@@ -454,13 +450,33 @@ class Parser:
 
         # temporal edge attributes
         # TODO combine if change at same time
-        for node in obj.nodes:
-            for (start, end, key), value in node.attributes.items():
+        for node in obj.nodes[start:end]:
+            for event in node[start:end]:
                 _node = {'uid': node.uid}
-                _node['startTime'] = find_nearest(times, start)
-                _node['endTime'] = find_nearest(times, end)
-                _node[key] = value
+                _start = event.attributes.pop('start', start)
+                _end = event.attributes.pop('end', end)
+                _node['startTime'] = find_nearest(times, _start)
+                _node['endTime'] = find_nearest(times, _end)
+                _node['active'] = True
+                _node.update(event.attributes)
+                if _start == float('-inf') and _end == float('inf'):
+                    continue
                 temporal_nodes.append(_node)
+                _node = {'uid': node.uid}
+                _node['startTime'] = find_nearest(times, _end)
+                _node['endTime'] = find_nearest(times, _end)
+                _node['active'] = False
+                for key in event.attributes.keys():
+                    _node[key] = None
+                temporal_nodes.append(_node)
+
+        # print(self.figure['data']['nodes'])
+        #     for (start, end, key), value in node.attributes.items():
+        #         _node = {'uid': node.uid}
+        #         _node['startTime'] = find_nearest(times, start)
+        #         _node['endTime'] = find_nearest(times, end)
+        #         _node[key] = value
+        #         temporal_nodes.append(_node)
 
         # for initial_node in initial_nodes:
         #     _node = initial_node.copy()
@@ -636,25 +652,25 @@ class Parser:
             _layout[n] = (_x, _y)
 
         # find min and max values of new the points
-        min_x=min(_layout.items(), key=lambda item: item[1][0])[1][0]
-        max_x=max(_layout.items(), key=lambda item: item[1][0])[1][0]
-        min_y=min(_layout.items(), key=lambda item: item[1][1])[1][1]
-        max_y=max(_layout.items(), key=lambda item: item[1][1])[1][1]
+        min_x = min(_layout.items(), key=lambda item: item[1][0])[1][0]
+        max_x = max(_layout.items(), key=lambda item: item[1][0])[1][0]
+        min_y = min(_layout.items(), key=lambda item: item[1][1])[1][1]
+        max_y = max(_layout.items(), key=lambda item: item[1][1])[1][1]
 
         # calculate the translation
-        translation=(((width-margins['left']-margins['right'])/2
+        translation = (((width-margins['left']-margins['right'])/2
                         + margins['left']) - ((max_x-min_x)/2 + min_x),
                        ((height-margins['top']-margins['bottom'])/2
-                        + margins['bottom']) - ((max_y-min_y)/2 + min_y))
+                       + margins['bottom']) - ((max_y-min_y)/2 + min_y))
 
         # apply translation to the points
         for n, (x, y) in _layout.items():
-            _x=(x)+translation[0]
-            _y=(y)+translation[1]
-            _layout[n]=(_x, _y)
+            _x = (x)+translation[0]
+            _y = (y)+translation[1]
+            _layout[n] = (_x, _y)
 
         for node in nodes:
-            node['coordinates']=_layout[node['uid']]
+            node['coordinates'] = _layout[node['uid']]
 
         return nodes
 
@@ -662,28 +678,28 @@ class Parser:
         """Parse the config file."""
 
         # initialize temporal dict
-        _config: defaultdict=defaultdict(dict)
+        _config: defaultdict = defaultdict(dict)
 
         # extend default dict
         for key in properties:
-            _config[key]=defaultdict(dict)
+            _config[key] = defaultdict(dict)
 
         # iterate over kwargs
         for key, value in kwargs.items():
 
             # split key from kwargs
-            _key=key.split("_", 1)
+            _key = key.split("_", 1)
 
             # check if key is valid
             if _key[0] in properties:
                 if _key[1] in properties[_key[0]]:
 
                     # add value to dictionary
-                    _config[_key[0]][_key[1]]=value
+                    _config[_key[0]][_key[1]] = value
 
             # check if key is in the default config
             elif key in self.config:
-                _config[key]=value
+                _config[key] = value
 
         return _config
 
@@ -691,37 +707,37 @@ class Parser:
         """Parse static objects such as nodes and edges."""
 
         # initialize temporal dict
-        _obj: defaultdict=defaultdict(dict)
+        _obj: defaultdict = defaultdict(dict)
 
         # get mapping if defined
-        mapping=kwargs.get('mapping', None)
+        mapping = kwargs.get('mapping', None)
 
         # iterate over objects
         for uid, obj in objects.items():
 
             # add default properties to the obj
-            _obj[uid]=self.default_properties[otype].copy()
+            _obj[uid] = self.default_properties[otype].copy()
 
             # add obj uid
-            _obj[uid]['uid']=uid
+            _obj[uid]['uid'] = uid
 
             # if obj is an edge add source and target nodes
             if otype == 'edge':
-                _obj[uid]['source']=obj.v.uid
-                _obj[uid]['target']=obj.w.uid
+                _obj[uid]['source'] = obj.v.uid
+                _obj[uid]['target'] = obj.w.uid
 
             # add obj attributes
             for attr, value in obj.attributes.items():
 
                 # if mapping is given map the attribute
                 if mapping is not None and attr in mapping:
-                    attr=mapping[attr]
+                    attr = mapping[attr]
 
                 # check if attribute is in the default object
                 if attr in self.default_properties[otype]:
 
                     # update attribute if given
-                    _obj[uid][attr]=value
+                    _obj[uid][attr] = value
 
         # update objects based on the kwargs
         # iterate over the kwargs config
@@ -736,7 +752,7 @@ class Parser:
             elif isinstance(values, list):
                 for i, obj in enumerate(_obj.values()):
                     try:
-                        obj[key]=values[i]
+                        obj[key] = values[i]
                     except KeyError:
                         pass
 
@@ -744,7 +760,7 @@ class Parser:
             elif isinstance(values, dict):
                 for k in _obj:
                     if k in values:
-                        _obj[k][key]=values[k]
+                        _obj[k][key] = values[k]
             # otherwise raise error
             else:
                 LOG.error('Something went wrong, by formatting the values!')

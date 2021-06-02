@@ -4,14 +4,14 @@
 # =============================================================================
 # File      : classes.py -- Base classes for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-04-21 09:11 juergen>
+# Time-stamp: <Tue 2021-06-01 13:38 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
-from pathpy.core.classes import BaseClass
+from pathpy.core.core import PathPyObject
 
 
-class BaseModel(BaseClass):
+class BaseModel(PathPyObject):
     """Base class for models."""
 
 
@@ -19,8 +19,20 @@ class BaseNetwork(BaseModel):
     """Base class for a network model."""
 
 
+class BaseHyperGraph(BaseModel):
+    """Base class for a hypergraph model."""
+
+
 class BaseTemporalNetwork(BaseModel):
     """Base class for a temporal network model."""
+
+
+class BaseHigherOrderNetwork(BaseModel):
+    """Base class for a higher-order network model."""
+
+
+class BaseMultiOrderModel(BaseModel):
+    """Base class for a multi-order model."""
 
 # =============================================================================
 # eof

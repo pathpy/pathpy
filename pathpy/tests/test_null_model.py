@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_null_model.py -- Test environment for null models
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-03-31 11:18 juergen>
+# Time-stamp: <Tue 2021-06-01 19:06 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -20,19 +20,19 @@ def test_basic():
     """Test basic functions"""
 
     paths = PathCollection()
-    paths.add('a', 'c', 'd', uid='a-c-d', frequency=10)
-    paths.add('b', 'c', 'e', uid='b-c-e', frequency=10)
+    paths.add('a', 'c', 'd', uid='a-c-d', count=10)
+    paths.add('b', 'c', 'e', uid='b-c-e', count=10)
 
-    # null = NullModel()
-    # null.fit(paths, order=2)
+    null = NullModel()
+    null.fit(paths, order=2)
 
-    null = NullModel.from_paths(paths, order=2)
+    # null = NullModel.from_paths(paths, order=2)
 
     assert null.number_of_edges() == 4
     assert null.number_of_nodes() == 4
 
-    for e in null.edges:
-        assert e['frequency'] == 5.0
+    for e in null.edges.uids:
+        assert null.edges.counter[e] == 5.0
 
 
 def test_possible_paths():
@@ -40,24 +40,25 @@ def test_possible_paths():
     paths = PathCollection()
     paths.add('a', 'a', 'b', 'b', 'a')
 
-    assert len(NullModel.possible_paths(paths.edges, order=3)) == 16
+    null = NullModel()
+    assert len(null.possible_relations(paths, length=3)) == 16
 
 
 def test_from_network():
 
     net = Network()
-    net.add_edge('a', 'c', frequency=10)
-    net.add_edge('c', 'd', frequency=10)
-    net.add_edge('b', 'c', frequency=10)
-    net.add_edge('c', 'e', frequency=10)
+    net.add_edge('a', 'c', count=10)
+    net.add_edge('c', 'd', count=10)
+    net.add_edge('b', 'c', count=10)
+    net.add_edge('c', 'e', count=10)
 
     null = NullModel.from_network(net, order=2)
 
     assert null.number_of_edges() == 4
     assert null.number_of_nodes() == 4
 
-    for e in null.edges:
-        assert e['frequency'] == 5.0
+    for e in null.edges.uids:
+        assert null.edges.counter[e] == 5.0
 
 
 def test_degrees_of_reedom():

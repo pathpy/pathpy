@@ -163,10 +163,8 @@ class BaseProcess:
             tn.add_node(TemporalNode(v.uid))
         
         if isinstance(self.network, TemporalNetwork):
-            for start, end, e in self.network.tedges:
-                edge = self.network.edges[e]
-                if start >= start_time and start < end_time:
-                    tn.add_edge(edge.v.uid, edge.w.uid, start=max(start, start_time), end=min(end_time, end))
+            for edge in self.network.edges[start_time:end_time]:
+                tn.add_edge(edge.v.uid, edge.w.uid, start=max(edge.start, start_time), end=min(end_time, edge.end))
             # # set initial state
             # for v in tn.nodes.uids:
             #     tn.nodes[v][start_time, 'color'] = self.state_to_color(self.node_state(v))
@@ -230,7 +228,7 @@ class BaseProcess:
             for v in self._network.predecessors[w]:
 
                 # get all state changes of node v prior to time t
-                candidates = run.loc[(run['node']==v.uid) & (run['time']<t)]
+                candidates = run.loc[(run['node']==v) & (run['time']<t)]
 
                 if len(candidates)>0:
 
@@ -241,9 +239,9 @@ class BaseProcess:
 
                     # check last state change and time difference
                     if  last_state in states and (time_delta is None or (t-last_time) < time_delta):
-                        pred_uid = '{0}-{1}'.format(v.uid, last_time)
+                        pred_uid = '{0}-{1}'.format(v, last_time)
                         if pred_uid not in dag.nodes:
-                            predecessors.append(Node(pred_uid, node_label=v.uid, time=last_time, state=last_state))
+                            predecessors.append(Node(pred_uid, node_label=v, time=last_time, state=last_state))
                         else:
                             predecessors.append(dag.nodes[pred_uid])
                         # predecessors = ['{0}-{1}'.format(v.uid, t_p)]                        

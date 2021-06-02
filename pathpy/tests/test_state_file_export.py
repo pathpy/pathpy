@@ -17,16 +17,15 @@ import io
 @pytest.fixture
 def paths():
     # a simple toy example
-    return OrderedDict({
-        ('a', 'b'): 1,
-        ('b', 'c', 'd'): 1,
-        ('c', 'd', 'a', 'c'): 1,
-        ('b', 'c', 'b', 'a', 'c'): 1
-        })
+    pc = pp.PathCollection()
+    pc.add('a', 'b', count=1, uid='a-b')
+    pc.add('b', 'c', 'd', count=1, uid='b-c-d')
+    pc.add('c', 'd', 'a', 'c', count=1, uid='c-d-a-c')
+    pc.add('b', 'c', 'b', 'a', 'c', count=1, uid='b-c-b-a-c')
+    return pc
 
 
 def test_state_file_export(paths):
-    print(paths)
     pp.io.infomap.to_state_file(paths, 'pathpy/tests/data/test.state', max_memory=1)
     with io.open('pathpy/tests/data/test.state', 'r') as f:
         lines1 = f.readlines()

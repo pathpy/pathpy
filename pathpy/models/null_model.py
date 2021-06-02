@@ -4,25 +4,18 @@
 # =============================================================================
 # File      : null_models.py -- Null models for pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-03-31 11:18 juergen>
+# Time-stamp: <Tue 2021-06-01 19:06 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
-from __future__ import annotations
 from typing import Optional, Any
-import datetime
-
+from collections import Counter
 from singledispatchmethod import singledispatchmethod
 
 from pathpy import logger, tqdm
-from pathpy.core.node import NodeCollection
-from pathpy.core.edge import EdgeCollection
+from pathpy.models.higher_order_network import HigherOrderNetwork
 from pathpy.core.path import PathCollection
 from pathpy.models.network import Network
-
-from pathpy.models.higher_order_network import (HigherOrderNetwork,
-                                                HigherOrderNodeCollection)
-from pathpy.statistics.subpaths import SubPathCollection
 
 # create logger
 LOG = logger(__name__)
@@ -39,128 +32,61 @@ class NullModel(HigherOrderNetwork):
         super().__init__(uid=uid, order=order, **kwargs)
 
     @singledispatchmethod
-    def fit(self, data, order: Optional[int] = None) -> None:
-        """Fit data to a NullModel"""
+    def fit(self, data, order: Optional[int] = None,
+            subpaths: bool = True) -> None:
+        """Fit data to a HigherOrderNetwork"""
         raise NotImplementedError
 
     @fit.register(PathCollection)  # type: ignore
     def _(self, data: PathCollection, order: Optional[int] = None) -> None:
 
-        # Check order
+        # check order
         if order is not None:
             self._order = order
 
-        if 0 <= self.order <= 1:
-            super().fit(data, order=self.order)
+        # generate first order hon
+        hon = HigherOrderNetwork.from_paths(data, order=1)
 
-        elif self.order > 1:
-            # --- START ---
-            nc = NodeCollection()
-            for node in data.nodes.values():
-                nc.add(node)
+        # get node index and transition matrix
+        idx = {node.relations[0]: i for i, node in enumerate(hon.nodes)}
+        mat = hon.transition_matrix(count=True)
 
-            ec = EdgeCollection(nodes=nc)
-            for edge in data.edges.values():
-                ec.add(edge)
+        # generate possible paths
+        paths = self.possible_relations(data, self.order)
 
-            self._nodes = HigherOrderNodeCollection(nodes=nc, edges=ec)
-            # --- END ---
+        subpaths: Counter = Counter()
+        for path in tqdm(data, desc='calculate possible sub-paths'):
+            for subpath in path.subpaths(min_length=self.order-1,
+                                         max_length=self.order-1,
+                                         include_self=True, paths=False):
+                subpaths[subpath] += data.counter[path.uid]
 
-            # get path data
-            paths = data
+        for path in paths:
+            # get higher-oder nodes
+            _v, _w = path[:-1], path[1:]
+            if _v not in self.nodes:
+                self.add_node(*_v, count=0)
+            if _w not in self.nodes:
+                self.add_node(*_w, count=0)
+            node_v, node_w = self.nodes[_v], self.nodes[_w]
 
-            # generate first order representation of data
-            network = Network.from_paths(paths, frequencies=True)
+            frequency = subpaths[_v] * mat[idx[path[-2]], idx[path[-1]]]
 
-            self.calculate(network, paths)
+            if (node_v, node_w) not in self.edges:
+                self.add_edge(node_v, node_w, count=0)
 
-        else:
-            LOG.error('A Null Model with order %s is not supported', self.order)
-            raise AttributeError
+            edge = self.edges[node_v, node_w]
+            self.edges.counter[edge.uid] += frequency
 
     @fit.register(Network)  # type: ignore
-    def _(self, data: Network, order: Optional[int] = None) -> None:
+    def _(self, data: Network, order: Optional[int] = None,
+          subpaths: bool = True) -> None:
+        paths = PathCollection(directed=data.directed,
+                               multipaths=data.multiedges)
+        for edge in data.edges:
+            paths.add(*edge, count=data.edges.counter[edge.uid])
 
-        # Check order
-        if order is not None:
-            self._order = order
-
-        if 0 <= self.order <= 1:
-            super().fit(data, order=self.order)
-
-        elif self.order > 1:
-
-            # TODO: create function to transfer base data from PathCollection object
-            # --- START ---
-            nc = NodeCollection()
-            for node in data.nodes.values():
-                nc.add(node)
-
-            ec = EdgeCollection(nodes=nc)
-            for edge in data.edges.values():
-                ec.add(edge)
-
-            self._nodes = HigherOrderNodeCollection(nodes=nc, edges=ec)
-            # --- END ---
-
-            # get network data
-            network = data
-
-            # generate a path representation of the data
-            paths = PathCollection(directed=network.directed,
-                                   nodes=network.nodes, edges=network.edges)
-            for edge in data.edges:
-                paths.add(edge, frequency=edge.attributes.get('frequency', 1))
-
-            self.calculate(network, paths)
-
-        else:
-            LOG.error('A Null Model with order %s is not supported', self.order)
-            raise AttributeError
-
-    def calculate(self, network: Network, paths: PathCollection) -> None:
-        """Calculate the null modell"""
-
-        # get transition matrix of the underlying network
-        transition_matrix = network.transition_matrix(weight='frequency')
-
-        # generate all possible paths
-        possible_paths = self.possible_paths(paths.edges, self.order)
-
-        # Get all sub-paths of order-1
-        subpaths = SubPathCollection.from_paths(paths,
-                                                min_length=self.order-1,
-                                                max_length=self.order-1,
-                                                include_path=True)
-
-        # add paths to the higer-order network
-        for path in possible_paths:
-            nodes: list = []
-            for subpath in self.window(path, size=self.order-1):
-                nodes.append(subpath)
-
-            for _v, _w in zip(nodes[:-1], nodes[1:]):
-
-                if _v not in self.nodes:
-                    self.nodes.add(_v)
-
-                if _w not in self.nodes:
-                    self.nodes.add(_w)
-
-                _nodes = (self.nodes[_v], self.nodes[_w])
-
-                # generate the expected frequencies of all possible paths
-                if _v in subpaths:
-                    frequency = subpaths.counter[subpaths[_v]] * \
-                        transition_matrix[network.nodes.index[_w[-1].v.uid],
-                                          network.nodes.index[_w[-1].w.uid]]
-
-                else:
-                    frequency = 0.0
-
-                if _nodes not in self.edges:
-                    self.add_edge(*_nodes, possible=0,
-                                  observed=frequency, frequency=frequency)
+        self.fit(paths, order=order)
 
     def degrees_of_freedom(self, mode: str = 'path') -> int:
         """Returns the degrees of freedom of the higher order network.
@@ -179,14 +105,6 @@ class NullModel(HigherOrderNetwork):
         if self.order == 0:
             degrees_of_freedom = max(0, self.number_of_nodes()-1)
 
-        # elif mode == 'old':
-        #     # TODO : Remove this part after proper testing
-        #     A = self.network.adjacency_matrix()
-
-        #     degrees_of_freedom = int(
-        #         (A ** self.order).sum()
-        #         - np.count_nonzero((A ** self.order).sum(axis=0)))
-
         elif mode == 'ngram':
             number_of_nodes = len(self.nodes.nodes)
             degrees_of_freedom = (number_of_nodes ** self.order) * \
@@ -200,34 +118,6 @@ class NullModel(HigherOrderNetwork):
 
         # return degree of freedom
         return degrees_of_freedom
-
-    @staticmethod
-    def possible_paths(edges, order) -> list:
-        """Returns a dictionary of all paths with a given length
-           that can possible exists.
-        """
-        # some information for debugging
-        LOG.debug('start generate possible paths')
-        _start = datetime.datetime.now()
-
-        # start with edges, i.e. paths of length one
-        paths = [[k] for k in edges.values()]
-
-        # extend all of those paths by an edge k-1 times
-        # TODO: speed up this function !!!
-        for _ in tqdm(range(order - 1), desc='possilbe paths'):
-            _new = list()
-            for e_1 in paths:
-                for e_2 in edges.values():
-                    if e_1[-1].w == e_2.v:
-                        _new.append(e_1 + [e_2])
-            paths = _new
-
-        # some information for debugging
-        _end = datetime.datetime.now()
-        LOG.debug('end generate possible paths: %s seconds',
-                  (_end-_start).total_seconds())
-        return paths
 
     @classmethod
     def from_paths(cls, paths: PathCollection, **kwargs: Any):
@@ -250,7 +140,6 @@ class NullModel(HigherOrderNetwork):
         null.fit(network)
 
         return null
-
 
 # =============================================================================
 # eof

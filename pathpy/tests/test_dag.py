@@ -10,7 +10,7 @@
 
 import pytest
 from pathpy import Node, Edge, Network, TemporalNetwork, DirectedAcyclicGraph
-
+from collections import Counter
 
 def test_basic():
     """Test some basic functions"""
@@ -58,6 +58,12 @@ def test_basic():
 
 # print(dag)
 
+def test_dag_node_creation():
+    """
+    """
+    dag = DirectedAcyclicGraph()
+    dag.add_edge('a', 'b')
+    assert dag.nodes['b'] in dag.successors['a']
 
 def test_from_temporal_network():
     """Test converter from temporal networks"""
@@ -68,7 +74,6 @@ def test_from_temporal_network():
     tn.add_edge('d', 'c', timestamp=4)
     tn.add_edge('c', 'd', timestamp=5)
     tn.add_edge('c', 'b', timestamp=6)
-
     tn.add_edge('a', 'b', timestamp=7)
     tn.add_edge('b', 'a', timestamp=8)
     dag = DirectedAcyclicGraph.from_temporal_network(tn)
@@ -76,6 +81,24 @@ def test_from_temporal_network():
     assert dag.acyclic is True
     assert dag.number_of_nodes() == 13
     assert dag.number_of_edges() == 8
+
+
+def test_routes_from():
+    """Test converter from temporal networks"""
+    tn = TemporalNetwork()
+    tn.add_edge('a', 'b', timestamp=1)
+    tn.add_edge('b', 'c', timestamp=2)
+    tn.add_edge('b', 'd', timestamp=5)
+    dag = DirectedAcyclicGraph.from_temporal_network(tn, delta=2)
+    paths = dag.routes_from('a_1')
+    assert paths.counter == Counter({('a_1-b_3'): 1,
+         ('a_1-b_2-c_4'): 1,
+         ('a_1-b_2-c_3'): 1})
+
+    paths = dag.routes_from('b_5')
+    assert paths.counter == Counter({('b_5-d_7'): 1, ('b_5-d_6'): 1})
+    
+
 # =============================================================================
 # eof
 #

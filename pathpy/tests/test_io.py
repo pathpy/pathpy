@@ -9,7 +9,7 @@
 # =============================================================================
 
 import pytest
-from pathpy import Network,  TemporalNetwork
+from pathpy import Network, TemporalNetwork
 import pathpy as pp
 
 
@@ -63,6 +63,34 @@ def test_csv_read_network():
     assert isinstance(net, Network)
     assert net.number_of_nodes() == 3
     assert net.number_of_edges() == 2
+
+
+def test_pandas_temporal():
+    """Read network from csv."""
+    tn = TemporalNetwork(directed=True)
+    tn.add_edge('a', 'b', timestamp=1)
+    tn.add_edge('b', 'a', timestamp=3)
+    tn.add_edge('b', 'c', timestamp=3)
+    tn.add_edge('d', 'c', timestamp=4)
+    tn.add_edge('c', 'd', timestamp=5)
+    tn.add_edge('c', 'b', timestamp=6)
+    tn.add_edge('a', 'b', timestamp=7)
+    tn.add_edge('b', 'a', timestamp=8)
+
+    df = pp.io.pandas.to_dataframe(tn)
+    print(df)
+
+    tn2 = pp.io.to_temporal_network(df, directed=True)
+
+    n1 = tn.number_of_nodes()
+    n2 = tn2.number_of_nodes()
+    assert n1 == n2
+    e1 = tn.number_of_edges()
+    e2 = tn2.number_of_edges()
+    assert e1 == e2
+    te1 = len([e for e in tn.edges[:]])
+    te2 = len([e for e in tn2.edges[:]])
+    assert te1 == te2
 
 # =============================================================================
 # eof

@@ -17,7 +17,7 @@ from pathpy import logger
 # pseudo load class for type checking
 if TYPE_CHECKING:
     from pathpy.models.api import Network
-
+    from pathpy.core.api import Node
 # create logger
 LOG = logger(__name__)
 
@@ -54,17 +54,16 @@ def local_clustering_coefficient(network: Network, v: str) -> float:
 
     if network.directed and o[v] >= 2 or network.directed == False and d[v] >= 2:
         k: int = 0
-        for edge in network.edges:
-            if (edge.v.uid != edge.w.uid and edge.v in network.successors[v] and
-                    edge.w in network.successors[v]):
-                k += 1
+        # compute set of closed triads
+        closed = closed_triads(network, v)
+        k = len(closed)
 
         if network.directed:
-            lcc = k/(o[v]*(o[v]-1))
+            return k/(o[v]*(o[v]-1))
         else:
-            lcc = 2*k/(d[v]*(d[v]-1))
-
-    return lcc
+            return 2*k/(d[v]*(d[v]-1))
+    else:
+        return 0.
 
 
 def avg_clustering_coefficient(network: Network) -> float:
@@ -78,8 +77,7 @@ def avg_clustering_coefficient(network: Network) -> float:
         The network in which to calculate the local clustering coefficient.
 
     """
-    return np.mean([local_clustering_coefficient(network, v)
-                    for v in network.nodes.uids])
+    return np.mean([ local_clustering_coefficient(network, v.uid) for v in network.nodes ])
 
 
 def closed_triads(network: Network, v: str) -> Set:
@@ -95,7 +93,11 @@ def closed_triads(network: Network, v: str) -> Set:
 
     """
     ct: set = set()
-    for edge in network.edges:
+    edges = set()
+    for w in network.successors[v]:
+        for e in network.incident_edges[w.uid]:
+            edges.add(e)
+    for edge in edges:
         if (edge.v in network.successors[v] and
                 edge.w in network.successors[v]):
             ct.add(edge)
