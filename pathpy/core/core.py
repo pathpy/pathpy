@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-06-02 14:08 juergen>
+# Time-stamp: <Wed 2021-06-02 15:20 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -686,6 +686,23 @@ class PathPyCollection():
     def __eq__(self, other) -> bool:
         """Return if two collections are equal"""
         return self._store == other._store
+
+    def __iadd__(self, other):
+        for obj in other:
+            self.add(obj, count=other.counter[obj.uid])
+        return self
+
+    def __isub__(self, other):
+        for obj in other:
+            if isinstance(obj, PathPyPath):
+                if obj._is_python_uid and obj.relations in self._relations:
+                    obj = self[obj.relations]
+                elif obj.uid in self.keys():
+                    obj = self[obj.uid]
+                else:
+                    continue
+            self.remove(obj)
+        return self
 
     @singledispatchmethod
     def __contains__(self, item) -> bool:
