@@ -369,7 +369,7 @@ class PathPyRelation(tuple):
 class PathPyCounter(Counter):
     """A counter object for pathpy objects"""
 
-    def __init__(self, iterable=None, /, relations=None,
+    def __init__(self, iterable=None, relations=None,
                  directed=True, ordered=True, **kwargs):
         self._relations = relations
         self._directed = directed
