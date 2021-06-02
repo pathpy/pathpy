@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_core.py -- Test environment for the core classes
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-06-02 12:56 juergen>
+# Time-stamp: <Wed 2021-06-02 13:02 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -21,7 +21,7 @@ from pathpy.core.core import (
 def test_PathPyEmpty():
     """Test the PathPyEmpty"""
     u = PathPyEmpty('u')
-    print(u.uid)
+    assert u.uid == 'u'
 
 
 def test_PathPyPath():
@@ -111,6 +111,28 @@ def test_PathPyPath_subobjects():
     p = PathPyPath(e1, e2, uid='p1')
 
     assert ('a',) in p.subobjects(depth=3)
+
+
+def test_PathPyCollection_counter():
+    """Test the counter of the collection object"""
+    col = PathPyCollection()
+
+    col.add('a', uid='a')
+    assert len(col) == 1
+
+    assert col.counter['a'] == 1
+
+    col.add('a', count=100)
+
+    assert col.counter['a'] == 101
+
+    col.counter['a'] = 20
+    assert col.counter['a'] == 20
+
+    col.remove('a')
+    assert len(col) == 0
+    assert col.counter['a'] == 0
+
 
 # =============================================================================
 # eof
