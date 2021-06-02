@@ -3,19 +3,20 @@
 # =============================================================================
 # File      : test_core.py -- Test environment for the core classes
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-06-02 13:02 juergen>
+# Time-stamp: <Wed 2021-06-02 14:17 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
 
 import pytest
-
+from collections import Counter
 from pathpy.core.core import (
     PathPyPath,
     PathPyCollection,
     PathPySet,
     PathPyRelation,
-    PathPyEmpty)
+    PathPyEmpty,
+    PathPyCounter)
 
 
 def test_PathPyEmpty():
@@ -133,7 +134,18 @@ def test_PathPyCollection_counter():
     assert len(col) == 0
     assert col.counter['a'] == 0
 
+    col = PathPyCollection(ordered=False)
+    col.add('a', 'b', 'c', uid='p1', count=10)
+    assert col.counter['p1'] == 10
+    assert col.counter['a', 'b', 'c'] == 10
+    assert col.counter['b', 'a', 'c'] == 10
+    assert col.counter['c', 'b', 'a'] == 10
 
+    col.counter['c', 'a', 'b'] = 100
+    assert col.counter['p1'] == 100
+
+    col.add('a', 'c', uid='p2')
+    assert len(col.counter) == 2
 # =============================================================================
 # eof
 #

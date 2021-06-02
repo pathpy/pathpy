@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-01 18:48 juergen>
+# Time-stamp: <Wed 2021-06-02 14:08 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -366,6 +366,40 @@ class PathPyRelation(tuple):
         self.ordered = ordered
 
 
+class PathPyCounter(Counter):
+    """A counter object for pathpy objects"""
+
+    def __init__(self, iterable=None, /, relations=None,
+                 directed=True, ordered=True, **kwargs):
+        self._relations = relations
+        self._directed = directed
+        self._ordered = ordered
+        super().__init__(iterable, **kwargs)
+
+    def __getitem__(self, key):
+        if isinstance(key, tuple) and self._relations is not None:
+            key = self._map_key(key)
+        return super().__getitem__(key)
+
+    def __setitem__(self, key, value):
+        if isinstance(key, tuple) and self._relations is not None:
+            key = self._map_key(key)
+        super().__setitem__(key, value)
+
+    def _map_key(self, key):
+        """Helper function to map a tuple to a key"""
+        obj = tuple(k.uid if isinstance(k, PathPyObject) else k for k in key)
+        new = PathPyRelation(obj, directed=self._directed,
+                             ordered=self._ordered)
+        keys = self._relations[new]
+        if len(keys) == 1:
+            key = next(iter(keys))
+        else:
+            LOG.error('Multiple objects are associated with the key %s', new)
+            raise KeyError
+        return key
+
+
 class PathPyEmpty(str):
     """Empty element"""
 
@@ -379,7 +413,7 @@ class PathPyEmpty(str):
 
     def __repr__(self) -> str:
         """Add uid property"""
-        return 'Empty ' + super().__repr__()[1:-1]
+        return 'Empty ' + super().__repr__()[1: -1]
 
 
 class PathPyPath(PathPyObject):
@@ -586,9 +620,6 @@ class PathPyCollection():
         # mapping between the child and the parten {child.uid: {parten.uids}}
         self._mapping: defaultdict = defaultdict(set)
 
-        # initialize object counter
-        self._counter: Counter = Counter()
-
         # enable indexing of the structures
         self._indexed: bool = kwargs.pop('indexed', True)
 
@@ -605,6 +636,12 @@ class PathPyCollection():
         # IMPORTANT key has to be hashable
         # i.e. if the structure changes the mapping has to be updated
         self._relations: defaultdict = defaultdict(set)
+
+        # initialize object counter
+        self._counter: PathPyCounter = PathPyCounter(
+            relations=self._relations,
+            directed=self._directed,
+            ordered=self._ordered)
 
         # class of objects to be stored
         self._default_class: Any = PathPyPath
@@ -781,7 +818,7 @@ class PathPyCollection():
         # "Convert" PathPyEmpty to normal string
         args = (a.uid if isinstance(a, PathPyEmpty) else a for a in args)
         obj = self._default_class(
-            *args, uid=uid, directed=self.directed, **kwargs)
+            *args, uid=uid, directed=self.directed, ordered=self._ordered, **kwargs)
         self.add(obj, count=count, **kwargs)
 
     def _add(self, obj: Union[PathPyObject, PathPyPath], **kwargs: Any) -> None:
