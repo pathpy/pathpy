@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-06-04 12:53 juergen>
+# Time-stamp: <Fri 2021-06-04 12:57 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -786,7 +786,7 @@ class PathPyCollection():
     def _(self, *args: PathPyObject, **kwargs: Any) -> None:
         """Add object to collection"""
 
-        count: int = kwargs.pop('count', 1)
+        count: int = 1
         for obj in args:
 
             # check if object exists already
@@ -794,29 +794,31 @@ class PathPyCollection():
 
                 # update attributes
                 if kwargs:
+                    count = kwargs.pop('count', 1)
                     obj.update(**kwargs)
 
                 # add edge to the collection
                 self._add(obj, count=count, **kwargs)
             else:
-                self._if_exist(obj, count=count, **kwargs)
+                self._if_exist(obj, **kwargs)
 
     @add.register(PathPyPath)  # type: ignore
     def _(self, *args: PathPyPath, **kwargs: Any) -> None:
 
-        count: int = kwargs.pop('count', 1)
+        count: int = 1
         for obj in args:
             # check if object exists already
             if obj not in self.values() and obj.uid not in self.keys():
                 if obj.relations not in self or self._multiple:
                     if kwargs:
+                        count = kwargs.pop('count', 1)
                         obj.update(**kwargs)
 
                     self._add(obj, count=count, **kwargs)
                 else:
-                    self._if_exist(obj, count=count, **kwargs)
+                    self._if_exist(obj, **kwargs)
             else:
-                self._if_exist(obj, count=count, **kwargs)
+                self._if_exist(obj, **kwargs)
 
     @add.register(str)  # type: ignore
     @add.register(int)  # type: ignore
