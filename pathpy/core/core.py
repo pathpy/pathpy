@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-06-02 15:20 juergen>
+# Time-stamp: <Fri 2021-06-04 10:39 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -861,7 +861,7 @@ class PathPyCollection():
         """Helper function if the edge does already exsist."""
 
         # get element
-        element = self[obj.relations]
+        element = self[obj.uid] if self._multiple else self[obj.relations]
 
         # update attributes if given
         element.update(**obj.attributes)

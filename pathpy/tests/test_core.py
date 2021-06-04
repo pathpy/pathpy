@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_core.py -- Test environment for the core classes
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-06-04 09:21 juergen>
+# Time-stamp: <Fri 2021-06-04 10:43 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -112,6 +112,47 @@ def test_PathPyPath_subobjects():
     p = PathPyPath(e1, e2, uid='p1')
 
     assert ('a',) in p.subobjects(depth=3)
+
+
+def test_PathPyCollection_add_diff():
+    """Test to add similar and different objects to the collection"""
+
+    p1 = PathPyPath('a', 'x', 'c', uid='a-x-c')
+
+    # create counter NO MULTIPLE objects are allowed
+    pc = PathPyCollection(multiple=True)
+
+    # add a new object to the collection
+    pc.add(p1)
+
+    assert len(pc) == 1
+    assert p1 in pc
+
+    # add the same (ptyhon) object again to the collection
+    pc.add(p1)
+
+    # add a different (python) object with same uid and relations
+    p2 = PathPyPath('a', 'x', 'c', uid='a-x-c')
+    pc.add(p2)
+
+    # generate new object within the collection having the same uid
+    pc.add('a', 'x', 'c', uid='a-x-c')
+
+    # add a different (python) object with same relations but different uid
+    p3 = PathPyPath('a', 'x', 'c', uid='a-x-c-2')
+    pc.add(p3)
+
+    # generate new object within the collection having a different uid
+    pc.add('a', 'x', 'c', uid='a-x-c-3')
+
+    # add a different (python) object with same relations but no uid
+    p4 = PathPyPath('a', 'x', 'c')
+    pc.add(p4)
+
+    # generate new object within the collection having no uid
+    pc.add('a', 'x', 'c')
+
+    print(pc.counter)
 
 
 def test_PathPyCollection_counter():
