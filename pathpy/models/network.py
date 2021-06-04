@@ -5,7 +5,7 @@
 # =============================================================================
 # File      : network.py -- Base class for a network
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-06-04 12:47 juergen>
+# Time-stamp: <Fri 2021-06-04 15:15 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -716,8 +716,10 @@ class Network(BaseNetwork):
         2
 
         """
+        update_properties = kwargs.pop('update_properties', True)
         self.edges.add(*edge, uid=uid, **kwargs)
-        self._add_edge_properties()
+        if update_properties:
+            self._add_edge_properties()
 
     def add_nodes(self, *nodes: Union[str, Node],
                   **kwargs: Any) -> None:
@@ -796,7 +798,10 @@ class Network(BaseNetwork):
             LOG.warning('No edge was added!')
 
         for edge in edges:
-            self.add_edge(edge, uid=uid, nodes=nodes, **kwargs)
+            self.add_edge(edge, uid=uid, nodes=nodes,
+                          update_properties=False, **kwargs)
+
+        self._add_edge_properties()
 
     def remove_node(self, node: Union[str, Node]) -> None:
         """Remove a single node from the network.
@@ -891,7 +896,7 @@ class Network(BaseNetwork):
     def _remove_node_properties(self):
         """Helper function to update node properties."""
 
-    def _add_edge_properties(self):
+    def _add_edge_properties(self, *args):
         """Helper function to update network properties."""
 
         edges = set(self.edges.values()).difference(self._properties['edges'])
@@ -935,7 +940,7 @@ class Network(BaseNetwork):
 
             self._properties['edges'].add(edge)
 
-    def _remove_edge_properties(self):
+    def _remove_edge_properties(self, *args):
         """Helper function to update network properties."""
 
         edges = self._properties['edges'].difference(set(self.edges.values()))

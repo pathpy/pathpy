@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_network.py -- Test environment for the Network class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-06-04 12:55 juergen>
+# Time-stamp: <Fri 2021-06-04 15:04 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -367,6 +367,10 @@ def test_add_edges():
     edges = [tuple(Node(x) for x in e) for e in edges]
     # with pytest.raises(Exception):
     #     net.add_edges(edges)
+
+    net = Network()
+
+    net.add_edges(('a', 'b'), ('b', 'c'))
 
 
 def test_properties():

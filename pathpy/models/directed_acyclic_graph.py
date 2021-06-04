@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : directed_acyclic_graph.py -- Network model for a DAG
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-01 12:52 ingo>
+# Time-stamp: <Fri 2021-06-04 14:21 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -93,7 +93,7 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
 
             self._properties['nodes'].discard(node)
 
-    def _add_edge_properties(self):
+    def _add_edge_properties(self, *args):
         """Helper function to update network properties."""
 
         edges = set(self.edges).difference(self._properties['edges'])
@@ -145,7 +145,7 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
 
             self._properties['edges'].add(edge)
 
-    def _remove_edge_properties(self):
+    def _remove_edge_properties(self, *args):
         """Helper function to update network properties."""
 
         edges = self._properties['edges'].difference(set(self.edges))
@@ -231,7 +231,6 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
                 self._dfs_visit(node)
         self._topsort['sorting'].reverse()
 
-
     def _dfs_visit(self, node, parent=None):
         """Recursively visits nodes in the graph.
 
@@ -264,7 +263,6 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
         self._topsort['count'] += 1
         self._topsort['end'][_v] = self._topsort['count']
         self._topsort['sorting'].append(_v)
-
 
     def routes_from(self, v, node_mapping=None) -> PathCollection:
         """
@@ -302,7 +300,7 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
 
             # successors of x expand all temporary
             # paths, currently ending in x
-            if len(self.successors[x])>0:
+            if len(self.successors[x]) > 0:
                 for w in self.successors[x]:
                     for p in temp_paths[x]:
                         temp_paths[w.uid].append(p + [w.uid])
@@ -335,7 +333,8 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
             w: TemporalNode = edge.w
 
             if edge.end - edge.start != 1:
-                raise ParameterError('Directed acyclic graphs can only be generated for temporal networks with instantaneous edges (i.e. with duration of 1 discrete time step).')
+                raise ParameterError(
+                    'Directed acyclic graphs can only be generated for temporal networks with instantaneous edges (i.e. with duration of 1 discrete time step).')
 
             if delta < inf:
                 current_delta = int(delta)

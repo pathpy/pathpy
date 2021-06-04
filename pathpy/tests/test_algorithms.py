@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_algorithms.py -- Test environment for basic algorithms
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-27 09:00 juergen>
+# Time-stamp: <Fri 2021-06-04 15:22 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -38,13 +38,15 @@ def test_adjacency_matrix():
     net = Network()
     net.add_edges(('a', 'b'), ('b', 'c'))
 
+    n = net.nodes.index
+
     A1 = net.adjacency_matrix()
-    assert A1[0, 1] == 1.0
-    assert A1[1, 2] == 1.0
+    assert A1[n['a'], n['b']] == 1.0
+    assert A1[n['b'], n['c']] == 1.0
 
     A2 = pp.algorithms.matrices.adjacency_matrix(net)
-    assert A2[0, 1] == 1.0
-    assert A2[1, 2] == 1.0
+    assert A2[n['a'], n['b']] == 1.0
+    assert A2[n['b'], n['c']] == 1.0
 
 
 def test_distance_matrix():
@@ -52,15 +54,16 @@ def test_distance_matrix():
     net = pp.Network()
     net.add_edges(('a', 'x'), ('x', 'y'), ('y', 'c'))
     m = pp.algorithms.shortest_paths.distance_matrix(net)
+    n = net.nodes.index
 
-    assert m[0, 3] == 3
-    assert net.distance_matrix()[0, 3] == 3
+    assert m[n['a'], n['c']] == 3
+    assert net.distance_matrix()[n['a'], n['c']] == 3
 
     net.add_edges(('x', 'c'))
     m = pp.algorithms.shortest_paths.distance_matrix(net)
 
-    assert m[0, 3] == 2
-    assert net.distance_matrix()[0, 3] == 2
+    assert m[n['a'], n['c']] == 2
+    assert net.distance_matrix()[n['a'], n['c']] == 2
 
 
 def test_all_shortest_paths():
