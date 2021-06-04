@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-06-04 12:57 juergen>
+# Time-stamp: <Fri 2021-06-04 13:02 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -786,6 +786,11 @@ class PathPyCollection():
     def _(self, *args: PathPyObject, **kwargs: Any) -> None:
         """Add object to collection"""
 
+        if not kwargs.pop('checking', False):
+            for obj in args:
+                self._add(obj, **kwargs)
+                return
+
         count: int = 1
         for obj in args:
 
@@ -804,6 +809,11 @@ class PathPyCollection():
 
     @add.register(PathPyPath)  # type: ignore
     def _(self, *args: PathPyPath, **kwargs: Any) -> None:
+
+        if not kwargs.pop('checking', False):
+            for obj in args:
+                self._add(obj, **kwargs)
+                return
 
         count: int = 1
         for obj in args:
