@@ -4,15 +4,15 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-06-04 12:51 juergen>
+# Time-stamp: <Fri 2021-06-04 12:53 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
-from typing import Any, Optional, Union, Dict, cast
+from typing import Any, Optional, Union, Dict
 from copy import deepcopy
 from collections import defaultdict, Counter
 from singledispatchmethod import singledispatchmethod  # NOTE: not needed at 3.9
-from pathpy import logger, config
+from pathpy import logger
 
 
 # create logger for the Path class
@@ -445,7 +445,7 @@ class PathPyPath(PathPyObject):
         if not kwargs.pop('checking', True):
             self._relations = PathPyRelation(
                 args, directed=directed, ordered=ordered)
-            self._objects = {uid.uid: uid for uid in args}
+            self._objects = {uid.uid: uid for uid in args}  # type: ignore
             return
 
         # helper variable for path assignment
