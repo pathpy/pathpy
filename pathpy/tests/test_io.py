@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_io.py -- Test environment for input/output files
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Sat 2020-08-22 18:43 juergen>
+# Time-stamp: <Fri 2021-06-04 16:29 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -64,6 +64,8 @@ def test_csv_read_network():
     assert net.number_of_nodes() == 3
     assert net.number_of_edges() == 2
 
+    print(net.edges)
+
 
 def test_pandas_temporal():
     """Read network from csv."""
@@ -78,7 +80,7 @@ def test_pandas_temporal():
     tn.add_edge('b', 'a', timestamp=8)
 
     df = pp.io.pandas.to_dataframe(tn)
-    print(df)
+    # print(df)
 
     tn2 = pp.io.to_temporal_network(df, directed=True)
 
