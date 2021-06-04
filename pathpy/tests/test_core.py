@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_core.py -- Test environment for the core classes
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-06-02 15:21 juergen>
+# Time-stamp: <Fri 2021-06-04 09:21 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -153,32 +153,23 @@ def test_PathPyCollection_iadd():
 
     c1 = PathPyCollection()
     c1.add('a', 'b', uid='ab', count=20, color='red')
+
     c2 = PathPyCollection()
     c2.add('x', 'y', uid='xy', count=5, color='green')
 
+    assert len(c1) == 1
     c1 += c2
 
-    print(c1.counter)
+    assert len(c1) == 2
+    assert ('x', 'y') in c1
+    assert c1.counter['ab'] == 20
+    assert c1.counter['xy'] == 5
 
     c3 = PathPyCollection()
     c3.add('a', 'b', count=10, color='blue')
 
     c1 += c3
-
-    print(c1.counter)
-
-    print(c1.nodes)
-
-    c1 -= c3
-
-    # # print(c3)
-    # p1 = PathPyPath('a', 'b')
-    # p2 = PathPyPath('a', 'b')
-
-    #print(c3['ab'] in c1)
-    # c1.remove(p)
-    # #print(p == c1['ab'])
-    print(c1.nodes)
+    assert c1.counter['ab'] == 30
 # =============================================================================
 # eof
 #
