@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : io.py -- Module for data import/export
 # Author    : Ingo Scholtes <scholtes@uni-wuppertal.de>
-# Time-stamp: <Fri 2021-06-04 16:31 juergen>
+# Time-stamp: <Fri 2021-06-04 18:02 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -15,7 +15,7 @@ from collections import Counter
 import pandas as pd  # pylint: disable=import-error
 
 from pathpy import config, logger
-
+from pathpy.core.core import PathPyRelation
 from pathpy.core.api import Node
 from pathpy.core.api import Edge
 from pathpy.models.api import Network, TemporalNetwork
@@ -87,11 +87,11 @@ def to_network(df: pd.DataFrame, loops: bool = True, directed: bool = True,
 
     Create simple data frame and convert into network
 
-    >>> import pathpy as pp 
+    >>> import pathpy as pp
     >>> import pandas as pd
     >>> df = pd.DataFrame({
-    ...     'v': ['a', 'b', 'c'], 
-    ...     'w': ['b', 'c', 'a'], 
+    ...     'v': ['a', 'b', 'c'],
+    ...     'w': ['b', 'c', 'a'],
     ...     'color': ['red', 'green', 'blue']})
     >>> n = pp.io.to_network(df, uid='pandasNetwork')
     >>> print(n)
@@ -222,11 +222,11 @@ def to_temporal_network(df: pd.DataFrame, loops: bool = True,
     Create data frame with instantaneous time stamps and read it as temporal
     networks
 
-    >>> import pathpy as pp 
+    >>> import pathpy as pp
     >>> import pandas as pd
     >>> df = pd.DataFrame({
     ...         'v': ['a', 'b', 'c'],
-    ...         'w': ['b', 'c', 'a'], 
+    ...         'w': ['b', 'c', 'a'],
     ...         'timestamp': [1, 2, 3]})
     >>> tn = pp.io.to_network(df, uid='pandasNetwork')
     >>> print(tn)
@@ -242,11 +242,11 @@ def to_temporal_network(df: pd.DataFrame, loops: bool = True,
 
     Create data frame with temporal edges that have a start and end time
 
-    >>> import pathpy as pp 
+    >>> import pathpy as pp
     >>> import pandas as pd
     >>> df = pd.DataFrame({
     ...         'v': ['a', 'b', 'c'],
-    ...         'w': ['b', 'c', 'a'], 
+    ...         'w': ['b', 'c', 'a'],
     ...         'start': [1, 2, 3]
     ...         'end': [5, 5, 5 ]})
     >>> tn = pp.io.to_network(df, uid='pandasNetwork')
@@ -263,11 +263,11 @@ def to_temporal_network(df: pd.DataFrame, loops: bool = True,
 
     Create data frame with temporal edges that have a timestamp and duration
 
-    >>> import pathpy as pp 
+    >>> import pathpy as pp
     >>> import pandas as pd
     >>> df = pd.DataFrame({
     ...         'v': ['a', 'b', 'c'],
-    ...         'w': ['b', 'c', 'a'], 
+    ...         'w': ['b', 'c', 'a'],
     ...         'timestamp': [1, 2, 3]
     ...         'duration': [4, 1, 1 ]})
     >>> tn = pp.io.to_network(df, uid='pandasNetwork')
@@ -313,26 +313,20 @@ def to_temporal_network(df: pd.DataFrame, loops: bool = True,
         raise IOError
 
     # create dict with node.uid and node
-    nodes: dict = {str(n): TemporalNode(n) for n in node_set}
+    nodes: dict = {str(n): TemporalNode(str(n)) for n in node_set}
 
-    # initialize variables
-    edges: list = []
+    # create empty network
+    net = TemporalNetwork(directed=directed, multiedges=multiedges, **kwargs)
 
     # TODO: Make this for loop faster!
     for row in df.to_dict(orient='records'):
         # get node and edge  uids
-        _v, _w = row.pop('v'), row.pop('w')
+        _v, _w = str(row.pop('v')), str(row.pop('w'))
         uid = row.pop('uid', None)
+        net.add_edge(nodes[_v], nodes[_w], uid=uid,
+                     update_properties=False, **row)
 
-        if loops or _v != _w:
-            # generate edge object
-            edges.append(TemporalEdge(nodes[_v], nodes[_w],
-                                      uid=uid, directed=directed, **row))
-        else:
-            continue
-
-    net = TemporalNetwork(directed=directed, multiedges=multiedges, **kwargs)
-    net.add_edges(edges)
+    net._add_edge_properties()
 
     return net
 
@@ -361,7 +355,7 @@ def from_network(network: Network, include_edge_uid: Optional[bool] = False,
 
     export_indices: Optional[bool]=False
 
-        Whether or not to use node indices rather than node uids. This is useful to 
+        Whether or not to use node indices rather than node uids. This is useful to
         import network data in tools that only support integer node identifiers.
 
     Returns
@@ -428,7 +422,7 @@ def from_temporal_network(network: TemporalNetwork,
 
     Returns a pandas dataframe data that contains all edges including all edge
     attributes. Node and network-level attributes are not included. To facilitate the
-    import into network analysis tools that only support integer node identifiers, 
+    import into network analysis tools that only support integer node identifiers,
     node uids can be replaced by a consecutive, zero-based index.
 
     Parameters
@@ -444,7 +438,7 @@ def from_temporal_network(network: TemporalNetwork,
 
     export_indices: Optional[bool]=False
 
-        Whether or not to use node indices rather than node uids. This is useful to 
+        Whether or not to use node indices rather than node uids. This is useful to
         import network data in tools that only support integer node identifiers.
 
     Returns
@@ -510,7 +504,7 @@ def to_dataframe(network: Union[Network, TemporalNetwork],
 
     Returns a pandas dataframe data that contains all edges including all edge
     attributes. Node and network-level attributes are not included. To facilitate the
-    import into network analysis tools that only support integer node identifiers, 
+    import into network analysis tools that only support integer node identifiers,
     node uids can be replaced by a consecutive, zero-based index.
 
     Parameters
@@ -526,7 +520,7 @@ def to_dataframe(network: Union[Network, TemporalNetwork],
 
     export_indices: Optional[bool]=False
 
-        Whether or not to use node indices rather than node uids. This is useful to 
+        Whether or not to use node indices rather than node uids. This is useful to
         import network data in tools that only support integer node identifiers.
 
     Returns
