@@ -4,11 +4,12 @@
 # =============================================================================
 # File      : plot.py -- Module to plot pathoy networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-27 14:31 juergen>
+# Time-stamp: <Mon 2021-06-07 14:27 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
+import os
 from typing import Any, List, Optional, Union, Dict
 from collections import defaultdict
 from copy import deepcopy
@@ -16,6 +17,7 @@ from singledispatchmethod import singledispatchmethod  # remove for python 3.8
 from datetime import datetime
 import numpy as np
 import pandas as pd
+import json
 
 from pathpy import logger, config
 from pathpy.visualisations.utils import UnitConverter
@@ -35,158 +37,19 @@ from pathpy.models.classes import (BaseNetwork, BaseTemporalNetwork)
 LOG = logger(__name__)
 TIMESTAMP = config['temporal']['timestamp']
 
-# config: defaultdict = defaultdict(dict)
-# config['environment']['interactive'] = False
-
-# General config
-config['plot']['width'] = 800
-config['plot']['height'] = 550
-config['plot']['unit'] = 'px'
-config['plot']['dpi'] = 96
-config['plot']['margin'] = None
-config['plot']['layout'] = 'force'
-config['plot']['temporal'] = False
-config['plot']['coordinates'] = False
-config['plot']['euclidean'] = False
-config['plot']['min_max_node_size'] = None
-config['plot']['min_max_edge_size'] = None
-config['plot']['keep_aspect_ratio'] = True
-
-config['plot']['forceCharge'] = -20  # -30
-config['plot']['forceRepel'] = -300  # -100
-config['plot']['forceAlpha'] = 0.1
-config['plot']['restartAlpha'] = 1
-config['plot']['alphaMin'] = 0.001  # 0.1
-config['plot']['targetAlpha'] = 0  # 0.2
-config['plot']['chargeDistance'] = config['plot']['width']
-config['plot']['repelDistance'] = 200
-config['plot']['velocityDecay'] = 0.4  # .2
-config['plot']['lookoutStrokeWidth'] = 1
-config['plot']['lookoutOpacity'] = .5
-config['plot']['lookoutWeight'] = 0.
-config['plot']['radiusMinSize'] = 4
-config['plot']['radiusMaxSize'] = 16
-config['plot']['nodeTransitionDuration'] = 100
-config['plot']['nodeTransitionDuration'] = 100
-config['plot']['defaultEdgeWeight'] = 1
-
-config['plot']['targetAlphaDragStarted'] = 0.3
-config['plot']['targetAlphaDragEnd'] = 0.0
-
-
-config['plot']['linkStrengthMin'] = 0.0
-config['plot']['linkStrengthMax'] = .45
-
-
-config['plot']['template'] = None
-config['plot']['css'] = None
-
-config['plot']['backend'] = ['tikz']
-config['plot']['fileformat'] = ['tex']
-config['plot']['latex_class_options'] = ''
-
-config['plot']['interactiv'] = {}
-config['plot']['interactiv']['backend'] = ['d3js']
-config['plot']['interactiv']['fileformat'] = ['html']
-
-# Animation config
-config['plot']['animation'] = {}
-config['plot']['animation']["enabled"] = False
-config['plot']['animation']["start"] = None
-config['plot']['animation']["end"] = None
-config['plot']['animation']["steps"] = 20
-config['plot']['animation']["speed"] = 100
-config['plot']['animation']["unit"] = "seconds"
-
-# Label config
-config['plot']['label'] = {}
-config['plot']['label']['centered'] = True
-config['plot']['label']['enabled'] = True
-config['plot']['label']['color'] = 'white'
-
-config['plot']['label_centered'] = True
-config['plot']['label_enabled'] = True
-config['plot']['label_color'] = 'white'
-
-
-# Node config
-config['plot']['node'] = {}
-config['plot']['node']['size'] = 15
-config['plot']['node']['color'] = 'CornflowerBlue'
-config['plot']['node']['opacity'] = .2
-config['plot']['node']['id_as_label'] = True
-
-config['plot']['curved'] = False
-config['plot']['directed'] = False
-
-# Edge config
-config['plot']['edge'] = {}
-config['plot']['edge']['size'] = 2
-config['plot']['edge']['color'] = 'black'
-config['plot']['edge']['opacity'] = 1
-config['plot']['edge']['directed'] = False
-config['plot']['edge']['curved'] = .5
-
-# Widges config
-config['plot']['widgets'] = {}
-
-# tooltip
-config['plot']['widgets']['tooltip'] = {}
-config['plot']['widgets']['tooltip']['enabled'] = False
-config['plot']['widgets']['tooltip']['size'] = '100px'
-
-# save
-config['plot']['widgets']['save'] = {}
-config['plot']['widgets']['save']['title'] = 'Save'
-config['plot']['widgets']['save']['enabled'] = True
-config['plot']['widgets']['save']['tooltip'] = "Save the network as [svg] or [png]."
-
-# zoom
-config['plot']['widgets']['zoom'] = {}
-config['plot']['widgets']['zoom']['title'] = 'Zoom'
-config['plot']['widgets']['zoom']['enabled'] = True
-config['plot']['widgets']['zoom']['tooltip'] = "Zoom-in with [+] <br> zoom-out with [-] <br> or reset zoom with [Reset]. <br> Furthermore, with [Shift+mouse wheel] you can also zoom."
-
-# filter
-config['plot']['widgets']['filter'] = {}
-config['plot']['widgets']['filter']['title'] = 'Filter'
-config['plot']['widgets']['filter']['enabled'] = False
-config['plot']['widgets']['filter']['tooltip'] = "Filter the nodes base on given groups."
-config['plot']['widgets']['filter']['groups'] = ["all"]
-
-# search
-config['plot']['widgets']['search'] = {}
-config['plot']['widgets']['search']['title'] = 'Search'
-config['plot']['widgets']['search']['enabled'] = True
-config['plot']['widgets']['search']['tooltip'] = "Search for a node in the network."
-
-# layout
-config['plot']['widgets']['layout'] = {}
-config['plot']['widgets']['layout']['title'] = 'Layout'
-config['plot']['widgets']['layout']['enabled'] = False
-config['plot']['widgets']['layout']['tooltip'] = "Change the layout of the Network. Per default a [Force] directed layout is used. If x and y coordinates are given, an [Coord] layout can be used."
-
-# animation
-config['plot']['widgets']['animation'] = {}
-config['plot']['widgets']['animation']['title'] = 'Animation'
-config['plot']['widgets']['animation']['enabled'] = True
-config['plot']['widgets']['animation']['tooltip'] = "Play and pause animation of the temproal network."
-
-# aggregation
-config['plot']['widgets']['aggregation'] = {}
-config['plot']['widgets']['aggregation']['title'] = 'Aggregation'
-config['plot']['widgets']['aggregation']['enabled'] = True
-config['plot']['widgets']['aggregation']['tooltip'] = "Aggregate time steps."
-config['plot']['widgets']['aggregation']['past'] = 2
-config['plot']['widgets']['aggregation']['future'] = 2
-config['plot']['widgets']['aggregation']['aggregation'] = 1
-
 
 def plot(obj, filename: Optional[str] = None,
          backend: Optional[str] = None, **kwargs) -> None:
     """Plot the object"""
     # initialize variables
     figure: Any
+
+    # template directory
+    plot_config = str(os.path.join(
+        os.path.dirname(os.path.dirname(__file__)), 'visualisations/config.json'))
+
+    with open(plot_config, 'r') as config_file:
+        config['plot'] = json.load(config_file)
 
     # supported backends
     backends: Dict[str, object] = {

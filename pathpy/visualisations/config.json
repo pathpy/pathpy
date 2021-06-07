@@ -1,0 +1,129 @@
+{
+    "width": 800,
+    "height": 550,
+    "unit": "px",
+    "dpi": 96,
+    "margin": null,
+    "layout": "force",
+    "temporal": false,
+    "coordinates": false,
+    "euclidean": false,
+    "min_max_node_size": null,
+    "min_max_edge_size": null,
+    "keep_aspect_ratio": true,
+    "forceCharge": -20,
+    "forceRepel": -300,
+    "forceAlpha": 0.1,
+    "restartAlpha": 1,
+    "alphaMin": 0.001,
+    "targetAlpha": 0,
+    "chargeDistance": 800,
+    "repelDistance": 200,
+    "velocityDecay": 0.4,
+    "lookoutStrokeWidth": 1,
+    "lookoutOpacity": 0.5,
+    "lookoutWeight": 0.0,
+    "radiusMinSize": 4,
+    "radiusMaxSize": 16,
+    "nodeTransitionDuration": 100,
+    "defaultEdgeWeight": 1,
+    "targetAlphaDragStarted": 0.3,
+    "targetAlphaDragEnd": 0.0,
+    "linkStrengthMin": 0.0,
+    "linkStrengthMax": 0.45,
+    "template": null,
+    "css": null,
+    "backend": [
+        "tikz"
+    ],
+    "fileformat": [
+        "tex"
+    ],
+    "latex_class_options": "",
+    "interactiv": {
+        "backend": [
+            "d3js"
+        ],
+        "fileformat": [
+            "html"
+        ]
+    },
+    "animation": {
+        "enabled": false,
+        "start": null,
+        "end": null,
+        "steps": 20,
+        "speed": 100,
+        "unit": "seconds"
+    },
+    "label": {
+        "centered": true,
+        "enabled": true,
+        "color": "white"
+    },
+    "label_centered": true,
+    "label_enabled": true,
+    "label_color": "white",
+    "node": {
+        "size": 15,
+        "color": "CornflowerBlue",
+        "opacity": 0.2,
+        "id_as_label": true
+    },
+    "curved": false,
+    "directed": false,
+    "edge": {
+        "size": 2,
+        "color": "black",
+        "opacity": 1,
+        "directed": false,
+        "curved": 0.5
+    },
+    "widgets": {
+        "tooltip": {
+            "enabled": false,
+            "size": "100px"
+        },
+        "save": {
+            "title": "Save",
+            "enabled": true,
+            "tooltip": "Save the network as [svg] or [png]."
+        },
+        "zoom": {
+            "title": "Zoom",
+            "enabled": true,
+            "tooltip": "Zoom-in with [+] <br> zoom-out with [-] <br> or reset zoom with [Reset]. <br> Furthermore, with [Shift+mouse wheel] you can also zoom."
+        },
+        "filter": {
+            "title": "Filter",
+            "enabled": false,
+            "tooltip": "Filter the nodes base on given groups.",
+            "groups": [
+                "all"
+            ]
+        },
+        "search": {
+            "title": "Search",
+            "enabled": true,
+            "tooltip": "Search for a node in the network."
+        },
+        "layout": {
+            "title": "Layout",
+            "enabled": false,
+            "tooltip": "Change the layout of the Network. Per default a [Force] directed layout is used. If x and y coordinates are given, an [Coord] layout can be used."
+        },
+        "animation": {
+            "title": "Animation",
+            "enabled": true,
+            "tooltip": "Play and pause animation of the temproal network."
+        },
+        "aggregation": {
+            "title": "Aggregation",
+            "enabled": true,
+            "tooltip": "Aggregate time steps.",
+            "past": 2,
+            "future": 2,
+            "aggregation": 1
+        }
+    }
+}
