@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : plot.py -- Module to plot pathoy networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-06-07 14:27 juergen>
+# Time-stamp: <Mon 2021-06-07 14:31 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -13,24 +13,15 @@ import os
 from typing import Any, List, Optional, Union, Dict
 from collections import defaultdict
 from copy import deepcopy
-from singledispatchmethod import singledispatchmethod  # remove for python 3.8
-from datetime import datetime
-import numpy as np
-import pandas as pd
 import json
+from datetime import datetime
+from singledispatchmethod import singledispatchmethod  # remove for python 3.8
+import numpy as np
 
 from pathpy import logger, config
 from pathpy.visualisations.utils import UnitConverter
-
-from pathpy.visualisations.backends import (D3js,
-                                            Tikz,
-                                            Matplotlib)
-
-from pathpy.visualisations.fileformats import (HTML,
-                                               TEX,
-                                               PDF,
-                                               PNG)
-
+from pathpy.visualisations.backends import (D3js, Tikz, Matplotlib)
+from pathpy.visualisations.fileformats import (HTML, TEX, PDF, PNG)
 from pathpy.models.classes import (BaseNetwork, BaseTemporalNetwork)
 
 # create logger for the Plot class
