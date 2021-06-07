@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : plot.py -- Module to plot pathoy networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-06-07 14:31 juergen>
+# Time-stamp: <Mon 2021-06-07 17:18 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -53,9 +53,9 @@ def plot(obj, filename: Optional[str] = None,
     figures: Dict[str, Dict[str, object]] = {
         'html': {'fileformat': HTML, 'backend': D3js},
         'tex': {'fileformat': TEX, 'backend': Tikz},
-        # 'csv': {'fileformat': CSV, 'backend': Tikz},
         'pdf': {'fileformat': PDF, 'backend': Tikz},
         'png': {'fileformat': PNG, 'backend': Matplotlib},
+        # 'csv': {'fileformat': CSV, 'backend': Tikz},
     }
 
     # initialize object parser
