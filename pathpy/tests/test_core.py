@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_core.py -- Test environment for the core classes
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-06-04 10:43 juergen>
+# Time-stamp: <Mon 2021-06-07 13:26 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -152,7 +152,7 @@ def test_PathPyCollection_add_diff():
     # generate new object within the collection having no uid
     pc.add('a', 'x', 'c')
 
-    print(pc.counter)
+    assert len(pc.counter) == 5
 
 
 def test_PathPyCollection_counter():
