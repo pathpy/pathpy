@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : plot.py -- Plotting function for pathpy objects
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-06-07 17:17 juergen>
+# Time-stamp: <Thu 2021-06-10 16:25 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -46,7 +46,8 @@ def plot(obj, filename, backend, **kwargs):
 #     return plot_obj.result
 
 
-def network_plot(obj, filename: str, backend, **kwargs: Any):
+def network_plot(obj, filename: Optional[str] = None,
+                 backend: Optional[str] = None, **kwargs: Any):
     """Plot a static network"""
     plot_backend = _get_plot_backend(backend, filename)
     plot_config = {filename}
@@ -54,18 +55,20 @@ def network_plot(obj, filename: str, backend, **kwargs: Any):
     return plot_backend.network_plot(plot_data, plot_config, **kwargs)
 
 
-def _get_plot_backend(backend: Optional[str] = None, filename: str = None):
+def _get_plot_backend(backend: Optional[str] = None, filename: str = None,
+                      default: str = 'd3js'):
     """ Return the plotting backend to use. """
 
+    _backend: str = default
     if isinstance(filename, str):
-        _backend = _formats.get(os.path.splitext(filename)[1], '3djs')
+        _backend = _formats.get(os.path.splitext(filename)[1], default)
 
     # if no backend was found use the backend suggested for the file format
     if backend is not None and backend not in _backends and filename is not None:
         LOG.warning('The backend %s was not found.', backend)
 
     # if no backend was given use the backend suggested for the file format
-    elif backend in _backends:
+    elif isinstance(backend, str) and backend in _backends:
         _backend = backend
 
     try:
