@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-10 15:34 juergen>
+# Time-stamp: <Thu 2021-06-10 15:41 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -844,10 +844,16 @@ class PathPyCollection():
                               'Please use the uid property.', obj.relations)
                     raise KeyError
 
-            else:
-                LOG.error('The object %s with relations %s exists already. '
+            elif obj.relations in self:
+                LOG.error('The object with relations %s exists already. '
                           'Please use an appropriate uid or enable the '
-                          'handling of multiple objects.', obj.uid, obj.relations)
+                          'handling of multiple objects.', obj.relations)
+                raise KeyError
+
+            else:
+                LOG.error('The object %s exists already. '
+                          'Please use an appropriate uid or enable the '
+                          'handling of multiple objects.', obj.uid)
                 raise KeyError
 
             # # check if object exists already
