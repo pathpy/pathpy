@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_core.py -- Test environment for the core classes
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-06-07 13:26 juergen>
+# Time-stamp: <Thu 2021-06-10 14:51 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -66,7 +66,8 @@ def test_PathPyCollection_add_str():
 
     paths = PathPyCollection(directed=False, multiple=False)
     paths.add('a', 'b', 'c', uid='p1', frequency=44)
-    paths.add('c', 'b', 'a', uid='p2', frequency=11)
+    with pytest.raises(Exception):
+        paths.add('c', 'b', 'a', uid='p2', frequency=11)
 
     assert 'p1' in paths
     assert ('a', 'b', 'c') in paths
@@ -146,13 +147,43 @@ def test_PathPyCollection_add_diff():
     pc.add('a', 'x', 'c', uid='a-x-c-3')
 
     # add a different (python) object with same relations but no uid
-    p4 = PathPyPath('a', 'x', 'c')
-    pc.add(p4)
+    with pytest.raises(Exception):
+        p4 = PathPyPath('a', 'x', 'c')
+        pc.add(p4)
 
     # generate new object within the collection having no uid
-    pc.add('a', 'x', 'c')
+    with pytest.raises(Exception):
+        pc.add('a', 'x', 'c')
 
-    assert len(pc.counter) == 5
+    # generate new object within same uid but different relations
+    with pytest.raises(Exception):
+        pc.add('c', 'x', 'a', uid='a-x-c')
+
+    assert len(pc.counter) == 3
+
+    pc = PathPyCollection(multiple=False)
+    pc.add('a', 'b', uid='x')
+
+    with pytest.raises(Exception):
+        pc.add('a', 'b', uid='y')
+
+    pc.add('a', 'b')
+
+    assert pc.counter['x'] == 2
+
+    pc = PathPyCollection(multiple=True)
+    pc.add('a', 'b', uid='x')
+    pc.add('a', 'b', uid='y')
+
+    with pytest.raises(Exception):
+        pc.add('a', 'b')
+
+    assert pc.counter['x'] == 1
+    assert pc.counter['y'] == 1
+
+    pc = PathPyCollection(multiple=True)
+    pc.add('a', 'b')
+    pc.add('a', 'b')
 
 
 def test_PathPyCollection_counter():

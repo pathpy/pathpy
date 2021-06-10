@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_path.py -- Test environment for the Path class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-06-04 10:51 juergen>
+# Time-stamp: <Thu 2021-06-10 14:38 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -77,11 +77,10 @@ def test_PathCollection_add_edges():
     paths.add(e, f)
     assert paths.counter['p1'] == 3
 
-    # TODO: Should this raise an Exception?
-    # with pytest.raises(Exception):
-    paths.add(e, f, uid='p2')
+    with pytest.raises(Exception):
+        paths.add(e, f, uid='p2')
 
-    assert paths.counter['p1'] == 4
+    assert paths.counter['p1'] == 3
 
 
 def test_PathCollection_add_nodes():

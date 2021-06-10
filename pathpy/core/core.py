@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-06-04 13:05 juergen>
+# Time-stamp: <Thu 2021-06-10 15:30 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -138,6 +138,11 @@ class PathPyObject:
             string = '{} {}'.format(self.__class__.__name__, self.uid)
 
         return string
+
+    @property
+    def has_python_uid(self) -> bool:
+        """Retrun True if uid was given by python."""
+        return self._is_python_uid
 
     @property
     def uid(self) -> str:
@@ -791,19 +796,11 @@ class PathPyCollection():
                 self._add(obj, **kwargs)
                 return
 
-        count: int = 1
         for obj in args:
-
             # check if object exists already
             if obj not in self.values() and obj.uid not in self.keys():
-
-                # update attributes
-                if kwargs:
-                    count = kwargs.pop('count', 1)
-                    obj.update(**kwargs)
-
                 # add edge to the collection
-                self._add(obj, count=count, **kwargs)
+                self._add(obj, **kwargs)
             else:
                 self._if_exist(obj, **kwargs)
 
@@ -815,20 +812,56 @@ class PathPyCollection():
                 self._add(obj, **kwargs)
                 return
 
-        count: int = 1
         for obj in args:
-            # check if object exists already
-            if obj not in self.values() and obj.uid not in self.keys():
-                if obj.relations not in self or self._multiple:
-                    if kwargs:
-                        count = kwargs.pop('count', 1)
-                        obj.update(**kwargs)
+            if (obj in self.values() or
+                (obj.uid in self.keys() and
+                 self[obj.uid].relations == obj.relations) or
+                (obj.uid not in self.keys() and
+                 obj.relations in self and
+                 obj.has_python_uid and
+                 not self._multiple)):
 
-                    self._add(obj, count=count, **kwargs)
-                else:
-                    self._if_exist(obj, **kwargs)
-            else:
+                # update existing object
                 self._if_exist(obj, **kwargs)
+
+            elif ((obj.uid not in self.keys() and
+                   obj.relations not in self) or
+                  (obj.uid not in self.keys() and
+                   obj.relations in self and
+                   not obj.has_python_uid and
+                   self._multiple)):
+
+                # add new object
+                self._add(obj, **kwargs)
+
+            elif obj.has_python_uid and self._multiple:
+
+                if all(o.has_python_uid for o in self[obj.relations]):
+                    # add new object
+                    self._add(obj, **kwargs)
+                else:
+                    LOG.error('The object %s cannot be uniquely identified. '
+                              'Please use the uid property.', obj.relations)
+                    raise KeyError
+
+            else:
+                LOG.error('The object %s with relations %s exists already. '
+                          'Please use an appropriate uid or enable the '
+                          'handling of multiple objects.', obj.uid, obj.relations)
+                raise KeyError
+
+            # # check if object exists already
+            # if obj not in self.values() and obj.uid not in self.keys():
+            #     if obj.relations not in self or self._multiple:
+            #         if kwargs:
+            #             count = kwargs.pop('count', 1)
+            #             obj.update(**kwargs)
+
+            #         self._add(obj, count=count, **kwargs)
+            #     else:
+            #         self._if_exist(obj, **kwargs)
+            # else:
+            #     self._if_exist(obj, **kwargs)
 
     @add.register(str)  # type: ignore
     @add.register(int)  # type: ignore
@@ -852,9 +885,15 @@ class PathPyCollection():
 
     def _add(self, obj: Union[PathPyObject, PathPyPath], **kwargs: Any) -> None:
         """Add an edge to the set of edges."""
+
+        # get count and update obj
+        count = kwargs.pop('count', 1)
+        if kwargs:
+            obj.update(**kwargs)
+
         self[obj.uid] = obj
 
-        self.counter[obj.uid] += kwargs.pop('count', 1)
+        self.counter[obj.uid] += count
 
         if isinstance(obj, PathPyPath):
             for key, value in obj.objects.items():
