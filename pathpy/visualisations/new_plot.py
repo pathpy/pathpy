@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : plot.py -- Plotting function for pathpy objects
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-10 17:27 juergen>
+# Time-stamp: <Thu 2021-06-10 17:45 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -82,6 +82,11 @@ def _get_plot_backend(backend: Optional[str] = None, filename: str = None,
 class PathPyPlot:
     """Base class for assemblig plots."""
 
+    def __init__(self):
+        """Initialize plot class"""
+        self.data: dict = {}
+        self.config: dict = {}
+
     @property
     def _kind(self) -> str:
         """Specify kind str. Must be overridden in child class"""
@@ -97,14 +102,6 @@ class PathPyPlot:
 
     def show(self):
         """Function to show the plot"""
-        raise NotImplementedError
-
-    def to_html(self):
-        """Function to convert plot to html."""
-        raise NotImplementedError
-
-    def to_png(self):
-        """Function to convert plot to png."""
         raise NotImplementedError
 
 # =============================================================================

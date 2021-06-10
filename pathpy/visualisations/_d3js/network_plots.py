@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network_plots.py -- Network plots with d3js
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-10 17:28 juergen>
+# Time-stamp: <Thu 2021-06-10 17:46 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -23,14 +23,41 @@ def network_plot(network: Network, **kwargs: Any):
     return result
 
 
-class NetworkPlot(PathPyPlot):
+class D3jsPlot(PathPyPlot):
+    """Abstract class for plotting d3js objects"""
+
+    def __init__(self, **kwargs: Any):
+        """Initialize plot class"""
+        super().__init__()
+        if kwargs:
+            self.config = kwargs
+
+    def generate(self):
+        """Function to generate the plot"""
+        raise NotImplementedError
+
+    def save(self):
+        """Function to save the plot"""
+        print('Save the plot')
+
+    def show(self):
+        """Function to show the plot"""
+        print('Show the plot')
+
+
+class NetworkPlot(D3jsPlot):
     """Base network plot"""
 
     _kind = 'network'
 
     def __init__(self, network: Network, **kwargs: Any):
         """Initialize network plot class"""
+        super().__init__(**kwargs)
         self.network = network
+
+    def generate(self):
+        """Function to generate the plot"""
+        raise NotImplementedError
 
 
 # =============================================================================
