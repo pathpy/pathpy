@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-10 15:30 juergen>
+# Time-stamp: <Thu 2021-06-10 15:34 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -27,16 +27,16 @@ class PathPyObject:
 
         # declare variable
         self._uid: str
-        self._is_python_uid: bool
+        self._has_python_uid: bool
         self._attributes: Any
 
         # assign node identifier
         if uid is not None:
             self._uid = uid
-            self._is_python_uid = False
+            self._has_python_uid = False
         else:
             self._uid = hex(id(self))
-            self._is_python_uid = True
+            self._has_python_uid = True
 
         # update attributes
         self._attributes = kwargs
@@ -130,7 +130,7 @@ class PathPyObject:
         string: str
 
         # check if python id is used as uid or not
-        if self._is_python_uid:
+        if self._has_python_uid:
             # if python id is used dont show in the object description
             string = super().__repr__()
         else:
@@ -142,7 +142,7 @@ class PathPyObject:
     @property
     def has_python_uid(self) -> bool:
         """Retrun True if uid was given by python."""
-        return self._is_python_uid
+        return self._has_python_uid
 
     @property
     def uid(self) -> str:
@@ -497,7 +497,7 @@ class PathPyPath(PathPyObject):
         string: str
 
         # check if python id is used as uid or not
-        if self._is_python_uid:
+        if self._has_python_uid:
             # if python id is used show the object relations
             string = '{} {}'.format(self.__class__.__name__, self.relations)
         else:
@@ -700,7 +700,7 @@ class PathPyCollection():
     def __isub__(self, other):
         for obj in other:
             if isinstance(obj, PathPyPath):
-                if obj._is_python_uid and obj.relations in self._relations:
+                if obj._has_python_uid and obj.relations in self._relations:
                     obj = self[obj.relations]
                 elif obj.uid in self.keys():
                     obj = self[obj.uid]
