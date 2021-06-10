@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : plot.py -- Plotting function for pathpy objects
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-10 16:58 juergen>
+# Time-stamp: <Thu 2021-06-10 17:11 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -50,9 +50,8 @@ def network_plot(obj, filename: Optional[str] = None,
                  backend: Optional[str] = None, **kwargs: Any):
     """Plot a static network"""
     plot_backend = _get_plot_backend(backend, filename)
-    plot_config = {filename}
-    plot_data = {obj}
-    return plot_backend.network_plot(plot_data, plot_config, **kwargs)
+    plot_data = obj
+    return plot_backend.network_plot(plot_data, **kwargs)
 
 
 def _get_plot_backend(backend: Optional[str] = None, filename: str = None,

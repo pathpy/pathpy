@@ -4,27 +4,31 @@
 # =============================================================================
 # File      : network_plots.py -- Network plots with d3js
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-10 17:04 juergen>
+# Time-stamp: <Thu 2021-06-10 17:15 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
-from typing import Any, Optional
+from __future__ import annotations
+from typing import TYPE_CHECKING, Any, Optional
 from pathpy.visualisations.new_plot import PathPyPlot
 
+# pseudo load class for type checking
+if TYPE_CHECKING:
+    from pathpy.models.network import Network
 
-def network_plot(obj, filename: Optional[str] = None,
-                 backend: Optional[str] = None, **kwargs: Any):
+
+def network_plot(network: Network, filename: Optional[str] = None, **kwargs: Any):
     """Plot a static network with d3js"""
-    result = NetworkPlot(obj, **kwargs)
+    result = NetworkPlot(network, **kwargs)
     return result
 
 
 class NetworkPlot(PathPyPlot):
     """Base network plot"""
 
-    def __init__(self, data, **kwargs):
+    def __init__(self, network: Network, **kwargs: Any):
         """Initialize network plot class"""
-        self.data = data
+        self.network = network
 # =============================================================================
 # eof
 #
