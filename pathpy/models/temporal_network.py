@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-06-04 18:04 juergen>
+# Time-stamp: <Thu 2021-06-10 15:22 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -70,7 +70,7 @@ class TemporalEdge(Edge, TemporalPathPyObject):
 
         # initialize the parent class
         Edge.__init__(self, v, w, uid=uid, directed=directed, **kwargs)
-        TemporalPathPyObject.__init__(self, uid=self.uid, **kwargs)
+        TemporalPathPyObject.__init__(self, uid=uid, **kwargs)
 
     def summary(self) -> str:
         """Object summary. """

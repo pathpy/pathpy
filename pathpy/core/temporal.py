@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal.py -- Classes to make PathPyObject temporal
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-28 19:01 juergen>
+# Time-stamp: <Thu 2021-06-10 15:23 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
