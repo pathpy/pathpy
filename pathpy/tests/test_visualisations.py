@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_visualisations.py -- Test environment for the plotting
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-10 16:43 juergen>
+# Time-stamp: <Thu 2021-06-10 16:45 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -29,13 +29,13 @@ def test_network_plot_d3js():
 def test_network_plot_tikz():
     """Test the plot function of a static network with tikz"""
     plot = network_plot('net', backend='tikz')
-    print(plot)
+    assert plot == 'tikz'
 
 
 def test_network_plot_matplotlib():
     """Test the plot function of a static network with matplotlib"""
     plot = network_plot('net', backend='matplotlib')
-    print(plot)
+    assert plot == 'matplotlib'
 
 
 # =============================================================================
