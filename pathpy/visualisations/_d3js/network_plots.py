@@ -4,19 +4,27 @@
 # =============================================================================
 # File      : network_plots.py -- Network plots with d3js
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-06-11 13:34 juergen>
+# Time-stamp: <Fri 2021-06-11 13:54 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
+
+import webbrowser
+import tempfile
+
 from typing import TYPE_CHECKING, Any, Optional
 from dataclasses import dataclass, asdict
 
+from pathpy import logger, config
 from pathpy.visualisations.new_plot import PathPyPlot
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
     from pathpy.models.network import Network
+
+# create logger
+LOG = logger(__name__)
 
 
 def network_plot(network: Network, **kwargs: Any):
@@ -39,13 +47,28 @@ class D3jsPlot(PathPyPlot):
         """Function to generate the plot"""
         raise NotImplementedError
 
-    def save(self):
+    def save(self, filename: str) -> None:
         """Function to save the plot"""
-        print('Save the plot')
+        with open(filename, 'w+') as new:
+            new.write(self.to_html())
 
-    def show(self):
+    def show(self) -> None:
         """Function to show the plot"""
-        print('Show the plot')
+
+        if config['environment']['interactive']:
+            from IPython.core.display import display, HTML
+            display(HTML(self.to_html()))
+        else:
+            # create temporal file
+            with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                # save html
+                self.save(temp_file.name)
+                # open the file
+                webbrowser.open(r'file:///'+temp_file.name)
+
+    def to_html(self) -> str:
+        """Convert data to html"""
+        return "<h1>Test</h1>"
 
 
 @dataclass

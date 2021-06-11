@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : plot.py -- Plotting function for pathpy objects
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-06-11 12:22 juergen>
+# Time-stamp: <Fri 2021-06-11 13:53 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -101,7 +101,7 @@ class PathPyPlot:
         """Function to generate the plot"""
         raise NotImplementedError
 
-    def save(self):
+    def save(self, filename: str):
         """Function to save the plot"""
         raise NotImplementedError
 
