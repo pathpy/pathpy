@@ -1,0 +1,17 @@
+<script charset="utf-8" src="https://d3js.org/d3.v5.min.js"></script>
+<script charset="utf-8" src="https://requirejs.org/docs/release/2.3.6/minified/require.js"></script>
+<script charset="utf-8">
+ // Load via requireJS if available (jupyter notebook environment)
+ try {
+   require.config({
+     paths: {
+       d3: "https://d3js.org/d3.v5.min.js".replace(".js", "")
+     }
+   });
+   console.log("OKAY: requireJS was detected");
+ }
+ catch(err){
+   console.log(err);
+   console.log("ERROR: NO requireJS was detected");
+ };
+</script>

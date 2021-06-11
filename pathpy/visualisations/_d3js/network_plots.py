@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network_plots.py -- Network plots with d3js
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-06-11 13:54 juergen>
+# Time-stamp: <Fri 2021-06-11 18:05 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -12,9 +12,13 @@ from __future__ import annotations
 
 import webbrowser
 import tempfile
+import json
+import os
+import uuid
 
 from typing import TYPE_CHECKING, Any, Optional
 from dataclasses import dataclass, asdict
+from collections import defaultdict
 
 from pathpy import logger, config
 from pathpy.visualisations.new_plot import PathPyPlot
@@ -68,7 +72,57 @@ class D3jsPlot(PathPyPlot):
 
     def to_html(self) -> str:
         """Convert data to html"""
-        return "<h1>Test</h1>"
+
+        # generate unique dom uids
+        network_id = "#x"+uuid.uuid4().hex
+
+        # get path to the pathpy templates
+        template_dir = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)),
+            os.path.normpath('_d3js/templates'))
+
+        # get template files
+        with open(os.path.join(template_dir, "network.js")) as template:
+            js_template = template.read()
+
+        with open(os.path.join(template_dir, "setup.html")) as template:
+            setup_template = template.read()
+
+        with open(os.path.join(template_dir, "styles.css")) as template:
+            css_template = template.read()
+
+        # initialize variables
+        data: defaultdict = defaultdict(list)
+
+        # convert data to json format
+        for key, objects in self.data.items():
+            for obj in objects.values():
+                data[key].append(
+                    {k: v for k, v in asdict(obj).items() if v is not None})
+
+        self.config['selector'] = network_id
+
+        # generate html file
+        html = '<style>\n' + css_template + '\n</style>\n'
+
+        # div environment for the plot object
+        html += f'\n<div id = "{network_id[1:]}"> </div>\n'
+
+        # add setup code
+        html += setup_template
+
+        # add JavaScript
+        html += '<script charset="utf-8">\n'
+
+        # add data and config
+        html += f'const data = {json.dumps(data)}\n'
+        html += f'const config = {json.dumps(self.config)}\n'
+
+        # add JavaScript
+        html += js_template
+        html += '\n</script>'
+
+        return html
 
 
 @dataclass

@@ -1,0 +1,22 @@
+body {
+    margin: 0;
+}
+
+svg {
+    position: fixed;
+    font: 12px sans-serif;
+} 
+
+svg circle.node {
+  fill: #3b5998;
+  stroke: #1b3978;
+  stroke-width: 5.5px;
+  r: 15px;
+  opacity: 1;
+}
+
+svg line.link {
+  stroke: #222;
+  stroke-opacity: .6;
+  stroke-width: 4px;
+}
