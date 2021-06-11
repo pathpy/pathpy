@@ -4,12 +4,14 @@
 # =============================================================================
 # File      : network_plots.py -- Network plots with d3js
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-06-11 12:23 juergen>
+# Time-stamp: <Fri 2021-06-11 13:04 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Optional
+from dataclasses import dataclass
+
 from pathpy.visualisations.new_plot import PathPyPlot
 
 # pseudo load class for type checking
@@ -20,6 +22,7 @@ if TYPE_CHECKING:
 def network_plot(network: Network, **kwargs: Any):
     """Plot a static network with d3js"""
     result = NetworkPlot(network, **kwargs)
+    result.generate()
     return result
 
 
@@ -45,6 +48,31 @@ class D3jsPlot(PathPyPlot):
         print('Show the plot')
 
 
+@dataclass
+class NodeData:
+    """Class to store nodes for plotting"""
+    uid: str
+    size: Optional[float] = None
+    color: Optional[str] = None
+    opacity: float = 1.0
+    x: Optional[float] = None
+    y: Optional[float] = None
+
+
+@dataclass
+class EdgeData:
+    """Class to store nodes for plotting"""
+    uid: str
+    source: str
+    target: str
+    size: Optional[float] = None
+    color: Optional[str] = None
+    opacity: float = 1.0
+    weight: float = 1.0
+    # directed: bool = True
+    # curved: bool = True
+
+
 class NetworkPlot(D3jsPlot):
     """Network plot class for a static network."""
 
@@ -57,9 +85,20 @@ class NetworkPlot(D3jsPlot):
 
     def generate(self):
         """Function to generate the plot"""
-        raise NotImplementedError
+        self._compute_edge_data()
+        self._compute_node_data()
 
+    def _compute_node_data(self):
+        """Generate the data structure for the nodes"""
+        print('test')
+        n = NodeData('uid')
+        e = EdgeData('uid', 'u', 'v')
+        print(n)
+        print(e)
 
+    def _compute_edge_data(self):
+        """Generate the data structure for the edges"""
+        pass
 # =============================================================================
 # eof
 #

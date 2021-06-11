@@ -3,12 +3,13 @@
 # =============================================================================
 # File      : test_visualisations.py -- Test environment for the plotting
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-10 16:45 juergen>
+# Time-stamp: <Fri 2021-06-11 12:45 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
 
 import pytest
+import pathpy as pp
 from pathpy.visualisations.new_plot import _get_plot_backend, network_plot
 
 
@@ -22,8 +23,12 @@ def test_get_backend():
 
 def test_network_plot_d3js():
     """Test the plot function of a static network with d3js"""
-    plot = network_plot('net', backend='d3js')
-    print(plot)
+    net = pp.Network()
+    net.add_edge('a', 'b')
+    net.add_edge('b', 'c')
+
+    plot = network_plot(net, backend='d3js')
+    # print(plot)
 
 
 def test_network_plot_tikz():
