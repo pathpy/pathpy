@@ -148,10 +148,10 @@ class EpidemicSIR(BaseProcess):
             for v in self.infected:
                 # for all neighbors w
                 for w in self.network.successors[v]:
-                    if w in self.susceptible and random.uniform()<=self.infection_prob:
+                    if w.uid in self.susceptible and random.uniform()<=self.infection_prob:
 
                         # record node with changed state
-                        newly_infected.add(w)
+                        newly_infected.add(w.uid)
 
 
         # update compartments and infection time of all newly infected nodes
