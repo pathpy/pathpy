@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : core.py -- Plots with d3js
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-17 15:09 juergen>
+# Time-stamp: <Thu 2021-06-17 16:26 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -16,8 +16,6 @@ import tempfile
 import webbrowser
 
 from typing import Any
-from collections import defaultdict
-from dataclasses import asdict
 
 from pathpy import logger, config
 from pathpy.visualisations.new_plot import PathPyPlot
@@ -79,15 +77,7 @@ class D3jsPlot(PathPyPlot):
         with open(os.path.join(template_dir, "styles.css")) as template:
             css_template = template.read()
 
-        # initialize variables
-        data: defaultdict = defaultdict(list)
-
-        # convert data to json format
-        for key, objects in self.data.items():
-            for obj in objects.values():
-                data[key].append(
-                    {k: v for k, v in asdict(obj).items() if v is not None})
-
+        # update config
         self.config['selector'] = network_id
 
         # generate html file
@@ -103,7 +93,7 @@ class D3jsPlot(PathPyPlot):
         html += '<script charset="utf-8">\n'
 
         # add data and config
-        html += f'const data = {json.dumps(data)}\n'
+        html += f'const data = {json.dumps(self.data)}\n'
         html += f'const config = {json.dumps(self.config)}\n'
 
         # add JavaScript

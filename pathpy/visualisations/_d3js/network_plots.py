@@ -4,14 +4,13 @@
 # =============================================================================
 # File      : network_plots.py -- Network plots with d3js
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-17 15:10 juergen>
+# Time-stamp: <Thu 2021-06-17 16:26 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Optional
-from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any
 
 from pathpy import logger
 from pathpy.visualisations._d3js.core import D3jsPlot
@@ -31,31 +30,6 @@ def network_plot(network: Network, **kwargs: Any):
     return result
 
 
-@dataclass
-class NodeData:
-    """Class to store nodes for plotting"""
-    uid: str
-    size: Optional[float] = None
-    color: Optional[str] = None
-    opacity: Optional[float] = None
-    x: Optional[float] = None
-    y: Optional[float] = None
-
-
-@dataclass
-class EdgeData:
-    """Class to store nodes for plotting"""
-    uid: str
-    source: str
-    target: str
-    size: Optional[float] = None
-    color: Optional[str] = None
-    opacity: Optional[float] = None
-    weight: float = 1.0
-    # directed: bool = True
-    # curved: bool = True
-
-
 class NetworkPlot(D3jsPlot):
     """Network plot class for a static network."""
 
@@ -73,31 +47,21 @@ class NetworkPlot(D3jsPlot):
 
     def _compute_node_data(self):
         """Generate the data structure for the nodes"""
-        nodes: dict = {}
+        nodes: list = []
         for uid, node in self.network.nodes.items():
-            nodes[uid] = NodeData(
-                uid,
-                size=node['size'],
-                color=node['color'],
-                opacity=node['opacity'],
-                x=node['x'],
-                y=node['y'],
-            )
+            nodes.append({**{'uid': uid},
+                          **node.attributes.copy()})
         self.data['nodes'] = nodes
 
     def _compute_edge_data(self):
         """Generate the data structure for the edges"""
-        edges: dict = {}
+        edges: list = []
         for uid, edge in self.network.edges.items():
-            edges[uid] = EdgeData(
-                uid,
-                edge.v.uid,
-                edge.w.uid,
-                size=edge['size'],
-                color=edge['color'],
-                opacity=edge['opacity'],
-                weight=edge.weight('weight'),
-            )
+            edges.append({**{'uid': uid,
+                             'source': edge.v.uid,
+                             'target': edge.w.uid,
+                             'weight': edge.weight('weight')},
+                          **edge.attributes.copy()})
         self.data['edges'] = edges
 
 # =============================================================================
