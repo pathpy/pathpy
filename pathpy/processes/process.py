@@ -153,36 +153,33 @@ class BaseProcess:
         if end_time <= start_time:
             LOG.warning('Run data does not contain time evolution')
             return None
-
-        # print(start_time)    
-        # print(end_time)
         
         # create network with temporal attributes
-        tn = TemporalNetwork(directed=self.network.directed)        
-        for v in self.network.nodes:
-            tn.add_node(TemporalNode(v.uid))
+        tn = TemporalNetwork(directed=self.network.directed)
+
+        # add nodes and set initial state
+        for v in self.network.nodes.uids:
+            tv = TemporalNode(v)
+            tn.add_node(tv)
+            tv[start_time, 'color'] = self.state_to_color(evolution.loc[(evolution['time']==start_time) & (evolution['node']==v)]['state'].values[0])
         
+        # if process is simulated on temporal network
         if isinstance(self.network, TemporalNetwork):
             for edge in self.network.edges[start_time:end_time]:
                 tn.add_edge(edge.v.uid, edge.w.uid, start=max(edge.start, start_time), end=min(end_time, edge.end))
-            # # set initial state
-            # for v in tn.nodes.uids:
-            #     tn.nodes[v][start_time, 'color'] = self.state_to_color(self.node_state(v))
-            # update state
+
+            # update states
             for index, row in evolution.iterrows():
                 tn.nodes[row['node']][row['time'], 'color'] = self.state_to_color(row['state'])
+        # if process is simulated on static network
         else:
-
+            # add all edges
             for e in self.network.edges:
-                tn.add_edge(e.v.uid, e.w.uid, start=start_time, end=end_time*timescale)
-            # # set initial state
-            # for v in tn.nodes.uids:
-            # for index, row in evolution.loc['time'==start_time].iterrows():
-            #     tn.nodes[v][0, 'color'] = self.state_to_color(evolution.loc['time'==start_time]['state'])
-            # update state
+                tn.add_edge(e.v.uid, e.w.uid, start=start_time, end=end_time*timescale)            
+
+            # update states
             for index, row in evolution.iterrows():
                 tn.nodes[row['node']][row['time']*timescale, 'color'] = self.state_to_color(row['state'])
-        
         
         return tn.plot(**kwargs)
 
