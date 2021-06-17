@@ -27,7 +27,8 @@ class Path(PathPyPath):
             'Uid:\t\t{}\n'.format(self.uid),
             'Type:\t\t{}\n'.format(self.__class__.__name__),
             'Directed:\t{}\n'.format(self.directed),
-            'Nodes:\t\t{}\n'.format(self.relations),
+            'Nodes:\t\t{}\n'.format(self.nodes),
+            'Relations:\t{}\n'.format(self.relations),
         ]
 
         return ''.join(summary)
