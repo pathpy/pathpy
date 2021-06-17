@@ -211,7 +211,7 @@ class BaseProcess:
 
         for index, row in run.iterrows():            
             # add temporal node            
-            state = row['state']            
+            state = row['state']
             if states and state not in states:
                 continue
 
@@ -225,7 +225,7 @@ class BaseProcess:
             for v in self._network.predecessors[w]:
 
                 # get all state changes of node v prior to time t
-                candidates = run.loc[(run['node']==v) & (run['time']<t)]
+                candidates = run.loc[(run['node']==v.uid) & (run['time']<t)]
 
                 if len(candidates)>0:
 
@@ -236,9 +236,9 @@ class BaseProcess:
 
                     # check last state change and time difference
                     if  last_state in states and (time_delta is None or (t-last_time) < time_delta):
-                        pred_uid = '{0}-{1}'.format(v, last_time)
+                        pred_uid = '{0}-{1}'.format(v.uid, last_time)
                         if pred_uid not in dag.nodes:
-                            predecessors.append(Node(pred_uid, node_label=v, time=last_time, state=last_state))
+                            predecessors.append(Node(pred_uid, node_label=v.uid, time=last_time, state=last_state))
                         else:
                             predecessors.append(dag.nodes[pred_uid])
                         # predecessors = ['{0}-{1}'.format(v.uid, t_p)]                        
