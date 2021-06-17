@@ -231,7 +231,7 @@ class RandomWalk(BaseProcess):
         if v in self._network.nodes:
             return v == self._current_node
         elif type(self._network) == HigherOrderNetwork:
-            return v == self._network.nodes[self._current_node].edges[-1].w.uid
+            return v == self._network.nodes[self._current_node].relations[-1]
         else:
             raise NotImplementedError('Random walk not implemented for network of type {0}'.format(type(self._network)))
 
@@ -580,7 +580,7 @@ class HigherOrderRandomWalk(RandomWalk):
         # set number of times each first-order node has been visited
         self._first_order_visitations = np.ravel(
             np.zeros(shape=(1, self._first_order_network.number_of_nodes())))
-        self._first_order_visitations[self._first_order_network.nodes.index[self._network.nodes[seed].nodes[-1].uid]] = 1
+        self._first_order_visitations[self._first_order_network.nodes.index[self._network.nodes[seed].relations[-1]]] = 1
         RandomWalk.init(self, seed)
 
     @property
@@ -599,8 +599,8 @@ class HigherOrderRandomWalk(RandomWalk):
         higher_order_stationary_dist = RandomWalk.stationary_state(self, **kwargs)
         for v in self._network.nodes:
             # newly visited node in first_order network
-            v1 = v.nodes[-1]
-            first_order_stationary_state[self._first_order_network.nodes.index[v1.uid]] += higher_order_stationary_dist[self._network.nodes.index[v.uid]]
+            v1 = v.relations[-1]
+            first_order_stationary_state[self._first_order_network.nodes.index[v1]] += higher_order_stationary_dist[self._network.nodes.index[v.uid]]
         return first_order_stationary_state
 
     @property
@@ -618,20 +618,19 @@ class HigherOrderRandomWalk(RandomWalk):
 
     def first_order_node(self, higher_order_node: str) -> str:
         """
-        Maps a given uid of a node in the higher-order network to the corresponding 
-        first-order node.
+        Maps a given uid of a node in the higher-order network to the uid of the corresponding first-order node.
 
         Parameters
         ----------
         higher_order_node: str
-            The string uid of the higher-order node
+            String uid of the higher-order node
 
         Returns
         -------
         str
-            uid of the corresponding first-order node
+            String uid of the corresponding first-order node
         """
-        return self._network.nodes[higher_order_node].nodes[-1].uid
+        return self._network.nodes[higher_order_node].relations[-1]
 
 
     def step(self) -> Iterable[str]:
@@ -643,7 +642,7 @@ class HigherOrderRandomWalk(RandomWalk):
         """
         (current_node, previous_node) = RandomWalk.step(self)
 
-        self._first_order_visitations[self._first_order_network.nodes.index[self._network.nodes[current_node].nodes[-1].uid]] += 1
+        self._first_order_visitations[self._first_order_network.nodes.index[self._network.nodes[current_node].relations[-1]]] += 1
 
         return (current_node, previous_node)
 
@@ -719,8 +718,8 @@ class HigherOrderRandomWalk(RandomWalk):
         # update state
         for index, row in evolution.iterrows():
             higher_order_node = self._network.nodes[row['node']]
-            first_order_node = higher_order_node.nodes[-1]
-            tn.nodes[first_order_node.uid][row['time']*timescale, 'color'] = self.state_to_color(row['state'])
+            first_order_node = higher_order_node.relations[-1]
+            tn.nodes[first_order_node][row['time']*timescale, 'color'] = self.state_to_color(row['state'])
         return tn.plot(**kwargs)
 
 
@@ -750,19 +749,13 @@ class HigherOrderRandomWalk(RandomWalk):
         # for higher-order random walk, seed node is a higher-order node
         # consisting of one or more edges
         seed: HigherOrderNode = self._network.nodes[walk_steps[0]]
-        walk = Path(seed.edges[0].v)
-        for e in seed.edges:
-            walk._path.append(e)
+        walk = [v for v in seed.nodes]
 
         # map higher-order nodes to first-order nodes
         for i in range(1, len(walk_steps)):
-            v = walk_steps[i-1]
-            w = walk_steps[i]
-            traversed_higher_order_edge = self._network.edges[v, w]
-            traversed_edge = traversed_higher_order_edge.w.edges[-1]
-            walk._path.append(traversed_edge)
+            walk.append(self._network.nodes[walk_steps[i]].relations[-1])
         
-        return walk
+        return Path(*walk)
 
 
     def get_paths(self, data: DataFrame, run_ids: Optional[Iterable]=None) -> PathCollection:
