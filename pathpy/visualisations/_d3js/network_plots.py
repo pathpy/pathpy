@@ -4,11 +4,13 @@
 # =============================================================================
 # File      : network_plots.py -- Network plots with d3js
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-17 16:26 juergen>
+# Time-stamp: <Thu 2021-06-17 16:40 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
+
+import json
 
 from typing import TYPE_CHECKING, Any
 
@@ -25,9 +27,7 @@ LOG = logger(__name__)
 
 def network_plot(network: Network, **kwargs: Any):
     """Plot a static network with d3js"""
-    result = NetworkPlot(network, **kwargs)
-    result.generate()
-    return result
+    return NetworkPlot(network, **kwargs)
 
 
 class NetworkPlot(D3jsPlot):
@@ -39,6 +39,7 @@ class NetworkPlot(D3jsPlot):
         """Initialize network plot class"""
         super().__init__(**kwargs)
         self.network = network
+        self.generate()
 
     def generate(self):
         """Function to generate the plot"""
@@ -64,6 +65,9 @@ class NetworkPlot(D3jsPlot):
                           **edge.attributes.copy()})
         self.data['edges'] = edges
 
+    def to_json(self):
+        """Converter data to json"""
+        return json.dumps(self.data)
 # =============================================================================
 # eof
 #

@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : core.py -- Plots with d3js
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-17 16:26 juergen>
+# Time-stamp: <Thu 2021-06-17 16:39 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -56,6 +56,10 @@ class D3jsPlot(PathPyPlot):
                 # open the file
                 webbrowser.open(r'file:///'+temp_file.name)
 
+    def to_json(self) -> str:
+        """Convert data to json"""
+        raise NotImplementedError
+
     def to_html(self) -> str:
         """Convert data to html"""
 
@@ -80,6 +84,8 @@ class D3jsPlot(PathPyPlot):
         # update config
         self.config['selector'] = network_id
 
+        data = self.to_json()
+
         # generate html file
         html = '<style>\n' + css_template + '\n</style>\n'
 
@@ -93,7 +99,7 @@ class D3jsPlot(PathPyPlot):
         html += '<script charset="utf-8">\n'
 
         # add data and config
-        html += f'const data = {json.dumps(self.data)}\n'
+        html += f'const data = {data}\n'
         html += f'const config = {json.dumps(self.config)}\n'
 
         # add JavaScript
