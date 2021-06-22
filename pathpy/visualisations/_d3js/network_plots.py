@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network_plots.py -- Network plots with d3js
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-06-18 17:43 juergen>
+# Time-stamp: <Tue 2021-06-22 10:24 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -56,9 +56,9 @@ class NetworkPlot(D3jsPlot):
     #                       **edge.attributes.copy()})
     #     self.data['edges'] = edges
 
-    # def to_json(self):
-    #     """Converter data to json"""
-    #     return json.dumps(self.data)
+    def to_json(self):
+        """Converter data to json"""
+        return json.dumps(self.data)
 # =============================================================================
 # eof
 #

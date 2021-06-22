@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : plot.py -- Plotting function for pathpy objects
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-22 10:15 juergen>
+# Time-stamp: <Tue 2021-06-22 10:27 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -105,14 +105,14 @@ class PathPyPlot:
         """Function to generate the plot"""
         raise NotImplementedError
 
-    def save(self, filename: str, backend: Optional[str] = None):
+    def save(self, filename: str, **kwargs):
         """Function to save the plot"""
-        plot_backend = _get_plot_backend(backend, filename)
+        plot_backend = _get_plot_backend(kwargs.pop('backend', None), filename)
         plot_backend.plot(self.data, self._kind, **self.config).save(filename)
 
-    def show(self, backend: Optional[str] = None):
+    def show(self, **kwargs):
         """Function to show the plot"""
-        plot_backend = _get_plot_backend(backend)
+        plot_backend = _get_plot_backend(kwargs.pop('backend', None))
         plot_backend.plot(self.data, self._kind, **self.config).show()
 
 # =============================================================================

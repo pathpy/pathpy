@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : core.py -- Plots with d3js
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-06-18 17:44 juergen>
+# Time-stamp: <Tue 2021-06-22 10:42 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -31,26 +31,23 @@ class D3jsPlot(PathPyPlot):
         """Function to generate the plot"""
         raise NotImplementedError
 
-    def save(self, filename: str) -> None:
+    def save(self, filename: str, **kwargs: Any) -> None:
         """Function to save the plot"""
-        print('hello save')
-        # with open(filename, 'w+') as new:
-        #     new.write(self.to_html())
+        with open(filename, 'w+') as new:
+            new.write(self.to_html())
 
-    def show(self) -> None:
+    def show(self, **kwargs: Any) -> None:
         """Function to show the plot"""
-
-        print('hallo show')
-        # if config['environment']['interactive']:
-        #     from IPython.core.display import display, HTML
-        #     display(HTML(self.to_html()))
-        # else:
-        #     # create temporal file
-        #     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-        #         # save html
-        #         self.save(temp_file.name)
-        #         # open the file
-        #         webbrowser.open(r'file:///'+temp_file.name)
+        if config['environment']['interactive']:
+            from IPython.core.display import display, HTML
+            display(HTML(self.to_html()))
+        else:
+            # create temporal file
+            with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                # save html
+                self.save(temp_file.name)
+                # open the file
+                webbrowser.open(r'file:///'+temp_file.name)
 
     def to_json(self) -> str:
         """Convert data to json"""
