@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : plot.py -- Plotting function for pathpy objects
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-06-11 13:53 juergen>
+# Time-stamp: <Tue 2021-06-22 10:15 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -22,6 +22,10 @@ _backends: set = {'d3js', 'tikz', 'matplotlib'}
 # supported file formats
 _formats: Dict = {'.html': 'd3js', '.tex': 'tikz',
                   '.pdf': 'tikz', '.png': 'matplotlib'}
+
+
+def plot(data, filename, kind=None, **kwargs):
+    pass
 
 
 def plot(obj, filename, backend, **kwargs):
@@ -46,17 +50,17 @@ def plot(obj, filename, backend, **kwargs):
 #     return plot_obj.result
 
 
-def network_plot(obj, filename: Optional[str] = None,
-                 backend: Optional[str] = None, **kwargs: Any):
-    """Plot a static network"""
-    # load aprorpoate backend
-    plot_backend = _get_plot_backend(backend, filename)
+# def network_plot(obj, filename: Optional[str] = None,
+#                  backend: Optional[str] = None, **kwargs: Any):
+#     """Plot a static network"""
+#     # load aprorpoate backend
+#     plot_backend = _get_plot_backend(backend, filename)
 
-    # convert given object to needed plot data
-    plot_data = obj
+#     # convert given object to needed plot data
+#     plot_data = NetworkPlot(obj, **kwargs)
 
-    # return the plot
-    return plot_backend.network_plot(plot_data, **kwargs)
+#     # return the plot
+#     return plot_backend.network_plot(plot_data, **kwargs)
 
 
 def _get_plot_backend(backend: Optional[str] = None, filename: str = None,
@@ -101,13 +105,15 @@ class PathPyPlot:
         """Function to generate the plot"""
         raise NotImplementedError
 
-    def save(self, filename: str):
+    def save(self, filename: str, backend: Optional[str] = None):
         """Function to save the plot"""
-        raise NotImplementedError
+        plot_backend = _get_plot_backend(backend, filename)
+        plot_backend.plot(self.data, self._kind, **self.config).save(filename)
 
-    def show(self):
+    def show(self, backend: Optional[str] = None):
         """Function to show the plot"""
-        raise NotImplementedError
+        plot_backend = _get_plot_backend(backend)
+        plot_backend.plot(self.data, self._kind, **self.config).show()
 
 # =============================================================================
 # eof

@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_temporal_network.py -- Test environment for temp networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-28 19:00 juergen>
+# Time-stamp: <Thu 2021-06-17 17:29 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -176,34 +176,71 @@ def test_temporal_network():
     with pytest.raises(Exception):
         net.add_edge('a', 'b', 1)
 
-    tn = TemporalNetwork()
+    tn = TemporalNetwork(directed=True)
     tn.add_edge('a', 'b', timestamp=1, color='red')
     tn.add_edge('x', 'y', timestamp=2, shape='circle')
     tn.add_edge('a', 'b', timestamp=4, color='green')
     tn.add_edge('a', 'b', timestamp=8, color='blue')
-    # tn.add_edge('b', 'c', timestamp=2)
-    # tn.add_edge('c', 'd', timestamp=4, color='green')
-    # tn.add_edge('d', 'f', timestamp=4)
-    # tn.add_edge('a', 'f', timestamp=6)
+    tn.add_edge('a', 'b', timestamp=8, color='blue')
     tn.add_edge('c', 'f', start=7, duration=3)
-    # tn.add_edge('b', 'f', start=7, end=11)
 
-    print(tn.edges['a', 'b'].start)
+    tn2 = TemporalNetwork(directed=True)
+    for v in tn.nodes:
+        tn2.add_node(TemporalNode(v.uid))
 
-    for edge in tn.edges[:]:
-        print(edge.start, edge.end, edge.attributes)
-        # print(edge.attributes)
+    for e in tn.edges:
+        tn2.add_edge(e.v.uid, e.w.uid, start=1, end=2)
 
-    for edge in tn.edges:
-        print(edge.uid)
+    print(tn2.edges)
 
-    for event in tn.edges['a', 'b'][:]:
-        print(event.start, event.end, event.attributes)
 
-    tn = TemporalNetwork()
-    tn.add_edge('a', 'b', timestamp=0, color='red')
+def test_random_walk():
 
-    print(tn)
+    n = pp.Network(directed=True)
+    n.add_edge('a', 'b', weight=1, uid='a-b')
+    n.add_edge('b', 'c', weight=1, uid='b-c')
+    n.add_edge('c', 'a', weight=2, uid='c-a')
+    n.add_edge('c', 'd', weight=1, uid='c-d')
+    n.add_edge('d', 'a', weight=1, uid='d-a')
+
+    print(n)
+    rw = pp.processes.RandomWalk(n, weight='weight')
+    print(rw.transition_matrix)
+
+    print(rw.stationary_state())
+
+    data = rw.run_experiment(steps=10, runs=['a', 'b'])
+    print(data)
+
+    p = rw.get_path(data, 1)
+    print(p)
+
+    p = rw.get_path(data)
+    print(p)
+
+    pc = rw.get_paths(data, run_ids=[0, 1])
+    for p in pc:
+        print(p)
+
+    rw.plot(data)
+    # print(tn.edges['a', 'b'].start)
+
+    # for edge in tn.edges[:]:
+    #     print(edge.start, edge.end, edge.attributes)
+    #     # print(edge.attributes)
+
+    # for edge in tn.edges:
+    #     print(edge.uid)
+
+    # for event in tn.edges['a', 'b'][:]:
+    #     print(event.start, event.end, event.attributes)
+
+    # tn = TemporalNetwork()
+    # tn.add_edge('a', 'b', timestamp=0, color='red')
+
+    # tn.nodes['a'].event(start=3, color='green')
+    # tn.nodes['a'][4, 'color'] = 'pink'
+
     # for event in edge[:]:
     #     print(event)
 

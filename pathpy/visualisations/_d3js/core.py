@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : core.py -- Plots with d3js
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-17 16:39 juergen>
+# Time-stamp: <Fri 2021-06-18 17:44 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -27,34 +27,30 @@ LOG = logger(__name__)
 class D3jsPlot(PathPyPlot):
     """Base class for plotting d3js objects"""
 
-    def __init__(self, **kwargs: Any):
-        """Initialize plot class"""
-        super().__init__()
-        if kwargs:
-            self.config = kwargs
-
     def generate(self):
         """Function to generate the plot"""
         raise NotImplementedError
 
     def save(self, filename: str) -> None:
         """Function to save the plot"""
-        with open(filename, 'w+') as new:
-            new.write(self.to_html())
+        print('hello save')
+        # with open(filename, 'w+') as new:
+        #     new.write(self.to_html())
 
     def show(self) -> None:
         """Function to show the plot"""
 
-        if config['environment']['interactive']:
-            from IPython.core.display import display, HTML
-            display(HTML(self.to_html()))
-        else:
-            # create temporal file
-            with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-                # save html
-                self.save(temp_file.name)
-                # open the file
-                webbrowser.open(r'file:///'+temp_file.name)
+        print('hallo show')
+        # if config['environment']['interactive']:
+        #     from IPython.core.display import display, HTML
+        #     display(HTML(self.to_html()))
+        # else:
+        #     # create temporal file
+        #     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        #         # save html
+        #         self.save(temp_file.name)
+        #         # open the file
+        #         webbrowser.open(r'file:///'+temp_file.name)
 
     def to_json(self) -> str:
         """Convert data to json"""

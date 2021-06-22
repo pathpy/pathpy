@@ -3,14 +3,15 @@
 # =============================================================================
 # File      : test_visualisations.py -- Test environment for the plotting
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-06-11 18:17 juergen>
+# Time-stamp: <Fri 2021-06-18 17:44 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
 
 import pytest
 import pathpy as pp
-from pathpy.visualisations.new_plot import _get_plot_backend, network_plot
+from pathpy.visualisations.new_plot import _get_plot_backend
+from pathpy.visualisations.network_plots import network_plot
 
 
 def test_get_backend():
@@ -29,19 +30,44 @@ def test_network_plot_d3js():
 
     plot = network_plot(net, backend='d3js')
     plot.save('test.html')
+    plot.show()
 
 
-def test_network_plot_tikz():
-    """Test the plot function of a static network with tikz"""
-    plot = network_plot('net', backend='tikz')
-    assert plot == 'tikz'
+# def test_network_plot_tikz():
+#     """Test the plot function of a static network with tikz"""
+
+#     net = pp.Network()
+#     net.add_edge('a', 'b', color='red')
+#     net.add_edge('b', 'c')
+
+#     plot = network_plot(net, backend='tikz')
+#     print(plot)
 
 
-def test_network_plot_matplotlib():
-    """Test the plot function of a static network with matplotlib"""
-    plot = network_plot('net', backend='matplotlib')
-    assert plot == 'matplotlib'
+# def test_network_plot_matplotlib():
+#     """Test the plot function of a static network with matplotlib"""
+#     plot = network_plot('net', backend='matplotlib')
+#     assert plot == 'matplotlib'
 
+
+# def possible_patterns():
+#     """some possible plotting patern"""
+
+#     net = pp.Network()
+#     net.add_edge('a', 'b', color='red')
+#     net.add_edge('b', 'c')
+
+#     net.plot()
+#     net.plot('test.html')
+#     net.plot('test.tex')
+#     net.plot('test.png')
+#     net.plot('test.pdf', backend='matplotlib')
+#     net.plot('test.pdf', backend='tikz')
+
+#     fig = network_plot(net)
+#     fig.show()
+#     fig.save('test.html')
+#     fig.save('test.pdf')
 
 # =============================================================================
 # eof
