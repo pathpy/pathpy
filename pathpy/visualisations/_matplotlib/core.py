@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : core.py -- Plots with d3js
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-22 13:43 juergen>
+# Time-stamp: <Tue 2021-06-22 15:44 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -27,12 +27,15 @@ class MatplotlibPlot(PathPyPlot):
 
     def save(self, filename: str, **kwargs: Any) -> None:
         """Function to save the plot"""
-        raise NotImplementedError
+        self.to_fig().savefig(filename)
 
     def show(self, **kwargs: Any) -> None:
         """Function to show the plot"""
-        raise NotImplementedError
+        self.to_fig().show()
 
+    def to_fig(self):
+        """Converter to matplotlif figure"""
+        raise NotImplementedError
 
 # =============================================================================
 # eof
