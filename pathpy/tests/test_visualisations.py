@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_visualisations.py -- Test environment for the plotting
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-22 13:11 juergen>
+# Time-stamp: <Tue 2021-06-22 13:32 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -25,17 +25,17 @@ def test_get_backend():
 def test_network_plot_d3js():
     """Test the plot function of a static network with d3js"""
     net = pp.Network()
-    # net.add_node('a', color='blue', x=1, y=2)
-    # net.add_node('b', color='green', x=2, y=3)
-    # net.add_node('c', color='yellow', x=3, y=1)
+    net.add_node('a', color='blue', x=1, y=2)
+    net.add_node('b', color='green', x=2, y=3)
+    net.add_node('c', color='yellow', x=3, y=1)
     net.add_edge('a', 'b', color='red')
     net.add_edge('b', 'c')
 
-    plot = network_plot(net, backend='d3js',
-                        template='test.js', css='styles.css')
-    #plot = network_plot(net)
-    plot.save('test.html')
-    # plot.show()
+    # plot = network_plot(net, backend='d3js',
+    #                     template='test.js', css='styles.css')
+    plot = network_plot(net)
+    # plot.save('test.pdf')
+    plot.show(backend='tikz')
 
     # plot.save('test.tex')
     # plot.show()
