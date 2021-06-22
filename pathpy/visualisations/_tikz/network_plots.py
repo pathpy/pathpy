@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network_plots.py -- Network plots with tikz
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-22 10:53 juergen>
+# Time-stamp: <Tue 2021-06-22 12:46 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -30,10 +30,63 @@ class NetworkPlot(TikzPlot):
         super().__init__()
         self.data = data
         self.config = kwargs
+        self.generate()
+
+    def generate(self):
+        """Clen up data"""
+        self._compute_node_data()
+        self._compute_edge_data()
+
+    def _compute_node_data(self):
+        """Generate the data structure for the nodes"""
+        default = {'uid', 'x', 'y', 'size', 'color', 'opacity'}
+        mapping = {}
+
+        for node in self.data['nodes']:
+            for key in list(node):
+                if key in mapping:
+                    node[mapping[key]] = node.pop(key)
+                if key not in default:
+                    node.pop(key)
+
+    def _compute_edge_data(self):
+        """Generate the data structure for the edges"""
+        default = {'uid', 'source', 'target', 'lw', 'color', 'opacity'}
+        mapping = {'size': 'lw'}
+
+        for edge in self.data['edges']:
+            for key in list(edge):
+                if key in mapping:
+                    edge[mapping[key]] = edge.pop(key)
+                if key not in default:
+                    edge.pop(key)
 
     def to_tikz(self):
         """Converter to Tex"""
-        return 'tikz'
+
+        def _add_args(args: dict):
+            string = ''
+            for key, value in args.items():
+                string += f',{key}' if value == bool else f',{key}={value}'
+            return string
+
+        tikz = ''
+        for node in self.data['nodes']:
+            uid = node.pop('uid')
+            string = '\\Vertex['
+            string += _add_args(node)
+            string += ']{{{}}}\n'.format(uid)
+            tikz += string
+
+        for edge in self.data['edges']:
+            uid = edge.pop('uid')
+            source = edge.pop('source')
+            target = edge.pop('target')
+            string = '\\Edge['
+            string += _add_args(edge)
+            string += ']({})({})\n'.format(source, target)
+            tikz += string
+        return tikz
 # =============================================================================
 # eof
 #

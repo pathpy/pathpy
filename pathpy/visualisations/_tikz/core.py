@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : core.py -- Plots with tikz
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-22 11:41 juergen>
+# Time-stamp: <Tue 2021-06-22 11:44 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -54,7 +54,6 @@ class TikzPlot(PathPyPlot):
 
     def to_tex(self) -> str:
         """Convert data to tex."""
-
         # get path to the pathpy templates
         template_dir = os.path.join(
             os.path.dirname(os.path.dirname(__file__)),
