@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : core.py -- Plots with d3js
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-22 12:56 juergen>
+# Time-stamp: <Tue 2021-06-22 13:09 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -73,6 +73,18 @@ class D3jsPlot(PathPyPlot):
 
         with open(os.path.join(template_dir, "styles.css")) as template:
             css_template = template.read()
+
+        # load custom template
+        _template = self.config.get('template', None)
+        if _template and os.path.isfile(_template):
+            with open(_template) as template:
+                js_template = template.read()
+
+        # load custom css template
+        _template = self.config.get('css', None)
+        if _template and os.path.isfile(_template):
+            with open(_template) as template:
+                css_template += template.read()
 
         # update config
         self.config['selector'] = network_id
