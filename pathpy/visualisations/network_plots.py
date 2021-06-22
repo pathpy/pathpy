@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network_plots.py -- Network plots with d3js
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-22 18:00 juergen>
+# Time-stamp: <Tue 2021-06-22 19:23 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -66,9 +66,18 @@ def network_plot(network: Network, **kwargs: Any):
 
     - ``node_size`` : diameter of the node
 
-    - ``node_color`` : fill color of the node. can either be a str name
-      (e.g. 'blue'), a hex code ('#fff), a RGB tuple (e.g. (123,10,20)) or a
-      rgb tuple (e.g. (0.1,0.4,0.3)).
+    - ``node_color`` : The fill color of the node. Possible values are:
+
+            - A single color string referred to by name, RGB or RGBA code, for
+              instance 'red' or '#a98d19'.
+
+            - A sequence of color strings referred to by name, RGB or RGBA
+              code, which will be used for each point's color recursively. For
+              instance ['green','yellow'] all points will be filled in green or
+              yellow, alternatively.
+
+            - A column name or position whose values will be used to color the
+              marker points according to a colormap.
 
     - ``node_opacity`` : fill opacity of the node. The default is 1. The range
       of the number lies between 0 and 1. Where 0 represents a fully
@@ -124,11 +133,20 @@ class NetworkPlot(PathPyPlot):
 
     def _convert_colors(self):
         """Convert colors to hex if rgb"""
-        for row in self.data.values():
+
+        for key, row in self.data.items():
+
+            values = [o.get('color') for o in row if isinstance(
+                o.get('color', None), (int, float))]
+
             for obj in row:
                 color = obj.get('color', None)
                 if isinstance(color, tuple):
                     obj['color'] = rgb_to_hex(color)
+                elif isinstance(color, (int, float)):
+                    # cmap = self.config.get('cmap',colormap)
+                    raise NotImplementedError
+
 
 # =============================================================================
 # eof

@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_visualisations.py -- Test environment for the plotting
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-22 17:57 juergen>
+# Time-stamp: <Tue 2021-06-22 19:17 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -12,6 +12,9 @@ import pytest
 import pathpy as pp
 from pathpy.visualisations.new_plot import _get_plot_backend
 from pathpy.visualisations.network_plots import network_plot
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.colors
 
 
 def test_get_backend():
@@ -25,8 +28,8 @@ def test_get_backend():
 def test_network_plot_d3js():
     """Test the plot function of a static network with d3js"""
     net = pp.Network()
-    net.add_node('a', color='blue', x=1, y=2)
-    net.add_node('b', color='green', x=2, y=3)
+    net.add_node('a', color=1, x=1, y=2)
+    net.add_node('b', color=3, x=2, y=3)
     net.add_node('c', color='yellow', x=3, y=1)
     net.add_edge('a', 'b', color='red')
     net.add_edge('b', 'c')
@@ -41,6 +44,20 @@ def test_network_plot_d3js():
     # plot.save('test.tex')
     # plot.show()
 
+
+# def test_color_map():
+#     """Test a color map"""
+
+#     x, y, c = zip(*np.random.rand(30, 3)*4-2)
+
+#     norm = plt.Normalize(-2, 2)
+#     cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
+#         "", ["red", "violet", "blue"])
+
+#     print(cmap(2))
+    # plt.scatter(x, y, c=c, cmap=cmap, norm=norm)
+    # plt.colorbar()
+    # plt.show()
 
 # def test_network_plot_tikz():
 #     """Test the plot function of a static network with tikz"""
