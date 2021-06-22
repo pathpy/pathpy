@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : plot.py -- Plotting function for pathpy objects
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-22 10:27 juergen>
+# Time-stamp: <Tue 2021-06-22 11:15 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -107,13 +107,22 @@ class PathPyPlot:
 
     def save(self, filename: str, **kwargs):
         """Function to save the plot"""
-        plot_backend = _get_plot_backend(kwargs.pop('backend', None), filename)
-        plot_backend.plot(self.data, self._kind, **self.config).save(filename)
+        _backend = kwargs.pop('backend', None)
+        if _backend is None:
+            _backend = self.config.get('backend', None)
+
+        plot_backend = _get_plot_backend(_backend, filename)
+        plot_backend.plot(self.data, self._kind, **
+                          self.config).save(filename, **kwargs)
 
     def show(self, **kwargs):
         """Function to show the plot"""
-        plot_backend = _get_plot_backend(kwargs.pop('backend', None))
-        plot_backend.plot(self.data, self._kind, **self.config).show()
+        _backend = kwargs.pop('backend', None)
+        if _backend is None:
+            _backend = self.config.get('backend', None)
+
+        plot_backend = _get_plot_backend(_backend, None)
+        plot_backend.plot(self.data, self._kind, **self.config).show(**kwargs)
 
 # =============================================================================
 # eof
