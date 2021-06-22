@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : core.py -- Plots with tikz
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-22 11:44 juergen>
+# Time-stamp: <Tue 2021-06-22 12:51 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -60,7 +60,7 @@ class TikzPlot(PathPyPlot):
             os.path.normpath('_tikz/templates'))
 
         # get template files
-        with open(os.path.join(template_dir, "network.tex")) as template:
+        with open(os.path.join(template_dir, f"{self._kind}.tex")) as template:
             tex_template = template.read()
 
         # generate data

@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : core.py -- Plots with d3js
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-22 10:42 juergen>
+# Time-stamp: <Tue 2021-06-22 12:56 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -65,7 +65,7 @@ class D3jsPlot(PathPyPlot):
             os.path.normpath('_d3js/templates'))
 
         # get template files
-        with open(os.path.join(template_dir, "network.js")) as template:
+        with open(os.path.join(template_dir, f"{self._kind}.js")) as template:
             js_template = template.read()
 
         with open(os.path.join(template_dir, "setup.html")) as template:
