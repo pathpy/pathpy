@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : plot.py -- Plotting function for pathpy objects
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-22 11:15 juergen>
+# Time-stamp: <Tue 2021-06-22 11:42 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -25,10 +25,6 @@ _formats: Dict = {'.html': 'd3js', '.tex': 'tikz',
 
 
 def plot(data, filename, kind=None, **kwargs):
-    pass
-
-
-def plot(obj, filename, backend, **kwargs):
     pass
 
 
