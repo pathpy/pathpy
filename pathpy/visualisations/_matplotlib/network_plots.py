@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network_plots.py -- Network plots with matplotlib
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-22 15:54 juergen>
+# Time-stamp: <Wed 2021-06-23 16:31 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================

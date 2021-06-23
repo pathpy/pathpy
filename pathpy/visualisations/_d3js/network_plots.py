@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network_plots.py -- Network plots with d3js
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-22 10:24 juergen>
+# Time-stamp: <Wed 2021-06-23 16:14 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -31,30 +31,11 @@ class NetworkPlot(D3jsPlot):
         super().__init__()
         self.data = data
         self.config = kwargs
+        self.generate()
 
-    # def generate(self):
-    #     """Function to generate the plot"""
-    #     self._compute_edge_data()
-    #     self._compute_node_data()
-
-    # def _compute_node_data(self):
-    #     """Generate the data structure for the nodes"""
-    #     nodes: list = []
-    #     for uid, node in self.network.nodes.items():
-    #         nodes.append({**{'uid': uid},
-    #                       **node.attributes.copy()})
-    #     self.data['nodes'] = nodes
-
-    # def _compute_edge_data(self):
-    #     """Generate the data structure for the edges"""
-    #     edges: list = []
-    #     for uid, edge in self.network.edges.items():
-    #         edges.append({**{'uid': uid,
-    #                          'source': edge.v.uid,
-    #                          'target': edge.w.uid,
-    #                          'weight': edge.weight('weight')},
-    #                       **edge.attributes.copy()})
-    #     self.data['edges'] = edges
+    def generate(self):
+        """Function to generate the plot"""
+        pass
 
     def to_json(self):
         """Converter data to json"""

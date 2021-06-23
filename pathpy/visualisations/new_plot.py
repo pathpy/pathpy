@@ -3,12 +3,14 @@
 # =============================================================================
 # File      : plot.py -- Plotting function for pathpy objects
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-22 11:42 juergen>
+# Time-stamp: <Wed 2021-06-23 16:34 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
 import os
 import importlib
+from copy import deepcopy
+
 from typing import Any, Optional, Dict
 from pathpy import logger
 
@@ -108,8 +110,8 @@ class PathPyPlot:
             _backend = self.config.get('backend', None)
 
         plot_backend = _get_plot_backend(_backend, filename)
-        plot_backend.plot(self.data, self._kind, **
-                          self.config).save(filename, **kwargs)
+        plot_backend.plot(deepcopy(self.data), self._kind,
+                          **deepcopy(self.config)).save(filename, **kwargs)
 
     def show(self, **kwargs):
         """Function to show the plot"""
@@ -118,7 +120,8 @@ class PathPyPlot:
             _backend = self.config.get('backend', None)
 
         plot_backend = _get_plot_backend(_backend, None)
-        plot_backend.plot(self.data, self._kind, **self.config).show(**kwargs)
+        plot_backend.plot(deepcopy(self.data), self._kind,
+                          **deepcopy(self.config)).show(**kwargs)
 
 # =============================================================================
 # eof
