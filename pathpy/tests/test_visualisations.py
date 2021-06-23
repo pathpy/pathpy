@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_visualisations.py -- Test environment for the plotting
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-06-23 16:34 juergen>
+# Time-stamp: <Wed 2021-06-23 17:32 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -15,6 +15,7 @@ from pathpy.visualisations.network_plots import network_plot
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors
+import seaborn as sns
 
 
 def test_get_backend():
@@ -28,17 +29,22 @@ def test_get_backend():
 def test_network_plot_d3js():
     """Test the plot function of a static network with d3js"""
     net = pp.Network()
-    net.add_node('a', color='red', x=1, y=2)
-    net.add_node('b', color='red', x=2, y=3)
-    net.add_node('c', color='yellow', x=3, y=1)
+    net.add_node('a', color=1, x=1, y=2)
+    net.add_node('b', color=4, x=2, y=3)
+    net.add_node('c', color=6, x=3, y=1)
     net.add_edge('a', 'b', color='red')
     net.add_edge('b', 'c')
 
+    cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
+        "", ["red", "violet", "blue"])
+
+    cm = sns.color_palette("rocket", as_cmap=True)
+    print(cm([1, 2, 2, 3, 4, 5]))
     # plot = network_plot(net, backend='d3js',
     #                     template='test.js', css='styles.css')
     plot = network_plot(net)
-    plot.save('test.pdf')
-    plot.save('test.png')
+    # plot.save('test.pdf')
+    # plot.save('test.png')
     # plot.save('test.png')
     # plot.show(backend='matplotlib')
 

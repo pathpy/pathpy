@@ -4,19 +4,21 @@
 # =============================================================================
 # File      : network_plots.py -- Network plots with d3js
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-06-23 16:17 juergen>
+# Time-stamp: <Wed 2021-06-23 17:33 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
 
 import json
+import numpy as np
 
 from typing import TYPE_CHECKING, Any
+from collections import defaultdict
 
 from pathpy import logger
 from pathpy.visualisations.new_plot import PathPyPlot
-from pathpy.visualisations.xutils import rgb_to_hex, hex_to_rgb
+from pathpy.visualisations.xutils import rgb_to_hex, hex_to_rgb, Colormap
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
@@ -111,15 +113,25 @@ class NetworkPlot(PathPyPlot):
         # self._convert_colors()
         # _convert_size()
         # _update_layout()
-        self.data['nodes'] = list(self.data['nodes'].values())
-        self.data['edges'] = list(self.data['edges'].values())
+        self._cleanup_data()
 
     def _compute_node_data(self):
         """Generate the data structure for the nodes"""
+
+        # generate temporary varialbes to store the data
         nodes: dict = {}
+        attr: defaultdict = defaultdict(dict)
+
         for uid, node in self.network.nodes.items():
             nodes[uid] = {**{'uid': uid},
                           **node.attributes.copy()}
+
+            for key, value in node.attributes.items():
+                attr[key][uid] = value
+
+        if 'color' in attr:
+            attr['color'] = self._convert_colors(attr['color'])
+
         self.data['nodes'] = nodes
 
     def _compute_edge_data(self):
@@ -133,21 +145,35 @@ class NetworkPlot(PathPyPlot):
                           **edge.attributes.copy()}
         self.data['edges'] = edges
 
-    def _convert_colors(self):
+    def _convert_colors(self, objects: dict) -> dict:
         """Convert colors to hex if rgb"""
 
-        for key, row in self.data.items():
+        colors: dict = {}
 
-            values = [o.get('color') for o in row if isinstance(
-                o.get('color', None), (int, float))]
+        values = [v for v in objects.values() if isinstance(v, (int, float))]
+        cmap = self.config.get('cmap', Colormap())
+        cdict = {values[i]: tuple(c[:3])
+                 for i, c in enumerate(cmap(values, bytes=True))}
+        print(cdict)
+        # for key, row in self.data.items():
 
-            for obj in row:
-                color = obj.get('color', None)
-                if isinstance(color, tuple):
-                    obj['color'] = rgb_to_hex(color)
-                elif isinstance(color, (int, float)):
-                    # cmap = self.config.get('cmap',colormap)
-                    raise NotImplementedError
+        #     values = [o.get('color') for o in row if isinstance(
+        #         o.get('color', None), (int, float))]
+
+        #     for obj in row:
+        #         color = obj.get('color', None)
+        #         if isinstance(color, tuple):
+        #             obj['color'] = rgb_to_hex(color)
+        #         elif isinstance(color, (int, float)):
+        #             # cmap = self.config.get('cmap',colormap)
+        #             raise NotImplementedError
+
+        return colors
+
+    def _cleanup_data(self):
+        """Clean up final data structure"""
+        self.data['nodes'] = list(self.data['nodes'].values())
+        self.data['edges'] = list(self.data['edges'].values())
 
 # =============================================================================
 # eof
