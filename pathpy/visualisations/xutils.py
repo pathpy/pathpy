@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : utils.py -- Helpers for the plotting functions
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-06-23 18:17 juergen>
+# Time-stamp: <Wed 2021-06-23 18:23 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -26,6 +26,9 @@ class Colormap:
 
     def __call__(self, values, alpha=None, bytes=False):
         vmin, vmax = min(values), max(values)
+        if vmin == vmax:
+            vmin -= 1
+            vmax += 1
         return [self.color_tuple(v)
                 for v in ((x - vmin) / (vmax - vmin)*100 for x in values)]
 
