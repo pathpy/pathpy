@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network_plots.py -- Network plots with d3js
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-06-23 17:33 juergen>
+# Time-stamp: <Wed 2021-06-23 18:31 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -145,28 +145,21 @@ class NetworkPlot(PathPyPlot):
                           **edge.attributes.copy()}
         self.data['edges'] = edges
 
-    def _convert_colors(self, objects: dict) -> dict:
+    def _convert_colors(self, colors: dict) -> dict:
         """Convert colors to hex if rgb"""
 
-        colors: dict = {}
+        values = [v for v in colors.values() if isinstance(v, (int, float))]
 
-        values = [v for v in objects.values() if isinstance(v, (int, float))]
-        cmap = self.config.get('cmap', Colormap())
-        cdict = {values[i]: tuple(c[:3])
-                 for i, c in enumerate(cmap(values, bytes=True))}
-        print(cdict)
-        # for key, row in self.data.items():
+        if values:
+            cmap = self.config.get('cmap', Colormap())
+            cdict = {values[i]: tuple(c[:3])
+                     for i, c in enumerate(cmap(values, bytes=True))}
 
-        #     values = [o.get('color') for o in row if isinstance(
-        #         o.get('color', None), (int, float))]
-
-        #     for obj in row:
-        #         color = obj.get('color', None)
-        #         if isinstance(color, tuple):
-        #             obj['color'] = rgb_to_hex(color)
-        #         elif isinstance(color, (int, float)):
-        #             # cmap = self.config.get('cmap',colormap)
-        #             raise NotImplementedError
+        for key, value in colors.items():
+            if isinstance(value, tuple):
+                colors[key] = rgb_to_hex(value)
+            elif isinstance(value, (int, float)):
+                colors[key] = rgb_to_hex(cdict[value])
 
         return colors
 
