@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network_plots.py -- Network plots with d3js
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-24 16:04 juergen>
+# Time-stamp: <Thu 2021-06-24 16:08 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -162,7 +162,7 @@ class NetworkPlot(PathPyPlot):
 
             attr['color'][uid] = node.attributes.get('color')
 
-        attr['color'] = self._convert_colors(attr['color'])
+        attr['color'] = self._convert_colors(attr['color'], mode='node')
 
         for attribute in attr:
             for key, value in attr[attribute].items():
