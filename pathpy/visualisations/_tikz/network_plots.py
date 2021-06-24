@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network_plots.py -- Network plots with tikz
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-24 15:49 juergen>
+# Time-stamp: <Thu 2021-06-24 15:52 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -67,6 +67,12 @@ class NetworkPlot(TikzPlot):
                     edge[mapping[key]] = edge.pop(key)
                 if key not in default:
                     edge.pop(key)
+
+            color = edge.get('color', None)
+            if isinstance(color, str) and '#' in color:
+                color = hex_to_rgb(color)
+                edge['color'] = f'{{{color[0]},{color[1]},{color[2]}}}'
+                edge['RGB'] = True
 
     def to_tikz(self):
         """Converter to Tex"""

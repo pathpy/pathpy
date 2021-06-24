@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_visualisations.py -- Test environment for the plotting
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-24 15:51 juergen>
+# Time-stamp: <Thu 2021-06-24 15:57 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -33,17 +33,17 @@ def test_network_plot_colors():
     net.add_node('b', color=2, x=2, y=3)
     net.add_node('c', color='orange', x=3, y=1)
     net.add_node('d', x=2, y=2)
-    net.add_edge('a', 'b', color='red')
+    net.add_edge('a', 'b', color=(12, 43, 166))
     net.add_edge('b', 'c')
 
     styles = {
         # 'node_color': 'red',
         'node_cmap': sns.color_palette("rocket", as_cmap=True),
-        'edge_color': 'red',
+        # 'edge_color': 'red',
         # 'edge_cmap': sns.color_palette("rocket", as_cmap=True),
     }
     plot = network_plot(net, **styles)
-    plot.save('test.png')
+    plot.save('test.pdf')
     # print(plot.data)
 
 # def test_network_plot_d3js():
