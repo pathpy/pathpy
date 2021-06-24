@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network_plots.py -- Network plots with d3js
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-06-23 18:31 juergen>
+# Time-stamp: <Thu 2021-06-24 15:17 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -129,6 +129,8 @@ class NetworkPlot(PathPyPlot):
             for key, value in node.attributes.items():
                 attr[key][uid] = value
 
+            attr['color'][uid] = node.attributes.get('color')
+
         if 'color' in attr:
             attr['color'] = self._convert_colors(attr['color'])
 
@@ -145,23 +147,46 @@ class NetworkPlot(PathPyPlot):
                           **edge.attributes.copy()}
         self.data['edges'] = edges
 
-    def _convert_colors(self, colors: dict) -> dict:
+    def _convert_colors(self, colors: dict, mode: str = 'node') -> dict:
         """Convert colors to hex if rgb"""
 
+        # get style from the config
+        style = self.config.get(f'{mode}_color')
+
+        # check if new attribute is a single object
+        if isinstance(style, (str, int, float, tuple)):
+            colors = {k: style for k in colors}
+
+        # check if new attribute is a dict
+        elif isinstance(style, dict):
+            colors.update(**{k: v for k, v in style.items() if k in colors})
+
+        # check if new attribute is a list
+        elif isinstance(style, list):
+            for i, k in enumerate(colors):
+                try:
+                    colors[k] = style[i]
+                except IndexError:
+                    pass
+
+        # check if numerical values are given
         values = [v for v in colors.values() if isinstance(v, (int, float))]
 
         if values:
-            cmap = self.config.get('cmap', Colormap())
+            # load colormap to map numerical values to color
+            cmap = self.config.get(f'{mode}_cmap', Colormap())
             cdict = {values[i]: tuple(c[:3])
                      for i, c in enumerate(cmap(values, bytes=True))}
 
+        # convert colors to hex if not already string
         for key, value in colors.items():
             if isinstance(value, tuple):
                 colors[key] = rgb_to_hex(value)
             elif isinstance(value, (int, float)):
                 colors[key] = rgb_to_hex(cdict[value])
 
-        return colors
+        # return all colors wich are not None
+        return {k: v for k, v in colors.items() if v is not None}
 
     def _cleanup_data(self):
         """Clean up final data structure"""

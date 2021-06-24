@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_visualisations.py -- Test environment for the plotting
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-06-23 18:30 juergen>
+# Time-stamp: <Thu 2021-06-24 15:16 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -26,24 +26,43 @@ def test_get_backend():
     matplotlib = _get_plot_backend(backend='matplotlib', filename=None)
 
 
-def test_network_plot_d3js():
-    """Test the plot function of a static network with d3js"""
+def test_network_plot_colors():
+    """test static network plot with colors"""
     net = pp.Network()
-    net.add_node('a', color=(127, 127, 127), x=1, y=2)
-    net.add_node('b', color=2, x=2, y=3)
-    net.add_node('c', color='orange', x=3, y=1)
+    net.add_node('a', color=(127, 127, 127))
+    net.add_node('b', color=2)
+    net.add_node('c', color='orange')
+    net.add_node('d')
     net.add_edge('a', 'b', color='red')
     net.add_edge('b', 'c')
 
-    cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
-        "", ["red", "violet", "blue"])
+    styles = {
+        # 'node_color': 'red',
+        'node_cmap': sns.color_palette("rocket", as_cmap=True),
+        'edge_color': 'red',
+        # 'edge_cmap': sns.color_palette("rocket", as_cmap=True),
+    }
+    plot = network_plot(net, **styles)
+    # print(plot.data)
 
-    cm = sns.color_palette("rocket", as_cmap=True)
-    print(cm([1, 2, 2, 3, 4, 5]))
-    # plot = network_plot(net, backend='d3js',
-    #                     template='test.js', css='styles.css')
-    plot = network_plot(net)
-    # plot.save('test.pdf')
+# def test_network_plot_d3js():
+#     """Test the plot function of a static network with d3js"""
+#     net = pp.Network()
+#     net.add_node('a', color=(127, 127, 127), x=1, y=2)
+#     net.add_node('b', color=2, x=2, y=3)
+#     net.add_node('c', color='orange', x=3, y=1)
+#     net.add_edge('a', 'b', color='red')
+#     net.add_edge('b', 'c')
+
+#     # cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
+#     #     "", ["red", "violet", "blue"])
+
+#     # cm = sns.color_palette("rocket", as_cmap=True)
+#     # print(cm([1, 2, 2, 3, 4, 5]))
+#     # plot = network_plot(net, backend='d3js',
+#     #                     template='test.js', css='styles.css')
+#     plot = network_plot(net)
+#     # plot.save('test.pdf')
     # plot.save('test.png')
     # plot.save('test.png')
     # plot.show(backend='matplotlib')
