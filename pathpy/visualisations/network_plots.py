@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network_plots.py -- Network plots with d3js
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-24 16:14 juergen>
+# Time-stamp: <Thu 2021-06-24 16:49 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -160,16 +160,18 @@ class NetworkPlot(PathPyPlot):
             nodes[uid] = {**{'uid': uid},
                           **node.attributes.copy()}
 
-            attr['color'][uid] = node.attributes.get('color')
-            attr['opacity'][uid] = node.attributes.get('opacity')
+            for attribute in ['color', 'opacity', 'size']:
+                attr[attribute][uid] = node.attributes.get(attribute)
 
         attr['color'] = self._convert_colors(attr['color'], mode='node')
         attr['opacity'] = self._convert_opacity(attr['opacity'], mode='node')
+        attr['size'] = self._convert_size(attr['size'], mode='node')
 
         for attribute in attr:
             for key, value in attr[attribute].items():
                 nodes[key][attribute] = value
 
+        print(nodes)
         self.data['nodes'] = nodes
 
     def _compute_edge_data(self):
@@ -184,11 +186,12 @@ class NetworkPlot(PathPyPlot):
                              'weight': edge.weight('weight')},
                           **edge.attributes.copy()}
 
-            attr['color'][uid] = edge.attributes.get('color')
-            attr['opacity'][uid] = edge.attributes.get('opacity')
+            for attribute in ['color', 'opacity', 'size']:
+                attr[attribute][uid] = edge.attributes.get(attribute)
 
         attr['color'] = self._convert_colors(attr['color'], mode='edge')
         attr['opacity'] = self._convert_opacity(attr['opacity'], mode='edge')
+        attr['size'] = self._convert_size(attr['size'], mode='edge')
 
         for attribute in attr:
             for key, value in attr[attribute].items():
@@ -237,7 +240,7 @@ class NetworkPlot(PathPyPlot):
         # return all colors wich are not None
         return {k: v for k, v in colors.items() if v is not None}
 
-    def _convert_opacity(self, colors: dict, mode: str = 'node') -> dict:
+    def _convert_opacity(self, opacity: dict, mode: str = 'node') -> dict:
         """Convert colors to hex if rgb"""
 
         # get style from the config
@@ -245,14 +248,31 @@ class NetworkPlot(PathPyPlot):
 
         # check if new attribute is a single object
         if isinstance(style, (int, float)):
-            colors = {k: style for k in colors}
+            opacity = {k: style for k in opacity}
 
         # check if new attribute is a dict
         elif isinstance(style, dict):
-            colors.update(**{k: v for k, v in style.items() if k in colors})
+            opacity.update(**{k: v for k, v in style.items() if k in opacity})
 
         # return all colors wich are not None
-        return {k: v for k, v in colors.items() if v is not None}
+        return {k: v for k, v in opacity.items() if v is not None}
+
+    def _convert_size(self, size: dict, mode: str = 'node') -> dict:
+        """Convert colors to hex if rgb"""
+
+        # get style from the config
+        style = self.config.get(f'{mode}_size')
+
+        # check if new attribute is a single object
+        if isinstance(style, (int, float)):
+            size = {k: style for k in size}
+
+        # check if new attribute is a dict
+        elif isinstance(style, dict):
+            size.update(**{k: v for k, v in style.items() if k in size})
+
+        # return all colors wich are not None
+        return {k: v for k, v in size.items() if v is not None}
 
     def _cleanup_data(self):
         """Clean up final data structure"""
