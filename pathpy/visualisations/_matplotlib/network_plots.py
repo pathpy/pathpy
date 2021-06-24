@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network_plots.py -- Network plots with matplotlib
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-06-23 16:31 juergen>
+# Time-stamp: <Thu 2021-06-24 16:34 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -37,7 +37,8 @@ class NetworkPlot(MatplotlibPlot):
 
     def _compute_node_data(self):
         """Generate the data structure for the nodes"""
-        default = {'uid': None, 'x': 0, 'y': 0, 'size': 30, 'color': 'blue'}
+        default = {'uid': None, 'x': 0, 'y': 0,
+                   'size': 30, 'color': 'blue', 'opacity': 1.0}
 
         nodes = {key: [] for key in default}
 
@@ -49,7 +50,7 @@ class NetworkPlot(MatplotlibPlot):
 
     def _compute_edge_data(self):
         """Generate the data structure for the edges"""
-        default = {'uid': None, 'size': 5, 'color': 'red'}
+        default = {'uid': None, 'size': 5, 'color': 'red', 'opacity': 1.0}
 
         edges = {**{key: [] for key in default}, **{'line': []}}
 
@@ -62,9 +63,9 @@ class NetworkPlot(MatplotlibPlot):
                                    self.data['nodes']['y'][target])])
 
             for key, value in default.items():
-                edges[key].append(edges.get(key, value))
+                edges[key].append(edge.get(key, value))
 
-            self.data['edges'] = edges
+        self.data['edges'] = edges
 
     def to_fig(self):
         """Convert data to figure"""
@@ -75,7 +76,11 @@ class NetworkPlot(MatplotlibPlot):
 
         # plot edges
         for i in range(len(self.data['edges']['uid'])):
-            ax.plot(*self.data['edges']['line'][i], zorder=1)
+            ax.plot(*self.data['edges']['line'][i],
+                    color=self.data['edges']['color'][i],
+                    alpha=self.data['edges']['opacity'][i],
+                    zorder=1
+                    )
 
         # plot nodes
         ax.scatter(
@@ -83,7 +88,7 @@ class NetworkPlot(MatplotlibPlot):
             self.data['nodes']['y'],
             s=self.data['nodes']['size'],
             c=self.data['nodes']['color'],
-            alpha=1.0,
+            alpha=self.data['nodes']['opacity'],
             zorder=2,
         )
         return plt
