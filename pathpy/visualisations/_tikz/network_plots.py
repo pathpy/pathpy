@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network_plots.py -- Network plots with tikz
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-06-23 16:31 juergen>
+# Time-stamp: <Thu 2021-06-24 15:49 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -14,6 +14,7 @@ from typing import Any
 
 
 from pathpy import logger
+from pathpy.visualisations.xutils import hex_to_rgb
 from pathpy.visualisations._tikz.core import TikzPlot
 
 # create logger
@@ -49,6 +50,12 @@ class NetworkPlot(TikzPlot):
                 if key not in default:
                     node.pop(key)
 
+            color = node.get('color', None)
+            if isinstance(color, str) and '#' in color:
+                color = hex_to_rgb(color)
+                node['color'] = f'{{{color[0]},{color[1]},{color[2]}}}'
+                node['RGB'] = True
+
     def _compute_edge_data(self):
         """Generate the data structure for the edges"""
         default = {'uid', 'source', 'target', 'lw', 'color', 'opacity'}
@@ -67,7 +74,7 @@ class NetworkPlot(TikzPlot):
         def _add_args(args: dict):
             string = ''
             for key, value in args.items():
-                string += f',{key}' if value == bool else f',{key}={value}'
+                string += f',{key}' if value is True else f',{key}={value}'
             return string
 
         tikz = ''

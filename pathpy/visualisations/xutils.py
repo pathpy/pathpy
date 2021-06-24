@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : utils.py -- Helpers for the plotting functions
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-24 15:32 juergen>
+# Time-stamp: <Thu 2021-06-24 15:37 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================

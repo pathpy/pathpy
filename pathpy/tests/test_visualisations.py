@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_visualisations.py -- Test environment for the plotting
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-24 15:32 juergen>
+# Time-stamp: <Thu 2021-06-24 15:51 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -29,10 +29,10 @@ def test_get_backend():
 def test_network_plot_colors():
     """test static network plot with colors"""
     net = pp.Network()
-    net.add_node('a', color=(127, 127, 127))
-    net.add_node('b', color=2)
-    net.add_node('c', color='orange')
-    net.add_node('d')
+    net.add_node('a', color=(127, 127, 0), x=1, y=2)
+    net.add_node('b', color=2, x=2, y=3)
+    net.add_node('c', color='orange', x=3, y=1)
+    net.add_node('d', x=2, y=2)
     net.add_edge('a', 'b', color='red')
     net.add_edge('b', 'c')
 
@@ -43,7 +43,7 @@ def test_network_plot_colors():
         # 'edge_cmap': sns.color_palette("rocket", as_cmap=True),
     }
     plot = network_plot(net, **styles)
-    plot.save('test.html')
+    plot.save('test.png')
     # print(plot.data)
 
 # def test_network_plot_d3js():
