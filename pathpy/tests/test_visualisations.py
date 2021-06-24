@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_visualisations.py -- Test environment for the plotting
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-24 15:16 juergen>
+# Time-stamp: <Thu 2021-06-24 15:32 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -43,6 +43,7 @@ def test_network_plot_colors():
         # 'edge_cmap': sns.color_palette("rocket", as_cmap=True),
     }
     plot = network_plot(net, **styles)
+    plot.save('test.html')
     # print(plot.data)
 
 # def test_network_plot_d3js():

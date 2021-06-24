@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network_plots.py -- Network plots with d3js
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-06-23 16:14 juergen>
+# Time-stamp: <Thu 2021-06-24 15:29 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -35,7 +35,8 @@ class NetworkPlot(D3jsPlot):
 
     def generate(self):
         """Function to generate the plot"""
-        pass
+        self.config.pop('node_cmap', None)
+        self.config.pop('edge_cmap', None)
 
     def to_json(self):
         """Converter data to json"""

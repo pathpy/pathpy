@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : utils.py -- Helpers for the plotting functions
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2021-06-23 18:23 juergen>
+# Time-stamp: <Thu 2021-06-24 15:32 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -11,7 +11,7 @@
 
 def rgb_to_hex(rgb):
     """Convert rgb color tuple to hex string."""
-    return '%02x%02x%02x' % rgb
+    return '#%02x%02x%02x' % rgb
 
 
 def hex_to_rgb(value):
