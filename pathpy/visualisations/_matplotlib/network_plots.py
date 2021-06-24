@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network_plots.py -- Network plots with matplotlib
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-24 16:34 juergen>
+# Time-stamp: <Thu 2021-06-24 17:48 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -58,8 +58,8 @@ class NetworkPlot(MatplotlibPlot):
             source = self.data['nodes']['uid'].index(edge.get('source'))
             target = self.data['nodes']['uid'].index(edge.get('target'))
             edges['line'].append([(self.data['nodes']['x'][source],
-                                   self.data['nodes']['y'][source]),
-                                  (self.data['nodes']['x'][target],
+                                   self.data['nodes']['x'][target]),
+                                  (self.data['nodes']['y'][source],
                                    self.data['nodes']['y'][target])])
 
             for key, value in default.items():
