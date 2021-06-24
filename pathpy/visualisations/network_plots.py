@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network_plots.py -- Network plots with d3js
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-24 16:49 juergen>
+# Time-stamp: <Thu 2021-06-24 17:32 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -18,6 +18,7 @@ from collections import defaultdict
 
 from pathpy import logger
 from pathpy.visualisations.new_plot import PathPyPlot
+from pathpy.visualisations.layout import layout as network_layout
 from pathpy.visualisations.xutils import rgb_to_hex, hex_to_rgb, Colormap
 
 # pseudo load class for type checking
@@ -144,9 +145,8 @@ class NetworkPlot(PathPyPlot):
         """Function to generate the plot"""
         self._compute_edge_data()
         self._compute_node_data()
-        # self._convert_colors()
-        # _convert_size()
-        # _update_layout()
+        self._compute_layout()
+        print(self.data['nodes'])
         self._cleanup_data()
 
     def _compute_node_data(self):
@@ -171,7 +171,6 @@ class NetworkPlot(PathPyPlot):
             for key, value in attr[attribute].items():
                 nodes[key][attribute] = value
 
-        print(nodes)
         self.data['nodes'] = nodes
 
     def _compute_edge_data(self):
@@ -273,6 +272,27 @@ class NetworkPlot(PathPyPlot):
 
         # return all colors wich are not None
         return {k: v for k, v in size.items() if v is not None}
+
+    def _compute_layout(self):
+        """Create layout"""
+        # get layout form the config
+        layout = self.config.get('layout', None)
+
+        # if no layout is considered stop this process
+        if layout is None:
+            return
+
+        # get layout dict for each node
+        if isinstance(layout, str):
+            layout = network_layout(self.network, layout=layout)
+        elif not isinstance(layout, dict):
+            LOG.error('The provided layout is not valid!')
+            raise AttributeError
+
+        # update x,y position of the nodes
+        for uid, (_x, _y) in layout.items():
+            self.data['nodes'][uid]['x'] = _x
+            self.data['nodes'][uid]['y'] = _y
 
     def _cleanup_data(self):
         """Clean up final data structure"""
