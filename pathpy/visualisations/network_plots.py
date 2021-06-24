@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network_plots.py -- Network plots with d3js
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-24 17:32 juergen>
+# Time-stamp: <Thu 2021-06-24 18:20 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -146,7 +146,6 @@ class NetworkPlot(PathPyPlot):
         self._compute_edge_data()
         self._compute_node_data()
         self._compute_layout()
-        print(self.data['nodes'])
         self._cleanup_data()
 
     def _compute_node_data(self):

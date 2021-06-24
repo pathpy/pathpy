@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_visualisations.py -- Test environment for the plotting
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-24 17:49 juergen>
+# Time-stamp: <Thu 2021-06-24 18:18 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -66,7 +66,7 @@ def test_network_plot_layout():
               'd': (4, 4)}
     plot = network_plot(net, layout='fr')
     # plot.save('test.pdf')
-    plot.save('test.png')
+    plot.save('test.pdf')
 # def test_network_plot_d3js():
 #     """Test the plot function of a static network with d3js"""
 #     net = pp.Network()
