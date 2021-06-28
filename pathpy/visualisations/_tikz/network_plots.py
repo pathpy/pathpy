@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network_plots.py -- Network plots with tikz
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-24 18:20 juergen>
+# Time-stamp: <Mon 2021-06-28 15:25 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -51,7 +51,7 @@ class NetworkPlot(TikzPlot):
                 if key in mapping:
                     node[mapping[key]] = node.pop(key)
                 if key not in default:
-                    node.pop(key)
+                    node.pop(key, None)
 
             color = node.get('color', None)
             if isinstance(color, str) and '#' in color:
@@ -69,7 +69,7 @@ class NetworkPlot(TikzPlot):
                 if key in mapping:
                     edge[mapping[key]] = edge.pop(key)
                 if key not in default:
-                    edge.pop(key)
+                    edge.pop(key, None)
 
             color = edge.get('color', None)
             if isinstance(color, str) and '#' in color:
@@ -77,70 +77,85 @@ class NetworkPlot(TikzPlot):
                 edge['color'] = f'{{{color[0]},{color[1]},{color[2]}}}'
                 edge['RGB'] = True
 
-    def _update_layout(self):
+    def _update_layout(self, size: float = .6):
         """update the layout"""
         layout = self.config.get('layout')
 
         if layout is None:
             return
 
+        # get data
         layout = {n['uid']: (n['x'], n['y']) for n in self.data['nodes']}
+        sizes = {n['uid']: n.get('size', size) for n in self.data['nodes']}
 
+        # get config values
         width = self.config['width']
         height = self.config['height']
         keep_aspect_ratio = self.config.get('keep_aspect_ratio', True)
-        margins = {'top': 0, 'left': 0, 'bottom': 0, 'right': 0}
+        margin = self.config.get('margin', 0.0)
+        margins = {'top': margin, 'left': margin,
+                   'bottom': margin, 'right': margin}
 
         # calculate the scaling ratio
-        ratio_x = float('inf')
-        ratio_y = float('inf')
+        x_ratio = y_ratio = float('inf')
 
-        # find min and max values of the points
-        min_x = min(layout.items(), key=lambda item: item[1][0])[1][0]
-        max_x = max(layout.items(), key=lambda item: item[1][0])[1][0]
-        min_y = min(layout.items(), key=lambda item: item[1][1])[1][1]
-        max_y = max(layout.items(), key=lambda item: item[1][1])[1][1]
+        # calculate absolute min and max coordinates
+        x_absolute = []
+        y_absolute = []
+        for uid, (_x, _y) in layout.items():
+            _s = sizes[uid]/2
+            x_absolute.extend([_x-_s, _x+_s])
+            y_absolute.extend([_y-_s, _y+_s])
 
-        if max_x-min_x > 0:
-            ratio_x = (width-margins['left']-margins['right']) / (max_x-min_x)
-        if max_y-min_y > 0:
-            ratio_y = (height-margins['top']-margins['bottom']) / (max_y-min_y)
+        # calculate min and max center coordinates
+        x_values, y_values = zip(*layout.values())
+        x_min, x_max = min(x_values), max(x_values)
+        y_min, y_max = min(y_values), max(y_values)
+
+        # adaped margins
+        margins['left'] += abs(x_min-min(x_absolute))
+        margins['bottom'] += abs(y_min-min(y_absolute))
+        margins['top'] += abs(y_max-max(y_absolute))
+        margins['right'] += abs(x_max-max(x_absolute))
+
+        if x_max-x_min > 0:
+            x_ratio = (width-margins['left']-margins['right']) / (x_max-x_min)
+        if y_max-y_min > 0:
+            y_ratio = (height-margins['top']-margins['bottom']) / (y_max-y_min)
 
         if keep_aspect_ratio:
-            scaling = (min(ratio_x, ratio_y), min(ratio_x, ratio_y))
+            scaling = (min(x_ratio, y_ratio), min(x_ratio, y_ratio))
         else:
-            scaling = (ratio_x, ratio_y)
+            scaling = (x_ratio, y_ratio)
 
         if scaling[0] == float('inf'):
             scaling = (1, scaling[1])
         if scaling[1] == float('inf'):
             scaling = (scaling[0], 1)
 
-        # apply scaling to the points
-        _layout = {}
-        for n, (x, y) in layout.items():
-            _x = (x)*scaling[0]
-            _y = (y)*scaling[1]
-            _layout[n] = (_x, _y)
+        x_values = []
+        y_values = []
 
-        # find min and max values of new the points
-        min_x = min(_layout.items(), key=lambda item: item[1][0])[1][0]
-        max_x = max(_layout.items(), key=lambda item: item[1][0])[1][0]
-        min_y = min(_layout.items(), key=lambda item: item[1][1])[1][1]
-        max_y = max(_layout.items(), key=lambda item: item[1][1])[1][1]
+        # apply scaling to the points
+        _layout = {n: (x*scaling[0], y*scaling[1])
+                   for n, (x, y) in layout.items()}
+
+        # find min and max values of the points
+        x_values, y_values = zip(*_layout.values())
+        x_min, x_max = min(x_values), max(x_values)
+        y_min, y_max = min(y_values), max(y_values)
 
         # calculate the translation
         translation = (((width-margins['left']-margins['right'])/2
-                        + margins['left']) - ((max_x-min_x)/2 + min_x),
+                        + margins['left']) - ((x_max-x_min)/2 + x_min),
                        ((height-margins['top']-margins['bottom'])/2
-                       + margins['bottom']) - ((max_y-min_y)/2 + min_y))
+                       + margins['bottom']) - ((y_max-y_min)/2 + y_min))
 
         # apply translation to the points
-        for n, (x, y) in _layout.items():
-            _x = (x)+translation[0]
-            _y = (y)+translation[1]
-            _layout[n] = (_x, _y)
+        _layout = {n: (x+translation[0], y+translation[1])
+                   for n, (x, y) in _layout.items()}
 
+        # update node position for the plot
         for node in self.data['nodes']:
             node['x'], node['y'] = _layout[node['uid']]
 
