@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network_plots.py -- Network plots with tikz
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-06-28 15:25 juergen>
+# Time-stamp: <Mon 2021-06-28 15:34 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -77,7 +77,7 @@ class NetworkPlot(TikzPlot):
                 edge['color'] = f'{{{color[0]},{color[1]},{color[2]}}}'
                 edge['RGB'] = True
 
-    def _update_layout(self, size: float = .6):
+    def _update_layout(self, default_size: float = .6):
         """update the layout"""
         layout = self.config.get('layout')
 
@@ -86,7 +86,8 @@ class NetworkPlot(TikzPlot):
 
         # get data
         layout = {n['uid']: (n['x'], n['y']) for n in self.data['nodes']}
-        sizes = {n['uid']: n.get('size', size) for n in self.data['nodes']}
+        sizes = {n['uid']: n.get('size', default_size)
+                 for n in self.data['nodes']}
 
         # get config values
         width = self.config['width']
@@ -97,7 +98,8 @@ class NetworkPlot(TikzPlot):
                    'bottom': margin, 'right': margin}
 
         # calculate the scaling ratio
-        x_ratio = y_ratio = float('inf')
+        x_ratio = float('inf')
+        y_ratio = float('inf')
 
         # calculate absolute min and max coordinates
         x_absolute = []
@@ -112,7 +114,7 @@ class NetworkPlot(TikzPlot):
         x_min, x_max = min(x_values), max(x_values)
         y_min, y_max = min(y_values), max(y_values)
 
-        # adaped margins
+        # change margins
         margins['left'] += abs(x_min-min(x_absolute))
         margins['bottom'] += abs(y_min-min(y_absolute))
         margins['top'] += abs(y_max-max(y_absolute))

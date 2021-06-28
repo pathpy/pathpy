@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network_plots.py -- Network plots with d3js
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-24 18:20 juergen>
+# Time-stamp: <Mon 2021-06-28 15:33 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -120,6 +120,13 @@ def network_plot(network: Network, **kwargs: Any):
       of the number lies between 0 and 1. Where 0 represents a fully
       transparent fill and 1 a solid fill.
 
+    **General**
+
+    - ``keep_aspect_ratio``
+
+    - ``margin``
+
+    - ``layout``
 
     References
     ----------
