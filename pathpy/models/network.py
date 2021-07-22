@@ -974,33 +974,6 @@ class Network(BaseNetwork):
 
             self._properties['edges'].discard(edge)
 
-    # @classmethod
-    # def from_paths(cls, paths: PathCollection, **kwargs: Any):
-    #     """Create network from a collection of paths"""
-
-    #     uid: Optional[str] = kwargs.pop('uid', None)
-    #     frequencies: bool = kwargs.pop('frequencies', False)
-
-    #     network = cls(uid=uid, directed=paths.directed,
-    #                   multiedges=paths.multiedges, **kwargs)
-    #     network._nodes = paths.nodes
-    #     network._edges = paths.edges
-    #     network._add_edge_properties()
-
-    #     # TODO: fix frequency assignment
-    #     if frequencies:
-    #         for edge in network.edges:
-    #             edge['frequency'] = 0
-    #             edge['possible'] = 0
-    #         for path in paths:
-    #             frequency = path.attributes.get('frequency', 0)
-    #             possible = path.attributes.get('possible', 0)
-
-    #             for edge in path.edges:
-    #                 edge['frequency'] += frequency
-    #                 edge['possible'] += possible
-
-    #     return network
 
     @classmethod
     def from_temporal_network(cls, temporal_network: TemporalNetwork, min_time=float('-inf'), max_time=float('inf'), **kwargs: Any):
@@ -1022,39 +995,19 @@ class Network(BaseNetwork):
                 network.add_edge(edge.v.uid, edge.w.uid, **edge.attributes)
         return network
 
-    # def from_temporal_network(cls, temporal_network: TemporalNetwork,
-    #                           **kwargs: Any):
-    #     uid: Optional[str] = kwargs.pop('uid', None)
-    #     directed: bool = kwargs.pop('directed', temporal_network.directed)
-    #     multiedges: bool = kwargs.pop('multiedges',  temporal_network.directed)
 
-    #     network = cls(uid=uid, directed=directed,
-    #                   multiedges=multiedges, **kwargs)
+    @classmethod
+    def from_paths(cls, path_collection: PathCollection, **kwargs: Any):
+        uid: Optional[str] = kwargs.pop('uid', None)        
 
-    #     for node in temporal_network.nodes.values():
-    #         network.nodes.add(node)
-    #     for edge in temporal_network.edges.values():
-    #         network.edges._add(edge)
-    #     network._add_edge_properties()
-    #     return network
+        network = cls(uid=uid, directed=path_collection.directed,
+                    multiedges=False, **kwargs)
 
-    # @classmethod
-    # def to_weighted_network(cls, network: Network, **kwargs):
-    #     """
-    #     Discards all multiple edges and adds a weight property that counts the number of
-    #     edges between node pairs.
-    #     """
-    #     uid: Optional[str] = kwargs.pop('uid', None)
-    #     directed: bool = kwargs.pop('directed', network.directed)
-    #     multiedges: bool = False
-
-    #     weighted = cls(uid=uid, directed=directed,
-    #                    multiedges=multiedges, **kwargs)
-    #     for e in network.edges:
-    #         if (e.v, e.w) not in weighted.edges:
-    #             weighted.add_edge(e.v, e.w, weight=len(
-    #                 network.edges[(e.v, e.w)]))
-    #     return weighted
+        for p in path_collection:
+            for i in range(1, len(p)+1):
+                network.add_edge(p.relations[i-1], p.relations[i], count=path_collection.counter[p.uid])
+        
+        return network
 
 # =============================================================================
 # eof
