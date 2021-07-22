@@ -352,7 +352,7 @@ def Watts_Strogatz(n: int, s: int, p: float = 0.0, loops: bool = False,
             # a target not yet connected to src. Note that this could potentially
             # result in an infinite loop depending on parameters.
             while new_target is None:
-                x = str(np.random.randint(n))
+                x = node_uids[np.random.randint(n)]
                 if (x != v or loops) and (v, x) not in network.edges:
                     new_target = x
             network.add_edge(v, new_target)
