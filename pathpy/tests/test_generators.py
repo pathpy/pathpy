@@ -72,6 +72,21 @@ def test_Watts_Strogatz():
     assert n.number_of_edges() == 200
 
 
+def test_Watts_Strogatz_uids():
+    """Test lattice construction"""
+    uids = [str(i) for i in range(100, 200)]
+    n = pp.generators.Watts_Strogatz(n=100, s=3, p=0, node_uids=uids)
+
+    assert set(n.nodes.uids) == set(uids)
+
+    n = pp.generators.Watts_Strogatz(n=100, s=3, p=0.5, node_uids=uids)
+
+    assert set(n.nodes.uids) == set(uids)
+
+
+
+
+
 # =============================================================================
 # eof
 #
