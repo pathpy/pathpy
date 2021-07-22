@@ -284,7 +284,7 @@ def parse_graphtool_format(data: bytes, ignore_temporal: bool=False, multiedges:
 
     # add edge properties to data frame
     for p in edge_attribute_names:
-        # due to use of default_dict, this will add NA values ot edges which are missing properties
+        # due to use of default_dict, this will add NA values to edges which have missing properties
         network_data[p] = [ edge_attributes[e][p] for e in range(n_edges) ]
 
     # create network from pandas dataframe
@@ -294,8 +294,10 @@ def parse_graphtool_format(data: bytes, ignore_temporal: bool=False, multiedges:
     else:
         n = to_network(network_data, directed=directed, multiedges=multiedges, **network_attributes)
     
-    for v in node_attributes:        
-        for p in node_attributes[v]:
+    for v in node_attributes:       
+        if v not in n.nodes:
+            n.add_node(v)
+        for p in node_attributes[v]:            
             # for now we remove _pos for temporal networks due to type being incompatible with plotting
             if p != '_pos' or ('time' not in edge_attribute_names or ignore_temporal):
                 n.nodes[v][p] = node_attributes[v][p]

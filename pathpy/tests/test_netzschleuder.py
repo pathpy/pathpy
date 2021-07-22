@@ -63,3 +63,11 @@ def test_netzschleuder_consistency():
             val = get_metric(network, metric)
             if val is None or netzschleuder_analysis[metric] != pytest.approx(val):
                 print('Consistency check failed for network {0} and metric {1}: {2} != {3}'.format(data, metric, netzschleuder_analysis[metric], val))
+
+
+def test_facebook_friends():
+
+    network = pp.io.graphtool.read_netzschleuder_network('facebook_friends')
+
+    assert network.number_of_nodes() == 362
+    assert network.number_of_edges() == 1988
