@@ -26,14 +26,13 @@ def find_connected_components(network: Network) -> Dict:
 
     Parameters
     ----------
+    network : Network
 
-    network: Network
+        The :py:class:`Network` object that contains the network
 
-        Network instance
 
     Returns
     -------
-
     dict
 
         dictionary mapping node uids to components (represented as integer IDs)
@@ -96,6 +95,13 @@ def find_connected_components(network: Network) -> Dict:
 
 def mean_component_size(network: Network) -> float:
     """Returns the mean connected component size of the network.
+    
+    Parameters
+    ----------
+    network : Network
+
+        The :py:class:`Network` object that contains the network
+
     """
     components = find_connected_components(network)
     component_sizes = [len(nodes) for comp, nodes in components.items()]
@@ -104,6 +110,13 @@ def mean_component_size(network: Network) -> float:
 
 def largest_connected_component(network: Network) -> Network:
     """Returns the largest connected component of the network.
+
+    Parameters
+    ----------
+    network : Network
+
+        The :py:class:`Network` object that contains the network
+
     """
 
     LOG.debug('Computing connected components')
@@ -128,12 +141,25 @@ def largest_connected_component(network: Network) -> Network:
 @property
 def is_connected(network: Network) -> bool:
     """Returns whether the network is (strongly) connected
+    Parameters
+    ----------
+    network : Network
+
+        The :py:class:`Network` object that contains the network
+
     """
     return largest_component_size(network) == network.number_of_nodes()
 
 
 def largest_component_size(network: Network) -> int:
-    """Largest component size of the network."""
+    """Largest component size of the network.
+    Parameters
+    ----------
+    network : Network
+
+        The :py:class:`Network` object that contains the network
+
+    """
     LOG.debug('Computing connected components')
     components = find_connected_components(network)
     if len(components):
