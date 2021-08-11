@@ -974,33 +974,33 @@ class Network(BaseNetwork):
 
             self._properties['edges'].discard(edge)
 
-    # @classmethod
-    # def from_paths(cls, paths: PathCollection, **kwargs: Any):
-    #     """Create network from a collection of paths"""
+    @classmethod
+    def from_paths(cls, paths: PathCollection, **kwargs: Any):
+         """Create network from a collection of paths"""
 
-    #     uid: Optional[str] = kwargs.pop('uid', None)
-    #     frequencies: bool = kwargs.pop('frequencies', False)
+         uid: Optional[str] = kwargs.pop('uid', None)
+         frequencies: bool = kwargs.pop('frequencies', False)
 
-    #     network = cls(uid=uid, directed=paths.directed,
-    #                   multiedges=paths.multiedges, **kwargs)
-    #     network._nodes = paths.nodes
-    #     network._edges = paths.edges
-    #     network._add_edge_properties()
+         network = cls(uid=uid, directed=paths.directed,
+                       multiedges=paths.multiedges, **kwargs)
+         network._nodes = paths.nodes
+         network._edges = paths.edges
+         network._add_edge_properties()
 
-    #     # TODO: fix frequency assignment
-    #     if frequencies:
-    #         for edge in network.edges:
-    #             edge['frequency'] = 0
-    #             edge['possible'] = 0
-    #         for path in paths:
-    #             frequency = path.attributes.get('frequency', 0)
-    #             possible = path.attributes.get('possible', 0)
+         # TODO: fix frequency assignment
+         if frequencies:
+             for edge in network.edges:
+                 edge['frequency'] = 0
+                 edge['possible'] = 0
+             for path in paths:
+                 frequency = path.attributes.get('frequency', 0)
+                 possible = path.attributes.get('possible', 0)
 
-    #             for edge in path.edges:
-    #                 edge['frequency'] += frequency
-    #                 edge['possible'] += possible
+                 for edge in path.edges:
+                     edge['frequency'] += frequency
+                     edge['possible'] += possible
 
-    #     return network
+         return network
 
     @classmethod
     def from_temporal_network(cls, temporal_network: TemporalNetwork, min_time=float('-inf'), max_time=float('inf'), **kwargs: Any):
