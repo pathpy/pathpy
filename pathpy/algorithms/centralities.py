@@ -77,7 +77,20 @@ def betweenness_centrality(self, normalized: bool = False) -> Dict:
 
 @betweenness_centrality.register(PathCollection)
 def _bw_paths(self: PathCollection, normalized: bool = False) -> Dict:
-    """Betweenness Centrality for Paths."""
+    """Betweenness Centrality for Paths.
+    
+     Parameters
+    ----------
+    paths : PathCollection
+
+        The :py:class:`PathCollection` object that contains a collection of edges.
+
+    normalized : bool
+
+        If True the resulting centralities will be normalized such that the
+        minimum centrality is zero and the maximum centrality is one.
+
+    """
 
     # TODO: Move sp calculation to shortest_paths
     # from pathpy.statistics.subpaths import SubPathCollection
@@ -129,7 +142,20 @@ def _bw_paths(self: PathCollection, normalized: bool = False) -> Dict:
 
 @betweenness_centrality.register(BaseNetwork)
 def _bw_network(self: Network, normalized: bool = False) -> Dict:
-    """Betweenness Centrality for Networks."""
+    """Betweenness Centrality for Networks.
+    
+     Parameters
+    ----------
+    network : Network
+
+        The :py:class:`Network` object that contains the network.
+
+    normalized : bool
+
+        If True the resulting centralities will be normalized such that the
+        minimum centrality is zero and the maximum centrality is one.
+
+    """
 
     all_paths = shortest_paths.all_shortest_paths(
         self, weight=False, return_distance_matrix=False)
@@ -158,7 +184,20 @@ def _bw_network(self: Network, normalized: bool = False) -> Dict:
 
 @betweenness_centrality.register(ABCHigherOrderNetwork)
 def _bw_hon(self: HigherOrderNetwork, normalized: bool = False) -> Dict:
-    """Betweenness Centrality for Networks."""
+    """Betweenness Centrality for Higher Order Networks.
+    
+     Parameters
+    ----------
+    network : HigherOrderNetwork
+
+        The :py:class:`HigherOrderNetwork` object that contains a Higher Order Network (HON).
+
+    normalized : bool
+
+        If True the resulting centralities will be normalized such that the
+        minimum centrality is zero and the maximum centrality is one.
+
+    """
 
     from pathpy.core.edge import Edge
     from pathpy.core.path import Path
@@ -335,7 +374,20 @@ def _cl_network(network: BaseNetwork, normalized: bool = False, disconnected=Fal
 
 @closeness_centrality.register(PathCollection)
 def _cl_paths(paths: PathCollection, normalized: bool = False, disconnected=False, weight: Optional[str]=None, count: bool=False) -> Dict:
-    """Betweenness Centrality for Paths."""
+    """Betweenness Centrality for Paths.
+    
+    Parameters
+    ----------
+    paths : PathCollection
+
+        The :py:class:`PathCollection` object that contains a collection of edges
+
+    normalized : bool
+
+        If True the resulting centralities will be normalized such that the
+        minimum centrality is zero and the maximum centrality is one.
+    
+    """
 
     if disconnected and normalized:
         raise ParameterError('No meaningful definition for normalized closeness centrality in disconnected networks')
