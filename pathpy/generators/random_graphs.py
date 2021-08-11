@@ -533,6 +533,16 @@ def Molloy_Reed(degrees: Union[np.array, Dict[int, float]], multiedge: bool = Fa
 
 def Molloy_Reed_randomize(network: Network) -> Optional[Network]:
     """Generates a random realization of a given network based on the observed degree sequence.
+    
+    Parameters
+    ----------
+    network : Network
+
+        The :py:class:`Network` object that contains the network
+
+    Returns
+    -------
+    Molley-Reed graph 
     """
     # degrees are listed in order of node indices 
     degrees = network.degree_sequence()    
