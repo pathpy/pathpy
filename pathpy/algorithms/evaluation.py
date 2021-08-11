@@ -109,7 +109,31 @@ def train_test_split(network: Network, test_size: Optional[float]=0.25, train_si
 @train_test_split.register(TemporalNetwork)
 def _(network: TemporalNetwork, test_size: Optional[float]=0.25, train_size: Optional[float]=None, split: Optional[str]='interactions') -> tuple(TemporalNetwork, TemporalNetwork):
     """
-    Performs a random split of a temporal network into a training and test network. The split can be performed along nodes, interactions, or time
+    Performs a split of a temporal network into a training and test network. The split can be performed along interactions or time.
+
+    Parameters
+    ----------
+
+    network: TemporalNetwork
+
+        The temporal network for which the train/test split shall be performed.
+
+    test_size: Optional[float] = 0.25
+
+        Fraction of the network to include in the test network
+
+    train_size: Optional[float] = None
+
+        Fraction of the network to include in the training network
+
+    split: Optional['str'] = 'interactions'
+
+        Specifies how the train/test split shall be performed. Based on the provided test size, for the parameter 'interactions' subset of edges is selected, while for 'time' a subset of the network time is selected. 
+
+    Returns
+    -------
+
+    Tuple (n1, n2) where n1 is the training network and n2 is the test network
     """
     test_network = TemporalNetwork(directed=network.directed, multiedges=network.multiedges, uid=network.uid+'_test')
     train_network = TemporalNetwork(directed=network.directed, multiedges=network.multiedges, uid=network.uid+'_train')
@@ -160,6 +184,17 @@ def shuffle_temporal_network(net: TemporalNetwork):
     """
     Randomly reassigns timestamps (start, end, duration) of edges in a temporal network.
     This is useful to generate a random baseline for temporal patterns in temporal networks.
+
+    Parameters
+    ----------
+     net: TemporalNetwork
+
+        The temporal network for which the shuffle shall be performed.
+
+    Returns
+    -------
+
+    Shuffled version of the provided temporal network
     """
     timestamps = []
     edges = []
