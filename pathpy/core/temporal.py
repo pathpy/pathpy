@@ -21,7 +21,22 @@ LOG = logger(__name__)
 
 
 class TemporalPathPyObject(PathPyObject):
-    """Base class for a temporal object."""
+    """Base class for a temporal object.
+    
+    A temporal network consists of nodes which links are only active at certain points in time.
+
+    Parameters
+    ----------
+
+    uid : Optional[str] = None
+
+        The uid of the parent class.
+    
+    kwargs : Any
+
+        Keyword Arguments to create new temporal network events. They are stored with theire beginning
+        and ending point.
+    """
 
     def __init__(self, uid: Optional[str] = None, **kwargs: Any) -> None:
         """Initialize the temporal object."""
