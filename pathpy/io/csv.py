@@ -35,7 +35,27 @@ def read_dataframe(filename: Optional[str] = None,
                    sep: str = ',',
                    header: bool = True,
                    names: Optional[list] = None) -> pd.DataFrame:
-    """Read csv database as a pandas data frame."""
+    """Read csv database as a pandas data frame.
+    
+    Parameters
+    ----------
+    filename : Optional[str] = None
+
+        Path to the .csv file
+
+    sep : str = `` , ``
+
+        Character seperating the data
+
+    header : bool = ``True``
+
+        Use the file header              
+
+    names : Optional[list] = ``None``
+
+        List of column names to use
+    
+    """
 
     if header:
         frame = pd.read_csv(filename, sep=sep)
@@ -54,7 +74,42 @@ def read_network(filename: Optional[str] = None,
                  header: bool = True,
                  names: Optional[list] = None,
                  **kwargs: Any) -> Network:
-    """Reads a network from a csvfile."""
+    """Reads a network from a csvfile.
+    
+    Parameters
+    ----------
+    filename : Optional[str] = None
+        
+        Path to the .csv file
+    
+    loops : bool = ``True`` 
+
+        Does the network have loops
+        
+    directed : bool = ``True``
+
+        Is the network directed
+    
+    multiedges : bool = ``False``
+
+        Does the network have multiedges
+
+    sep : str = `` , ``
+
+        Character seperating the data
+
+    header : bool = ``True``
+
+        Use the file header  
+
+    names : Optional[list] = ``None``
+
+        List of column names to use
+
+    **kwargs : Any
+
+        Arbitrary keyword arguments that will be set as network-level attributes
+    """
     # pylint: disable=too-many-arguments
 
     frame = read_dataframe(filename=filename, sep=sep,
@@ -74,7 +129,42 @@ def read_temporal_network(filename: Optional[str] = None,
                           header: bool = True,
                           names: Optional[list] = None,
                           **kwargs: Any) -> TemporalNetwork:
-    """Read temporal network from a csv database."""
+    """Read temporal network from a csv database.
+    
+     Parameters
+    ----------
+    filename : Optional[str] = None
+        
+        Path to the .csv file
+    
+    loops : bool = ``True`` 
+
+        Does the network have loops
+        
+    directed : bool = ``True``
+
+        Is the network directed
+    
+    multiedges : bool = ``False``
+
+        Does the network have multiedges
+
+    sep : str = `` , ``
+
+        Character seperating the data
+
+    header : bool = ``True``
+
+        Use the file header  
+
+    names : Optional[list] = ``None``
+
+        List of column names to use
+
+    **kwargs : Any
+
+        Arbitrary keyword arguments that will be set as network-level attributes
+    """
     # pylint: disable=too-many-arguments
 
     frame = read_dataframe(filename=filename, sep=sep,
