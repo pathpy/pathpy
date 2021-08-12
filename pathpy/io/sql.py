@@ -37,7 +37,30 @@ def read_dataframe(db_file: Optional[str] = None,
                    uri: Optional[bool] = False,
                    sql: Optional[str] = None,
                    table: Optional[str] = None) -> pd.DataFrame:
-    """Read sql database as a pandas data frame."""
+    """Read sql database as a pandas data frame. The Database can exists locally or be read from an online ressource.
+    
+    Parameters
+    ----------
+    db_file : Optional[str] = ``None``
+
+        The path to the databse file
+
+    con : Optional[sqlite3.Connection] = ``None`` 
+
+        The SQLite3 connection in which the network will be stored
+
+    uri : Optional[bool] = ``False``
+
+        Uniform Resource Identifier for the databse
+
+    sql : Optional[str] = ``None``
+
+        Executable SQL query specify the datas
+
+    table : Optional[str] = ``None``
+
+        Database table to read the data from 
+    """
 
     LOG.debug('Load sql file as pandas data frame.')
 
@@ -111,7 +134,43 @@ def read_network(db_file: Optional[str] = None,
                  table: Optional[str] = None,
                  uri: Optional[bool] = False,
                  **kwargs: Any) -> Network:
-    """Read network from a sqlite database."""
+    """Read network from a sqlite database.
+    
+    Parameters
+    ----------
+    db_file : Optional[str] = ``None``
+
+        The path to the databse file
+    
+    loops : bool = ``True``
+
+        Does the network have loops
+
+    directed : bool = ``True``
+
+        Is the network directed
+
+    multiedges : bool = ``True``
+
+        Does the network have multiedges
+
+    con : Optional[sqlite3.Connection] = ``None`` 
+
+        The SQLite3 connection in which the network will be stored
+
+    uri : Optional[bool] = ``False``
+
+        Uniform Resource Identifier for the databse
+
+    sql : Optional[str] = ``None``
+
+        Executable SQL query specify the datas
+
+    table : Optional[str] = ``None``
+
+        Database table to read the data from
+
+    """
     # pylint: disable=too-many-arguments
 
     frame = read_dataframe(db_file=db_file, con=con, sql=sql, table=table, uri=uri)
@@ -152,22 +211,21 @@ def write_dataframe(frame: pd.DataFrame,
 
     Parameters
     ----------
-
-    network: Network
-
-        The network to store in the sqlite database
-
-    filename: str
-
-        The name of the SQLite database in which the network will be stored
-
-    con: sqlite3.Connection
-
-        The SQLite3 connection in which the network will be stored
+    frame : pd.DataFrame
+   
+        Source pandas Data Frame to write into SQL
 
     table: str
 
         Name of the table in the database in which the network will be stored.
+
+    filename: Optional[str] = ``None``
+
+        The name of the SQLite database in which the network will be stored
+
+    con : Optional[sqlite3.Connection] = ``None``
+
+        The SQLite3 connection in which the network will be stored
 
     **pdargs:
 
@@ -202,7 +260,39 @@ def write(network: Union[Network, TemporalNetwork],
           include_edge_uid: bool = False,
           export_indices: bool = False,
           **pdargs: Any) -> None:
-    """Stores all edges including edge attributes in a sql file."""
+    """Stores all edges including edge attributes in a sql file. It stores regular as well as temporal networks.
+    
+     Parameters
+    ----------
+
+    network: Union[Network, TemporalNetwork]
+
+        The network to store in the sqlite database
+
+    table: str
+
+        Name of the table in the database in which the network will be stored.
+
+    filename: str
+
+        The name of the SQLite database in which the network will be stored
+
+    con: sqlite3.Connection
+
+        The SQLite3 connection in which the network will be stored
+
+    include_edge_ui : bool = ``False``
+
+        Whether or not to include a column that stores the uids of the edge objects
+
+    export_indices : bool = ``False``
+
+        Whether or not to use node indices rather than node uids. This is useful to import network data in tools that only support integer node identifiers.
+
+    **pdargs:
+
+        Keyword args that will be passed to pandas.DataFrame.to_sql.
+    """
     frame = to_dataframe(network=network, include_edge_uid=include_edge_uid,
                          export_indices=export_indices)
 
