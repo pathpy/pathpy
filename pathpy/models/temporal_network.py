@@ -227,7 +227,15 @@ class TemporalEdgeCollection(EdgeCollection):
 
 
 class TemporalNetwork(BaseTemporalNetwork, Network):
-    """Base class for a temporal networks."""
+    """Base class for a temporal networks.
+    
+    Parameters
+    ----------
+    uid : Optional[str] = ``None``
+    directed : bool = ``True``
+    multiedges : bool = ``False``
+    **kwargs : Any
+    """
 
     def __init__(self, uid: Optional[str] = None, directed: bool = True,
                  multiedges: bool = False, **kwargs: Any) -> None:
