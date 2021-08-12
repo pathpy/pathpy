@@ -195,6 +195,21 @@ def single_source_shortest_paths(network: Network,
                                  ) -> Union[dict, np.array]:
     """Calculates all shortest paths from a single given source node using a
     custom implementation of Dijkstra's algorithm based on a priority queue.
+
+    Parameters
+    ----------
+
+    network : Network
+        
+        The :py:class:`Network` object that contains the network
+
+    source : str
+
+        The uid of the source node
+
+    weight : Union[bool, str, None] = None
+
+        Weight of the network edges, if weighted
     """
     Q: dict = dict()
     dist = dict()
@@ -255,7 +270,23 @@ def shortest_path_tree(network: Network,
                        source: str, weight: Union[bool, str, None] = None
                        ) -> Network:
     """Computes a shortest path tree rooted at the node with the
-    given source uid."""
+    given source uid.
+    
+    Parameters
+    ----------
+
+    network : Network
+        
+        The :py:class:`Network` object that contains the network
+
+    source : str
+
+        The uid of the root node
+
+    weight : Union[bool, str, None] = None
+
+        Weight of the network edges, if weighted
+    """
 
     n_tree = net.Network(directed=True)
 
