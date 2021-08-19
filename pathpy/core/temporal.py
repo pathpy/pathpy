@@ -23,14 +23,17 @@ LOG = logger(__name__)
 class TemporalPathPyObject(PathPyObject):
     """Base class for a temporal object.
     
-    A temporal network consists of nodes which links are only active at certain points in time.
+    A temporal network consists of nodes which links are only active or 
+    change theire values at certain points in time.
 
     Parameters
     ----------
 
     uid : Optional[str] = None
 
-        The uid of the parent class.
+        The parameter ``uid`` is the unique identifier for the path object. This
+        option can later be used for multi-layer networks. Currently the ``uid``
+        of the network is not in use.
     
     kwargs : Any
 

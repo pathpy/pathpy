@@ -227,14 +227,35 @@ class TemporalEdgeCollection(EdgeCollection):
 
 
 class TemporalNetwork(BaseTemporalNetwork, Network):
-    """Base class for a temporal networks.
+    """Base class for a temporal networks. In a temporal Network, properties of nodes, edges  or paths
+       can change over time.
     
     Parameters
     ----------
     uid : Optional[str] = ``None``
+
+        The parameter ``uid`` is the unique identifier for the network. This
+        option can late be used for multi-layer networks. Currently the ``uid``
+        of the network is not in use.
+    
     directed : bool = ``True``
+
+        Specifies if a network contains directed edges and paths, i.e u->v->w
+        or undirected edges and paths i.d. u-v-w.  If ``True`` the all
+        subsequent objects are directed, i.e. quantities can only transmited
+        from the source node ``v`` to the traget node ``w``. If ``False`` the
+        al subsequent obects are undirected, i.e. quantities can be transmited
+        in both directions. Per default networks in ``pathpy`` are directed.
+    
     multiedges : bool = ``False``
+
+        Specifies if a network contians multiple edges, i.e. two or more edges that have 
+        the same head and tail vertices. 
+
     **kwargs : Any
+
+        Keyword arguments to store network attributes. Attributes are added to
+        the network as ``key=value`` pairs.
     """
 
     def __init__(self, uid: Optional[str] = None, directed: bool = True,
