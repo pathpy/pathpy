@@ -50,7 +50,11 @@ class TemporalNode(Node, TemporalPathPyObject):
         TemporalPathPyObject.__init__(self, uid=self.uid, **kwargs)
 
     def summary(self) -> str:
-        """Object summary. """
+        """Returns a summary of the temporal node.
+        
+        The summary containes the observation periode of the node, i.e. 
+        the observation start and the observation end time. 
+         """
         summary = [
             'Observation periode:\t{} - {}'.format(self.start, self.end)
         ]
@@ -73,7 +77,11 @@ class TemporalEdge(Edge, TemporalPathPyObject):
         TemporalPathPyObject.__init__(self, uid=uid, **kwargs)
 
     def summary(self) -> str:
-        """Object summary. """
+        """Object summary. 
+        
+        The summary containes the observation periode of the edge, i.e. 
+        the observation start and the observation end time. 
+        """
         summary = [
             'Observation period:\t{} - {}'.format(self.start, self.end)
         ]
@@ -186,17 +194,17 @@ class TemporalEdgeCollection(EdgeCollection):
 
     @property
     def start(self):
-        """start of the object"""
+        """Returns the start of the edge object"""
         return self._events.begin()
 
     @property
     def end(self):
-        """end of the object"""
+        """Returns the end of the edge object"""
         return self._events.end()
 
     @property
     def events(self):
-        """Temporal events"""
+        """Returns all temporal events of the edge object"""
         return self._events
 
     @singledispatchmethod
