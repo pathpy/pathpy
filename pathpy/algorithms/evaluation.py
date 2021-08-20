@@ -189,7 +189,7 @@ def shuffle_temporal_network(net: TemporalNetwork):
     ----------
      net: TemporalNetwork
 
-        The temporal network for which the shuffle shall be performed.
+        The temporal network for which the shuffle is to be performed.
 
     Returns
     -------

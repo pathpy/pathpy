@@ -38,7 +38,30 @@ def _Q_merge(network: Network, A, D, n: int, m: int, C: Dict, merge: Set = set()
 
 def modularity_maximisation(network: Network,
                             iterations: int = 1000) -> Tuple[Dict, float]:
-    """Modularity maximisation."""
+    """Performs modularity maximisation in the given Network to detect 
+    communities.
+    
+    Parameters
+    ----------
+
+    network: Network
+
+        Object of the py:Network class.
+                            
+    iterations: int = 1000
+
+        Number of iterations for the detection algorithm.
+
+    Returns
+    -------
+
+    Tuple[Dict, float]
+
+        The Dict containes tuples of node identifiers and 
+        their corresponding communities. 
+        The second value of the tuple returns the modularity of the network. 
+
+    """
 
     A = network.adjacency_matrix(weighted=False)    
     D = network.degrees()

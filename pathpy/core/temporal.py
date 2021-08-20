@@ -24,7 +24,7 @@ class TemporalPathPyObject(PathPyObject):
     """Base class for a temporal object.
     
     A temporal network consists of nodes which links are only active or 
-    change theire values at certain points in time.
+    change their values at certain points in time.
 
     Parameters
     ----------
