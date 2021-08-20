@@ -116,7 +116,7 @@ def _(network: TemporalNetwork, test_size: Optional[float]=0.25, train_size: Opt
 
     network: TemporalNetwork
 
-        The temporal network for which the train/test split shall be performed.
+        The :py:class:`TemporalNetwork` object that contains the network for which the train/test split is performed.
 
     test_size: Optional[float] = 0.25
 
@@ -189,7 +189,7 @@ def shuffle_temporal_network(net: TemporalNetwork):
     ----------
      net: TemporalNetwork
 
-        The temporal network for which the shuffle is to be performed.
+        The :py:class:`TemporalNetwork` object for which the shuffle is to be performed.
 
     Returns
     -------

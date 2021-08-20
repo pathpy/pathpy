@@ -109,6 +109,11 @@ def read_network(filename: Optional[str] = None,
     **kwargs : Any
 
         Arbitrary keyword arguments that will be set as network-level attributes
+
+    Returns
+    -------
+    An object of the :py:class:`Network` generated from the csv file. 
+
     """
     # pylint: disable=too-many-arguments
 
@@ -164,6 +169,11 @@ def read_temporal_network(filename: Optional[str] = None,
     **kwargs : Any
 
         Arbitrary keyword arguments that will be set as network-level attributes
+
+    Returns
+    -------
+    An object of the :py:class:`Network` generated from the csv database. 
+
     """
     # pylint: disable=too-many-arguments
 
@@ -188,18 +198,30 @@ def read_pathcollection(filename: str, separator: str = ',',
     Parameters
     ----------
     filename : str
+        
         path to edgelist file
+    
     separator : str
+        
         character separating the nodes
+    
     frequency : bool
+        
         is a frequency given? if ``True`` it is the last element in the
         edge (i.e. ``a,b,2``)
+    
     directed : bool
+        
         are the edges directed or undirected
+    
     maxlines : int
+        
         number of lines to read (useful to test large files).
         None means the entire file is read
 
+    Returns
+    -------
+    An object of the :py:class:`PathCollection` with all the paths generated from the file.
     """
 
     from pathpy.core.path import Path, PathCollection
@@ -310,7 +332,42 @@ def write(network: Union[Network, TemporalNetwork],
           include_edge_uid: bool = False,
           export_indices: bool = False,
           **pdargs: Any) -> None:
-    """Stores all edges including edge attributes in a csv file."""
+    """Stores all edges including edge attributes from a static or temporal network in a csv file.
+    
+    Parameters
+    ----------
+    network : Network, TemporalNetwork
+
+        An object of the :py:class:`Network` or :py:class:`TemporalNetwork`
+
+    path_or_buf : Any = None
+
+        This can be a string, a file buffer, or None (default). Follows
+        pandas.DataFrame.to_csv semantics.  If a string filename is given, the
+        network will be saved in a file. If None, the csv file contents is
+        returned as a string. If a file buffer is given, the csv file will be
+        saved to the file.
+
+    include_edge_ui : bool = False 
+
+        Whether to exclude edge uids in the exported csv file or not
+        (default). If this is set to True, each edge between nodes with uids v
+        and w will be exported to a line w,v. If this is set to False
+        (default), the uid of the edge will be additionally included,
+        i.e. exporting v,w,e_uid. 
+
+    export_indices : bool = False
+
+        Whether or not to replace node uids by integer node indices. If False
+        (default), string node uids in pp.Network instance will be used. If
+        True, node integer indices are exported instead.
+
+    **pdargs : Any 
+
+        Keyword args that will be passed to pandas.DataFrame.to_csv. This
+        allows full control of the csv export.
+
+    """
     frame = to_dataframe(network=network, include_edge_uid=include_edge_uid,
                          export_indices=export_indices)
 

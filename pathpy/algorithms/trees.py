@@ -27,7 +27,14 @@ LOG = logger(__name__)
 
 
 def check_tree(network: Network):
+    """Returns if the Networks' Graph is a rooted tree.
+    
+    Parameters
+    ----------
+    network : Network
 
+        The :py:class:`Network` object 
+    """
     if network.directed:
 
         # identify node with zero indegree
@@ -64,6 +71,19 @@ def check_tree(network: Network):
 
 
 def tree_size(network: Network, node: str):
+    """ Returns the size of the graph tree, using the passed node as root.
+
+    Parameters
+    ----------
+
+    network : Network
+
+        The :py:class:`Network` object used for the tree
+
+    node : str
+
+        Identitifier of the root node
+    """
 
     size = 1
     for v in network.successors[node]:

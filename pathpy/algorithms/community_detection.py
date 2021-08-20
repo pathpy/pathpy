@@ -46,7 +46,7 @@ def modularity_maximisation(network: Network,
 
     network: Network
 
-        Object of the py:Network class.
+        :py:class:`Network` object that contains the network.
                             
     iterations: int = 1000
 

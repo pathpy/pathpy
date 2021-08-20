@@ -207,9 +207,13 @@ def single_source_shortest_paths(network: Network,
 
         The uid of the source node
 
-    weight : Union[bool, str, None] = None
+    weight : bool = None
 
         Weight of the network edges, if weighted
+
+    Returns
+    -------
+        Array with the distance of each node corresponding the index
     """
     Q: dict = dict()
     dist = dict()
@@ -283,7 +287,7 @@ def shortest_path_tree(network: Network,
 
         The uid of the root node
 
-    weight : Union[bool, str, None] = None
+    weight : bool = None
 
         Weight of the network edges, if weighted
     """
