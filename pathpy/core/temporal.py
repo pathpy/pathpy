@@ -31,9 +31,7 @@ class TemporalPathPyObject(PathPyObject):
 
     uid : Optional[str] = None
 
-        The parameter ``uid`` is the unique identifier for the path object. This
-        option can later be used for multi-layer networks. Currently the ``uid``
-        of the network is not in use.
+        The parameter ``uid`` is the unique identifier for the path object. T
     
     kwargs : Any
 

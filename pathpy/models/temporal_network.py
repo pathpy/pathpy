@@ -120,17 +120,17 @@ class TemporalNodeCollection(NodeCollection):
 
     @property
     def start(self):
-        """start of the object"""
+        """Returns the start of the node collections' events"""
         return self._events.begin()
 
     @property
     def end(self):
-        """end of the object"""
+        """Returns the end of the node collections' events"""
         return self._events.end()
 
     @property
     def events(self):
-        """Temporal events"""
+        """Returns an interval tree of the node collections' temporal events"""
         return self._events
 
     @singledispatchmethod

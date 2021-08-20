@@ -312,6 +312,30 @@ def generate_causal_tree(dag, root, node_map) -> Tuple(ABCDirectedAcyclicGraph, 
     causal tree capture that - starting from the root node at step 0 - there is
     a causal path to node v at distance d from the root. Note that the same node
     can be represented by multiple nodes in the causal tree (at different distances d).
+
+    Parameters
+    ----------
+    dag : Any
+        
+        directed acyclic graph
+
+    root : Any
+
+        Root node of the causal tree
+
+    node_map : Any
+
+        Mapped nodes for the tree
+
+    Returns
+    -------
+    Tuple(ABCDirectedAcyclicGraph, defaultdict)     
+
+        A Tuple of the new causal tree as Directed Acyclic Graph
+        and a Dictionary with tuples of all the nodes' unique identifiers
+        and their distance to the root node. Using the uids of the nodes 
+        ensures that the same physical nodes can occur at different
+        distances from the root
     """
     from pathpy.models.directed_acyclic_graph import DirectedAcyclicGraph
     causal_tree = DirectedAcyclicGraph()
