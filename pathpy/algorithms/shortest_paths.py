@@ -209,7 +209,7 @@ def single_source_shortest_paths(network: Network,
 
     weight : bool = None
 
-        Weight of the network edges, if weighted
+        If True cheapest paths will be calculated.
 
     Returns
     -------
