@@ -289,7 +289,7 @@ def shortest_path_tree(network: Network,
 
     weight : bool = None
 
-        Weight of the network edges, if weighted
+        f True cheapest paths will be calculated.
     """
 
     n_tree = net.Network(directed=True)

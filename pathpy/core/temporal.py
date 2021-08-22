@@ -31,7 +31,7 @@ class TemporalPathPyObject(PathPyObject):
 
     uid : Optional[str] = None
 
-        The parameter ``uid`` is the unique identifier for the path object. T
+        The parameter ``uid`` is the unique identifier for the path object. 
     
     kwargs : Any
 
