@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : plot.py -- Module to plot pathoy networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-05-27 14:31 juergen>
+# Time-stamp: <Tue 2021-08-24 17:08 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -115,6 +115,7 @@ config['plot']['node']['size'] = 15
 config['plot']['node']['color'] = 'CornflowerBlue'
 config['plot']['node']['opacity'] = .2
 config['plot']['node']['id_as_label'] = True
+config['plot']['node']['coordinates'] = None
 
 config['plot']['curved'] = False
 config['plot']['directed'] = False
@@ -323,7 +324,8 @@ class Parser:
         LOG.debug('Parse a temporal network')
 
         # get static network to start with
-        self._parse_static(obj=obj, plot_config=plot_config, **kwargs)
+        self._parse_static(obj=obj, plot_config=plot_config,
+                           temporal=True, **kwargs)
 
         # TODO: Fix parse_config for temporal networks
         for key, values in self.parse_config(
@@ -405,7 +407,6 @@ class Parser:
         temporal_edges = []
         times = np.linspace(start, end, num=steps)
 
-        # when edge is active or not
         for edge in obj.edges[start:end]:
             for event in edge[start:end]:
                 _edge = {'uid': edge.uid}
@@ -417,86 +418,104 @@ class Parser:
                 _edge.update(event.attributes)
                 temporal_edges.append(_edge)
 
+        # # get static edges
+        # static_edges = {n['uid']: n for n in self.figure['data']['edges']}
+        # print(static_edges)
+        # _temporal_edges = {}
+        # # when edge is active or not
+        # for edge in obj.edges[start:end]:
+        #     for event in edge[start:end]:
+        #         # check if attributes are available
+        #         if any(a in event.attributes for
+        #                a in self.config['default_edge']):
+        #             # get important attributes
+        #             _uid = edge.uid
+        #             _start = event.attributes.pop('start', start)
+        #             _end = event.attributes.pop('end', end)
+
+        #         _edge = {'uid': _uid}
+        #         _st = _edge['startTime'] = find_nearest(times, _start)
+        #         _et = _edge['endTime'] = find_nearest(times, _end)
+        #         _edge['active'] = True
+        #         _edge.update(event.attributes)
+
+        #         # add node to the list
+        #         key = (_uid, _st, _et)
+        #         if key in _temporal_edges:
+        #             _temporal_edges[key].update(_edge)
+        #         else:
+        #             _temporal_edges[key] = _edge
+
+        #         # reset node after attribute change
+        #         _edge = {'uid': _uid}
+        #         for attr in event.attributes:
+        #             if attr in static_edges[_uid]:
+        #                 _edge[attr] = static_edges[_uid][attr]
+
+        #         _edge['startTime'] = _et+1
+        #         _edge['endTime'] = _et+1
+        #         key = (_uid, _et+1, _et+1)
+        #         if key in _temporal_edges:
+        #             _temporal_edges[key].update(_edge)
+        #         else:
+        #             _temporal_edges[key] = _edge
+
+        #         temporal_edges.append(_edge)
+
+        # print(_temporal_edges)
+        # print(temporal_edges)
         # add temporal edges to the data
+        # self.figure['data']['tedges'] = list(_temporal_edges.values())
         self.figure['data']['tedges'] = temporal_edges
 
-        # # get static nodes
-        # nodes = {n['uid']: n for n in self.figure['data']['nodes']}
+        # get static nodes
+        static_nodes = {n['uid']: n for n in self.figure['data']['nodes']}
 
-        # node_temp_attr: defaultdict = defaultdict(lambda: defaultdict(dict))
-        # for node in obj.nodes.values():
-        #     df = node.attributes.to_frame(history=True)
-        #     df = df.where(pd.notnull(df), None)
-        #     attr = list(df.to_dict('index').values())
-        #     for values in attr:
-        #         time = values.pop(TIMESTAMP, None)
-        #         node_temp_attr[node.uid][time].update(**values)
+        temporal_nodes = {}
 
-        # # generating initial nodes
-        # initial_nodes = []
-        # for node in obj.nodes.keys():
-        #     _node = nodes[node]
-        #     _attr = node_temp_attr[node][float('-inf')]
-        #     if _attr:
-        #         for key, value in _attr.items():
-        #             if key in _node:
-        #                 _node[key] = value
-        #     initial_nodes.append(_node.copy())
-
-        # # add initial nodes to the data
-        # self.figure['data']['nodes'] = initial_nodes
-
-        temporal_nodes = []
-
-        # temporal edge attributes
-        # TODO combine if change at same time
+        # temporal node attributes
         for node in obj.nodes[start:end]:
             for event in node[start:end]:
-                _node = {'uid': node.uid}
-                _start = event.attributes.pop('start', start)
-                _end = event.attributes.pop('end', end)
-                _node['startTime'] = find_nearest(times, _start)
-                _node['endTime'] = find_nearest(times, _end)
-                _node['active'] = True
-                _node.update(event.attributes)
-                if _start == float('-inf') and _end == float('inf'):
-                    continue
-                temporal_nodes.append(_node)
-                _node = {'uid': node.uid}
-                _node['startTime'] = find_nearest(times, _end)
-                _node['endTime'] = find_nearest(times, _end)
-                _node['active'] = False
-                for key in event.attributes.keys():
-                    _node[key] = None
-                temporal_nodes.append(_node)
+                # check if attributes are available
+                if any(a in event.attributes for
+                       a in self.config['default_node']):
 
-        # print(self.figure['data']['nodes'])
-        #     for (start, end, key), value in node.attributes.items():
-        #         _node = {'uid': node.uid}
-        #         _node['startTime'] = find_nearest(times, start)
-        #         _node['endTime'] = find_nearest(times, end)
-        #         _node[key] = value
-        #         temporal_nodes.append(_node)
+                    # get important attributes
+                    _uid = node.uid
+                    _start = event.attributes.pop('start', start)
+                    _end = event.attributes.pop('end', end)
 
-        # for initial_node in initial_nodes:
-        #     _node = initial_node.copy()
-        #     _node['time'] = 0
-        #     temporal_nodes.append(_node)
+                    # generate temporal node
+                    _node = {'uid': _uid}
+                    _st = _node['startTime'] = find_nearest(times, _start)
+                    _et = _node['endTime'] = find_nearest(times, _end)
+                    _node.update(event.attributes)
 
-        # time = list(np.linspace(begin, end, num=steps))
-        # for t in time:
-        #     for node in obj.nodes.keys():
-        #         _node = nodes[node]
-        #         _attr = node_temp_attr[node][int(round(t, 0))]
-        #         if _attr:
-        #             for key, value in _attr.items():
-        #                 if key in _edge:
-        #                     _node[key] = value
+                    if _start == float('-inf') and _end == float('inf'):
+                        continue
 
-        #             _node['time'] = time.index(t)
-        #             temporal_nodes.append(_node.copy())
+                    # add node to the list
+                    key = (node.uid, _st, _et)
+                    if key in temporal_nodes:
+                        temporal_nodes[key].update(_node)
+                    else:
+                        temporal_nodes[key] = _node
 
-        self.figure['data']['tnodes'] = temporal_nodes
+                    # reset node after attribute change
+                    _node = {'uid': _uid}
+                    for attr in event.attributes:
+                        if attr in static_nodes[_uid]:
+                            _node[attr] = static_nodes[_uid][attr]
+
+                    _node['startTime'] = _et
+                    _node['endTime'] = _et
+                    key = (_uid, _et, _et)
+                    if key in temporal_nodes:
+                        temporal_nodes[key].update(_node)
+                    else:
+                        temporal_nodes[key] = _node
+
+        self.figure['data']['tnodes'] = list(temporal_nodes.values())
 
         # return the figure
         return self.figure
@@ -508,6 +527,7 @@ class Parser:
 
     @ parse.register(BaseNetwork)
     def _parse_static(self, obj: Any, plot_config: defaultdict,
+                      temporal=False,
                       **kwargs: Any) -> defaultdict:
         """Parse static network."""
 
@@ -542,6 +562,10 @@ class Parser:
                     if attr in self.default_properties[key]:
                         self.default_properties[key][attr] = value
 
+        # keep default properties
+        self.config['default_node'] = self.config['node'].copy()
+        self.config['default_edge'] = self.config['edge'].copy()
+
         # check kwargs and update config
         self.config.update(self.parse_config(self.default_properties, **kwargs))
 
@@ -552,8 +576,10 @@ class Parser:
             self.config['layout'] = 'euclidean'
 
         # parse nodes an edges
-        nodes = self.parse_static_objects(obj.nodes, otype='node', **kwargs)
-        edges = self.parse_static_objects(obj.edges, otype='edge', **kwargs)
+        nodes = self.parse_static_objects(
+            obj.nodes, otype='node', temporal=temporal, **kwargs)
+        edges = self.parse_static_objects(
+            obj.edges, otype='edge', temporal=temporal, **kwargs)
 
         # convert units to px
         u2px = UnitConverter(self.config['unit'], 'px', dpi=self.config['dpi'])
@@ -703,7 +729,7 @@ class Parser:
 
         return _config
 
-    def parse_static_objects(self, objects, otype='node', **kwargs) -> List:
+    def parse_static_objects(self, objects, otype='node', temporal=False, **kwargs) -> List:
         """Parse static objects such as nodes and edges."""
 
         # initialize temporal dict
@@ -728,13 +754,12 @@ class Parser:
 
             # add obj attributes
             for attr, value in obj.attributes.items():
-
                 # if mapping is given map the attribute
-                if mapping is not None and attr in mapping:
+                if mapping is not None and attr in mapping and not temporal:
                     attr = mapping[attr]
 
                 # check if attribute is in the default object
-                if attr in self.default_properties[otype]:
+                if attr in self.default_properties[otype] and not temporal:
 
                     # update attribute if given
                     _obj[uid][attr] = value
