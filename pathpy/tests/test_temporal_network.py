@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_temporal_network.py -- Test environment for temp networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-10 15:24 juergen>
+# Time-stamp: <Tue 2021-08-24 14:27 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -117,9 +117,17 @@ def test_temporal_node():
     assert a.uid == 'a'
     assert a.start == 1
     assert a.end == 4
-    assert a['color' == 'red']
+    assert a['color'] == 'red'
 
-    b = TemporalNode()
+    b = TemporalNode('b', color='blue')
+
+    b[1:3, 'color'] = 'red'
+    assert b[0, 'color'] == 'blue'
+    assert b[0:2, 'color'] == 'red'
+    assert b[1, 'color'] == 'red'
+    assert b[1:3, 'color'] == 'red'
+    assert b[4, 'color'] == 'blue'
+    assert b[3:6, 'color'] == 'blue'
 
 
 def test_temporal_edge():

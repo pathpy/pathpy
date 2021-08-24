@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal.py -- Classes to make PathPyObject temporal
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-10 15:23 juergen>
+# Time-stamp: <Tue 2021-08-24 15:38 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -102,6 +102,8 @@ class TemporalPathPyObject(PathPyObject):
 
     def _clean_events(self):
         """helper function to clean events"""
+        # BUG: There is a bug in the intervaltree library
+        # merge_equals switches old and new data randomly
         def reducer(old, new):
             return {**old, **new}
 

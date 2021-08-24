@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : temporal_network.py -- Class for temporal networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-10 15:22 juergen>
+# Time-stamp: <Tue 2021-08-24 14:40 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -46,6 +46,7 @@ class TemporalNode(Node, TemporalPathPyObject):
 
         # initializing the parent classes
         kwargs.pop('directed', None)
+        kwargs.pop('ordered', None)
         Node.__init__(self, *node, uid=uid, **kwargs)
         TemporalPathPyObject.__init__(self, uid=self.uid, **kwargs)
 
