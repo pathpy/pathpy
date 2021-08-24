@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network_plots.py -- Network plots with tikz
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-06-28 15:34 juergen>
+# Time-stamp: <Mon 2021-08-23 16:31 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -160,6 +160,8 @@ class NetworkPlot(TikzPlot):
         # update node position for the plot
         for node in self.data['nodes']:
             node['x'], node['y'] = _layout[node['uid']]
+
+        print(_layout)
 
     def to_tikz(self):
         """Converter to Tex"""

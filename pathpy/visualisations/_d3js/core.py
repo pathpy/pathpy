@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : core.py -- Plots with d3js
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-06-22 13:09 juergen>
+# Time-stamp: <Mon 2021-08-23 15:01 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================

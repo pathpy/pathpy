@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : network_plots.py -- Network plots with d3js
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-24 15:29 juergen>
+# Time-stamp: <Mon 2021-08-23 15:01 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -24,7 +24,7 @@ LOG = logger(__name__)
 class NetworkPlot(D3jsPlot):
     """Network plot class for a static network."""
 
-    _kind = 'network'
+    _kind = 'render_network'
 
     def __init__(self, data, **kwargs: Any):
         """Initialize network plot class"""

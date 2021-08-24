@@ -50,9 +50,10 @@ require(['d3'], function(d3){ //START
       .attr("class", "node")
       .attr("x", function(d) { return d.x; })
       .attr("y", function(d) { return d.y; })
+      .style("r", function(d){  return d.size; })
       .style("fill", function(d) { return d.color; })
-      .style("opacity", function(d) { return d.opacity; })
-      .style("r", function(d){  return d.size });
+      .style("opacity", function(d) { return d.opacity; });
+
 
   /*Simulation of the forces*/
   var simulation = d3.forceSimulation(nodes)
