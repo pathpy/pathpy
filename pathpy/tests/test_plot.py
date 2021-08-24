@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_plot.py -- Test environment for the Plot class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Fri 2021-05-28 19:02 juergen>
+# Time-stamp: <Tue 2021-08-24 18:38 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -21,7 +21,7 @@ def test_network_plot():
     net.add_node('b', size=40)
     net.add_edge('a', 'b', uid='a-b', color='blue')
 
-    net.plot(filename='simple_plot.html')
+    net.plot(filename='simple_plot.html', node_color={'a': 'green'})
 
 
 # def test_parse_config():
@@ -175,7 +175,7 @@ def test_network_plot():
 def test_temporal_network():
     """Test to plot a temporal network."""
     tn = TemporalNetwork(directed=False)
-    # tn.add_node('a', color='green', size=20)
+    #tn.add_node('a', color='blue', size=20)
     # tn.nodes['a'].update(color='blue', size=40, t=4)
     # tn.add_node('b', color='blue', t=8)
     tn.add_edge('a', 'b', timestamp=1, color='red', size=4)
@@ -187,29 +187,51 @@ def test_temporal_network():
     tn.add_edge('a', 'b', timestamp=7, color='gray', size=8)
     tn.add_edge('b', 'a', timestamp=8, color='white')
 
-    tn.nodes['a'][2, 'color'] = 'green'
-    tn.nodes['a'][3, 'color'] = 'red'
-    tn.nodes['a'][6, 'color'] = 'yellow'
+    for node in ['a', 'b', 'c', 'd']:
+        tn.nodes[node][1, 'color'] = 'orange'
+    tn.nodes['a'][2:4, 'color'] = 'green'
+    tn.nodes['a'][4, 'color'] = 'red'
+    #tn.nodes['a'].event(start=2, end=3, color='green')
+    # tn.nodes['a'][2:5, 'size'] = 20
+    # tn.nodes['a'][3, 'color'] = 'red'
+    # tn.nodes['a'][6, 'color'] = 'yellow'
+
+    #tn.nodes['c'][3:6, 'size'] = 100
     style = {
-        # 'node_color': 'gray',
+        # 'node_color': {'a': 'gray'},
         'curved': True,
     }
 
-    # print(tn)
-
-    tn = pp.TemporalNetwork()
-    tn.add_edge('a', 'b', timestamp=0)
-    tn.add_edge('a', 'b', timestamp=20)
-    tn.add_edge('a', 'b', timestamp=40)
-    tn.add_edge('b', 'c', timestamp=40)
-    tn.add_edge('b', 'c', timestamp=60)
-    tn.add_edge('b', 'c', timestamp=80)
-    tn.add_edge('a', 'b', timestamp=80)
-    tn.add_edge('a', 'b', timestamp=100)
-
-    print(tn)
-    # print('\n\n')
+    # print('xxxxxxxx')
     tn.plot(filename='d3js_test.html', **style)
+    # # print(tn.nodes['a'][0, 'color'])
+    # x = tn.nodes['a']._events
+    # print(x)
+    # x.split_overlaps()
+    # print(sorted(x))
+    # sorted(x)
+
+    # def reducer(old, new):
+    #     return {**old, **new}
+    # x.merge_equals(data_reducer=reducer)
+    # print(x)
+    # for node in tn.nodes:
+    #     print('xxdfdfx', list(node._events[2:3])[0])
+    #     for time in node[2:3]:
+    #         print(time._events[2.3:2.5])
+    # tn = pp.TemporalNetwork()
+    # tn.add_edge('a', 'b', timestamp=0, color='blue')
+    # tn.add_edge('a', 'b', timestamp=20, color='red')
+    # tn.add_edge('a', 'b', timestamp=40)
+    # tn.add_edge('b', 'c', timestamp=40)
+    # tn.add_edge('b', 'c', timestamp=60)
+    # tn.add_edge('b', 'c', timestamp=80)
+    # tn.add_edge('a', 'b', timestamp=80)
+    # tn.add_edge('a', 'b', timestamp=100)
+
+    # print(tn)
+    # print('\n\n')
+    # tn.plot(filename='d3js_test.html', **style)
     # tn.add_node('g')
     # print(tn.nodes['a']._events)
     # for e in tn.nodes['a'][:]:
