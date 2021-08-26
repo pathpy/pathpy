@@ -104,7 +104,7 @@ on `stackoverflow <https://stackoverflow.com/>`_, where there is a pathpy tag. T
    Introduction <introduction>
    Release notes <release>
    Installing <installation>
-   Example gallery <examples/index>
+   .. Example gallery <examples/index>
    Tutorial <tutorial>
    API reference <api>
    Contributing<contribution>

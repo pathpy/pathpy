@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : conf.py -- Configuration file for the documentation
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Wed 2020-03-18 11:40 juergen>
+# Time-stamp: <Thu 2021-08-26 14:32 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -62,7 +62,7 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
     'matplotlib.sphinxext.plot_directive',
-    'gallery_generator',
+    # 'gallery_generator',
     'numpydoc',
 ]
 
@@ -113,7 +113,7 @@ html_theme_options = {
     'navbar_sidebarrel': False,
     'bootstrap_version': "3",
     'navbar_links': [
-        ("Gallery", "examples/index"),
+        # ("Gallery", "examples/index"),
         ("Tutorial", "tutorial"),
         ("API", "api"),
     ],
