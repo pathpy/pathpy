@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : plot.py -- Module to plot pathoy networks
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-08-24 17:08 juergen>
+# Time-stamp: <Thu 2021-08-26 14:15 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
@@ -207,6 +207,16 @@ def plot(obj, filename: Optional[str] = None,
 
     # initialize object parser
     parser: Parser = Parser()
+
+    # check object
+    try:
+        if obj.number_of_nodes() == 0:
+            LOG.warning('An empty network cannot be plotted. '
+                        ' Please add at least one Node object.')
+            return
+    except:
+        LOG.error('The provided object cannot be plotted.')
+        raise NotImplementedError
 
     _config = deepcopy(config['plot'])
     # _config = config['plot']

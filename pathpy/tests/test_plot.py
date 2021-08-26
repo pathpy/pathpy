@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_plot.py -- Test environment for the Plot class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Tue 2021-08-24 18:38 juergen>
+# Time-stamp: <Thu 2021-08-26 14:16 juergen>
 #
 # Copyright (c) 2016-2020 Pathpy Developers
 # =============================================================================
@@ -12,6 +12,12 @@ import pytest
 from pathpy import Network, TemporalNetwork, Node
 from pathpy.visualisations import plot
 import pathpy as pp
+
+
+def test_plot_empty_network_plot():
+    """Test the plot function on a network."""
+    net = Network()
+    net.plot()
 
 
 def test_network_plot():
