@@ -3,7 +3,7 @@
 # =============================================================================
 # File      : test_hypergraph.py • tests -- Test environment for the HyperGraph class
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 12:14 juergen>
+# Time-stamp: <Thu 2021-08-26 15:55 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -42,6 +42,16 @@ def test_hypergraph():
 
     assert ('3', '1', '0') in hg.edges
 
+
+def test_hyperedge():
+    hg = HyperGraph()
+    hg.add_edge('a', 'b')
+    hg.add_edge('a', 'b')
+    # hg
+    # n = Network()
+    # n.add_edge('a', 'b')
+    # n.add_edge('a', 'b')
+    assert hg.edges.counter[hg.edges['a', 'b'].uid] == 2
 # =============================================================================
 # eof
 #

@@ -4,7 +4,7 @@
 # =============================================================================
 # File      : core.py -- Core classes of pathpy
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Thu 2021-06-10 15:41 juergen>
+# Time-stamp: <Thu 2021-08-26 15:57 juergen>
 #
 # Copyright (c) 2016-2021 Pathpy Developers
 # =============================================================================
@@ -722,6 +722,12 @@ class PathPyCollection():
     def _(self, item: str) -> bool:
         return item in self._store.keys()
 
+    @__contains__.register(PathPySet)  # type: ignore
+    def _(self, item: PathPySet) -> bool:
+        new = tuple(k.uid if isinstance(k, PathPyObject) else k for k in item)
+        return PathPyRelation(new, directed=self.directed,
+                              ordered=self._ordered) in self._relations
+
     @__contains__.register(tuple)  # type: ignore
     def _(self, item: tuple) -> bool:
         new = tuple(k.uid if isinstance(k, PathPyObject) else k for k in item)
@@ -918,7 +924,8 @@ class PathPyCollection():
         """Helper function if the edge does already exsist."""
 
         # get element
-        element = self[obj.uid] if self._multiple else self[obj.relations]
+        element = self[obj.uid] if self._multiple else self[
+            tuple(obj.relations)]
 
         # update attributes if given
         element.update(**obj.attributes)
