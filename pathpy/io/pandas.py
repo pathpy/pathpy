@@ -108,6 +108,9 @@ def to_network(df: pd.DataFrame, loops: bool = True, directed: bool = True,
     df = _check_column_name(df, 'v', config['edge']['v_synonyms'])
     df = _check_column_name(df, 'w', config['edge']['w_synonyms'])
 
+    df['v'] = df['v'].astype(str)
+    df['w'] = df['w'].astype(str)
+
     LOG.debug('Creating %s network', directed)
 
     # create a set of all node uids
