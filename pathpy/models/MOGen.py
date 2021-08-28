@@ -197,10 +197,8 @@ class MOGen:
 
     def __init__(self, paths, max_order=1, model_selection=True):
         """Initialise MOGen."""
-        self.paths = {tuple(x.uid for x in p.nodes)                      : paths[p]['frequency'] for p in paths}
-        self.network = Network()
-        for e in paths.edges:
-            self.network.add_edge(e)
+        self.paths = {tuple(n for n in paths[k].nodes): v for k,v in paths.counter.items()}
+        self.network = Network().from_paths(paths)
         self.max_order = max_order
         self.model_selection = model_selection
 
