@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 LOG = logger(__name__)
 
 
-def read_dataframe(filename: Optional[str] = None,
+def read_dataframe(filename: str,
                    sep: str = ',',
                    header: bool = True,
                    names: Optional[list] = None) -> pd.DataFrame:
@@ -46,7 +46,7 @@ def read_dataframe(filename: Optional[str] = None,
     return frame
 
 
-def read_network(filename: Optional[str] = None,
+def read_network(filename: str = None,
                  loops: bool = True,
                  directed: bool = True,
                  multiedges: bool = False,
