@@ -21,6 +21,7 @@ from scipy.sparse import csgraph  # pylint: disable=import-error
 from pathpy import logger, tqdm
 
 from pathpy.models.classes import BaseNetwork
+from pathpy.models import network as net
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
@@ -240,7 +241,7 @@ def single_source_shortest_paths(network: Network,
         if dest.uid != source:
             path = [dest.uid]
             x = dest.uid
-            while x is not source and x is not None:
+            while x != source and x is not None:
                 x = prev[x]
                 path.append(x)
             if x is None:
