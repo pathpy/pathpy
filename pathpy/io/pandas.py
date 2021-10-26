@@ -415,6 +415,9 @@ def from_network(network: Network, include_edge_uid: Optional[bool] = False,
             {k: [v] for k, v in edge.attributes.items()})
         edge_frame = pd.concat([edge_frame, data], axis=1)
         df = pd.concat([edge_frame, df], ignore_index=True, sort=False)
+    # TODO: This is a dirty fix, not ideal!
+    if 'nodes' in df.columns:
+        df = df.drop(columns=['nodes'])
     return df
 
 
