@@ -5,13 +5,16 @@
 # =============================================================================
 # File      : hypergraph.py -- Base class for a hypergraph
 # Author    : Jürgen Hackl <hackl@ifi.uzh.ch>
-# Time-stamp: <Mon 2021-05-24 12:39 juergen>
+# Time-stamp: <Wed 2021-11-10 17:27 juergen>
 #
 # Copyright (c) 2016-2019 Pathpy Developers
 # =============================================================================
 from __future__ import annotations
 from typing import Any, Optional, Union, Dict, Set, cast
 from collections import defaultdict
+
+import uuid
+import json
 
 from pathpy import logger
 from pathpy.models.classes import BaseHyperGraph
@@ -255,6 +258,45 @@ class HyperGraph(BaseHyperGraph):
                     self._properties['incident_edges'][node])
 
             self._properties['edges'].discard(edge)
+
+    def plot(self,):
+        """Simple Plot function for hypergraphs
+
+        IMPORTANT: This function should be moved to the new plotting library
+
+        """
+
+        graph: dict = {'nodes': [], 'links': [], 'nodelinks': []}
+
+        for node, edges in self.incident_edges.items():
+            graph['nodes'].append({"id": node, "links": list(edges)})
+            for edge in edges:
+                graph['nodelinks'].append(
+                    {"node": node, "link": edge, 'value': '1'})
+
+        for edge in self.edges:
+            graph['links'].append(
+                {"id": edge.uid, 'nodes': [n.uid for n in edge.nodes.values()]})
+
+        config = {"colorEdges": "default",
+                  "colorNodes": "default",
+                  "sizeNodes": "default"}
+
+        uid = 'x'+uuid.uuid4().hex
+
+        html = """
+        <head>
+        <link rel="stylesheet" type="text/css" href="css/color-edge-style.css">
+        </head>
+        <div class="hg-plot%s"></div>
+        <script src="./bundle.v1.0.js"></script>
+        <script>
+        hgplot.drawing.hgColorEdgePlot({graph:%s},{preferences:%s},{idColorEdge:"%s"});
+        </script>
+        """ % (uid, json.dumps(graph), json.dumps(config), uid)
+
+        from IPython.core.display import display, HTML
+        display(HTML(html))
 
 # =============================================================================
 # eof
