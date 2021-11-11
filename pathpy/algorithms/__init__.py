@@ -52,6 +52,8 @@ from pathpy.algorithms import evaluation
 
 from pathpy.algorithms import path_extraction
 
+from pathpy.algorithms import bipartite
+
 from pathpy.algorithms.rolling_time_window import RollingTimeWindow
 
 # =============================================================================
