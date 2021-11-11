@@ -975,6 +975,19 @@ class Network(BaseNetwork):
             self._properties['edges'].discard(edge)
 
 
+    def to_multi_layer(network: Network, edge_attribute: str):
+        
+        edge_types = set()
+        for e in network.edges:
+            edge_types.add(e[edge_attribute])
+        network_layers = {}
+        for t in edge_types:
+            network_layers[t] = Network(uid=network.uid+'-'+t, directed=network.directed, multiedges=network.multiedges)
+        for e in network.edges:
+            network_layers[e[edge_attribute]].add_edge(e)
+        
+        return network_layers
+
     @classmethod
     def from_temporal_network(cls, temporal_network: TemporalNetwork, min_time=float('-inf'), max_time=float('inf'), **kwargs: Any):
         uid: Optional[str] = kwargs.pop('uid', None)
