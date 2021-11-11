@@ -39,7 +39,7 @@ def _check_column_name(frame: pd.DataFrame, name: str,
 
 
 def to_network(df: pd.DataFrame, loops: bool = True, directed: bool = True,
-               multiedges: bool = False, **kwargs: Any) -> Network:
+               multiedges: bool = False, bipartite: bool=False, **kwargs: Any) -> Network:
     """Reads a network from a pandas data frame.
 
     The data frame is expected to have a minimum of two columns `v` and `w`
@@ -114,7 +114,9 @@ def to_network(df: pd.DataFrame, loops: bool = True, directed: bool = True,
     LOG.debug('Creating %s network', directed)
 
     # create a set of all node uids
-    node_set: set = set(df['v']).union(set(df['w']))
+    v_set = set(df['v'])
+    w_set = set(df['w'])
+    node_set: set = set(v_set).union(w_set)
 
     if None in node_set:
         LOG.error('DataFrame minimally needs columns \'v\' and \'w\'')
@@ -122,6 +124,14 @@ def to_network(df: pd.DataFrame, loops: bool = True, directed: bool = True,
 
     # create dict with node.uid and node
     nodes: dict = {n: Node(n) for n in node_set}
+    if bipartite:
+        for v in nodes:
+            if v in v_set:
+                nodes[v]['partition'] = 0
+                nodes[v]['color'] = 'darkblue'
+            elif v in w_set:
+                nodes[v]['partition'] = 1
+                nodes[v]['color'] = 'orange'
 
     # initialize variables
     edges: list = []
@@ -166,6 +176,17 @@ def to_network(df: pd.DataFrame, loops: bool = True, directed: bool = True,
         net.edges.counter[key] += value
 
     return net
+
+def add_attributes(df: pd.DataFrame, network: Network):
+    """Adds the columns of a data frame as attributes to nodes of an existing network, where the node
+    identifiers are given as column v.     
+    """
+    df['v'] = df['v'].astype(str)
+    cols = [v for v in df.columns]
+    cols.remove('v')
+    for idx, row in df.iterrows():
+        for c in cols:
+            network.nodes[row['v']][c] = row[c]
 
 
 def to_temporal_network(df: pd.DataFrame, loops: bool = True,

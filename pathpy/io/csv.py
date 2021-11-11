@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any, Optional, Union
 import pandas as pd  # pylint: disable=import-error
 
 from pathpy import logger
-from pathpy.io.pandas import to_network, to_temporal_network, to_dataframe
+from pathpy.io.pandas import to_network, to_temporal_network, to_dataframe, add_attributes as aa
 
 from pathpy.core.api import Node, NodeCollection
 from pathpy.core.api import Edge, EdgeCollection
@@ -45,6 +45,11 @@ def read_dataframe(filename: str,
     # return pandas data frame
     return frame
 
+def add_attributes(filename: str, network: Network, sep: str = ',',
+                   header: bool = True, **kwargs: Any) -> None:
+    """Adds attributes from csv file to nodes of existing network."""
+    frame = read_dataframe(filename=filename, sep=sep, header=header)
+    aa(frame, network)
 
 def read_network(filename: str = None,
                  loops: bool = True,
@@ -53,6 +58,7 @@ def read_network(filename: str = None,
                  sep: str = ',',
                  header: bool = True,
                  names: Optional[list] = None,
+                 bipartite: book = False,
                  **kwargs: Any) -> Network:
     """Reads a network from a csvfile."""
     # pylint: disable=too-many-arguments
@@ -61,7 +67,7 @@ def read_network(filename: str = None,
                            header=header, names=names)
 
     net = to_network(frame, loops=loops, directed=directed,
-                     multiedges=multiedges, **kwargs)
+                     multiedges=multiedges, bipartite=bipartite, **kwargs)
 
     return net
 
