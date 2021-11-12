@@ -975,14 +975,18 @@ class Network(BaseNetwork):
             self._properties['edges'].discard(edge)
 
 
-    def to_multi_layer(network: Network, edge_attribute: str):
-        
+    def to_multi_layer(network: Network, edge_attribute: str, retain_nodes=True) -> dict:
+        """Splits a network into multiple layers, based on the specified edge attribute
+        """
         edge_types = set()
         for e in network.edges:
             edge_types.add(e[edge_attribute])
         network_layers = {}
         for t in edge_types:
-            network_layers[t] = Network(uid=network.uid+'-'+t, directed=network.directed, multiedges=network.multiedges)
+            network_layers[t] = Network(uid=network.uid+'-'+str(t), directed=network.directed, multiedges=network.multiedges)
+            if retain_nodes:
+                for v in network.nodes:
+                    network_layers[t].add_node(v.uid, **v.attributes)
         for e in network.edges:
             network_layers[e[edge_attribute]].add_edge(e)
         
