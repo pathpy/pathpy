@@ -214,8 +214,9 @@ class RandomWalk(BaseProcess):
         # determine next node
         next_node = self.reverse_index[self.samplers[self._current_node].sample(
         )]
-        assert (self._current_node, next_node) in self._network.edges, 'Assertion Error: {0} not in edge list'.format(
-            (self._current_node, next_node))
+        # TODO: assertion will not hold if restart_prob > 0
+        # assert (self._current_node, next_node) in self._network.edges, 'Assertion Error: {0} not in edge list'.format(
+        #     (self._current_node, next_node))
 
         previous_node = self._current_node
         self._current_node = next_node
