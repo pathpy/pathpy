@@ -143,7 +143,7 @@ class HigherOrderNetwork(BaseHigherOrderNetwork, Network):
             # add higher-order nodes to the network
             for node in nodes:
                 if node not in self.nodes:
-                    self.add_node(*node, count=0)
+                    self.add_node(*node, uid='-'.join(node), count=0)
                 self.nodes.counter[self.nodes[node].uid] += data.counter[uid]
 
             # do not create edges if order is 0

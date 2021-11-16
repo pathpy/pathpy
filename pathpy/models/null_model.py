@@ -65,9 +65,9 @@ class NullModel(HigherOrderNetwork):
             # get higher-oder nodes
             _v, _w = path[:-1], path[1:]
             if _v not in self.nodes:
-                self.add_node(*_v, count=0)
+                self.add_node(*_v, uid='-'.join(_v), count=0)
             if _w not in self.nodes:
-                self.add_node(*_w, count=0)
+                self.add_node(*_w, uid='-'.join(_w), count=0)
             node_v, node_w = self.nodes[_v], self.nodes[_w]
 
             frequency = subpaths[_v] * mat[idx[path[-2]], idx[path[-1]]]
