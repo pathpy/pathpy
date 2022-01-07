@@ -64,15 +64,14 @@ class Path(PathPyPath):
 
 
 class PathCollection(PathPyCollection):
-    """A collection of edges"""
+    """A collection of paths"""
 
     def __init__(self, *args, **kwargs) -> None:
-        """Initialize the EdgeCollection object."""
+        """Initialize the PathCollection object."""
 
         # initialize the base class
         super().__init__(*args, **kwargs)
 
-        # indicator whether the network has multi-edges
         self._multiple: bool = kwargs.pop('multipaths', False)
 
         # class of objects
@@ -80,7 +79,7 @@ class PathCollection(PathPyCollection):
 
     @property
     def multipaths(self) -> bool:
-        """Return if edges are multiedges. """
+        """Return if collection is a multiset. """
         return self._multiple
 
     @singledispatchmethod
