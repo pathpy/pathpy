@@ -270,8 +270,8 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
 
         Parameters
         ----------
-        v:
-            node from which to start
+        v:  str
+            uid of node from which to start
         node_mapping: dict
             an optional mapping from node to a different set.
 
@@ -293,19 +293,22 @@ class DirectedAcyclicGraph(ABCDirectedAcyclicGraph, Network):
 
         # set of unprocessed nodes
         queue = {v}
+        # print('Queue = ', queue)
 
         while queue:
             # take one unprocessed node
             x = queue.pop()
-
+            # print('Dequeued ', x)
             # successors of x expand all temporary
             # paths, currently ending in x
             if len(self.successors[x]) > 0:
-                for w in self.successors[x]:
+                for w in self.successors[x]:                    
                     for p in temp_paths[x]:
                         temp_paths[w.uid].append(p + [w.uid])
+                    # print('Adding ', w.uid)
                     queue.add(w.uid)
                 del temp_paths[x]
+            #print('Queue = ', queue)
 
         # flatten list
         for possible_paths in temp_paths.values():
