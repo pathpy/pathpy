@@ -99,7 +99,7 @@ def _expand_set_paths(set_path):
 
 
 
-def all_paths_from_dag(dag: ABCDirectedAcyclicGraph, node_mapping=None, max_subpath_length=None, separator=',', repetitions=True, unique=False) -> PathCollection:
+def all_paths_from_dag(dag: ABCDirectedAcyclicGraph, node_mapping=None, max_subpath_length=None, repetitions=True, unique=False) -> PathCollection:
     """
     Calculates path statistics in a directed acyclic graph.
     All paths between all roots (nodes with zero indegree)
@@ -119,10 +119,8 @@ def all_paths_from_dag(dag: ABCDirectedAcyclicGraph, node_mapping=None, max_subp
         set the maximum sub path length to K. By default, sub paths of any length
         will be calculated. Note that, independent of the sub path calculation
         longest path of any length will be considered in the likelihood calculation!
-    separator: str
-        separator to use to separate nodes in the generated Paths object. Default is ','.
     repetitions: bool
-        whether or not to remove repeated nodes in the paths. Such repeated paths can occur
+        whether or not to remove repeated nodes in paths. Repeated nodes can occur
         if a non-injective node_mapping is applied. If set to True, a path a,a,b,b,c,c,d is
         returned as a,b,c,d.
     unique: bool
@@ -157,40 +155,45 @@ def all_paths_from_dag(dag: ABCDirectedAcyclicGraph, node_mapping=None, max_subp
         LOG.error('Cannot extract statistics from a cyclic graph')
         raise ValueError
     else:
-        # path object which will hold the detected (projected) paths
+        # PathCollection that stores detected (projected) paths
         paths = PathCollection()
-        # if max_subpath_length:
-        #     p.max_subpath_length = max_subpath_length
-        # else:
-        #     p.max_subpath_length = sys.maxsize
 
         LOG.info('Creating paths from directed acyclic graph')
 
         # construct all paths originating from root nodes for 1 to 1
         if not ONE_TO_MANY:
-            for s in dag.roots:
-                extracted_paths = dag.routes_from(s.uid, node_mapping)
-                if unique:
-                    extracted_paths = set(tuple(x) for x in extracted_paths)
-                for path in extracted_paths:   # add detected paths to paths object                    
+            for root in dag.roots:
+                print('Processing root node ', root.uid)
+                extracted_paths = dag.routes_from(root.uid, node_mapping)
+
+                # if unique:
+                #     extracted_paths = set(tuple(x) for x in extracted_paths)
+                # for path in extracted_paths:   # add detected paths to paths object                    
+                #     if repetitions:
+                #         p = path                                          
+                #     else:
+                #         p = _remove_repetitions(path)
+                for p in extracted_paths:
                     if repetitions:
-                        p = path                                          
+                        path = tuple([x for x in p])
                     else:
-                        p = _remove_repetitions(path)
-                    paths.add(p, count=1, uid='-'.join(p))
+                        path = tuple(set([x for x in p]))
+                    if unique:
+                        paths.add(list(path), count=1, uid='-'.join(x.uid for x in path))
+                    else:
+                        paths.add(list(path), count=extracted_paths.counter[path], uid='-'.join([x.uid for x in path]))
         else:
-            path_counter = defaultdict(lambda: 0)
             for root in dag.roots:
                 for set_path in dag.routes_from_node(root.uid, node_mapping):
                     for blown_up_path in _expand_set_paths(set_path):
-                        path_counter[blown_up_path] += 1
+                        paths[blown_up_path] += 1
 
-            for path, count in path_counter.items():
-                if repetitions:
-                    p = path
-                else:
-                    p = _remove_repetitions(path)
-                paths.add(p, count=count, uid='-'.join(p))
+            # for path, count in path_counter.items():
+            #     if repetitions:
+            #         p = path
+            #     else:
+            #         p = _remove_repetitions(path)
+            #     paths.add(p, count=count, uid='-'.join(p))
 
         #LOG.info('Expanding Subpaths')
         # p.expand_subpaths()
