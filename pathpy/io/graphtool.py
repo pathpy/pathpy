@@ -62,7 +62,7 @@ def _parse_property_value(data: bytes, ptr: int, type_index: int, endianness: st
 
     Tuple (v, n) consisting of the property value v and the number of bytes n processed
     """
-    import pickle5 as pickle
+    #import pickle5 as pickle
     
     if type_index == 0:
         return (bool(data[ptr]), 1)
