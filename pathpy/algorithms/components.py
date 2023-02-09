@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Dict
 from collections import defaultdict
 
 from pathpy import logger, tqdm
+import numpy as np  # Added
 
 # pseudo load class for type checking
 if TYPE_CHECKING:
@@ -22,21 +23,47 @@ LOG = logger(__name__)
 
 
 def find_connected_components(network: Network) -> Dict:
-    """Computes connected components of a network.
+    """
+    Computes connected components of a network by using Tarjan's Algorithm.
+        Tarjan's Algorithm: it is an algorithm for finding the strongly connected components(SCCs) between all pairs of vertices of a
+        directed graph. It produces a partition of the graph's vertices into the graph's SCCs. In the presence of any components that
+        is not involved in a directed cycle forms a strongly connected component by itself. 
 
     Parameters
     ----------
 
-    network: Network
+    network: Network 
 
-        Network instance
+        Network instance containing vertices.
 
     Returns
     -------
 
     dict
 
-        dictionary mapping node uids to components (represented as integer IDs)
+        dictionary of components(represented as integer IDs) mapping node uids 
+
+    Examples
+    --------
+    - Generate simple network
+
+        >>> import pathpy as pp
+        >>> n = pp.Network(directed=True)
+        >>> n.add_edges(('a', 'b'), ('b', 'c'),('c', 'a'), ('b', 'd'), ('d','e'), ('e','f'), ('f','g'), ('g','d'))
+        >>> n.find_connected_components()  
+        {0: {'d', 'e', 'f', 'g'}, 1: {'a', 'b', 'c'}}
+
+
+    - Generate network containing vertices where they are not involved in a directed cycle.
+        Parameter: Network
+        Returns: Dictionary
+
+        >>> import pathpy as pp
+        >>> n = pp.Network(directed=True)
+        >>> n.add_edges(('a', 'b'), ('b', 'c'),('c', 'a'), ('b', 'd'), ('d','e'))
+        >>> n.find_connected_components() 
+        {0: {'e'}, 1: {'d'}, 2: {'a', 'b', 'c'}}
+
 
     """
 
@@ -96,6 +123,26 @@ def find_connected_components(network: Network) -> Dict:
 
 def mean_component_size(network: Network) -> float:
     """Returns the mean connected component size of the network.
+
+        Parameters
+        ----------
+        network: Network 
+
+            Network instance containing vertices.
+
+
+        Returns
+        -------
+        float
+            float number representing mean connected component size of the network
+
+        Example 
+        -------
+            >>> n = pp.Network(directed=True)
+            >>> n.add_edges(('a','b'), ('b','c'), ('c','d'), ('d','a'))
+            >>> n.mean_component_size()
+            3.5
+
     """
     components = find_connected_components(network)
     component_sizes = [len(nodes) for comp, nodes in components.items()]
@@ -103,7 +150,29 @@ def mean_component_size(network: Network) -> float:
 
 
 def largest_connected_component(network: Network) -> Network:
-    """Returns the largest connected component of the network.
+    """Returns a component plot of the largest connected component of the input network.
+
+        Parameters
+        ----------
+
+        network: Network 
+
+            Network instance containing vertices.
+
+
+        Returns
+        -------
+
+        Plot of the largest connected component of the network
+
+
+        Example
+        --------
+            >>> n = pp.Network(directed=True)
+            >>> n.add_edges(('a', 'b'), ('b', 'c'),('c', 'a'), ('b', 'd'), ('d','e'))
+            >>> n.largest_connected_component()  
+            *Plot of the largest connected component of the network*
+
     """
 
     LOG.debug('Computing connected components')
@@ -128,12 +197,61 @@ def largest_connected_component(network: Network) -> Network:
 @property
 def is_connected(network: Network) -> bool:
     """Returns whether the network is (strongly) connected
+
+        Parameter
+        ---------
+        network: Network 
+
+            Network instance containing vertices.
+
+        Returns
+        -------
+        bool
+
+            boolean representing wether the network is connected
+
+        Example 1
+        ---------
+            >>> n = pp.Network(directed=True)
+            >>> n.add_edges(('a', 'b'), ('b', 'c'),('c', 'a'), ('b', 'd'), ('d','e'), ('e','f'), ('f','g'), ('g','d'))
+            >>> getattr(n, "is_connected") 
+            False
+
+        Example 2
+        ---------
+            >>> n = pp.Network(directed=True)
+            >>> n.add_edges(('a','b'), ('b','c'), ('c','d'), ('d','a'))
+            >>> getattr(n, "is_connected")
+            True
+
     """
     return largest_component_size(network) == network.number_of_nodes()
 
 
 def largest_component_size(network: Network) -> int:
-    """Largest component size of the network."""
+    """Find largest component size of the network.
+
+    Parameter
+    ---------
+     network: Network 
+
+        Network instance containing vertices.
+
+
+    Returns
+    -------
+    int
+
+        integer representing the size of the largest component in the network
+
+    Example
+    -------
+        >>> n = pp.Network(directed=True)
+        >>> n.add_edges(('a', 'b'), ('b', 'c'),('c', 'a'), ('b', 'd'), ('d','e'))
+        >>> n.largest_component_size()
+        3
+
+    """
     LOG.debug('Computing connected components')
     components = find_connected_components(network)
     if len(components):
